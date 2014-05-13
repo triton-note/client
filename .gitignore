@@ -1,0 +1,6 @@
+node_modules/
+plugins/
+www/
+platforms/
+bower_components/
+*.log
