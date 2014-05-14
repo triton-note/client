@@ -1,0 +1,11 @@
+- var app = { name: 'Fish', title: 'Adding Fish' }
+doctype html
+html(ng-app=app.name)
+	head
+		include _header
+	body(ng-controller='BaseCtrl')
+		.list
+			.item
+				p {{sample}}
+			.item.item-input
+				input(type="text", ng-model="sample")
