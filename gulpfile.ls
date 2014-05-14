@@ -1,5 +1,7 @@
 require! {
+	fs
 	gulp
+	es: 'event-stream'
 	_: 'prelude-ls'
 }
 gp = require('gulp-load-plugins')()
@@ -11,8 +13,12 @@ paths = {
 	jade: mkPath('') 'jade'
 	image: mkPath('img') 'png', 'jpg'
 	sass: mkPath('sass') 'scss', 'sass'
-	ls: mkPath('ls') 'ls'
+	ls: "./www-src/ls"
 }
+
+findFolders = (dir) ->
+	fs.readdirSync(dir).filter (file) ->
+		fs.statSync("#{dir}/#{file}").isDirectory!
 
 gulp.task "jade", ->
 	gulp.src paths.jade
@@ -26,11 +32,14 @@ gulp.task "image", ->
 		.pipe gulp.dest "./www/img"
 
 gulp.task "livescript", ->
-	gulp.src paths.ls
-		.pipe gp.livescript { base: true, const: true }
-		.pipe gp.if isRelease, gp.ngmin!
-		.pipe gp.if isRelease, gp.uglify!
-		.pipe gulp.dest "./www/js"
+	es.concat.apply null,
+		findFolders(paths.ls).map (folder) ->
+			gulp.src ["#{paths.ls}/#{folder}/Main.ls", "#{paths.ls}/#{folder}/**/*.ls"]
+				.pipe gp.concat "#{folder}.ls"
+				.pipe gp.livescript { base: true, const: true }
+				.pipe gp.if isRelease, gp.ngmin!
+				.pipe gp.if isRelease, gp.uglify!
+				.pipe gulp.dest "./www/js"
 
 gulp.task "sass", ->
 	gulp.src paths.sass
