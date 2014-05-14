@@ -54,7 +54,7 @@ gulp.task "jade", ->
 
 gulp.task "image", ->
 	gulp.src paths.image.src
-		.pipe gp.if isRelease, gp.imagemin {
+		.pipe gp.imagemin {
 			optimizationLevel: 7
 			progressive: true
 		}
