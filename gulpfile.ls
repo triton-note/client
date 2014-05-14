@@ -34,7 +34,9 @@ gulp.task "ionic", ->
 		path = mkPath('lib') 'bundle.js'
 		gulp.src path.src
 			.pipe gp.if isRelease, gp.ngmin!
-			.pipe gp.if isRelease, gp.uglify!
+			.pipe gp.if isRelease, gp.uglify {
+				preserveComments: "some"
+			}
 			.pipe gulp.dest path.dst-dir
 	json = ->
 		path = mkPath('lib') 'json'
