@@ -15,6 +15,15 @@
     "test",
     "tests"
   ],
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "prelude-ls": "~1.1.1"
+  },
+  "devDependencies": {},
+  "overrides": {
+    "prelude-ls": {
+      "main": [
+        "browser/prelude-browser.js"
+      ]
+    }
+  }
 }
