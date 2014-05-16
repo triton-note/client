@@ -66,7 +66,7 @@ gulp.task "livescript", ->
 	es.concat.apply null,
 		findFolders(paths.ls.src-dir).map (folder) ->
 			dir = "#{paths.ls.src-dir}/#{folder}"
-			gulp.src ["#{dir}/Main.ls", "#{dir}/**/*.ls"]
+			gulp.src ["#{dir}/_Main.ls", "#{dir}/**/!(_)*.ls"]
 				.pipe gp.concat "#{folder}.ls"
 				.pipe gp.livescript {
 					base: true

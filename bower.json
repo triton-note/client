@@ -1,0 +1,29 @@
+{
+  "name": "TritonNote",
+  "version": "0.0.1",
+  "authors": [
+    "Kunio SAWATANI <devel.fathens@gmail.com>"
+  ],
+  "description": "Triton Note Client",
+  "license": "MIT",
+  "homepage": "triton-note.fathens.org",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "prelude-ls": "~1.1.1"
+  },
+  "devDependencies": {},
+  "overrides": {
+    "prelude-ls": {
+      "main": [
+        "browser/prelude-browser.js"
+      ]
+    }
+  }
+}
