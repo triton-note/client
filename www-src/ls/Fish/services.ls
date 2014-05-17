@@ -18,5 +18,21 @@
 		| _                     => [ joinValue(obj, parent) ]
 
 	{
+		/*
+			Transform obj for POST body.
+		*/
 		transform: (obj) -> (_.compact _.flatten resolve obj).join '&'
+	}
+
+.factory 'PhotoFactory', ->
+	{
+		/*
+			Select a photo from storage.
+			onSuccess(image-uri)
+			onFailure(error-message)
+		*/
+		select: (onSuccess, onFailure) !->
+			navigator.camera.getPicture onSuccess, onFailure,
+				sourceType: Camera.PictureSourceType.PHOTOLIBRARY
+				destinationType: Camera.DestinationType.FILE_URI
 	}
