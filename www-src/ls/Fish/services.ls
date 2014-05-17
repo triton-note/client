@@ -20,3 +20,11 @@
 	{
 		transform: (obj) -> (_.compact _.flatten resolve obj).join '&'
 	}
+
+.factory 'PhotoFactory', ->
+	{
+		select: (onSuccess, onFailure) !->
+			navigator.camera.getPicture onSuccess, onFailure,
+				sourceType: Camera.PictureSourceType.PHOTOLIBRARY
+				destinationType: Camera.DestinationType.FILE_URI
+	}
