@@ -4,8 +4,15 @@ html(ng-app=app.name)
 	head
 		include _header
 	body(ng-controller='BaseCtrl')
-		.list
-			.item
-				p {{sample}}
-			.item.item-input
-				input(type="text", ng-model="sample")
+		ion-header-bar
+			h1.title {{sample}}
+		ion-content
+			.list
+				.row(ng-controller='GMapCtrl')
+					.col-25.input-label
+						p Spot
+					.col
+						{{position.toUrlValue(3)}}
+					.col.item-button-right
+						button.button.button-positive(ng-click="showMap()")
+							i.icon.ion-earth
