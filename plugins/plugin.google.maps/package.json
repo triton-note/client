@@ -1,0 +1,23 @@
+{
+    "version": "1.1.0",
+    "name": "plugin.google.maps",
+    "cordova_name": "phonegap-googlemaps-plugin",
+    "description": "You can implement Google Maps native SDK into your app easily!",
+    "license": "Apache 2.0",
+    "repo": "https://github.com/wf9a5m75/phonegap-googlemaps-plugin/",
+    "issue": "https://github.com/wf9a5m75/phonegap-googlemaps-plugin/issues",
+    "keywords": [
+        "google",
+        "maps"
+    ],
+    "platforms": [
+        "android",
+        "ios"
+    ],
+    "engines": [
+        {
+            "name": "cordova",
+            "version": ">=3.0.0"
+        }
+    ]
+}
