@@ -6,16 +6,14 @@
 	$scope.markar = null
 
 	create-map = !->
-		gmap = plugin.google.maps.Map.getMap {
+		$scope.gmap = plugin.google.maps.Map.getMap {
 			'mapType': plugin.google.maps.MapTypeId.HYBRID
 			'controls':
 				'myLocationButton': true
 				'zoom': true
 		}
-		gmap.on plugin.google.maps.event.MAP_READY, (gmap) !->
-			gmap.showDialog!
-			$scope.gmap = gmap
-		gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
+		$scope.gmap.on plugin.google.maps.event.MAP_READY, (gmap) !-> gmap.showDialog!
+		$scope.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
 			$scope.position = latLng
 			$scope.markar?.remove!
 			$scope.gmap.addMarker {
