@@ -1,0 +1,27 @@
+.modal(ng-controller='AddRecordCtrl')
+	ion-header-bar
+		h1.title New Record
+	ion-content
+		.card
+			.item.item-image
+				img.full-image(src="{{photo}}")
+		.list
+			.row.item.item-input
+				.col-25.input-label
+					p Date
+				.col
+					input(type="date", ng-model="dateAt")
+			.row.item.item-input.item-icon-right(ng-controller='GMapCtrl')
+				.col-25.input-label
+					p Spot
+				.col
+					input(type="text", ng-model="location")
+				.icon.ion-earth.positive(ng-click="showMap()")
+		.list
+			.bar.item
+				p.title Catches
+				button.button.button-clear.icon.ion-plus-circled.button-positive
+			ion-list
+				ion-item.item-button-right(ng-repeat="fish in fishes")
+					p {{fish.name}} x {{fish.count}}
+					button.button.button-clear.icon.ion-minus-circled.button-stable

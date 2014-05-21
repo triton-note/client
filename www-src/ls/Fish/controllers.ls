@@ -1,5 +1,23 @@
-.controller 'BaseCtrl', ($log, $scope) !->
-	$scope.sample = "Sample"
+.controller 'BaseCtrl', ($log, $scope, $ionicModal) !->
+	$ionicModal.fromTemplateUrl 'template/add-record.html'
+		, (modal) !-> $scope.modalAddRecord = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
+	$scope.addRecord = !-> $scope.modalAddRecord.show!
+
+	$scope.openMap = !-> alert "Open Map"
+
+.controller 'TopCtrl', ($log, $scope, RecordFactory) !->
+	$scope.records = RecordFactory.load!
+	$scope.detail = (index) !->
+		alert "Click #index => #{$scope.records[index].image}"
+
+.controller 'AddRecordCtrl', ($log, $scope, RecordFactory) !->
+	$scope.photo = null
+	$scope.dateAt = new Date!
+	$scope.location = "Here"
 
 .controller 'GMapCtrl', ($log, $scope) !->
 	$scope.position = null

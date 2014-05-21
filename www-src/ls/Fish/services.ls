@@ -32,3 +32,22 @@
 		navigator.camera.getPicture onSuccess, onFailure,
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
+
+.factory 'RecordFactory', ->
+	/*
+		Load records from server
+	*/
+	load: -> [ # Pseudo list
+		{
+			image: "http://upload.wikimedia.org/wikipedia/commons/e/ec/John_W._Lewin_-_Fish_catch_and_Dawes_Point%2C_Sydney_Harbour_-_Google_Art_Project.jpg"
+			fishes:
+				{name: "Dolphin", count: 2}
+				{name: "Whale", count: 1}
+		}
+		{
+			image: "http://eofdreams.com/data_images/dreams/fish/fish-09.jpg"
+			fishes:
+				{name: "Snapper", count: 3}
+				{name: "Manta", count: 0}
+		}
+	]
