@@ -1,6 +1,8 @@
 .modal(ng-controller='AddRecordCtrl')
 	ion-header-bar
+		button.button.button-clear.icon.ion-close.button-dark(ng-click="cancel()")
 		h1.title New Record
+		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
 	ion-content
 		.card
 			.item.item-image

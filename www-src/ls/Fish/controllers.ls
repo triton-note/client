@@ -1,11 +1,19 @@
-.controller 'BaseCtrl', ($log, $scope, $ionicModal) !->
+.controller 'BaseCtrl', ($log, $scope, $ionicModal, $ionicPopup, PhotoFactory) !->
 	$ionicModal.fromTemplateUrl 'template/add-record.html'
 		, (modal) !-> $scope.modalAddRecord = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
 
-	$scope.addRecord = !-> $scope.modalAddRecord.show!
+	$scope.addRecord = !->
+		PhotoFactory.select (uri) !->
+			$scope.$apply $scope.photo = uri
+			$scope.modalAddRecord.show!
+		, (msg) !->
+			$ionicPopup.alert {
+				title: "No photo selected"
+				subTitle: "Need a photo to record"
+			}
 
 	$scope.openMap = !-> alert "Open Map"
 
@@ -15,9 +23,12 @@
 		alert "Click #index => #{$scope.records[index].image}"
 
 .controller 'AddRecordCtrl', ($log, $scope, RecordFactory) !->
-	$scope.photo = null
 	$scope.dateAt = new Date!
 	$scope.location = "Here"
+	$scope.fishes = []
+
+	$scope.cancel = !-> $scope.modalAddRecord.hide!
+	$scope.submit = !-> $scope.modalAddRecord.hide!
 
 .controller 'GMapCtrl', ($log, $scope) !->
 	$scope.position = null

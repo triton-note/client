@@ -28,7 +28,7 @@
 		onSuccess(image-uri)
 		onFailure(error-message)
 	*/
-	select: (onSuccess, onFailure) !->
+	select: (onSuccess, onFailure = (msg) !-> alert msg) !->
 		navigator.camera.getPicture onSuccess, onFailure,
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
