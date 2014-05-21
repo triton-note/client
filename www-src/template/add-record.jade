@@ -1,29 +1,29 @@
-.modal(ng-controller='AddRecordCtrl')
+.modal
 	ion-header-bar
 		button.button.button-clear.icon.ion-close.button-dark(ng-click="cancel()")
 		h1.title New Record
-		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
+		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit(record)")
 	ion-content
 		.card
 			.item.item-image
-				img.full-image(src="{{photo}}")
+				img.full-image(src="{{ record.photo }}")
 		.list
 			.row.item.item-input
 				.col-25.input-label
 					p Date
 				.col
-					input(type="date", ng-model="dateAt")
+					input(type="date", ng-model="record.dateAt")
 			.row.item.item-input.item-icon-right(ng-controller='GMapCtrl')
 				.col-25.input-label
 					p Spot
 				.col
-					input(type="text", ng-model="location")
-				.icon.ion-earth.positive(ng-click="showMap()")
+					input(type="text", ng-model="record.location.name")
+				.icon.ion-earth.positive(ng-click="showMap(setLatLng)")
 		.list
 			.bar.item
 				p.title Catches
 				button.button.button-clear.icon.ion-plus-circled.button-positive
 			ion-list
-				ion-item.item-button-right(ng-repeat="fish in fishes")
+				ion-item.item-button-right(ng-repeat="fish in record.fishes")
 					p {{fish.name}} x {{fish.count}}
 					button.button.button-clear.icon.ion-minus-circled.button-stable

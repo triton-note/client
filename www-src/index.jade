@@ -7,14 +7,14 @@ html(ng-app=app.name)
 		ion-side-menus
 			ion-side-menu-content
 				ion-header-bar
-					.button.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
-					h1.title My Record
-					.button.button.button-clear.icon.ion-plus-round.button-positive(ng-click="addRecord()")
+					.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
+					h1.title My Records
+					.button.button-clear.icon.ion-plus-round.button-positive(ng-controller='AddRecordCtrl', ng-click="open()")
 
 				ion-content(ng-controller='TopCtrl')
 					.list.card
 						.item.item-body(ng-repeat="record in records", ng-click="detail({{ $index }})")
-							img.full-image(src="{{ record.image }}")
+							img.full-image(src="{{ record.photo }}")
 							.list
 								.item(ng-repeat="fish in record.fishes")
 									p {{fish.name}} x {{fish.count}}
