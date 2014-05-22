@@ -1,4 +1,4 @@
-.filter 'fishFilter', (UnitFactory) ->
+.filter 'fishFilter', ($filter, UnitFactory) ->
 	/*
 		fish {
 			name: String
@@ -18,7 +18,8 @@
 				srcUnit = eval "fish.units.#{u}"
 				dstUnit = eval "units.#{u}"
 				converter = eval "UnitFactory.#{u}"
-				"#{converter(value, srcUnit, dstUnit)}#{dstUnit}"
+				converted = converter(value, srcUnit, dstUnit)
+				"#{$filter('number')(converted, 0)} #{dstUnit}"
 			else []
 		sizes = (_.flatten _.map(size) ["length", "weight"]).join ', '
 		volume =
