@@ -68,3 +68,17 @@
 		list = loadLocal!
 		list[index] = record
 		saveLocal list
+
+.factory 'UnitFactory', ->
+	inchToCm = 2.54
+	pondToKg = 0.4536
+	
+	length: (value, srcUnit, dstUnit) ->
+		| srcUnit == dstUnit => value
+		| srcUnit == 'inch'  => value * inchToCm
+		| srcUnit == 'cm'    => value / inchToCm
+
+	weight: (value, srcUnit, dstUnit) ->
+		| srcUnit == dstUnit => value
+		| srcUnit == 'pond'  => value * pondToKg
+		| srcUnit == 'kg'    => value / pondToKg

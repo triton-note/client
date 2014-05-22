@@ -94,6 +94,36 @@
 		$rootScope.$broadcast 'fathens-records-changed'
 		$scope.modal.hide!
 
+.controller 'AddFishCtrl', ($scope, $ionicPopup) !->
+	# $scope.record.fishes
+	$scope.deleteFish = (index) !-> $scope.record.fishes.splice index, 1
+	$scope.addFish = !->
+		$scope.fish = {
+			name: null
+			count: 1
+			units:
+				length: 'cm'
+				weight: 'kg'
+		}
+		$ionicPopup.show {
+			title: 'Add Fish'
+			templateUrl: "add-fish"
+			scope: $scope
+			buttons:
+				*text: "Cancel"
+					type: "button-default"
+					onTap: (e) -> null
+				*text: "OK"
+					type: "button-positive"
+					onTap: (e) !->
+						if $scope.fish.name
+						then return $scope.fish
+						else e.preventDefault!
+		}
+		.then (res) !-> $scope.record.fishes.push res if res
+			, (err) !-> alert "Error: #err"
+			, (msg) !-> alert "Message: #msg"
+
 .controller 'GMapCtrl', ($log, $scope) !->
 	$scope.markar = null
 

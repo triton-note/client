@@ -24,4 +24,4 @@
 				p.title Catches
 			ion-list
 				ion-item.item-button-right(ng-repeat="fish in record.fishes")
-					p {{fish.name}} x {{fish.count}}
+					p {{fish | fishFilter}}

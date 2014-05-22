@@ -19,11 +19,30 @@
 				.col
 					input(type="text", ng-model="record.location.name")
 				.icon.ion-earth.positive(ng-click="showMap(setLatLng)")
-		.list
+		.list(ng-controller='AddFishCtrl')
 			.bar.item
 				p.title Catches
-				button.button.button-clear.icon.ion-plus-circled.button-positive
+				button.button.button-clear.icon.ion-plus-circled.button-positive(ng-click="addFish()")
 			ion-list
 				ion-item.item-button-right(ng-repeat="fish in record.fishes")
-					p {{fish.name}} x {{fish.count}}
-					button.button.button-clear.icon.ion-minus-circled.button-stable
+					p {{fish | fishFilter}}
+					button.button.button-clear.icon.ion-minus-circled.button-stable(ng-click="deleteFish($index)")
+
+			script#add-fish(type="text/ng-template")
+
+				.item.item-input
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="fish.name")
+					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.name")
+					input(type="text", ng-model="fish.name", placeholder="Name", required)
+				.item.item-input
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="fish.count")
+					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.count")
+					input(type="number", ng-model="fish.count", placeholder="Count", min="1", required)
+				.row
+					.input-label
+						p Length
+					input(type="number", ng-model="fish.length", placeholder="Length")
+				.row
+					.input-label
+						p Weight
+					input(type="number", ng-model="fish.weight", placeholder="Weight")

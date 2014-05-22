@@ -17,7 +17,7 @@ html(ng-app=app.name)
 							img.full-image(src="{{ record.photo }}", ng-click="detail({{ $index }})")
 							.list
 								.item(ng-repeat="fish in record.fishes")
-									p {{fish.name}} x {{fish.count}}
+									p {{fish | fishFilter}}
 
 			ion-side-menu(side="left")
 				ion-header-bar
