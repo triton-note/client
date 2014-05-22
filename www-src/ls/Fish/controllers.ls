@@ -1,12 +1,70 @@
-.controller 'BaseCtrl', ($log, $scope, PhotoFactory) !->
+.controller 'MenuCtrl', ($log, $scope, PhotoFactory) !->
+
 	$scope.openMap = !-> alert "Open Map"
 
-.controller 'TopCtrl', ($log, $scope, RecordFactory) !->
-	$scope.records = RecordFactory.load!
-	$scope.detail = (index) !->
-		alert "Click #index => #{$scope.records[index].image}"
+.controller 'ShowRecordsCtrl', ($log, $scope, $ionicModal, $ionicPopup, RecordFactory) !->
+	$ionicModal.fromTemplateUrl 'template/show-record.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
 
-.controller 'AddRecordCtrl', ($log, $scope, $ionicModal, $ionicPopup, PhotoFactory, RecordFactory) !->
+	$scope.refreshRecords = !->
+		$scope.records = RecordFactory.load!
+	$scope.$on 'fathens-records-changed', (event, args) !->
+		$scope.refreshRecords!
+
+	$scope.detail = (index) !->
+		$scope.index = index
+		$scope.record = $scope.records[index]
+		$scope.modal.show!
+
+	$scope.delete = (index) !->
+		$ionicPopup.confirm {
+			title: "Delete Record"
+			template: "Are you sure to delete this record ?"
+		}
+		.then (res) !-> if res
+			RecordFactory.remove index
+			$scope.$broadcast 'fathens-records-changed'
+			$scope.modal.hide!
+
+	$scope.close = !-> $scope.modal.hide!
+
+.controller 'EditRecordCtrl', ($log, $scope, $rootScope, $ionicModal, RecordFactory) !->
+	# $scope.record = 表示中のレコード
+	# $scope.index = 表示中のレコードの index
+	$ionicModal.fromTemplateUrl 'template/edit-record.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
+	$scope.title = "Edit Record"
+
+	$scope.edit = !->
+		$scope.currentRecord = angular.copy $scope.record
+		$scope.modal.show!
+
+	$scope.cancel = !->
+		angular.copy $scope.currentRecord, $scope.record
+		$scope.modal.hide!
+	
+	$scope.submit = !->
+		$scope.currentRecord = null
+		RecordFactory.update $scope.index, $scope.record
+		$rootScope.$broadcast 'fathens-records-changed'
+		$scope.modal.hide!
+
+.controller 'AddRecordCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, RecordFactory) !->
+	$ionicModal.fromTemplateUrl 'template/edit-record.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
+	$scope.title = "New Record"
+
 	newRecord = (uri) ->
 		photo: uri
 		dateAt: new Date!
@@ -16,11 +74,6 @@
 		fishes: []
 		comment: ""
 
-	$ionicModal.fromTemplateUrl 'template/add-record.html'
-		, (modal) !-> $scope.modal = modal
-		,
-			scope: $scope
-			animation: 'slide-in-up'
 
 	$scope.open = !->
 		$log.info "Opening modal..."
@@ -36,8 +89,9 @@
 	$scope.setLatLng = (latLng) !-> $scope.record.location.latLng = latLng
 
 	$scope.cancel = !-> $scope.modal.hide!
-	$scope.submit = (record) !->
-		RecordFactory.add record
+	$scope.submit = !->
+		RecordFactory.add $scope.record
+		$rootScope.$broadcast 'fathens-records-changed'
 		$scope.modal.hide!
 
 .controller 'GMapCtrl', ($log, $scope) !->

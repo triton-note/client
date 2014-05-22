@@ -1,0 +1,27 @@
+.modal
+	ion-header-bar
+		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
+		h1.title(ng-controller='EditRecordCtrl') Record Detail
+			button.button.button-clear.icon.ion-edit.button-balanced(ng-click="edit()")
+		button.button.button-clear.icon.ion-close.button-assertive(ng-click="delete(index)")
+	ion-content
+		.card
+			.item.item-image
+				img.full-image(src="{{ record.photo }}")
+		.list
+			.row.item.item-input
+				.col-25.input-label
+					p Date
+				.col
+					p {{record.dateAt}}
+			.row.item.item-input.item-icon-right(ng-controller='GMapCtrl')
+				.col-25.input-label
+					p Spot
+				.col
+					p {{record.location.name}}
+		.list
+			.bar.item
+				p.title Catches
+			ion-list
+				ion-item.item-button-right(ng-repeat="fish in record.fishes")
+					p {{fish.name}} x {{fish.count}}

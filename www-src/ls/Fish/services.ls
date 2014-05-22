@@ -61,3 +61,10 @@
 		list = loadLocal!
 		list.splice index, 1
 		saveLocal list
+	/*
+		Update record specified by index
+	*/
+	update: (index, record) ->
+		list = loadLocal!
+		list[index] = record
+		saveLocal list
