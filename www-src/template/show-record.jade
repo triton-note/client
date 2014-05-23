@@ -1,9 +1,8 @@
 .modal
 	ion-header-bar
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
-		h1.title(ng-controller='EditRecordCtrl') Record Detail
-			button.button.button-clear.icon.ion-edit.button-balanced(ng-click="edit()")
-		button.button.button-clear.icon.ion-close.button-assertive(ng-click="delete(index)")
+		h1.title Record Detail
+		button.button.button-clear.icon.ion-edit.button-balanced(ng-controller='EditRecordCtrl', ng-click="edit()")
 	ion-content
 		.card
 			.item.item-image
@@ -25,3 +24,7 @@
 			ion-list
 				ion-item.item-button-right(ng-repeat="fish in record.fishes")
 					p {{fish | fishFilter}}
+
+		.list
+			.item.item-divider
+		button.button.button-block.button-small.button-outline.button-assertive.icon.icon-left.ion-close(ng-click="delete(index)") Delete this record
