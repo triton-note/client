@@ -3,16 +3,27 @@ doctype html
 html(ng-app=app.name)
 	head
 		include _header
-	body(ng-controller='BaseCtrl')
-		ion-header-bar
-			h1.title {{sample}}
-		ion-content
-			.list
-				.row(ng-controller='GMapCtrl')
-					.col-25.input-label
-						p Spot
-					.col
-						{{position.toUrlValue(3)}}
-					.col.item-button-right
-						button.button.button-positive(ng-click="showMap()")
-							i.icon.ion-earth
+	body
+		ion-side-menus
+			ion-side-menu-content
+				ion-header-bar
+					.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
+					h1.title My Records
+					.button.button-clear.icon.ion-plus-round.button-positive(ng-controller='AddRecordCtrl', ng-click="open()")
+
+				ion-content(ng-controller='ShowRecordsCtrl')
+					.list.card(ng-init="refreshRecords()")
+						.item.item-body(ng-repeat="record in records")
+							img.full-image(src="{{ record.photo }}", ng-click="detail({{ $index }})")
+							.list
+								.item(ng-repeat="fish in record.fishes")
+									p {{fish | fishFilter}}
+
+			ion-side-menu(side="left")
+				ion-header-bar
+					.button.button.button-clear.icon.ion-ios7-close-empty.button-dark(menu-close)
+					h1.title Menu
+				ion-content(ng-controller='MenuCtrl')
+					.list
+						.item(ng-click="openMap()")
+							p View on Map

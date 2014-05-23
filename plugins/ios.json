@@ -23,6 +23,10 @@
                         {
                             "xml": "<feature name=\"GoogleMaps\"><param name=\"ios-package\" value=\"GoogleMaps\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Camera\"><param name=\"ios-package\" value=\"CDVCamera\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -44,7 +48,7 @@
                     "CoreLocation.framework": [
                         {
                             "xml": "false",
-                            "count": 1
+                            "count": 2
                         }
                     ],
                     "CoreText.framework": [
@@ -62,6 +66,10 @@
                     "ImageIO.framework": [
                         {
                             "xml": "false",
+                            "count": 1
+                        },
+                        {
+                            "xml": "true",
                             "count": 1
                         }
                     ],
@@ -100,6 +108,24 @@
                             "xml": "false",
                             "count": 1
                         }
+                    ],
+                    "CoreGraphics.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ],
+                    "AssetsLibrary.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ],
+                    "MobileCoreServices.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
                     ]
                 }
             },
@@ -127,6 +153,9 @@
         },
         "plugin.google.maps": {
             "API_KEY_FOR_IOS": "AIzaSyDBcmuaujqlN1DmrzjQTjlboRXYsHKtI-k",
+            "PACKAGE_NAME": "org.fathens.triton-note"
+        },
+        "org.apache.cordova.camera": {
             "PACKAGE_NAME": "org.fathens.triton-note"
         }
     },
