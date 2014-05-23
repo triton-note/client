@@ -13,12 +13,13 @@
 					p Date
 				.col
 					input(type="date", ng-model="record.dateAt")
-			.row.item.item-input.item-icon-right(ng-controller='GMapCtrl')
+			.row.item.item-input.item-icon-right
 				.col-25.input-label
 					p Spot
 				.col
 					input(type="text", ng-model="record.location.name")
-				.icon.ion-earth.positive(ng-click="showMap(setLatLng)")
+				.icon.ion-earth.positive(ng-click="showMap()")
+
 		.list(ng-controller='AddFishCtrl')
 			.bar.item
 				p.title Catches

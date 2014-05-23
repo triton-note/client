@@ -13,11 +13,13 @@
 					p Date
 				.col
 					p {{record.dateAt}}
-			.row.item.item-input.item-icon-right(ng-controller='GMapCtrl')
+			.row.item.item-input.item-icon-right
 				.col-25.input-label
 					p Spot
 				.col
 					p {{record.location.name}}
+				.icon.ion-earth.positive(ng-click="showMap()")
+
 		.list
 			.bar.item
 				p.title Catches
@@ -27,4 +29,4 @@
 
 		.list
 			.item.item-divider
-		button.button.button-block.button-small.button-outline.button-assertive.icon.icon-left.ion-close(ng-click="delete(index)") Delete this record
+				button.button.button-block.button-small.button-outline.button-assertive.icon.icon-left.ion-close(ng-click="delete(index)") Delete this record

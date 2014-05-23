@@ -2,12 +2,15 @@
 
 	$scope.openMap = !-> alert "Open Map"
 
-.controller 'ShowRecordsCtrl', ($log, $scope, $ionicModal, $ionicPopup, RecordFactory) !->
+.controller 'ShowRecordsCtrl', ($log, $scope, $ionicModal, $ionicPopup, RecordFactory, GMapFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-record.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
+
+	$scope.showMap = !->
+		GMapFactory.showMap $scope.record.location.latLng
 
 	$scope.refreshRecords = !->
 		$scope.records = RecordFactory.load!
@@ -31,7 +34,7 @@
 
 	$scope.close = !-> $scope.modal.hide!
 
-.controller 'EditRecordCtrl', ($log, $scope, $rootScope, $ionicModal, RecordFactory) !->
+.controller 'EditRecordCtrl', ($log, $scope, $rootScope, $ionicModal, RecordFactory, GMapFactory) !->
 	# $scope.record = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-record.html'
@@ -41,6 +44,10 @@
 			animation: 'slide-in-up'
 
 	$scope.title = "Edit Record"
+
+	$scope.showMap = !->
+		GMapFactory.showMap $scope.record.location.latLng ,(latLng) !->
+			$scope.record.location.latLng = latLng
 
 	$scope.edit = !->
 		$scope.currentRecord = angular.copy $scope.record
@@ -56,7 +63,7 @@
 		$rootScope.$broadcast 'fathens-records-changed'
 		$scope.modal.hide!
 
-.controller 'AddRecordCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, RecordFactory) !->
+.controller 'AddRecordCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, RecordFactory, GMapFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-record.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -74,7 +81,6 @@
 		fishes: []
 		comment: ""
 
-
 	$scope.open = !->
 		$log.info "Opening modal..."
 		PhotoFactory.select (uri) !->
@@ -86,7 +92,9 @@
 				subTitle: "Need a photo to record"
 			}
 
-	$scope.setLatLng = (latLng) !-> $scope.record.location.latLng = latLng
+	$scope.showMap = !->
+		GMapFactory.showMap $scope.record.location.latLng ,(latLng) !->
+			$scope.record.location.latLng = latLng
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
@@ -123,28 +131,3 @@
 		.then (res) !-> $scope.record.fishes.push res if res
 			, (err) !-> alert "Error: #err"
 			, (msg) !-> alert "Message: #msg"
-
-.controller 'GMapCtrl', ($log, $scope) !->
-	$scope.markar = null
-
-	create-map = (setter) !->
-		$scope.gmap = plugin.google.maps.Map.getMap {
-			'mapType': plugin.google.maps.MapTypeId.HYBRID
-			'controls':
-				'myLocationButton': true
-				'zoom': true
-		}
-		$scope.gmap.on plugin.google.maps.event.MAP_READY, (gmap) !-> gmap.showDialog!
-		$scope.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
-			setter latLng
-			$scope.markar?.remove!
-			$scope.gmap.addMarker {
-				'position': latLng
-			}, (marker) !->
-				$scope.$apply $scope.markar = marker
-
-	$scope.showMap = (setter) !->
-		if $scope.gmap
-			$scope.gmap.showDialog!
-		else
-			create-map setter

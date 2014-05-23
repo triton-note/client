@@ -82,3 +82,47 @@
 		| srcUnit == dstUnit => value
 		| srcUnit == 'pond'  => value * pondToKg
 		| srcUnit == 'kg'    => value / pondToKg
+
+.factory 'GMapFactory', ($log) ->
+	store = {
+		gmap: null
+		marker: null
+	}
+	create = (center) !->
+		store.gmap = plugin.google.maps.Map.getMap {
+			mapType: plugin.google.maps.MapTypeId.HYBRID
+			controls:
+				myLocationButton: true
+				zoom: true
+		}
+		store.gmap.on plugin.google.maps.event.MAP_READY, onReady(center)
+	onReady = (center) -> (gmap) !->
+		centering = (latLng) !->
+			addMarker latLng
+			gmap.setCenter latLng
+		if center
+			centering center
+		else gmap.getMyLocation (latLng) !-> centering latLng
+		gmap.setZoom 10
+		gmap.showDialog!
+	addMarker = (latLng) !->
+		store.marker?.remove!
+		store.gmap.addMarker {
+			position: latLng
+		}, (marker) !->
+			store.marker = marker
+
+	showMap: (center, setter) ->
+		if store.gmap
+			onReady(center) store.gmap
+		else create center
+
+		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
+			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{setter}"
+			if setter
+				setter latLng
+				addMarker latLng
+		store.gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
+			$log.debug "Map close: #{e}"
+			store.gmap.clear!
+			store.gmap.off!
