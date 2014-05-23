@@ -73,15 +73,15 @@
 	inchToCm = 2.54
 	pondToKg = 0.4536
 	
-	length: (value, srcUnit, dstUnit) ->
-		| srcUnit == dstUnit => value
-		| srcUnit == 'inch'  => value * inchToCm
-		| srcUnit == 'cm'    => value / inchToCm
+	length: (value, srcUnit, dstUnit) -> switch srcUnit
+		| dstUnit => value
+		| 'inch'  => value * inchToCm
+		| 'cm'    => value / inchToCm
 
-	weight: (value, srcUnit, dstUnit) ->
-		| srcUnit == dstUnit => value
-		| srcUnit == 'pond'  => value * pondToKg
-		| srcUnit == 'kg'    => value / pondToKg
+	weight: (value, srcUnit, dstUnit) -> switch srcUnit
+		| dstUnit => value
+		| 'pond'  => value * pondToKg
+		| 'kg'    => value / pondToKg
 
 .factory 'GMapFactory', ($log) ->
 	store = {
