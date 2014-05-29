@@ -126,3 +126,11 @@
 			$log.debug "Map close: #{e}"
 			store.gmap.clear!
 			store.gmap.off!
+
+.factory 'FacebookFactory', ($log) ->
+	token: (setter, errorHandler) !->
+		facebookConnectPlugin.login ["basic_info"]
+			, (user-data) !->
+				$log.debug "Get user data from Facebook: #{user-data}"
+				facebookConnectPlugin.getAccessToken setter, errorHandler
+			, errorHandler

@@ -1,5 +1,8 @@
-.controller 'MenuCtrl', ($log, $scope, PhotoFactory) !->
-
+.controller 'MenuCtrl', ($log, $scope, FacebookFactory) !->
+	handleToken = (token) !->
+		alert "Access token: #{token}"
+	$scope.connectFB = !->
+		FacebookFactory.token handleToken, (err) !-> alert "Error: #{err}"
 	$scope.openMap = !-> alert "Open Map"
 
 .controller 'ShowRecordsCtrl', ($log, $scope, $ionicModal, $ionicPopup, RecordFactory, GMapFactory) !->
