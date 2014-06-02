@@ -127,10 +127,37 @@
 			store.gmap.clear!
 			store.gmap.off!
 
-.factory 'FacebookFactory', ($log) ->
-	token: (setter, errorHandler) !->
-		facebookConnectPlugin.login ["basic_info"]
-			, (user-data) !->
-				$log.debug "Get user data from Facebook: #{user-data}"
-				facebookConnectPlugin.getAccessToken setter, errorHandler
-			, errorHandler
+.factory 'LoginFactory', ($log, $ionicPopup) ->
+	store =
+		email: null
+		token: null
+
+	loginFacebook = (setter, errorHandler) !->
+		setToken = (token) !->
+			$log.debug "Setting access token: #{token}"
+			store.token = token
+			setter token
+		getPermission = ([perm, ...left]: perms) !->
+			| _.empty perms => facebookConnectPlugin.getAccessToken setToken, errorHandler
+			| _ =>
+				$log.info "Logging in to Facebook: #{perm}"
+				facebookConnectPlugin.login [perm]
+					, (data) !-> getPermission(left)
+					, errorHandler
+		getPermission ["email", "publish_actions"]
+
+	getToken: (setter, errorHandler) !->
+		if store.token
+		then setter store.token
+		else
+			$ionicPopup.show {
+				title: "Login"
+				buttons: [
+					text: "Login with facebook"
+					type: "button button-full icon icon-left ion-social-facebook button-positive item"
+					onTap: (e) -> "Facebook"
+				]
+			}
+			.then (res) !-> switch res
+				| "Facebook" => loginFacebook(setter, errorHandler)
+				| _          => $log.error "Unsupported login: #{res}"
