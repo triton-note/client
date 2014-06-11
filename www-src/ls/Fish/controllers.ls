@@ -1,6 +1,9 @@
 .controller 'MenuCtrl', ($log, $scope) !->
 	$scope.openMap = !-> alert "Open Map"
 
+.controller 'AcceptanceCtrl', ($log, $scope, AcceptanceFactory) !->
+	$scope.terms = AcceptanceFactory.terms-of-use!
+
 .controller 'ShowRecordsCtrl', ($log, $scope, $ionicModal, $ionicPopup, RecordFactory, GMapFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-record.html'
 		, (modal) !-> $scope.modal = modal

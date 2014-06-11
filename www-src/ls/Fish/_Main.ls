@@ -3,13 +3,10 @@ require! {
 }
 
 angular.module('Fish', ['ionic'])
-.run ($ionicPlatform, $http, PostFormFactory, LoginFactory) !->
+.run ($ionicPlatform, $http, PostFormFactory, AcceptanceFactory, AccountFactory, LocalStorageFactory) !->
 	$ionicPlatform.ready !->
 		StatusBar.styleDefault! if (window.StatusBar)
-		LoginFactory.getToken handleToken, (err) !-> alert "Error: #{err}"
+		AcceptanceFactory.obtain !-> AccountFactory.ticket.get!
 
 	$http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8'
 	$http.defaults.transformRequest = [PostFormFactory.transform]
-
-	handleToken = (token) !->
-		alert "Access token: #{token}"
