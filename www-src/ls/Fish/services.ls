@@ -33,16 +33,11 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'RecordFactory', ($log, AccountFactory) ->
+.factory 'RecordFactory', ($log, AccountFactory, LocalStorageFactory) ->
 	loadLocal = ->
-		list = angular.fromJson window.localStorage['records'] ? []
-		$log.info "Loaded records: #{list}"
-		list
+		LocalStorageFactory.records.load! ? []
 	saveLocal = (records) ->
-		list = angular.toJson records
-		$log.info "Saving records: #{list}"
-		window.localStorage['records'] = list
-		list
+		LocalStorageFactory.records.save list
 	/*
 		Load records from storage
 	*/
@@ -128,6 +123,10 @@
 			store.gmap.off!
 
 .factory 'ServerFactory', ($log, $http, $ionicPopup) ->
+	error-types:
+		fatal: 'Fatal'
+		error: 'Error'
+		expired: 'Expired'
 	/*
 	Load the 'terms of use and disclaimer' from server
 	*/
@@ -139,23 +138,35 @@ This text is Dammy
 	Login to Server
 	*/
 	login: (way, token, ticket-taker, error-taker) !->
-		$log.info "Login to server with #{way} by #{token}"
+		# Dammy 
+		$log.debug "Login to server with #{way} by #{token}"
 		ticket-taker "#{way}:#{token}"
 	/*
 	Get start session by server, then pass to taker
 	*/
-	start-session: (ticket, session-taker, ticket-timeout) !->
-		# Dammy 
+	start-session: (ticket, session-taker, error-taker) !->
+		# Dammy
+		$log.debug "Starting session by #{ticket}"
+		session-taker "session:#{ticket}"
+	/*
+	Put given record to the session
+	*/
+	put-record: (session, record, success, error-taker) !->
+		# Dammy
+		$log.debug "Putting record with #{session}: #{record}"
+		success!
 	/*
 	Command to server to publish the record in session
 	*/
-	publish: (session, session-timeout) -> (token) !->
+	publish: (session, way, error-taker) -> (token) !->
 		# Dammy
+		$log.debug "Publish with #{way} by #{session} and #{token}"
 	/*
 	Load record from server, then pass to taker
 	*/
 	load-records: (ticket) -> (offset, count, taker) !->
 		# Dammy
+		taker []
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -173,7 +184,7 @@ This text is Dammy
 			v = window.localStorage[name] ? null
 			$log.debug "localStorage['#{name}'] => #{v}"
 			if v then loader(v)	else null
-		save: (v) !->
+		save: (v) ->
 			value = if v then saver(v) else null
 			$log.debug "localStorage['#{name}'] <= #{value}"
 			window.localStorage[name] = value
@@ -190,6 +201,10 @@ This text is Dammy
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/
 	acceptance: make 'Acceptance'
+	/*
+	Cache of catches records as JSON
+	*/
+	records: make 'catch-records', true
 
 .factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	ways =
@@ -230,8 +245,7 @@ This text is Dammy
 		| ways.facebook => facebook 'email', token-taker(way), error-taker
 		| _             => ionic.Platform.exitApp!
 
-	doPublish = (token-taker, error-taker) !->
-		getLoginWay (way) !-> switch way
+	doPublish = (way, token-taker, error-taker) !->
 		| ways.facebook => facebook 'publish_actions', token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
 	
@@ -245,17 +259,27 @@ This text is Dammy
 				.then (res) !-> @do!
 			token-taker: (way-name) -> (token) !->
 				LocalStorageFactory.login-way.save way-name
-				ServerFactory.login way-name, token, ticket-taker, @error-taker
+				ServerFactory.login way-name, token, ticket-taker, (error) !->
+					if error.type != ServerFactory.error-types.fatal
+						@error-taker error.msg
 			do: !-> doLogin @token-taker, @error-taker
 		action.do!
-	publish = (session) !->
-		token-taker = ServerFactory.publish session, !->
-			$ionicPopup.alert {
-				title: 'Error'
-				sub-title: 'Timeout'
-				template: "Session is time over."
-			}
-		doPublish token-taker, (error-msg) !->
+	publish = (session, way) !->
+		token-taker = ServerFactory.publish session, way, (error) !->
+			switch error.type
+			| ServerFactory.error-types.error =>
+				$ionicPopup.confirm {
+					title: 'Try Again ?'
+					template: error.msg
+				}
+				.then (res) !-> if res
+					publish(session, way)
+			| _ =>
+				$ionicPopup.alert {
+					title: 'Error'
+					template: error.msg
+				}
+		doPublish way, token-taker, (error-msg) !->
 			$ionicPopup.confirm {
 				title: 'Error'
 				sub-title: "Try Again ?"
@@ -273,17 +297,38 @@ This text is Dammy
 	startSession = !->
 		unless store.session
 			getTicket (ticket) !->
-				ServerFactory.startSession ticket
+				ServerFactory.start-session ticket
 				, (session) !->
 					store.session = session
-				, !->
-					store.ticket = null
-					startSession!
-	finishSession = !->
+				, (error) !->
+					switch error.type
+					| ServerFactory.error-types.expired =>
+						# When ticket is time out
+						store.ticket = null
+						startSession!
+					| _ =>
+						$ionicPopup.alert {
+							title: 'Error'
+							template: error.msg
+						}
+	finishSession = (record, publish-ways) !->
 		if store.session
 			store.session = null
-			ServerFactory.put that, record
-			isPublish && publish that
+			ServerFactory.put-record that, record
+			, !->
+				for way in publish-ways ? []
+					publish that, way
+			, (error) !->
+				switch error.type
+				| ServerFactory.error-types.error =>
+					# When ticket is time out
+					store.ticket = null
+					startSession!
+				| _ =>
+					$ionicPopup.alert {
+						title: 'Error'
+						template: error.msg
+					}
 
 	ticket:
 		get: getTicket
