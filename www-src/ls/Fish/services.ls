@@ -191,7 +191,7 @@ This text is Dammy
 	*/
 	acceptance: make 'Acceptance'
 
-.factory 'AccountFactory', ($log, $ionicPlatform, $ionicPopup, LocalStorageFactory, ServerFactory) ->
+.factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	ways =
 		facebook: 'facebook'
 		google: 'google'
@@ -228,13 +228,12 @@ This text is Dammy
 	doLogin = (token-taker, error-taker) !->
 		getLoginWay (way) !-> switch way
 		| ways.facebook => facebook 'email', token-taker(way), error-taker
-		| ways.google   => google token-taker(way), error-taker
-		| _             => $ionicPlatform.exitApp!
+		| _             => ionic.Platform.exitApp!
 
 	doPublish = (token-taker, error-taker) !->
 		getLoginWay (way) !-> switch way
 		| ways.facebook => facebook 'publish_actions', token-taker, error-taker
-		| _             => $ionicPlatform.exitApp!
+		| _             => ionic.Platform.exitApp!
 	
 	login = (ticket-taker) !->
 		action =
