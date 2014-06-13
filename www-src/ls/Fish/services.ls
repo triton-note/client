@@ -33,11 +33,12 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'RecordFactory', ($log, AccountFactory, LocalStorageFactory) ->
+.factory 'RecordFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
 	loadLocal = ->
 		LocalStorageFactory.records.load! ? []
 	saveLocal = (records) ->
 		LocalStorageFactory.records.save list
+
 	/*
 		Load records from storage
 	*/
@@ -206,64 +207,30 @@ This text is Dammy
 	*/
 	records: make 'catch-records', true
 
-.factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory) ->
-	ways =
-		facebook: 'facebook'
-		google: 'google'
-
-	store =
-		ticket: null
-		session: null
-
-	facebook = (perm, token-taker, error-taker) !->
+.factory 'SocialFactory', ($log) ->
+	facebook = (...perm) -> (token-taker, error-taker) !->
 		$log.info "Logging in to Facebook: #{perm}"
-		facebookConnectPlugin.login [perm]
+		facebookConnectPlugin.login perm
 			, (data) !-> token-taker data.authResponse.accessToken
 			, error-taker
-	google = (perm, token-taker, error-taker) !->
+	google = (...perm) -> (token-taker, error-taker) !->
+		# TODO
 
-	getLoginWay = (way-taker) !->
-		if LocalStorageFactory.login-way.load! then way-taker that
-		else
-			$ionicPopup.show {
-				template: 'Select for Login'
-				buttons:
-					{
-						text: ''
-						type: 'button icon ion-social-facebook button-positive'
-						onTap: (e) -> ways.facebook
-					},{
-						text: ''
-						type: 'button icon ion-social-googleplus button-assertive'
-						onTap: (e) -> ways.google
-					}
-			}
-			.then way-taker
+	facebook:
+		login: facebook 'email'
+		publish: facebook 'publish_actions'
+	google:
+		login: google 'email'
+		publish: google 'publish'
 
-	doLogin = (token-taker, error-taker) !->
-		getLoginWay (way) !-> switch way
-		| ways.facebook => facebook 'email', token-taker(way), error-taker
-		| _             => ionic.Platform.exitApp!
+.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, RecordFactory, AccountFactory) ->
+	store =
+		session: null
 
 	doPublish = (way, token-taker, error-taker) !->
-		| ways.facebook => facebook 'publish_actions', token-taker, error-taker
+		| ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
-	
-	login = (ticket-taker) !->
-		action =
-			error-taker: (error-msg) !->
-				$ionicPopup.alert {
-					title: 'Error'
-					template: error-msg
-				}
-				.then (res) !-> @do!
-			token-taker: (way-name) -> (token) !->
-				LocalStorageFactory.login-way.save way-name
-				ServerFactory.login way-name, token, ticket-taker, (error) !->
-					if error.type != ServerFactory.error-types.fatal
-						@error-taker error.msg
-			do: !-> doLogin @token-taker, @error-taker
-		action.do!
+
 	publish = (session, way) !->
 		token-taker = ServerFactory.publish session, way, (error) !->
 			switch error.type
@@ -288,13 +255,7 @@ This text is Dammy
 			.then (res) !-> if res
 				publish session
 
-	getTicket = (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
-		if store.ticket then ticket-taker that
-		else
-			login (ticket) !->
-				store.ticket = ticket
-				ticket-taker ticket
-	startSession = !->
+	start-session = !->
 		unless store.session
 			getTicket (ticket) !->
 				ServerFactory.start-session ticket
@@ -311,7 +272,8 @@ This text is Dammy
 							title: 'Error'
 							template: error.msg
 						}
-	finishSession = (record, publish-ways) !->
+
+	finish-session = (record, publish-ways) !->
 		if store.session
 			store.session = null
 			ServerFactory.put-record that, record
@@ -330,11 +292,65 @@ This text is Dammy
 						template: error.msg
 					}
 
+	session:
+		start: start-session
+		finish: finish-session
+
+.factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory, SocialFactory) ->
+	ways =
+		facebook: 'facebook'
+		google: 'google'
+
+	store =
+		ticket: null
+
+	getLoginWay = (way-taker) !->
+		if LocalStorageFactory.login-way.load! then way-taker that
+		else
+			$ionicPopup.show {
+				template: 'Select for Login'
+				buttons:
+					{
+						text: ''
+						type: 'button icon ion-social-facebook button-positive'
+						onTap: (e) -> ways.facebook
+					},{
+						text: ''
+						type: 'button icon ion-social-googleplus button-assertive'
+						onTap: (e) -> ways.google
+					}
+			}
+			.then way-taker
+
+	doLogin = (token-taker, error-taker) !->
+		getLoginWay (way) !-> switch way
+		| ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
+		| _             => ionic.Platform.exitApp!
+
+	login = (ticket-taker) !->
+		action =
+			error-taker: (error-msg) !->
+				$ionicPopup.alert {
+					title: 'Error'
+					template: error-msg
+				}
+				.then (res) !-> @do!
+			token-taker: (way-name) -> (token) !->
+				LocalStorageFactory.login-way.save way-name
+				ServerFactory.login way-name, token, ticket-taker, (error) !->
+					if error.type != ServerFactory.error-types.fatal
+						@error-taker error.msg
+			do: !-> doLogin @token-taker, @error-taker
+		action.do!
+	getTicket = (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
+		if store.ticket then ticket-taker that
+		else
+			login (ticket) !->
+				store.ticket = ticket
+				ticket-taker ticket
+
 	ticket:
 		get: getTicket
-	session:
-		start: startSession
-		finish: finishSession
 
 .factory 'AcceptanceFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	store =
