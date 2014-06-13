@@ -65,7 +65,7 @@
 		$rootScope.$broadcast 'fathens-records-changed'
 		$scope.modal.hide!
 
-.controller 'AddRecordCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, RecordFactory, GMapFactory) !->
+.controller 'AddRecordCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, RecordFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-record.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -73,6 +73,9 @@
 			animation: 'slide-in-up'
 
 	$scope.title = "New Record"
+	$scope.publish =
+		do: {}
+		ables: [LocalStorageFactory.login-way.load!]
 
 	newRecord = (uri) ->
 		photo: uri
@@ -85,6 +88,7 @@
 
 	$scope.open = !->
 		$log.info "Opening modal..."
+		SessionFactory.start!
 		PhotoFactory.select (uri) !->
 			$scope.$apply $scope.record = newRecord uri
 			$scope.modal.show!
@@ -100,8 +104,10 @@
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
-		RecordFactory.add $scope.record
+		record = $scope.record
+		RecordFactory.add angular.copy(record)
 		$rootScope.$broadcast 'fathens-records-changed'
+		SessionFactory.finish record, [name for name, value of $scope.publish.do when value]
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicPopup) !->

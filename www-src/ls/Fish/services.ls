@@ -37,7 +37,7 @@
 	loadLocal = ->
 		LocalStorageFactory.records.load! ? []
 	saveLocal = (records) ->
-		LocalStorageFactory.records.save list
+		LocalStorageFactory.records.save records
 
 	/*
 		Load records from storage
@@ -154,7 +154,7 @@ This text is Dammy
 	*/
 	put-record: (session, record, success, error-taker) !->
 		# Dammy
-		$log.debug "Putting record with #{session}: #{record}"
+		$log.debug "Putting record with #{session}: #{angular.toJson record}"
 		success!
 	/*
 	Command to server to publish the record in session
@@ -216,6 +216,9 @@ This text is Dammy
 	google = (...perm) -> (token-taker, error-taker) !->
 		# TODO
 
+	ways:
+		facebook: 'facebook'
+		google: 'google'
 	facebook:
 		login: facebook 'email'
 		publish: facebook 'publish_actions'
@@ -228,7 +231,7 @@ This text is Dammy
 		session: null
 
 	doPublish = (way, token-taker, error-taker) !->
-		| ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
+		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
 
 	publish = (session, way) !->
@@ -255,9 +258,9 @@ This text is Dammy
 			.then (res) !-> if res
 				publish session
 
-	start-session = !->
+	start: !->
 		unless store.session
-			getTicket (ticket) !->
+			AccountFactory.ticket.get (ticket) !->
 				ServerFactory.start-session ticket
 				, (session) !->
 					store.session = session
@@ -273,7 +276,7 @@ This text is Dammy
 							template: error.msg
 						}
 
-	finish-session = (record, publish-ways) !->
+	finish: (record, publish-ways) !->
 		if store.session
 			store.session = null
 			ServerFactory.put-record that, record
@@ -292,15 +295,7 @@ This text is Dammy
 						template: error.msg
 					}
 
-	session:
-		start: start-session
-		finish: finish-session
-
 .factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory, SocialFactory) ->
-	ways =
-		facebook: 'facebook'
-		google: 'google'
-
 	store =
 		ticket: null
 
@@ -313,18 +308,18 @@ This text is Dammy
 					{
 						text: ''
 						type: 'button icon ion-social-facebook button-positive'
-						onTap: (e) -> ways.facebook
+						onTap: (e) -> SocialFactory.ways.facebook
 					},{
 						text: ''
 						type: 'button icon ion-social-googleplus button-assertive'
-						onTap: (e) -> ways.google
+						onTap: (e) -> SocialFactory.ways.google
 					}
 			}
 			.then way-taker
 
 	doLogin = (token-taker, error-taker) !->
 		getLoginWay (way) !-> switch way
-		| ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
+		| SocialFactory.ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
 		| _             => ionic.Platform.exitApp!
 
 	login = (ticket-taker) !->
