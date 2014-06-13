@@ -14,7 +14,7 @@ cordova plugin add https://github.com/driftyco/ionic-plugins-keyboard.git
 cordova plugin add org.apache.cordova.camera
 
 # Google Maps
-cordova plugin add plugin.google.maps --variable API_KEY_FOR_IOS='AIzaSyDBcmuaujqlN1DmrzjQTjlboRXYsHKtI-k' --variable API_KEY_FOR_ANDROID='AIzaSyCvw4q5lMA6RFTmnjn4Ko0RycIOYWGETRg'
+cordova plugin add plugin.google.maps --variable API_KEY_FOR_IOS='AIzaSyBbBpBdB0rQQPsvd1Xv1QW_vftXxsgDYr4' --variable API_KEY_FOR_ANDROID='AIzaSyDYNGDBMUgZsnAzFZ4-uZB4VQuSxEfe1Lg'
 
 # Facebook connect
 cordova plugin add https://github.com/phonegap/phonegap-facebook-plugin.git --variable APP_ID="751407064903894" --variable APP_NAME="TritonNote"
