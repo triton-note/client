@@ -47,3 +47,7 @@
 					.input-label
 						p Weight
 					input(type="number", ng-model="fish.weight", placeholder="Weight")
+
+
+		.card.padding-vertical
+			ion-checkbox(ng-repeat="name in publish.ables", ng-model="publish.do[name]") Publish to {{name}}

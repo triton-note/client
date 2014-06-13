@@ -1,5 +1,6 @@
 node_modules/
 www/
 platforms/
+plugins/
 bower_components/
 *.log
