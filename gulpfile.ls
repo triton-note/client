@@ -25,26 +25,6 @@ findFolders = (dir) ->
 	fs.readdirSync(dir).filter (file) ->
 		fs.statSync("#{dir}/#{file}").isDirectory!
 
-gulp.task "ionic", ->
-	fonts = ->
-		path = mkPath('**/fonts', '') '*'
-		gulp.src path.src
-			.pipe gulp.dest path.dst-dir
-	js = ->
-		path = mkPath('lib') 'bundle.js'
-		gulp.src path.src
-			.pipe gp.if isRelease, gp.ngmin!
-			.pipe gp.if isRelease, gp.uglify {
-				preserveComments: "some"
-			}
-			.pipe gulp.dest path.dst-dir
-	json = ->
-		path = mkPath('lib') 'json'
-		gulp.src path.src
-			.pipe gulp.dest path.dst-dir
-
-	es.concat.apply null, [fonts!, js!, json!]
-
 gulp.task "jade", ->
 	gulp.src paths.jade.src
 		.pipe gp.jade {
@@ -87,7 +67,6 @@ gulp.task "bower", ->
 		.pipe gp.if isRelease, gp.uglify {
 			preserveComments: "some"
 		}
-		.pipe gp.flatten!
 		.pipe gulp.dest paths.bower.dst-dir
 
 gulp.task "watch", !->
@@ -96,4 +75,4 @@ gulp.task "watch", !->
 	gulp.watch paths.sass, ["sass"]
 	gulp.watch paths.ls, ["livescript"]
 
-gulp.task "default", ["jade", "image", "sass", "livescript", "ionic"]
+gulp.task "default", ["jade", "image", "sass", "livescript"]

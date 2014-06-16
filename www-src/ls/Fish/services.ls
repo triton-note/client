@@ -360,6 +360,10 @@ This text is Dammy
 			$ionicPopup.confirm {
 				title: "Terms of Use and Disclaimer"
 				templateUrl: 'template/terms-of-use.html'
+				ok-text: "Accept"
+				ok-type: "button-stable"
+				cancel-text: "Reject"
+				cancel-type: "button-stable"
 			}
 			.then (res) !->
 				if res then
@@ -367,8 +371,9 @@ This text is Dammy
 					success!
 				else
 					$ionicPopup.alert {
-						title: "Exit"
-						template: "Good Bye !"
+						title: "Good Bye !"
+						ok-text: "Exit"
+						ok-type: "button-stable"
 					}
 					.then (res) !->
 						ionic.Platform.exitApp!
