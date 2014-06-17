@@ -122,7 +122,16 @@
 			store.gmap.clear!
 			store.gmap.off!
 
-.factory 'ServerFactory', ($log, $http, $ionicPopup) ->
+.factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
+	get = (path, res-taker, error-taker) !->
+		$http.get "#{serverURL}/#{path}"
+		.success (data, status, headers, config) !-> res-taker data
+		.error (data, status, headers, config) !-> error-taker status
+	post = (path, data, res-taker, error-taker) !->
+		$http.post "#{serverURL}/#{path}", data
+		.success (data, status, headers, config) !-> res-taker data
+		.error (data, status, headers, config) !-> error-taker status
+
 	error-types:
 		fatal: 'Fatal'
 		error: 'Error'
@@ -131,9 +140,13 @@
 	Load the 'terms of use and disclaimer' from server
 	*/
 	terms-of-use: (taker) !->
-		taker '
-This text is Dammy
-'
+		get "assets/terms-of-use.txt", taker, (status) !->
+			$ionicPopup.alert do
+				title: 'Server Error'
+				template: "Response: #{status}"
+				ok-text: "Exit"
+				ok-type: "button-stable"
+			.then (res) !-> ionic.Platform.exitApp!
 	/*
 	Login to Server
 	*/
