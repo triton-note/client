@@ -80,17 +80,16 @@
 		| 'kg'    => value / pondToKg
 
 .factory 'GMapFactory', ($log) ->
-	store = {
+	store =
 		gmap: null
 		marker: null
-	}
+
 	create = (center) !->
-		store.gmap = plugin.google.maps.Map.getMap {
+		store.gmap = plugin.google.maps.Map.getMap do
 			mapType: plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
 				zoom: true
-		}
 		store.gmap.on plugin.google.maps.event.MAP_READY, onReady(center)
 	onReady = (center) -> (gmap) !->
 		centering = (latLng) !->
@@ -238,23 +237,20 @@ This text is Dammy
 		token-taker = ServerFactory.publish session, way, (error) !->
 			switch error.type
 			| ServerFactory.error-types.error =>
-				$ionicPopup.confirm {
+				$ionicPopup.confirm do
 					title: 'Try Again ?'
 					template: error.msg
-				}
 				.then (res) !-> if res
 					publish(session, way)
 			| _ =>
-				$ionicPopup.alert {
+				$ionicPopup.alert do
 					title: 'Error'
 					template: error.msg
-				}
 		doPublish way, token-taker, (error-msg) !->
-			$ionicPopup.confirm {
+			$ionicPopup.confirm do
 				title: 'Error'
 				sub-title: "Try Again ?"
 				template: error-msg
-			}
 			.then (res) !-> if res
 				publish session
 
@@ -271,10 +267,9 @@ This text is Dammy
 						store.ticket = null
 						startSession!
 					| _ =>
-						$ionicPopup.alert {
+						$ionicPopup.alert do
 							title: 'Error'
 							template: error.msg
-						}
 
 	finish: (record, publish-ways) !->
 		if store.session
@@ -290,10 +285,9 @@ This text is Dammy
 					store.ticket = null
 					startSession!
 				| _ =>
-					$ionicPopup.alert {
+					$ionicPopup.alert do
 						title: 'Error'
 						template: error.msg
-					}
 
 .factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
@@ -302,7 +296,7 @@ This text is Dammy
 	getLoginWay = (way-taker) !->
 		if LocalStorageFactory.login-way.load! then way-taker that
 		else
-			$ionicPopup.show {
+			$ionicPopup.show do
 				template: 'Select for Login'
 				buttons:
 					{
@@ -314,7 +308,6 @@ This text is Dammy
 						type: 'button icon ion-social-googleplus button-assertive'
 						onTap: (e) -> SocialFactory.ways.google
 					}
-			}
 			.then way-taker
 
 	doLogin = (token-taker, error-taker) !->
@@ -325,10 +318,9 @@ This text is Dammy
 	login = (ticket-taker) !->
 		action =
 			error-taker: (error-msg) !->
-				$ionicPopup.alert {
+				$ionicPopup.alert do
 					title: 'Error'
 					template: error-msg
-				}
 				.then (res) !-> @do!
 			token-taker: (way-name) -> (token) !->
 				LocalStorageFactory.login-way.save way-name
@@ -357,23 +349,21 @@ This text is Dammy
 		then success!
 		else ServerFactory.terms-of-use (text) !->
 			store.terms-of-use = text
-			$ionicPopup.confirm {
+			$ionicPopup.confirm do
 				title: "Terms of Use and Disclaimer"
 				templateUrl: 'template/terms-of-use.html'
 				ok-text: "Accept"
 				ok-type: "button-stable"
 				cancel-text: "Reject"
 				cancel-type: "button-stable"
-			}
 			.then (res) !->
 				if res then
 					LocalStorageFactory.acceptance.save true
 					success!
 				else
-					$ionicPopup.alert {
+					$ionicPopup.alert do
 						title: "Good Bye !"
 						ok-text: "Exit"
 						ok-type: "button-stable"
-					}
 					.then (res) !->
 						ionic.Platform.exitApp!
