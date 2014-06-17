@@ -63,10 +63,17 @@ gulp.task "sass", ->
 		.pipe gulp.dest paths.sass.dst-dir
 
 gulp.task "bower", ->
+	jsFilter = gp.filter("**/*.js")
+	cssFilter = gp.filter("**/*.css")
 	gp.bower-files!
+		.pipe jsFilter
 		.pipe gp.if isRelease, gp.uglify {
 			preserveComments: "some"
 		}
+		.pipe jsFilter.restore!
+		.pipe cssFilter
+		.pipe gp.if isRelease, gp.minify-css!
+		.pipe cssFilter.restore!
 		.pipe gulp.dest paths.bower.dst-dir
 
 gulp.task "watch", !->
