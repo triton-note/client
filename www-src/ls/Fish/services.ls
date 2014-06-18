@@ -122,28 +122,49 @@
 			store.gmap.clear!
 			store.gmap.off!
 
-.factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
-	get = (path, res-taker, error-taker) !->
-		$http.get "#{serverURL}/#{path}"
+.factory 'ServerFactory', ($log, $timeout, $http, $ionicPopup, serverURL) ->
+	retryable = (path, retry, proc, res-taker, error-taker) !->
+		proc "#{serverURL}/#{path}"
 		.success (data, status, headers, config) !-> res-taker data
-		.error (data, status, headers, config) !-> error-taker status
-	post = (path, data, res-taker, error-taker) !->
-		$http.post "#{serverURL}/#{path}", data
-		.success (data, status, headers, config) !-> res-taker data
-		.error (data, status, headers, config) !-> error-taker status
+		.error (data, status, headers, config) !->
+			error = http-error.gen status
+			if error.type == http-error.types.error && retry > 0
+			then retryable path, retry - 1, proc, res-taker, error-taker
+			else error-taker error
+	get = (path, res-taker, error-taker, retry = 3) !->
+		retryable path, retry
+			, (url) -> $http.get url
+			, res-taker, error-taker
+	post = (path, data, res-taker, error-taker, retry = 3) !->
+		retryable path, retry
+			, (url) -> $http.post url, data
+			, res-taker, error-taker
 
-	error-types:
-		fatal: 'Fatal'
-		error: 'Error'
-		expired: 'Expired'
+	http-error =
+		types:
+			fatal: 'Fatal'
+			error: 'Error'
+			expired: 'Expired'
+		gen: (status) -> switch status
+		| 404 =>
+			type: @types.fatal
+			msg: "Not Found"
+		| 503 =>
+			type: @types.fatal
+			msg: "Service Unavailable"
+		| _   =>
+			type: @types.error
+			msg: "Error: #{status}"
+
+	error-types: http-error.types
 	/*
 	Load the 'terms of use and disclaimer' from server
 	*/
 	terms-of-use: (taker) !->
-		get "assets/terms-of-use.txt", taker, (status) !->
+		get "assets/terms-of-use.txt", taker, (error) !->
 			$ionicPopup.alert do
 				title: 'Server Error'
-				template: "Response: #{status}"
+				template: error.msg
 				ok-text: "Exit"
 				ok-type: "button-stable"
 			.then (res) !-> ionic.Platform.exitApp!
@@ -151,35 +172,61 @@
 	Login to Server
 	*/
 	login: (way, token, ticket-taker, error-taker) !->
-		# Dammy 
 		$log.debug "Login to server with #{way} by #{token}"
-		ticket-taker "#{way}:#{token}"
+		post "login-byToken",
+			way: way
+			token: token
+		, ticket-taker, error-taker
 	/*
 	Get start session by server, then pass to taker
 	*/
-	start-session: (ticket, session-taker, error-taker) !->
-		# Dammy
-		$log.debug "Starting session by #{ticket}"
-		session-taker "session:#{ticket}"
+	start-session: (ticket, geolocation, session-taker, error-taker) !->
+		$log.debug "Starting session by #{ticket} on #{geolocation}"
+		post "record/new-session",
+			ticket: ticket
+			geoinfo:
+				latitude: geolocation?.lat
+				longitude: geolocation?.lng
+		, session-taker, error-taker
+	/*
+	Put a photo which is encoded by base64 to session
+	*/
+	put-photo: (session, photo, inference-taker, error-taker) !->
+		$log.debug "Putting a photo with #{session}"
+		post "record/photo",
+			session: session
+			photo: photo
+		, anguler.fromJson >> inference-taker, error-taker
 	/*
 	Put given record to the session
 	*/
 	put-record: (session, record, success, error-taker) !->
-		# Dammy
-		$log.debug "Putting record with #{session}: #{angular.toJson record}"
-		success!
+		record-json = angular.toJson record
+		$log.debug "Putting record with #{session}: #{record-json}"
+		post "record/submit",
+			session: session
+			record: record-json
+		, success, error-taker
 	/*
 	Command to server to publish the record in session
 	*/
-	publish: (session, way, error-taker) -> (token) !->
-		# Dammy
+	publish: (session, way, token, success, error-taker) -> (token) !->
 		$log.debug "Publish with #{way} by #{session} and #{token}"
+		post "record/publish",
+			session: session
+			way: way
+			token: token
+		, success, error-taker
 	/*
 	Load record from server, then pass to taker
 	*/
-	load-records: (ticket) -> (offset, count, taker) !->
-		# Dammy
-		taker []
+	load-records: (ticket) -> (offset, count, taker, error-taker) !->
+		$log.debug "Loading #{count} records from #{offset}"
+		post "record/load",
+			ticket: ticket
+			offset: offset
+			count: count
+		, angular.fromJson >> taker, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
