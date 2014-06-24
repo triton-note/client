@@ -123,29 +123,38 @@
 			store.gmap.off!
 
 .factory 'ServerFactory', ($log, $timeout, $http, $ionicPopup, serverURL) ->
-	retryable = (path, retry, proc, res-taker, error-taker) !->
-		proc "#{serverURL}/#{path}"
+	retryable = (retry, config, res-taker, error-taker) !->
+		$http config
 		.success (data, status, headers, config) !-> res-taker data
 		.error (data, status, headers, config) !->
-			error = http-error.gen status
+			error = http-error.gen status, data
 			if error.type == http-error.types.error && retry > 0
-			then retryable path, retry - 1, proc, res-taker, error-taker
+			then retryable retry - 1, config, res-taker, error-taker
 			else error-taker error
-	get = (path, res-taker, error-taker, retry = 3) !->
-		retryable path, retry
-			, (url) -> $http.get url
-			, res-taker, error-taker
-	post = (path, data, res-taker, error-taker, retry = 3) !->
-		retryable path, retry
-			, (url) -> $http.post url, data
-			, res-taker, error-taker
+	http = (method, path, data = null, conetnt-type = "text/json") -> (res-taker, error-taker, retry = 3) !->
+		retryable retry,
+			method: method
+			url: "#{serverURL}/#{path}"
+			data: data
+			headers:
+				if data != null then
+					content-type: content-type
+				else {}
+		, res-taker, error-taker
 
 	http-error =
 		types:
 			fatal: 'Fatal'
 			error: 'Error'
 			expired: 'Expired'
-		gen: (status) -> switch status
+		gen: (status, data) -> switch status
+		| 400 =>
+			if data contains 'Expired' then
+				type: @types.expired
+				msg: data
+			else
+				type: @types.Error
+				msg: data
 		| 404 =>
 			type: @types.fatal
 			msg: "Not Found"
@@ -154,79 +163,65 @@
 			msg: "Service Unavailable"
 		| _   =>
 			type: @types.error
-			msg: "Error: #{status}"
+			msg: "Error: #{data}"
 
 	error-types: http-error.types
 	/*
 	Load the 'terms of use and disclaimer' from server
 	*/
 	terms-of-use: (taker) !->
-		get "assets/terms-of-use.txt", taker, (error) !->
-			$ionicPopup.alert do
-				title: 'Server Error'
-				template: error.msg
-				ok-text: "Exit"
-				ok-type: "button-stable"
-			.then (res) !-> ionic.Platform.exitApp!
+		http('GET', "assets/terms-of-use.txt") do
+			taker, (error) !->
+				$ionicPopup.alert do
+					title: 'Server Error'
+					template: error.msg
+					ok-text: "Exit"
+					ok-type: "button-stable"
+				.then (res) !-> ionic.Platform.exitApp!
 	/*
 	Login to Server
 	*/
 	login: (way, token, ticket-taker, error-taker) !->
 		$log.debug "Login to server with #{way} by #{token}"
-		post "login-byToken",
-			way: way
+		http('POST', "login/#{way}",
 			token: token
-		, ticket-taker, error-taker
+		) ticket-taker, error-taker
 	/*
 	Get start session by server, then pass to taker
 	*/
 	start-session: (ticket, geolocation, session-taker, error-taker) !->
 		$log.debug "Starting session by #{ticket} on #{geolocation}"
-		post "record/new-session",
-			ticket: ticket
+		http('POST', "record/new-session/#{ticket}",
 			geoinfo:
 				latitude: geolocation?.lat
 				longitude: geolocation?.lng
-		, session-taker, error-taker
+		) session-taker, error-taker
 	/*
 	Put a photo which is encoded by base64 to session
 	*/
 	put-photo: (session, photo, inference-taker, error-taker) !->
 		$log.debug "Putting a photo with #{session}"
-		post "record/photo",
-			session: session
+		http('POST', "record/photo/#{session}",
 			photo: photo
-		, anguler.fromJson >> inference-taker, error-taker
+		) anguler.fromJson >> inference-taker, error-taker
 	/*
 	Put given record to the session
 	*/
-	put-record: (session, record, success, error-taker) !->
-		record-json = angular.toJson record
+	put-record: (session, record, publishing, success, error-taker) !->
 		$log.debug "Putting record with #{session}: #{record-json}"
-		post "record/submit",
-			session: session
-			record: record-json
-		, success, error-taker
-	/*
-	Command to server to publish the record in session
-	*/
-	publish: (session, way, token, success, error-taker) -> (token) !->
-		$log.debug "Publish with #{way} by #{session} and #{token}"
-		post "record/publish",
-			session: session
-			way: way
-			token: token
-		, success, error-taker
+		http('POST', "record/submit/#{session}",
+			record: record
+			publishing: publishing
+		) success, error-taker
 	/*
 	Load record from server, then pass to taker
 	*/
 	load-records: (ticket) -> (offset, count, taker, error-taker) !->
 		$log.debug "Loading #{count} records from #{offset}"
-		post "record/load",
-			ticket: ticket
+		http('POST', "record/load/#{ticket}",
 			offset: offset
 			count: count
-		, angular.fromJson >> taker, error-taker
+		) angular.fromJson >> taker, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -289,30 +284,17 @@
 	store =
 		session: null
 
-	doPublish = (way, token-taker, error-taker) !->
+	permit-publish = (way, token-taker, error-taker) !->
 		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
 
-	publish = (session, way) !->
-		token-taker = ServerFactory.publish session, way, (error) !->
-			switch error.type
-			| ServerFactory.error-types.error =>
-				$ionicPopup.confirm do
-					title: 'Try Again ?'
-					template: error.msg
-				.then (res) !-> if res
-					publish(session, way)
-			| _ =>
-				$ionicPopup.alert do
-					title: 'Error'
-					template: error.msg
-		doPublish way, token-taker, (error-msg) !->
-			$ionicPopup.confirm do
+	submit = (session, success, record) -> (publishing = null) !->
+		ServerFactory.put-record session, record, publishing
+		, success
+		, (error) !->
+			$ionicPopup.alert do
 				title: 'Error'
-				sub-title: "Try Again ?"
-				template: error-msg
-			.then (res) !-> if res
-				publish session
+				template: error.msg
 
 	start: !->
 		unless store.session
@@ -331,23 +313,16 @@
 							title: 'Error'
 							template: error.msg
 
-	finish: (record, publish-ways) !->
+	finish: (record, publish-way) !->
 		if store.session
+			sub = submit that, success, record
 			store.session = null
-			ServerFactory.put-record that, record
-			, !->
-				for way in publish-ways ? []
-					publish that, way
-			, (error) !->
-				switch error.type
-				| ServerFactory.error-types.error =>
-					# When ticket is time out
-					store.ticket = null
-					startSession!
-				| _ =>
-					$ionicPopup.alert do
-						title: 'Error'
-						template: error.msg
+			if publish-way then
+				permit-publish publish-way
+				, (token) !-> sub do
+					way: publish-way
+					token: token
+			else sub!
 
 .factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
