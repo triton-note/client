@@ -132,14 +132,14 @@
 			if error.type == http-error.types.error && retry > 0
 			then retryable retry - 1, config, res-taker, error-taker
 			else error-taker error
-	http = (method, path, data = null, conetnt-type = "text/json") -> (res-taker, error-taker, retry = 3) !->
+	http = (method, path, data = null, content-type = "text/json") -> (res-taker, error-taker, retry = 3) !->
 		retryable retry,
 			method: method
 			url: url(path)
 			data: data
 			headers:
-				if data != null then
-					content-type: content-type
+				if data
+				then 'Content-Type': content-type
 				else {}
 		, res-taker, error-taker
 
@@ -150,7 +150,7 @@
 			expired: 'Expired'
 		gen: (status, data) -> switch status
 		| 400 =>
-			if data contains 'Expired' then
+			if data.indexOf('Expired') > -1 then
 				type: @types.expired
 				msg: data
 			else
@@ -171,14 +171,13 @@
 	Load the 'terms of use and disclaimer' from server
 	*/
 	terms-of-use: (taker) !->
-		http('GET', "assets/terms-of-use.txt") do
-			taker, (error) !->
-				$ionicPopup.alert do
-					title: 'Server Error'
-					template: error.msg
-					ok-text: "Exit"
-					ok-type: "button-stable"
-				.then (res) !-> ionic.Platform.exitApp!
+		http('GET', "assets/terms-of-use.txt") taker, (error) !->
+			$ionicPopup.alert do
+				title: 'Server Error'
+				template: error.msg
+				ok-text: "Exit"
+				ok-type: "button-stable"
+			.then (res) !-> ionic.Platform.exitApp!
 	/*
 	Login to Server
 	*/
@@ -276,7 +275,7 @@
 		facebook: 'facebook'
 		google: 'google'
 	facebook:
-		login: facebook 'email'
+		login: facebook 'basic_info'
 		publish: facebook 'publish_actions'
 	google:
 		login: google 'email'
@@ -301,7 +300,7 @@
 	start: !->
 		unless store.session
 			AccountFactory.ticket.get (ticket) !->
-				ServerFactory.start-session ticket
+				ServerFactory.start-session ticket, geolocation
 				, (session) !->
 					store.session = session
 				, (error) !->
@@ -353,19 +352,18 @@
 		| _             => ionic.Platform.exitApp!
 
 	login = (ticket-taker) !->
-		action =
-			error-taker: (error-msg) !->
-				$ionicPopup.alert do
-					title: 'Error'
-					template: error-msg
-				.then (res) !-> @do!
-			token-taker: (way-name) -> (token) !->
-				LocalStorageFactory.login-way.save way-name
-				ServerFactory.login way-name, token, ticket-taker, (error) !->
-					if error.type != ServerFactory.error-types.fatal
-						@error-taker error.msg
-			do: !-> doLogin @token-taker, @error-taker
-		action.do!
+		error-taker = (error-msg) !->
+			$ionicPopup.alert do
+				title: 'Error'
+				template: error-msg
+			.then (res) !-> action!
+		token-taker = (way-name) -> (token) !->
+			LocalStorageFactory.login-way.save way-name
+			ServerFactory.login way-name, token, ticket-taker, (error) !->
+				if error.type != ServerFactory.error-types.fatal
+					error-taker error.msg
+		action = !-> doLogin token-taker, error-taker
+		action!
 	getTicket = (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
 		if store.ticket then ticket-taker that
 		else

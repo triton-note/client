@@ -107,7 +107,7 @@
 		record = $scope.record
 		RecordFactory.add angular.copy(record)
 		$rootScope.$broadcast 'fathens-records-changed'
-		SessionFactory.finish record, [name for name, value of $scope.publish.do when value]
+		SessionFactory.finish record, [name for name, value of $scope.publish.do when value][0]
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicPopup) !->
