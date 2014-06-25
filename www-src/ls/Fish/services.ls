@@ -189,27 +189,24 @@
 	/*
 	Get start session by server, then pass to taker
 	*/
-	start-session: (ticket, geolocation, session-taker, error-taker) !->
-		$log.debug "Starting session by #{ticket} on #{geolocation}"
+	start-session: (ticket, geoinfo, session-taker, error-taker) !->
+		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
 		http('POST', "record/new-session/#{ticket}",
-			geoinfo:
-				latitude: geolocation?.lat
-				longitude: geolocation?.lng
+			geoinfo: geoinfo
 		) session-taker, error-taker
 	/*
 	Put a photo which is encoded by base64 to session
 	*/
 	put-photo: (session, photo, inference-taker, error-taker) !->
 		$log.debug "Putting a photo with #{session}: #{photo}"
-		val ft = new FileTransfer()
-		ft.upload photo, encodeURI(url path)
+		new FileTransfer().upload photo, encodeURI(url "record/photo/#{session}")
 		, (-> it.resonse) >> anguler.fromJson >> inference-taker
-		, error-taker
+		, (-> http-error.gen it.http_status, it.body) >> error-taker
 	/*
 	Put given record to the session
 	*/
 	put-record: (session, record, publishing, success, error-taker) !->
-		$log.debug "Putting record with #{session}: #{record-json}"
+		$log.debug "Putting record with #{session}: #{angular.toJson record} and #{angular.toJson publishing}"
 		http('POST', "record/submit/#{session}",
 			record: record
 			publishing: publishing
@@ -297,23 +294,25 @@
 				title: 'Error'
 				template: error.msg
 
-	start: !->
-		unless store.session
+	start: (geoinfo, success, error-taker) !->
+		get-session = !->
+			store.session = null
 			AccountFactory.ticket.get (ticket) !->
-				ServerFactory.start-session ticket, geolocation
+				ServerFactory.start-session ticket, geoinfo
 				, (session) !->
 					store.session = session
+					success!
 				, (error) !->
 					switch error.type
 					| ServerFactory.error-types.expired =>
 						# When ticket is time out
-						store.ticket = null
-						startSession!
-					| _ =>
-						$ionicPopup.alert do
-							title: 'Error'
-							template: error.msg
-
+						start-session!
+					| _ => error-taker error.msg
+		get-session!
+	put-photo: (uri, inference-taker, error-taker) !->
+		if store.session
+		then ServerFactory.put-photo that, uri, inference-taker, (-> it.msg) >> error-taker
+		else error-taker "No session started"
 	finish: (record, publish-way) !->
 		if store.session
 			sub = submit that, success, record
@@ -364,6 +363,7 @@
 					error-taker error.msg
 		action = !-> doLogin token-taker, error-taker
 		action!
+
 	getTicket = (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
 		if store.ticket then ticket-taker that
 		else

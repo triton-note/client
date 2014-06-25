@@ -7,6 +7,9 @@ cordova platform add android ios
 cordova plugin add org.apache.cordova.device
 cordova plugin add org.apache.cordova.console
 
+cordova plugin add org.apache.cordova.file-transfer
+cordova plugin add org.apache.cordova.geolocation
+
 # Ionic Keyboard
 cordova plugin add https://github.com/driftyco/ionic-plugins-keyboard.git
 

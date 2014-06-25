@@ -77,26 +77,43 @@
 		do: {}
 		ables: [LocalStorageFactory.login-way.load!]
 
-	newRecord = (uri) ->
+	newRecord = (uri, geoinfo) ->
 		photo: uri
 		dateAt: new Date!
 		location:
 			name: "Here"
-			latLng: null
+			geoinfo: geoinfo
 		fishes: []
 		comment: ""
 
 	$scope.open = !->
-		$log.info "Opening modal..."
-		SessionFactory.start!
-		PhotoFactory.select (uri) !->
-			$scope.$apply $scope.record = newRecord uri
-			$scope.modal.show!
-		, (msg) !->
-			$ionicPopup.alert {
-				title: "No photo selected"
-				subTitle: "Need a photo to record"
-			}
+		start = (geoinfo = null) !->
+			SessionFactory.start geoinfo
+			, !->
+				PhotoFactory.select (uri) !->
+					SessionFactory.put-photo uri, (inference) !->
+						$scope.record.fishes = inference.fishes
+					, (error) !->
+						$log.error "Failed to infer: #{error}"
+					$scope.$apply $scope.record = newRecord uri, geoinfo
+					$scope.modal.show!
+				, (msg) !->
+					$ionicPopup.alert do
+						title: "No photo selected"
+						template: "Need a photo to record"
+			, (error) !->
+				$ionicPopup.alert do
+					title: "Error"
+					template: error
+		navigator.geolocation.getCurrentPosition do
+			(pos) !->
+				$log.debug "Gotta geolocation: #{angular.toJson pos}"
+				start do
+					latitude: pos.coords.latitude
+					longitude: pos.coords.longitude
+			, (error) !->
+				$log.error "Geolocation Error: #{angular.toJson error}"
+				start!
 
 	$scope.showMap = !->
 		GMapFactory.showMap $scope.record.location.latLng ,(latLng) !->
