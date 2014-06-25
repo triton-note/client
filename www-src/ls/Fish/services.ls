@@ -123,6 +123,7 @@
 			store.gmap.off!
 
 .factory 'ServerFactory', ($log, $timeout, $http, $ionicPopup, serverURL) ->
+	url = (path) -> "#{serverURL}/#{path}"
 	retryable = (retry, config, res-taker, error-taker) !->
 		$http config
 		.success (data, status, headers, config) !-> res-taker data
@@ -134,7 +135,7 @@
 	http = (method, path, data = null, conetnt-type = "text/json") -> (res-taker, error-taker, retry = 3) !->
 		retryable retry,
 			method: method
-			url: "#{serverURL}/#{path}"
+			url: url(path)
 			data: data
 			headers:
 				if data != null then
@@ -200,10 +201,11 @@
 	Put a photo which is encoded by base64 to session
 	*/
 	put-photo: (session, photo, inference-taker, error-taker) !->
-		$log.debug "Putting a photo with #{session}"
-		http('POST', "record/photo/#{session}",
-			photo: photo
-		) anguler.fromJson >> inference-taker, error-taker
+		$log.debug "Putting a photo with #{session}: #{photo}"
+		val ft = new FileTransfer()
+		ft.upload photo, encodeURI(url path)
+		, (-> it.resonse) >> anguler.fromJson >> inference-taker
+		, error-taker
 	/*
 	Put given record to the session
 	*/
