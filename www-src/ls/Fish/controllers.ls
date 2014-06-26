@@ -92,7 +92,11 @@
 			, !->
 				PhotoFactory.select (uri) !->
 					SessionFactory.put-photo uri, (inference) !->
-						$scope.record.fishes = inference.fishes
+						$scope.$apply !->
+							if inference.location
+								$scope.record.location.name = that
+							if inference.fishes && inference.fishes.length > 0
+								$scope.record.fishes = inference.fishes
 					, (error) !->
 						$log.error "Failed to infer: #{error}"
 					$scope.$apply $scope.record = newRecord uri, geoinfo
@@ -117,14 +121,17 @@
 
 	$scope.showMap = !->
 		GMapFactory.showMap $scope.record.location.latLng ,(latLng) !->
-			$scope.record.location.latLng = latLng
+			$scope.record.location.geoinfo =
+				latitude: latLng.lat
+				longitude: latLng.lng
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
 		record = $scope.record
 		RecordFactory.add angular.copy(record)
 		$rootScope.$broadcast 'fathens-records-changed'
-		SessionFactory.finish record, [name for name, value of $scope.publish.do when value][0]
+		SessionFactory.finish record, [name for name, value of $scope.publish.do when value][0], !->
+			$log.debug "Success on submitting record"
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicPopup) !->

@@ -128,6 +128,7 @@
 		$http config
 		.success (data, status, headers, config) !-> res-taker data
 		.error (data, status, headers, config) !->
+			$log.error "Error on request:#{angular.toJson config} => (#{status})#{data}"
 			error = http-error.gen status, data
 			if error.type == http-error.types.error && retry > 0
 			then retryable retry - 1, config, res-taker, error-taker
@@ -159,9 +160,12 @@
 		| 404 =>
 			type: @types.fatal
 			msg: "Not Found"
+		| 501 =>
+			type: @types.fatal
+			msg: "Not Implemented: #{data}"
 		| 503 =>
 			type: @types.fatal
-			msg: "Service Unavailable"
+			msg: "Service Unavailable: #{data}"
 		| _   =>
 			type: @types.error
 			msg: "Error: #{data}"
@@ -199,14 +203,14 @@
 	*/
 	put-photo: (session, photo, inference-taker, error-taker) !->
 		$log.debug "Putting a photo with #{session}: #{photo}"
-		new FileTransfer().upload photo, encodeURI(url "record/photo/#{session}")
-		, (-> it.resonse) >> anguler.fromJson >> inference-taker
+		new FileTransfer().upload photo, url("record/photo/#{session}")
+		, (-> it.response) >> angular.fromJson >> inference-taker
 		, (-> http-error.gen it.http_status, it.body) >> error-taker
 	/*
 	Put given record to the session
 	*/
-	put-record: (session, record, publishing, success, error-taker) !->
-		$log.debug "Putting record with #{session}: #{angular.toJson record} and #{angular.toJson publishing}"
+	submit-record: (session, record, publishing, success, error-taker) !->
+		$log.debug "Submitting record with #{session}: #{angular.toJson record} and #{angular.toJson publishing}"
 		http('POST', "record/submit/#{session}",
 			record: record
 			publishing: publishing
@@ -287,7 +291,7 @@
 		| _             => ionic.Platform.exitApp!
 
 	submit = (session, success, record) -> (publishing = null) !->
-		ServerFactory.put-record session, record, publishing
+		ServerFactory.submit-record session, record, publishing
 		, success
 		, (error) !->
 			$ionicPopup.alert do
@@ -313,15 +317,20 @@
 		if store.session
 		then ServerFactory.put-photo that, uri, inference-taker, (-> it.msg) >> error-taker
 		else error-taker "No session started"
-	finish: (record, publish-way) !->
+	finish: (record, publish-way, success) !->
 		if store.session
 			sub = submit that, success, record
 			store.session = null
-			if publish-way then
+			if publish-way != null && publish-way.length > 0 then
 				permit-publish publish-way
-				, (token) !-> sub do
-					way: publish-way
-					token: token
+				, (token) !->
+					sub do
+						way: publish-way
+						token: token
+				, (error) !->
+					$ionicPopup.alert do
+						title: 'Rejected'
+						template: error
 			else sub!
 
 .factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory, SocialFactory) ->
