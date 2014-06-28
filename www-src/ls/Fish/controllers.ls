@@ -75,7 +75,7 @@
 	$scope.title = "New Record"
 	$scope.publish =
 		do: {}
-		ables: [LocalStorageFactory.login-way.load!]
+		ables: []
 
 	newRecord = (uri, geoinfo) ->
 		photo: uri
@@ -99,7 +99,9 @@
 								$scope.record.fishes = inference.fishes
 					, (error) !->
 						$log.error "Failed to infer: #{error}"
-					$scope.$apply $scope.record = newRecord uri, geoinfo
+					$scope.$apply !->
+						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that] else []
+						$scope.record = newRecord uri, geoinfo
 					$scope.modal.show!
 				, (msg) !->
 					$ionicPopup.alert do

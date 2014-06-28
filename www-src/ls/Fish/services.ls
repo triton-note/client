@@ -253,7 +253,7 @@
 	/*
 	List of String value to express the way of login
 	*/
-	login-way: make 'login-way', true
+	login-way: make 'login-way'
 	/*
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/
@@ -357,7 +357,7 @@
 	doLogin = (token-taker, error-taker) !->
 		getLoginWay (way) !-> switch way
 		| SocialFactory.ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
-		| _             => ionic.Platform.exitApp!
+		| _                           => ionic.Platform.exitApp!
 
 	login = (ticket-taker) !->
 		error-taker = (error-msg) !->
