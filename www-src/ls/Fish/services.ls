@@ -80,17 +80,16 @@
 		| 'kg'    => value / pondToKg
 
 .factory 'GMapFactory', ($log) ->
-	store = {
+	store =
 		gmap: null
 		marker: null
-	}
+
 	create = (center) !->
-		store.gmap = plugin.google.maps.Map.getMap {
+		store.gmap = plugin.google.maps.Map.getMap do
 			mapType: plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
 				zoom: true
-		}
 		store.gmap.on plugin.google.maps.event.MAP_READY, onReady(center)
 	onReady = (center) -> (gmap) !->
 		centering = (latLng) !->
@@ -123,51 +122,108 @@
 			store.gmap.clear!
 			store.gmap.off!
 
-.factory 'ServerFactory', ($log, $http, $ionicPopup) ->
-	error-types:
-		fatal: 'Fatal'
-		error: 'Error'
-		expired: 'Expired'
+.factory 'ServerFactory', ($log, $timeout, $http, $ionicPopup, serverURL) ->
+	url = (path) -> "#{serverURL}/#{path}"
+	retryable = (retry, config, res-taker, error-taker) !->
+		$http config
+		.success (data, status, headers, config) !-> res-taker data
+		.error (data, status, headers, config) !->
+			$log.error "Error on request:#{angular.toJson config} => (#{status})#{data}"
+			error = http-error.gen status, data
+			if error.type == http-error.types.error && retry > 0
+			then retryable retry - 1, config, res-taker, error-taker
+			else error-taker error
+	http = (method, path, data = null, content-type = "text/json") -> (res-taker, error-taker, retry = 3) !->
+		retryable retry,
+			method: method
+			url: url(path)
+			data: data
+			headers:
+				if data
+				then 'Content-Type': content-type
+				else {}
+		, res-taker, error-taker
+
+	http-error =
+		types:
+			fatal: 'Fatal'
+			error: 'Error'
+			expired: 'Expired'
+		gen: (status, data) -> switch status
+		| 400 =>
+			if data.indexOf('Expired') > -1 then
+				type: @types.expired
+				msg: data
+			else
+				type: @types.Error
+				msg: data
+		| 404 =>
+			type: @types.fatal
+			msg: "Not Found"
+		| 501 =>
+			type: @types.fatal
+			msg: "Not Implemented: #{data}"
+		| 503 =>
+			type: @types.fatal
+			msg: "Service Unavailable: #{data}"
+		| _   =>
+			type: @types.error
+			msg: "Error: #{data}"
+
+	error-types: http-error.types
 	/*
 	Load the 'terms of use and disclaimer' from server
 	*/
 	terms-of-use: (taker) !->
-		taker '
-This text is Dammy
-'
+		http('GET', "assets/terms-of-use.txt") taker, (error) !->
+			$ionicPopup.alert do
+				title: 'Server Error'
+				template: error.msg
+				ok-text: "Exit"
+				ok-type: "button-stable"
+			.then (res) !-> ionic.Platform.exitApp!
 	/*
 	Login to Server
 	*/
 	login: (way, token, ticket-taker, error-taker) !->
-		# Dammy 
 		$log.debug "Login to server with #{way} by #{token}"
-		ticket-taker "#{way}:#{token}"
+		http('POST', "login/#{way}",
+			token: token
+		) ticket-taker, error-taker
 	/*
 	Get start session by server, then pass to taker
 	*/
-	start-session: (ticket, session-taker, error-taker) !->
-		# Dammy
-		$log.debug "Starting session by #{ticket}"
-		session-taker "session:#{ticket}"
+	start-session: (ticket, geoinfo, session-taker, error-taker) !->
+		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
+		http('POST', "record/new-session/#{ticket}",
+			geoinfo: geoinfo
+		) session-taker, error-taker
+	/*
+	Put a photo which is encoded by base64 to session
+	*/
+	put-photo: (session, photo, inference-taker, error-taker) !->
+		$log.debug "Putting a photo with #{session}: #{photo}"
+		new FileTransfer().upload photo, url("record/photo/#{session}")
+		, (-> it.response) >> angular.fromJson >> inference-taker
+		, (-> http-error.gen it.http_status, it.body) >> error-taker
 	/*
 	Put given record to the session
 	*/
-	put-record: (session, record, success, error-taker) !->
-		# Dammy
-		$log.debug "Putting record with #{session}: #{angular.toJson record}"
-		success!
-	/*
-	Command to server to publish the record in session
-	*/
-	publish: (session, way, error-taker) -> (token) !->
-		# Dammy
-		$log.debug "Publish with #{way} by #{session} and #{token}"
+	submit-record: (session, record, publishing, success, error-taker) !->
+		$log.debug "Submitting record with #{session}: #{angular.toJson record} and #{angular.toJson publishing}"
+		http('POST', "record/submit/#{session}",
+			record: record
+			publishing: publishing
+		) success, error-taker
 	/*
 	Load record from server, then pass to taker
 	*/
-	load-records: (ticket) -> (offset, count, taker) !->
-		# Dammy
-		taker []
+	load-records: (ticket) -> (offset, count, taker, error-taker) !->
+		$log.debug "Loading #{count} records from #{offset}"
+		http('POST', "record/load/#{ticket}",
+			offset: offset
+			count: count
+		) angular.fromJson >> taker, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -220,7 +276,7 @@ This text is Dammy
 		facebook: 'facebook'
 		google: 'google'
 	facebook:
-		login: facebook 'email'
+		login: facebook 'basic_info'
 		publish: facebook 'publish_actions'
 	google:
 		login: google 'email'
@@ -230,70 +286,52 @@ This text is Dammy
 	store =
 		session: null
 
-	doPublish = (way, token-taker, error-taker) !->
+	permit-publish = (way, token-taker, error-taker) !->
 		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
 
-	publish = (session, way) !->
-		token-taker = ServerFactory.publish session, way, (error) !->
-			switch error.type
-			| ServerFactory.error-types.error =>
-				$ionicPopup.confirm {
-					title: 'Try Again ?'
-					template: error.msg
-				}
-				.then (res) !-> if res
-					publish(session, way)
-			| _ =>
-				$ionicPopup.alert {
-					title: 'Error'
-					template: error.msg
-				}
-		doPublish way, token-taker, (error-msg) !->
-			$ionicPopup.confirm {
+	submit = (session, success, record) -> (publishing = null) !->
+		ServerFactory.submit-record session, record, publishing
+		, success
+		, (error) !->
+			$ionicPopup.alert do
 				title: 'Error'
-				sub-title: "Try Again ?"
-				template: error-msg
-			}
-			.then (res) !-> if res
-				publish session
+				template: error.msg
 
-	start: !->
-		unless store.session
+	start: (geoinfo, success, error-taker) !->
+		get-session = !->
+			store.session = null
 			AccountFactory.ticket.get (ticket) !->
-				ServerFactory.start-session ticket
+				ServerFactory.start-session ticket, geoinfo
 				, (session) !->
 					store.session = session
+					success!
 				, (error) !->
 					switch error.type
 					| ServerFactory.error-types.expired =>
 						# When ticket is time out
-						store.ticket = null
-						startSession!
-					| _ =>
-						$ionicPopup.alert {
-							title: 'Error'
-							template: error.msg
-						}
-
-	finish: (record, publish-ways) !->
+						start-session!
+					| _ => error-taker error.msg
+		get-session!
+	put-photo: (uri, inference-taker, error-taker) !->
 		if store.session
+		then ServerFactory.put-photo that, uri, inference-taker, (-> it.msg) >> error-taker
+		else error-taker "No session started"
+	finish: (record, publish-way, success) !->
+		if store.session
+			sub = submit that, success, record
 			store.session = null
-			ServerFactory.put-record that, record
-			, !->
-				for way in publish-ways ? []
-					publish that, way
-			, (error) !->
-				switch error.type
-				| ServerFactory.error-types.error =>
-					# When ticket is time out
-					store.ticket = null
-					startSession!
-				| _ =>
-					$ionicPopup.alert {
-						title: 'Error'
-						template: error.msg
-					}
+			if publish-way != null && publish-way.length > 0 then
+				permit-publish publish-way
+				, (token) !->
+					sub do
+						way: publish-way
+						token: token
+				, (error) !->
+					$ionicPopup.alert do
+						title: 'Rejected'
+						template: error
+			else sub!
 
 .factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
@@ -302,7 +340,7 @@ This text is Dammy
 	getLoginWay = (way-taker) !->
 		if LocalStorageFactory.login-way.load! then way-taker that
 		else
-			$ionicPopup.show {
+			$ionicPopup.show do
 				template: 'Select for Login'
 				buttons:
 					{
@@ -314,7 +352,6 @@ This text is Dammy
 						type: 'button icon ion-social-googleplus button-assertive'
 						onTap: (e) -> SocialFactory.ways.google
 					}
-			}
 			.then way-taker
 
 	doLogin = (token-taker, error-taker) !->
@@ -323,20 +360,19 @@ This text is Dammy
 		| _             => ionic.Platform.exitApp!
 
 	login = (ticket-taker) !->
-		action =
-			error-taker: (error-msg) !->
-				$ionicPopup.alert {
-					title: 'Error'
-					template: error-msg
-				}
-				.then (res) !-> @do!
-			token-taker: (way-name) -> (token) !->
-				LocalStorageFactory.login-way.save way-name
-				ServerFactory.login way-name, token, ticket-taker, (error) !->
-					if error.type != ServerFactory.error-types.fatal
-						@error-taker error.msg
-			do: !-> doLogin @token-taker, @error-taker
-		action.do!
+		error-taker = (error-msg) !->
+			$ionicPopup.alert do
+				title: 'Error'
+				template: error-msg
+			.then (res) !-> action!
+		token-taker = (way-name) -> (token) !->
+			LocalStorageFactory.login-way.save way-name
+			ServerFactory.login way-name, token, ticket-taker, (error) !->
+				if error.type != ServerFactory.error-types.fatal
+					error-taker error.msg
+		action = !-> doLogin token-taker, error-taker
+		action!
+
 	getTicket = (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
 		if store.ticket then ticket-taker that
 		else
@@ -357,23 +393,21 @@ This text is Dammy
 		then success!
 		else ServerFactory.terms-of-use (text) !->
 			store.terms-of-use = text
-			$ionicPopup.confirm {
+			$ionicPopup.confirm do
 				title: "Terms of Use and Disclaimer"
 				templateUrl: 'template/terms-of-use.html'
 				ok-text: "Accept"
 				ok-type: "button-stable"
 				cancel-text: "Reject"
 				cancel-type: "button-stable"
-			}
 			.then (res) !->
 				if res then
 					LocalStorageFactory.acceptance.save true
 					success!
 				else
-					$ionicPopup.alert {
+					$ionicPopup.alert do
 						title: "Good Bye !"
 						ok-text: "Exit"
 						ok-type: "button-stable"
-					}
 					.then (res) !->
 						ionic.Platform.exitApp!

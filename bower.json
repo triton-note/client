@@ -2,7 +2,7 @@
   "name": "TritonNote",
   "version": "0.0.1",
   "authors": [
-    "Kunio SAWATANI <devel.fathens@gmail.com>"
+    "Kunio SAWATANI <devel@fathens.org>"
   ],
   "description": "Triton Note Client",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "tests"
   ],
   "dependencies": {
-    "ionic": "driftyco/ionic-bower#1.0.0-beta.7",
+    "ionic": "driftyco/ionic-bower#1.0.0-beta.8",
     "prelude-ls": "~1.1.1"
   },
   "devDependencies": {},
