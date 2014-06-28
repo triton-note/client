@@ -1,48 +1,80 @@
 require! {
+	fs
 	gulp
+	es: 'event-stream'
 	_: 'prelude-ls'
 }
-gp = require('gulp-load-plugins')()
+gp = require('gulp-load-plugins')!
 
 isRelease = gp.util.env.release?
 
-mkPath = (dir) -> (...ext) -> ext |> _.map (a) -> "./www-src/#{dir}/**/!(_)*.#{a}"
-paths = {
+mkPath = (src-name, dst-name = src-name) ->
+	dir = "./www-src/#{src-name}" if src-name != null
+	(...ext) ->
+		src-dir: dir
+		dst-dir: "./www/#{dst-name}"
+		src: if dir then ext.map (a) -> "#{dir}/**/!(_)*.#{a}"
+paths =
 	jade: mkPath('') 'jade'
 	image: mkPath('img') 'png', 'jpg'
-	sass: mkPath('sass') 'scss', 'sass'
-	ls: mkPath('ls') 'ls'
-}
+	sass: mkPath('sass', 'css') 'scss', 'sass'
+	ls: mkPath('ls', 'js')!
+	bower: mkPath(null, 'lib')!
+
+findFolders = (dir) ->
+	fs.readdirSync(dir).filter (file) ->
+		fs.statSync("#{dir}/#{file}").isDirectory!
 
 gulp.task "jade", ->
-	gulp.src paths.jade
-		.pipe gp.jade { pretty: !isRelease, compileDebug: !isRelease }
+	gulp.src paths.jade.src
+		.pipe gp.jade {
+			pretty: !isRelease
+			compileDebug: !isRelease
+		}
 		.pipe gp.if isRelease, gp.minify-html!
-		.pipe gulp.dest "./www"
+		.pipe gulp.dest paths.jade.dst-dir
 
 gulp.task "image", ->
-	gulp.src paths.image
-		.pipe gp.imagemin!
-		.pipe gulp.dest "./www/img"
+	gulp.src paths.image.src
+		.pipe gp.imagemin {
+			optimizationLevel: 7
+			progressive: true
+		}
+		.pipe gulp.dest paths.image.dst-dir
 
 gulp.task "livescript", ->
-	gulp.src paths.ls
-		.pipe gp.livescript { base: true, const: true }
-		.pipe gp.if isRelease, gp.ngmin!
-		.pipe gp.if isRelease, gp.uglify!
-		.pipe gulp.dest "./www/js"
+	es.concat.apply null,
+		findFolders(paths.ls.src-dir).map (folder) ->
+			dir = "#{paths.ls.src-dir}/#{folder}"
+			gulp.src ["#{dir}/_Main.ls", "#{dir}/**/!(_)*.ls"]
+				.pipe gp.concat "#{folder}.ls"
+				.pipe gp.livescript {
+					base: true
+					const: true
+				}
+				.pipe gp.if isRelease, gp.ngmin!
+				.pipe gp.if isRelease, gp.uglify!
+				.pipe gulp.dest paths.ls.dst-dir
 
 gulp.task "sass", ->
-	gulp.src paths.sass
+	gulp.src paths.sass.src
 		.pipe gp.sass!
 		.pipe gp.if isRelease, gp.minify-css!
-		.pipe gulp.dest "./www/css/"
+		.pipe gulp.dest paths.sass.dst-dir
 
 gulp.task "bower", ->
+	jsFilter = gp.filter("**/*.js")
+	cssFilter = gp.filter("**/*.css")
 	gp.bower-files!
-		.pipe gp.if isRelease, gp.uglify { preserveComments: "some" }
-		.pipe gp.flatten!
-		.pipe gulp.dest "./www/lib"
+		.pipe jsFilter
+		.pipe gp.if isRelease, gp.uglify {
+			preserveComments: "some"
+		}
+		.pipe jsFilter.restore!
+		.pipe cssFilter
+		.pipe gp.if isRelease, gp.minify-css!
+		.pipe cssFilter.restore!
+		.pipe gulp.dest paths.bower.dst-dir
 
 gulp.task "watch", !->
 	gulp.watch paths.jade, ["jade"]
@@ -50,4 +82,4 @@ gulp.task "watch", !->
 	gulp.watch paths.sass, ["sass"]
 	gulp.watch paths.ls, ["livescript"]
 
-gulp.task "default", ["jade", "image", "sass", "livescript", "bower"]
+gulp.task "default", ["jade", "image", "sass", "livescript"]
