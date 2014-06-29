@@ -19,6 +19,11 @@
 				.col
 					input(type="text", ng-model="record.location.name")
 				.icon.ion-earth.positive(ng-click="showMap()")
+			.row.item.item-input
+				.col-25.input-label
+					p Comment
+				.col
+					textarea(ng-model="record.comment", placeholder="Comments")
 
 		.list(ng-controller='AddFishCtrl')
 			.bar.item
