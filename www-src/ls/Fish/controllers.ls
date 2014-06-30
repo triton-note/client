@@ -4,80 +4,80 @@
 .controller 'AcceptanceCtrl', ($log, $scope, AcceptanceFactory) !->
 	$scope.terms = AcceptanceFactory.terms-of-use!
 
-.controller 'ShowRecordsCtrl', ($log, $scope, $ionicModal, $ionicPopup, RecordFactory, GMapFactory) !->
-	$ionicModal.fromTemplateUrl 'template/show-record.html'
+.controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory, GMapFactory) !->
+	$ionicModal.fromTemplateUrl 'template/show-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.record.location.latLng
+		GMapFactory.showMap $scope.report.location.latLng
 
-	$scope.refreshRecords = !->
-		$scope.records = RecordFactory.load!
-	$scope.$on 'fathens-records-changed', (event, args) !->
-		$scope.refreshRecords!
+	$scope.refreshReports = !->
+		$scope.reports = ReportFactory.load!
+	$scope.$on 'fathens-reports-changed', (event, args) !->
+		$scope.refreshReports!
 
 	$scope.detail = (index) !->
 		$scope.index = index
-		$scope.record = $scope.records[index]
+		$scope.report = $scope.reports[index]
 		$scope.modal.show!
 
 	$scope.delete = (index) !->
 		$ionicPopup.confirm {
-			title: "Delete Record"
-			template: "Are you sure to delete this record ?"
+			title: "Delete Report"
+			template: "Are you sure to delete this report ?"
 		}
 		.then (res) !-> if res
-			RecordFactory.remove index
-			$scope.$broadcast 'fathens-records-changed'
+			ReportFactory.remove index
+			$scope.$broadcast 'fathens-reports-changed'
 			$scope.modal.hide!
 
 	$scope.close = !-> $scope.modal.hide!
 
-.controller 'EditRecordCtrl', ($log, $scope, $rootScope, $ionicModal, RecordFactory, GMapFactory) !->
-	# $scope.record = 表示中のレコード
+.controller 'EditReportCtrl', ($log, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
+	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
-	$ionicModal.fromTemplateUrl 'template/edit-record.html'
+	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
 
-	$scope.title = "Edit Record"
+	$scope.title = "Edit Report"
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.record.location.latLng ,(latLng) !->
-			$scope.record.location.latLng = latLng
+		GMapFactory.showMap $scope.report.location.latLng ,(latLng) !->
+			$scope.report.location.latLng = latLng
 
 	$scope.edit = !->
-		$scope.currentRecord = angular.copy $scope.record
+		$scope.currentReport = angular.copy $scope.report
 		$scope.modal.show!
 
 	$scope.cancel = !->
-		angular.copy $scope.currentRecord, $scope.record
+		angular.copy $scope.currentReport, $scope.report
 		$scope.modal.hide!
 	
 	$scope.submit = !->
-		$scope.currentRecord = null
-		RecordFactory.update $scope.index, $scope.record
-		$rootScope.$broadcast 'fathens-records-changed'
+		$scope.currentReport = null
+		ReportFactory.update $scope.index, $scope.report
+		$rootScope.$broadcast 'fathens-reports-changed'
 		$scope.modal.hide!
 
-.controller 'AddRecordCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, RecordFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
-	$ionicModal.fromTemplateUrl 'template/edit-record.html'
+.controller 'AddReportCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
+	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
 
-	$scope.title = "New Record"
+	$scope.title = "New Report"
 	$scope.publish =
 		do: {}
 		ables: []
 
-	newRecord = (uri, geoinfo) ->
+	newReport = (uri, geoinfo) ->
 		photo: uri
 		dateAt: new Date!
 		location:
@@ -94,19 +94,19 @@
 					SessionFactory.put-photo uri, (inference) !->
 						$scope.$apply !->
 							if inference.location
-								$scope.record.location.name = that
+								$scope.report.location.name = that
 							if inference.fishes && inference.fishes.length > 0
-								$scope.record.fishes = inference.fishes
+								$scope.report.fishes = inference.fishes
 					, (error) !->
 						$log.error "Failed to infer: #{error}"
 					$scope.$apply !->
 						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that] else []
-						$scope.record = newRecord uri, geoinfo
+						$scope.report = newReport uri, geoinfo
 					$scope.modal.show!
 				, (msg) !->
 					$ionicPopup.alert do
 						title: "No photo selected"
-						template: "Need a photo to record"
+						template: "Need a photo to report"
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Error"
@@ -122,23 +122,23 @@
 				start!
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.record.location.latLng ,(latLng) !->
-			$scope.record.location.geoinfo =
+		GMapFactory.showMap $scope.report.location.latLng ,(latLng) !->
+			$scope.report.location.geoinfo =
 				latitude: latLng.lat
 				longitude: latLng.lng
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
-		record = $scope.record
-		RecordFactory.add angular.copy(record)
-		$rootScope.$broadcast 'fathens-records-changed'
-		SessionFactory.finish record, [name for name, value of $scope.publish.do when value][0], !->
-			$log.debug "Success on submitting record"
+		report = $scope.report
+		ReportFactory.add angular.copy(report)
+		$rootScope.$broadcast 'fathens-reports-changed'
+		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
+			$log.debug "Success on submitting report"
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicPopup) !->
-	# $scope.record.fishes
-	$scope.deleteFish = (index) !-> $scope.record.fishes.splice index, 1
+	# $scope.report.fishes
+	$scope.deleteFish = (index) !-> $scope.report.fishes.splice index, 1
 	$scope.addFish = !->
 		$scope.fish = {
 			name: null
@@ -162,6 +162,6 @@
 						then return $scope.fish
 						else e.preventDefault!
 		}
-		.then (res) !-> $scope.record.fishes.push res if res
+		.then (res) !-> $scope.report.fishes.push res if res
 			, (err) !-> alert "Error: #err"
 			, (msg) !-> alert "Message: #msg"

@@ -33,36 +33,36 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'RecordFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
+.factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
 	loadLocal = ->
-		LocalStorageFactory.records.load! ? []
-	saveLocal = (records) ->
-		LocalStorageFactory.records.save records
+		LocalStorageFactory.reports.load! ? []
+	saveLocal = (reports) ->
+		LocalStorageFactory.reports.save reports
 
 	/*
-		Load records from storage
+		Load reports from storage
 	*/
 	load: -> loadLocal!
 	/*
-		Add record
+		Add report
 	*/
-	add: (record) -> 
+	add: (report) -> 
 		list = loadLocal!
-		list.push record
+		list.push report
 		saveLocal list
 	/*
-		Remove record specified by index
+		Remove report specified by index
 	*/
 	remove: (index) ->
 		list = loadLocal!
 		list.splice index, 1
 		saveLocal list
 	/*
-		Update record specified by index
+		Update report specified by index
 	*/
-	update: (index, record) ->
+	update: (index, report) ->
 		list = loadLocal!
-		list[index] = record
+		list[index] = report
 		saveLocal list
 
 .factory 'UnitFactory', ->
@@ -195,7 +195,7 @@
 	*/
 	start-session: (ticket, geoinfo, session-taker, error-taker) !->
 		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
-		http('POST', "record/new-session/#{ticket}",
+		http('POST', "report/new-session/#{ticket}",
 			geoinfo: geoinfo
 		) session-taker, error-taker
 	/*
@@ -203,24 +203,24 @@
 	*/
 	put-photo: (session, photo, inference-taker, error-taker) !->
 		$log.debug "Putting a photo with #{session}: #{photo}"
-		new FileTransfer().upload photo, url("record/photo/#{session}")
+		new FileTransfer().upload photo, url("report/photo/#{session}")
 		, (-> it.response) >> angular.fromJson >> inference-taker
 		, (-> http-error.gen it.http_status, it.body) >> error-taker
 	/*
-	Put given record to the session
+	Put given report to the session
 	*/
-	submit-record: (session, record, publishing, success, error-taker) !->
-		$log.debug "Submitting record with #{session}: #{angular.toJson record} and #{angular.toJson publishing}"
-		http('POST', "record/submit/#{session}",
-			record: record
+	submit-report: (session, report, publishing, success, error-taker) !->
+		$log.debug "Submitting report with #{session}: #{angular.toJson report} and #{angular.toJson publishing}"
+		http('POST', "report/submit/#{session}",
+			report: report
 			publishing: publishing
 		) success, error-taker
 	/*
-	Load record from server, then pass to taker
+	Load report from server, then pass to taker
 	*/
-	load-records: (ticket) -> (offset, count, taker, error-taker) !->
-		$log.debug "Loading #{count} records from #{offset}"
-		http('POST', "record/load/#{ticket}",
+	load-reports: (ticket) -> (offset, count, taker, error-taker) !->
+		$log.debug "Loading #{count} reports from #{offset}"
+		http('POST', "report/load/#{ticket}",
 			offset: offset
 			count: count
 		) angular.fromJson >> taker, error-taker
@@ -259,9 +259,9 @@
 	*/
 	acceptance: make 'Acceptance'
 	/*
-	Cache of catches records as JSON
+	Cache of catches reports as JSON
 	*/
-	records: make 'catch-records', true
+	reports: make 'catch-reports', true
 
 .factory 'SocialFactory', ($log) ->
 	facebook = (...perm) -> (token-taker, error-taker) !->
@@ -282,7 +282,7 @@
 		login: google 'email'
 		publish: google 'publish'
 
-.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, RecordFactory, AccountFactory) ->
+.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
 		session: null
 
@@ -290,8 +290,8 @@
 		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
 
-	submit = (session, success, record) -> (publishing = null) !->
-		ServerFactory.submit-record session, record, publishing
+	submit = (session, success, report) -> (publishing = null) !->
+		ServerFactory.submit-report session, report, publishing
 		, success
 		, (error) !->
 			$ionicPopup.alert do
@@ -317,9 +317,9 @@
 		if store.session
 		then ServerFactory.put-photo that, uri, inference-taker, (-> it.msg) >> error-taker
 		else error-taker "No session started"
-	finish: (record, publish-way, success) !->
+	finish: (report, publish-way, success) !->
 		if store.session
-			sub = submit that, success, record
+			sub = submit that, success, report
 			store.session = null
 			if publish-way != null && publish-way.length > 0 then
 				permit-publish publish-way

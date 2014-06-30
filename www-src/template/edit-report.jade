@@ -6,31 +6,31 @@
 	ion-content
 		.card
 			.item.item-image
-				img.full-image(src="{{ record.photo }}")
+				img.full-image(src="{{ report.photo }}")
 		.list
 			.row.item.item-input
 				.col-25.input-label
 					p Date
 				.col
-					input(type="date", ng-model="record.dateAt")
+					input(type="date", ng-model="report.dateAt")
 			.row.item.item-input.item-icon-right
 				.col-25.input-label
 					p Spot
 				.col
-					input(type="text", ng-model="record.location.name")
+					input(type="text", ng-model="report.location.name")
 				.icon.ion-earth.positive(ng-click="showMap()")
 			.row.item.item-input
 				.col-25.input-label
 					p Comment
 				.col
-					textarea(ng-model="record.comment", placeholder="Comments")
+					textarea(ng-model="report.comment", placeholder="Comments")
 
 		.list(ng-controller='AddFishCtrl')
 			.bar.item
 				p.title Catches
 				button.button.button-clear.icon.ion-plus-circled.button-positive(ng-click="addFish()")
 			ion-list
-				ion-item.item-button-right(ng-repeat="fish in record.fishes")
+				ion-item.item-button-right(ng-repeat="fish in report.fishes")
 					p {{fish | fishFilter}}
 					button.button.button-clear.icon.ion-minus-circled.button-stable(ng-click="deleteFish($index)")
 

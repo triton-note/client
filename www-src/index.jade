@@ -8,15 +8,15 @@ html(ng-app=app.name)
 			ion-side-menu-content
 				ion-header-bar
 					.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
-					h1.title My Records
-					.button.button-clear.icon.ion-plus-round.button-positive(ng-controller='AddRecordCtrl', ng-click="open()")
+					h1.title My Reports
+					.button.button-clear.icon.ion-plus-round.button-positive(ng-controller='AddReportCtrl', ng-click="open()")
 
-				ion-content(ng-controller='ShowRecordsCtrl')
-					.list.card(ng-init="refreshRecords()")
-						.item.item-body(ng-repeat="record in records")
-							img.full-image(src="{{ record.photo }}", ng-click="detail({{ $index }})")
+				ion-content(ng-controller='ShowReportsCtrl')
+					.list.card(ng-init="refreshReports()")
+						.item.item-body(ng-repeat="report in reports")
+							img.full-image(src="{{ report.photo }}", ng-click="detail({{ $index }})")
 							.list
-								.item(ng-repeat="fish in record.fishes")
+								.item(ng-repeat="fish in report.fishes")
 									p {{fish | fishFilter}}
 
 			ion-side-menu(side="left")
