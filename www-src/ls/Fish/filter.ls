@@ -3,22 +3,23 @@
 		fish {
 			name: String
 			count: Int
-			length: Float
-			weight: Float
-			units: {
-				length: 'inch', 'cm'
-				weight: 'pond', 'kg'
+			length: {
+				value: Double
+				unit: 'inch'|'cm'
+			}
+			weight: {
+				value: Double
+				unit: 'pond'|'kg'
 			}
 		}
 	*/
 	(fish, units = {length: 'inch', weight: 'pond'}) ->
 		size = (u) ->
-			value = eval "fish.#{u}"
+			src= eval "fish.#{u}"
 			if value then
-				srcUnit = eval "fish.units.#{u}"
 				dstUnit = eval "units.#{u}"
 				converter = eval "UnitFactory.#{u}"
-				converted = converter(value, srcUnit, dstUnit)
+				converted = converter(src.value, src.unit, dstUnit)
 				"#{$filter('number')(converted, 0)} #{dstUnit}"
 			else []
 		sizes = (_.flatten _.map(size) ["length", "weight"]).join ', '
