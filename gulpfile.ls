@@ -8,11 +8,13 @@ gp = require('gulp-load-plugins')!
 
 isRelease = gp.util.env.release?
 
+app-src = "./www-src"
+app-dst = "./www"
 mkPath = (src-name, dst-name = src-name) ->
-	dir = "./www-src/#{src-name}" if src-name != null
+	dir = "#{app-src}/#{src-name}" if src-name != null
 	(...ext) ->
 		src-dir: dir
-		dst-dir: "./www/#{dst-name}"
+		dst-dir: "#{app-dst}/#{dst-name}"
 		src: if dir then ext.map (a) -> "#{dir}/**/!(_)*.#{a}"
 paths =
 	jade: mkPath('') 'jade'
@@ -81,5 +83,9 @@ gulp.task "watch", !->
 	gulp.watch paths.image, ["image"]
 	gulp.watch paths.sass, ["sass"]
 	gulp.watch paths.ls, ["livescript"]
+
+gulp.task "clean", !->
+	gulp.src app-dst, read: false
+		.pipe gp.clean!
 
 gulp.task "default", ["jade", "image", "sass", "livescript"]

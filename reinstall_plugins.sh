@@ -1,5 +1,6 @@
-rm -rf platforms/*
-rm -rf plugins/*
+rm -rf platforms/
+rm -rf plugins/
+mkdir -vp plugins
 
 cordova platform add android ios
 
