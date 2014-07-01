@@ -34,36 +34,50 @@
 			destinationType: Camera.DestinationType.FILE_URI
 
 .factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
-	loadLocal = ->
-		LocalStorageFactory.reports.load! ? []
-	saveLocal = (reports) ->
-		LocalStorageFactory.reports.save reports
+	limit = 30
+	loadServer = (last-id = null, taker) !->
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.load-reports ticket, limit, last-id, taker
+			, (error) !->
+				$ionicPopup.alert do
+					title: "Failed to load from server"
+					template: error.msg
+				.then (res) !-> taker null
 
 	/*
-		Load reports from storage
+		Load reports from server
 	*/
-	load: -> loadLocal!
-	/*
-		Add report
-	*/
-	add: (report) -> 
-		list = loadLocal!
-		list.push report
-		saveLocal list
+	load: loadServer
 	/*
 		Remove report specified by index
 	*/
 	remove: (index) ->
 		list = loadLocal!
-		list.splice index, 1
-		saveLocal list
+		removing-id = list[index].id
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.remove-report ticket, removing-id
+			, !->
+				list.splice index, 1
+				saveLocal list
+			, (error) !->
+				$ionicPopup.alert do
+					title: "Failed to remove from server"
+					template: error.msg
 	/*
 		Update report specified by index
 	*/
 	update: (index, report) ->
 		list = loadLocal!
-		list[index] = report
-		saveLocal list
+		report.id = list[index].id
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.update-report ticket, report
+			, !->
+				list[index] = report
+				saveLocal list
+			, (error) !->
+				$ionicPopup.alert do
+					title: "Failed to update to server"
+					template: error.msg
 
 .factory 'UnitFactory', ->
 	inchToCm = 2.54
@@ -218,12 +232,28 @@
 	/*
 	Load report from server, then pass to taker
 	*/
-	load-reports: (ticket) -> (offset, count, taker, error-taker) !->
-		$log.debug "Loading #{count} reports from #{offset}"
+	load-reports: (ticket, count, last-id, taker, error-taker) !->
+		$log.debug "Loading #{count} reports from #{last-id}"
 		http('POST', "report/load/#{ticket}",
-			offset: offset
 			count: count
+			last: last-id
 		) angular.fromJson >> taker, error-taker
+	/*
+	Remove report from server
+	*/
+	remove-report: (ticket, id, success, error-taker) !->
+		$log.debug "Removing report(#{id})"
+		http('POST', "report/remove/#{ticket}",
+			id: id
+		) taker, error-taker
+	/*
+	Update report to server. ID has to be contain given report.
+	*/
+	upate-report: (ticket, report, success, error-taker) !->
+		$log.debug "Updating report: #{angular.toJson report}"
+		http('POST', "report/update/#{ticket}",
+			report: report
+		) taker, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []

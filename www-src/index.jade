@@ -18,6 +18,7 @@ html(ng-app=app.name)
 							.list
 								.item(ng-repeat="fish in report.fishes")
 									p {{fish | fishFilter}}
+					ion-infinite-scroll(ng-if="hasMoreReports", on-infinite="moreReports()")
 
 			ion-side-menu(side="left")
 				ion-header-bar

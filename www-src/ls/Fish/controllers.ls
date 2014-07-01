@@ -14,8 +14,19 @@
 	$scope.showMap = !->
 		GMapFactory.showMap $scope.report.location.latLng
 
+	$scope.reports = []
+	$scope.hasMoreReports = true
+	$scope.moreReports = !->
+		last-id = $scope.reports[$scope.reports.length - 1]?.id ? null
+		ReportFactory.load last-id, (more) !->
+			if _.empty more
+			then $scope.hasMoreReports = false
+			else $scope.reports = $scope.reports ++ more
+			$scope.$broadcast 'scroll.infiniteScrollComplete'
 	$scope.refreshReports = !->
-		$scope.reports = ReportFactory.load!
+		$scope.$apply $scope.reports = []
+		ReportFactory.load null, (more) !->
+			$scope.$apply $scope.reports = more
 	$scope.$on 'fathens-reports-changed', (event, args) !->
 		$scope.refreshReports!
 
@@ -25,10 +36,9 @@
 		$scope.modal.show!
 
 	$scope.delete = (index) !->
-		$ionicPopup.confirm {
+		$ionicPopup.confirm do
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"
-		}
 		.then (res) !-> if res
 			ReportFactory.remove index
 			$scope.$broadcast 'fathens-reports-changed'
@@ -129,11 +139,10 @@
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
-		report = $scope.report
-		ReportFactory.add angular.copy(report)
-		$rootScope.$broadcast 'fathens-reports-changed'
+		report = angular.copy $scope.report
 		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
 			$log.debug "Success on submitting report"
+			$rootScope.$broadcast 'fathens-reports-changed'
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicPopup) !->
