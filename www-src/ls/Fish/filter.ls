@@ -15,8 +15,8 @@
 	*/
 	(fish, units = {length: 'inch', weight: 'pond'}) ->
 		size = (u) ->
-			src= eval "fish.#{u}"
-			if value then
+			src = eval "fish.#{u}"
+			if src then
 				dstUnit = eval "units.#{u}"
 				converter = eval "UnitFactory.#{u}"
 				converted = converter(src.value, src.unit, dstUnit)
