@@ -43,8 +43,9 @@
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"
 		.then (res) !-> if res
-			ReportFactory.remove index
-			$scope.$broadcast 'fathens-reports-changed'
+			ReportFactory.remove $scope.reports[index].id, !->
+				$scope.reports.splice index, 1
+				$scope.$broadcast 'fathens-reports-changed'
 			$scope.modal.hide!
 
 	$scope.close = !-> $scope.modal.hide!
@@ -74,8 +75,8 @@
 	
 	$scope.submit = !->
 		$scope.currentReport = null
-		ReportFactory.update $scope.index, $scope.report
-		$rootScope.$broadcast 'fathens-reports-changed'
+		ReportFactory.update $scope.report, !->
+			$rootScope.$broadcast 'fathens-reports-changed'
 		$scope.modal.hide!
 
 .controller 'AddReportCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->

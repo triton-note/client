@@ -51,14 +51,12 @@
 	/*
 		Remove report specified by index
 	*/
-	remove: (index) ->
-		list = loadLocal!
-		removing-id = list[index].id
+	remove: (removing-id, success) !->
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.remove-report ticket, removing-id
 			, !->
-				list.splice index, 1
-				saveLocal list
+				$log.info "Deleted report: #{removing-id}"
+				success!
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to remove from server"
@@ -66,14 +64,12 @@
 	/*
 		Update report specified by index
 	*/
-	update: (index, report) ->
-		list = loadLocal!
-		report.id = list[index].id
+	update: (report, success) ->
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.update-report ticket, report
 			, !->
-				list[index] = report
-				saveLocal list
+				$log.info "Updated report: #{report.id}"
+				success!
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to update to server"
@@ -245,15 +241,15 @@
 		$log.debug "Removing report(#{id})"
 		http('POST', "report/remove/#{ticket}",
 			id: id
-		) taker, error-taker
+		) success, error-taker
 	/*
 	Update report to server. ID has to be contain given report.
 	*/
-	upate-report: (ticket, report, success, error-taker) !->
+	update-report: (ticket, report, success, error-taker) !->
 		$log.debug "Updating report: #{angular.toJson report}"
 		http('POST', "report/update/#{ticket}",
 			report: report
-		) taker, error-taker
+		) success, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -347,7 +343,7 @@
 		if store.session
 			sub = submit that, success, report
 			store.session = null
-			if publish-way != null && publish-way.length > 0 then
+			if publish-way?.length > 0 then
 				permit-publish publish-way
 				, (token) !->
 					sub do
