@@ -156,9 +156,10 @@
 		$scope.fish = {
 			name: null
 			count: 1
-			units:
-				length: 'cm'
-				weight: 'kg'
+			length:
+				unit: 'cm'
+			weight:
+				unit: 'kg'
 		}
 		$ionicPopup.show {
 			title: 'Add Fish'
@@ -171,8 +172,11 @@
 				*text: "OK"
 					type: "button-positive"
 					onTap: (e) !->
-						if $scope.fish.name
-						then return $scope.fish
+						if $scope.fish.name?.length > 0 && $scope.fish.count > 0
+						then
+							if ! $scope.fish.length.value then $scope.fish.length = null
+							if ! $scope.fish.weight.value then $scope.fish.weight = null
+							return $scope.fish
 						else e.preventDefault!
 		}
 		.then (res) !-> $scope.report.fishes.push res if res

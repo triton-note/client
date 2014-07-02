@@ -1,4 +1,4 @@
-.filter 'fishFilter', ($filter, UnitFactory) ->
+.filter 'fishFilter', ($log, $filter, UnitFactory) ->
 	/*
 		fish {
 			name: String
@@ -14,9 +14,10 @@
 		}
 	*/
 	(fish, units = {length: 'inch', weight: 'pond'}) ->
+		$log.debug "Making description of #{angular.toJson fish}"
 		size = (u) ->
 			src = eval "fish.#{u}"
-			if src then
+			if src?.value then
 				dstUnit = eval "units.#{u}"
 				converter = eval "UnitFactory.#{u}"
 				converted = converter(src.value, src.unit, dstUnit)
