@@ -15,7 +15,7 @@
 		GMapFactory.showMap $scope.report.location.latLng
 
 	$scope.reports = []
-	$scope.hasMoreReports = true
+	$scope.hasMoreReports = false
 	$scope.moreReports = !->
 		last-id = $scope.reports[$scope.reports.length - 1]?.id ? null
 		ReportFactory.load last-id, (more) !->
@@ -24,9 +24,12 @@
 			else $scope.reports = $scope.reports ++ more
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 	$scope.refreshReports = !->
-		$scope.$apply $scope.reports = []
+		$scope.hasMoreReports = false
+		$scope.reports = []
 		ReportFactory.load null, (more) !->
-			$scope.$apply $scope.reports = more
+			$scope.hasMoreReports = ! _.empty more
+			$log.info "Set hasMoreReports = #{$scope.hasMoreReports}"
+			$scope.reports = more
 	$scope.$on 'fathens-reports-changed', (event, args) !->
 		$scope.refreshReports!
 

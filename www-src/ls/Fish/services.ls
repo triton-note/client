@@ -288,10 +288,6 @@
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/
 	acceptance: make 'Acceptance'
-	/*
-	Cache of catches reports as JSON
-	*/
-	reports: make 'catch-reports', true
 
 .factory 'SocialFactory', ($log) ->
 	facebook = (...perm) -> (token-taker, error-taker) !->
