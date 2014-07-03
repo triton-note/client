@@ -79,7 +79,7 @@
 			$rootScope.$broadcast 'fathens-reports-changed'
 		$scope.modal.hide!
 
-.controller 'AddReportCtrl', ($log, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
+.controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -93,7 +93,7 @@
 
 	newReport = (uri, geoinfo) ->
 		photo: uri
-		dateAt: new Date!
+		dateAt: $filter('date') new Date!, 'yyyy-MM-dd'
 		location:
 			name: "Here"
 			geoinfo: geoinfo
@@ -144,6 +144,7 @@
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
 		report = angular.copy $scope.report
+		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
 			$log.debug "Success on submitting report"
 			$rootScope.$broadcast 'fathens-reports-changed'
