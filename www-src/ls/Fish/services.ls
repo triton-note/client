@@ -33,37 +33,47 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'RecordFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
-	loadLocal = ->
-		LocalStorageFactory.records.load! ? []
-	saveLocal = (records) ->
-		LocalStorageFactory.records.save records
+.factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
+	limit = 30
+	loadServer = (last-id = null, taker) !->
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.load-reports ticket, limit, last-id, taker
+			, (error) !->
+				$ionicPopup.alert do
+					title: "Failed to load from server"
+					template: error.msg
+				.then (res) !-> taker null
 
 	/*
-		Load records from storage
+		Load reports from server
 	*/
-	load: -> loadLocal!
+	load: loadServer
 	/*
-		Add record
+		Remove report specified by index
 	*/
-	add: (record) -> 
-		list = loadLocal!
-		list.push record
-		saveLocal list
+	remove: (removing-id, success) !->
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.remove-report ticket, removing-id
+			, !->
+				$log.info "Deleted report: #{removing-id}"
+				success!
+			, (error) !->
+				$ionicPopup.alert do
+					title: "Failed to remove from server"
+					template: error.msg
 	/*
-		Remove record specified by index
+		Update report specified by index
 	*/
-	remove: (index) ->
-		list = loadLocal!
-		list.splice index, 1
-		saveLocal list
-	/*
-		Update record specified by index
-	*/
-	update: (index, record) ->
-		list = loadLocal!
-		list[index] = record
-		saveLocal list
+	update: (report, success) ->
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.update-report ticket, report
+			, !->
+				$log.info "Updated report: #{report.id}"
+				success!
+			, (error) !->
+				$ionicPopup.alert do
+					title: "Failed to update to server"
+					template: error.msg
 
 .factory 'UnitFactory', ->
 	inchToCm = 2.54
@@ -195,7 +205,7 @@
 	*/
 	start-session: (ticket, geoinfo, session-taker, error-taker) !->
 		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
-		http('POST', "record/new-session/#{ticket}",
+		http('POST', "report/new-session/#{ticket}",
 			geoinfo: geoinfo
 		) session-taker, error-taker
 	/*
@@ -203,27 +213,43 @@
 	*/
 	put-photo: (session, photo, inference-taker, error-taker) !->
 		$log.debug "Putting a photo with #{session}: #{photo}"
-		new FileTransfer().upload photo, url("record/photo/#{session}")
+		new FileTransfer().upload photo, url("report/photo/#{session}")
 		, (-> it.response) >> angular.fromJson >> inference-taker
 		, (-> http-error.gen it.http_status, it.body) >> error-taker
 	/*
-	Put given record to the session
+	Put given report to the session
 	*/
-	submit-record: (session, record, publishing, success, error-taker) !->
-		$log.debug "Submitting record with #{session}: #{angular.toJson record} and #{angular.toJson publishing}"
-		http('POST', "record/submit/#{session}",
-			record: record
+	submit-report: (session, report, publishing, success, error-taker) !->
+		$log.debug "Submitting report with #{session}: #{angular.toJson report} and #{angular.toJson publishing}"
+		http('POST', "report/submit/#{session}",
+			report: report
 			publishing: publishing
 		) success, error-taker
 	/*
-	Load record from server, then pass to taker
+	Load report from server, then pass to taker
 	*/
-	load-records: (ticket) -> (offset, count, taker, error-taker) !->
-		$log.debug "Loading #{count} records from #{offset}"
-		http('POST', "record/load/#{ticket}",
-			offset: offset
+	load-reports: (ticket, count, last-id, taker, error-taker) !->
+		$log.debug "Loading #{count} reports from #{last-id}"
+		http('POST', "report/load/#{ticket}",
 			count: count
+			last: last-id
 		) angular.fromJson >> taker, error-taker
+	/*
+	Remove report from server
+	*/
+	remove-report: (ticket, id, success, error-taker) !->
+		$log.debug "Removing report(#{id})"
+		http('POST', "report/remove/#{ticket}",
+			id: id
+		) success, error-taker
+	/*
+	Update report to server. ID has to be contain given report.
+	*/
+	update-report: (ticket, report, success, error-taker) !->
+		$log.debug "Updating report: #{angular.toJson report}"
+		http('POST', "report/update/#{ticket}",
+			report: report
+		) success, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -253,15 +279,11 @@
 	/*
 	List of String value to express the way of login
 	*/
-	login-way: make 'login-way', true
+	login-way: make 'login-way'
 	/*
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/
 	acceptance: make 'Acceptance'
-	/*
-	Cache of catches records as JSON
-	*/
-	records: make 'catch-records', true
 
 .factory 'SocialFactory', ($log) ->
 	facebook = (...perm) -> (token-taker, error-taker) !->
@@ -282,7 +304,7 @@
 		login: google 'email'
 		publish: google 'publish'
 
-.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, RecordFactory, AccountFactory) ->
+.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
 		session: null
 
@@ -290,8 +312,8 @@
 		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
 
-	submit = (session, success, record) -> (publishing = null) !->
-		ServerFactory.submit-record session, record, publishing
+	submit = (session, success, report) -> (publishing = null) !->
+		ServerFactory.submit-report session, report, publishing
 		, success
 		, (error) !->
 			$ionicPopup.alert do
@@ -317,11 +339,11 @@
 		if store.session
 		then ServerFactory.put-photo that, uri, inference-taker, (-> it.msg) >> error-taker
 		else error-taker "No session started"
-	finish: (record, publish-way, success) !->
+	finish: (report, publish-way, success) !->
 		if store.session
-			sub = submit that, success, record
+			sub = submit that, success, report
 			store.session = null
-			if publish-way != null && publish-way.length > 0 then
+			if publish-way?.length > 0 then
 				permit-publish publish-way
 				, (token) !->
 					sub do
@@ -357,7 +379,7 @@
 	doLogin = (token-taker, error-taker) !->
 		getLoginWay (way) !-> switch way
 		| SocialFactory.ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
-		| _             => ionic.Platform.exitApp!
+		| _                           => ionic.Platform.exitApp!
 
 	login = (ticket-taker) !->
 		error-taker = (error-msg) !->

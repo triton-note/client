@@ -1,0 +1,37 @@
+.modal
+	ion-header-bar
+		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
+		h1.title Report Detail
+		button.button.button-clear.icon.ion-edit.button-balanced(ng-controller='EditReportCtrl', ng-click="edit()")
+	ion-content
+		.card
+			.item.item-image
+				img.full-image(src="{{ report.photo }}")
+		.list
+			.row.item.item-input
+				.col-25.input-label
+					p Date
+				.col
+					p {{report.dateAt | date: 'yyyy/MM/dd'}}
+			.row.item.item-input.item-icon-right
+				.col-25.input-label
+					p Spot
+				.col
+					p {{report.location.name}}
+				.icon.ion-earth.positive(ng-click="showMap()")
+			.row.item.item-input.item-wrap-text
+				.col-25.input-label
+					p Comment
+				.col
+					pre {{report.comment}}
+
+		.list
+			.bar.item
+				p.title Catches
+			ion-list
+				ion-item.item-button-right(ng-repeat="fish in report.fishes")
+					p {{fish | fishFilter}}
+
+		.list
+			.item.item-divider
+				button.button.button-block.button-small.button-outline.button-assertive.icon.icon-left.ion-close(ng-click="delete(index)") Delete this report
