@@ -12,7 +12,7 @@
 			animation: 'slide-in-up'
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.latLng
+		GMapFactory.showMap $scope.report.location.geoinfo
 
 	$scope.reports = []
 	$scope.hasMoreReports = false
@@ -62,8 +62,8 @@
 	$scope.title = "Edit Report"
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.latLng ,(latLng) !->
-			$scope.report.location.latLng = latLng
+		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
+			$scope.report.location.geoinfo = gi
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
@@ -136,10 +136,8 @@
 				start!
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.latLng ,(latLng) !->
-			$scope.report.location.geoinfo =
-				latitude: latLng.lat
-				longitude: latLng.lng
+		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
+			$scope.report.location.geoinfo = gi
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->

@@ -117,7 +117,10 @@
 		}, (marker) !->
 			store.marker = marker
 
-	showMap: (center, setter) ->
+	showMap: (theCenter, setter = null) ->
+		center =
+			lat: theCenter.latitude
+			lng: theCenter.longitude
 		if store.gmap
 			onReady(center) store.gmap
 		else create center
@@ -125,7 +128,9 @@
 		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
 			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{setter}"
 			if setter
-				setter latLng
+				setter do
+					latitude: latLng.lat
+					longitude: latLng.lng
 				addMarker latLng
 		store.gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
 			$log.debug "Map close: #{e}"
