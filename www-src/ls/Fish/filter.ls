@@ -14,7 +14,6 @@
 		}
 	*/
 	(fish, units = {length: 'inch', weight: 'pond'}) ->
-		$log.debug "Making description of #{angular.toJson fish}"
 		size = (u) ->
 			src = eval "fish.#{u}"
 			if src?.value then
