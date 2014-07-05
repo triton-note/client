@@ -103,6 +103,7 @@
 				PhotoFactory.select (uri) !->
 					SessionFactory.put-photo uri, (inference) !->
 						$scope.$apply !->
+							$scope.report.photo = inference.url
 							if inference.location
 								$scope.report.location.name = that
 							if inference.fishes && inference.fishes.length > 0
@@ -111,7 +112,10 @@
 						$log.error "Failed to infer: #{error}"
 					$scope.$apply !->
 						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that] else []
-						$scope.report = newReport uri, geoinfo
+						imageUrl = if device.platform == 'Android'
+							then ""
+							else uri
+						$scope.report = newReport imageUrl, geoinfo
 					$scope.modal.show!
 				, (msg) !->
 					$ionicPopup.alert do
