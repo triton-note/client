@@ -16,22 +16,18 @@
 
 	$scope.reports = []
 	$scope.hasMoreReports = false
+	$scope.clear = !->
+		$scope.reports = []
+		$scope.hasMoreReports = true
 	$scope.moreReports = !->
 		last-id = $scope.reports[$scope.reports.length - 1]?.id ? null
 		ReportFactory.load last-id, (more) !->
-			if _.empty more
-			then $scope.hasMoreReports = false
-			else $scope.reports = $scope.reports ++ more
-			$scope.$broadcast 'scroll.infiniteScrollComplete'
-	$scope.refreshReports = !->
-		$scope.hasMoreReports = false
-		$scope.reports = []
-		ReportFactory.load null, (more) !->
 			$scope.hasMoreReports = ! _.empty more
 			$log.info "Set hasMoreReports = #{$scope.hasMoreReports}"
-			$scope.reports = more
+			$scope.reports = $scope.reports ++ more
+			$scope.$broadcast 'scroll.infiniteScrollComplete'
 	$scope.$on 'fathens-reports-changed', (event, args) !->
-		$scope.refreshReports!
+		$scope.clear!
 
 	$scope.detail = (index) !->
 		$scope.index = index
