@@ -30,6 +30,8 @@
 	*/
 	select: (onSuccess, onFailure = (msg) !-> alert msg) !->
 		navigator.camera.getPicture onSuccess, onFailure,
+			correctOrientation: true
+			encodingType: Camera.EncodingType.JPEG
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
