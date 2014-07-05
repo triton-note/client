@@ -46,7 +46,7 @@
 
 	$scope.close = !-> $scope.modal.hide!
 
-.controller 'EditReportCtrl', ($log, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
+.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
 	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -63,6 +63,7 @@
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
+		$scope.report.dateAt = $filter('date') new Date($scope.report.dateAt), 'yyyy-MM-dd'
 		$scope.modal.show!
 
 	$scope.cancel = !->
