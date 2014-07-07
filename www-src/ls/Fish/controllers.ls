@@ -1,9 +1,6 @@
 .controller 'MenuCtrl', ($log, $scope) !->
 	$scope.openMap = !-> alert "Open Map"
 
-.controller 'AcceptanceCtrl', ($log, $scope, AcceptanceFactory) !->
-	$scope.terms = AcceptanceFactory.terms-of-use!
-
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory, GMapFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
 		, (modal) !-> $scope.modal = modal
@@ -14,24 +11,20 @@
 	$scope.showMap = !->
 		GMapFactory.showMap $scope.report.location.geoinfo
 
-	$scope.reports = []
-	$scope.hasMoreReports = false
-	$scope.clear = !->
-		$scope.reports = []
-		$scope.hasMoreReports = true
+	$scope.reports = ReportFactory.cachedList
+	$scope.hasMoreReports = ReportFactory.hasMore
+	$scope.refresh = !->
+		ReportFactory.clear !->
+			$scope.$broadcast 'scroll.refreshComplete'
 	$scope.moreReports = !->
-		last-id = $scope.reports[$scope.reports.length - 1]?.id ? null
-		ReportFactory.load last-id, (more) !->
-			$scope.hasMoreReports = ! _.empty more
-			$log.info "Set hasMoreReports = #{$scope.hasMoreReports}"
-			$scope.reports = $scope.reports ++ more
+		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
-	$scope.$on 'fathens-reports-changed', (event, args) !->
-		$scope.clear!
+	ionic.Platform.ready !->
+		$scope.$apply ReportFactory.clear
 
 	$scope.detail = (index) !->
 		$scope.index = index
-		$scope.report = $scope.reports[index]
+		$scope.report = ReportFactory.getReport index
 		$scope.modal.show!
 
 	$scope.delete = (index) !->
@@ -39,14 +32,13 @@
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"
 		.then (res) !-> if res
-			ReportFactory.remove $scope.reports[index].id, !->
-				$scope.reports.splice index, 1
-				$scope.$broadcast 'fathens-reports-changed'
+			ReportFactory.remove index, !->
+				$log.debug "Remove completed."
 			$scope.modal.hide!
 
 	$scope.close = !-> $scope.modal.hide!
 
-.controller 'EditReportCtrl', ($log, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
+.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
 	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -63,6 +55,7 @@
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
+		$scope.report.dateAt = $filter('date') new Date($scope.report.dateAt), 'yyyy-MM-dd'
 		$scope.modal.show!
 
 	$scope.cancel = !->
@@ -72,7 +65,7 @@
 	$scope.submit = !->
 		$scope.currentReport = null
 		ReportFactory.update $scope.report, !->
-			$rootScope.$broadcast 'fathens-reports-changed'
+			$log.debug "Edit completed."
 		$scope.modal.hide!
 
 .controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
@@ -145,7 +138,6 @@
 		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
 			$log.debug "Success on submitting report"
-			$rootScope.$broadcast 'fathens-reports-changed'
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicPopup) !->

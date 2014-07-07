@@ -37,6 +37,10 @@
 
 .factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
 	limit = 30
+	store =
+		reports: []
+		hasMore: false
+
 	loadServer = (last-id = null, taker) !->
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.load-reports ticket, limit, last-id, taker
@@ -46,25 +50,56 @@
 					template: error.msg
 				.then (res) !-> taker null
 
+	cachedList: ->
+		store.reports
+	hasMore: ->
+		store.hasMore
+	/*
+		Get a report by index of cached list
+	*/
+	getReport: (index) ->
+		$log.debug "Getting report[#{index}]"
+		store.reports[index]
+	/*
+		Clear all cache
+	*/
+	clear: (success) !->
+		store.reports = []
+		store.hasMore = true
+		$log.debug "Reports cleared."
+		success! if success
 	/*
 		Load reports from server
 	*/
-	load: loadServer
+	load: (success) !->
+		last-id = store.reports[store.reports.length - 1]?.id ? null
+		loadServer last-id, (more) !->
+			store.hasMore = limit <= more.length
+			store.reports = store.reports ++ more
+			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
+			success! if success
+	/*
+		Add report
+	*/
+	add: (report) !->
+		store.reports = angular.copy([report] ++ store.reports)
 	/*
 		Remove report specified by index
 	*/
-	remove: (removing-id, success) !->
+	remove: (index, success) !->
+		removing-id = store.reports[index].id
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.remove-report ticket, removing-id
 			, !->
 				$log.info "Deleted report: #{removing-id}"
+				store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
 				success!
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to remove from server"
 					template: error.msg
 	/*
-		Update report specified by index
+		Update report
 	*/
 	update: (report, success) ->
 		AccountFactory.ticket.get (ticket) !->
@@ -317,7 +352,9 @@
 
 	submit = (session, success, report) -> (publishing = null) !->
 		ServerFactory.submit-report session, report, publishing
-		, success
+		, !->
+			ReportFactory.add report
+			success!
 		, (error) !->
 			$ionicPopup.alert do
 				title: 'Error'
@@ -358,13 +395,13 @@
 						template: error
 			else sub!
 
-.factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory, SocialFactory) ->
+.factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
 		ticket: null
 
 	getLoginWay = (way-taker) !->
 		if LocalStorageFactory.login-way.load! then way-taker that
-		else
+		else AcceptanceFactory.obtain !->
 			$ionicPopup.show do
 				template: 'Select for Login'
 				buttons:
@@ -398,41 +435,39 @@
 		action = !-> doLogin token-taker, error-taker
 		action!
 
-	getTicket = (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
-		if store.ticket then ticket-taker that
-		else
-			login (ticket) !->
-				store.ticket = ticket
-				ticket-taker ticket
-
 	ticket:
-		get: getTicket
+		get: (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
+			if store.ticket then ticket-taker that
+			else
+				login (ticket) !->
+					store.ticket = ticket
+					ticket-taker ticket
 
-.factory 'AcceptanceFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory) ->
-	store =
-		terms-of-use: null
+.factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
+	scope = $rootScope.$new(true)
+	scope.accept = !->
+		$log.info "Acceptance obtained"
+		LocalStorageFactory.acceptance.save true
+		scope.modal.remove!
+		scope.success!
+	scope.reject = !->
+		$ionicPopup.alert do
+			title: "Good Bye !"
+			ok-text: "Exit"
+			ok-type: "button-stable"
+		.then (res) !->
+			ionic.Platform.exitApp!
 
-	terms-of-use: -> store.terms-of-use
 	obtain: (success) !->
 		if LocalStorageFactory.acceptance.load!
 		then success!
 		else ServerFactory.terms-of-use (text) !->
-			store.terms-of-use = text
-			$ionicPopup.confirm do
-				title: "Terms of Use and Disclaimer"
-				templateUrl: 'template/terms-of-use.html'
-				ok-text: "Accept"
-				ok-type: "button-stable"
-				cancel-text: "Reject"
-				cancel-type: "button-stable"
-			.then (res) !->
-				if res then
-					LocalStorageFactory.acceptance.save true
-					success!
-				else
-					$ionicPopup.alert do
-						title: "Good Bye !"
-						ok-text: "Exit"
-						ok-type: "button-stable"
-					.then (res) !->
-						ionic.Platform.exitApp!
+			scope.terms-of-use = text
+			$ionicModal.fromTemplateUrl 'template/terms-of-use.html'
+			, (modal) !->
+				scope.success = success
+				scope.modal = modal
+				modal.show!
+			,
+				scope: scope
+				animation: 'slide-in-up'

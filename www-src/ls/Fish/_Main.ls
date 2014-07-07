@@ -3,9 +3,7 @@ require! {
 }
 
 angular.module('Fish', ['ionic'])
-.run ($log, $ionicPlatform, $rootScope, $http, PostFormFactory, AcceptanceFactory, AccountFactory, LocalStorageFactory) !->
-	$ionicPlatform.ready !->
+.run ($log) !->
+	ionic.Platform.ready !->
+		$log.info "Device is ready"
 		StatusBar.styleDefault! if (window.StatusBar)
-		AcceptanceFactory.obtain !->
-			$log.info "Acceptance obtained"
-			$rootScope.$broadcast 'fathens-reports-changed'
