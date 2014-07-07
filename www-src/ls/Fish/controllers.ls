@@ -1,9 +1,6 @@
 .controller 'MenuCtrl', ($log, $scope) !->
 	$scope.openMap = !-> alert "Open Map"
 
-.controller 'AcceptanceCtrl', ($log, $scope, AcceptanceFactory) !->
-	$scope.terms = AcceptanceFactory.terms-of-use!
-
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory, GMapFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
 		, (modal) !-> $scope.modal = modal
@@ -14,8 +11,9 @@
 	$scope.showMap = !->
 		GMapFactory.showMap $scope.report.location.geoinfo
 
-	$scope.reports = []
-	$scope.hasMoreReports = false
+	ionic.Platform.ready !->
+		$log.info "Clear Reports List"
+		$scope.$apply clear
 	clear = !->
 		$scope.reports = []
 		$scope.hasMoreReports = true
@@ -44,7 +42,6 @@
 		.then (res) !-> if res
 			ReportFactory.remove $scope.reports[index].id, !->
 				$scope.reports.splice index, 1
-				$scope.$broadcast 'fathens-reports-changed'
 			$scope.modal.hide!
 
 	$scope.close = !-> $scope.modal.hide!
@@ -76,7 +73,7 @@
 	$scope.submit = !->
 		$scope.currentReport = null
 		ReportFactory.update $scope.report, !->
-			$rootScope.$broadcast 'fathens-reports-changed'
+			$log.debug "Edit completed."
 		$scope.modal.hide!
 
 .controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
