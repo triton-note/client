@@ -9,10 +9,10 @@ html(ng-app=app.name)
 				ion-header-bar
 					.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
 					h1.title My Reports
-						.button.button-clear.icon.ion-refresh.button-stable(ng-click="$broadcast('fathens-reports-changed')")
 					.button.button-clear.icon.ion-plus-round.button-positive(ng-controller='AddReportCtrl', ng-click="open()")
 
 				ion-content(ng-controller='ShowReportsCtrl')
+					ion-refresher(on-refresh="refresh()")
 					.list.card
 						.item.item-thumbnail-left(ng-repeat="report in reports")
 							img.full-image(src="{{ report.photo }}", ng-click="detail({{ $index }})")

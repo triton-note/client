@@ -16,9 +16,12 @@
 
 	$scope.reports = []
 	$scope.hasMoreReports = false
-	$scope.clear = !->
+	clear = !->
 		$scope.reports = []
 		$scope.hasMoreReports = true
+	$scope.refresh = !->
+		clear!
+		$scope.$broadcast 'scroll.refreshComplete'
 	$scope.moreReports = !->
 		last-id = $scope.reports[$scope.reports.length - 1]?.id ? null
 		ReportFactory.load last-id, (more) !->
@@ -27,7 +30,7 @@
 			$scope.reports = $scope.reports ++ more
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 	$scope.$on 'fathens-reports-changed', (event, args) !->
-		$scope.clear!
+		clear!
 
 	$scope.detail = (index) !->
 		$scope.index = index
