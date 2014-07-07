@@ -58,6 +58,7 @@
 		Get a report by index of cached list
 	*/
 	getReport: (index) ->
+		$log.debug "Getting report[#{index}]"
 		store.reports[index]
 	/*
 		Clear all cache
@@ -81,7 +82,7 @@
 		Add report
 	*/
 	add: (report) !->
-		store.reports.unshift report
+		store.reports = angular.copy([report] ++ store.reports)
 	/*
 		Remove report specified by index
 	*/
@@ -91,7 +92,7 @@
 			ServerFactory.remove-report ticket, removing-id
 			, !->
 				$log.info "Deleted report: #{removing-id}"
-				store.reports.splice index, 1
+				store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
 				success!
 			, (error) !->
 				$ionicPopup.alert do
