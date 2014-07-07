@@ -37,6 +37,10 @@
 
 .factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
 	limit = 30
+	store =
+		reports: []
+		hasMore: false
+
 	loadServer = (last-id = null, taker) !->
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.load-reports ticket, limit, last-id, taker
@@ -46,25 +50,55 @@
 					template: error.msg
 				.then (res) !-> taker null
 
+	cachedList: ->
+		store.reports
+	hasMore: ->
+		store.hasMore
+	/*
+		Get a report by index of cached list
+	*/
+	getReport: (index) ->
+		store.reports[index]
+	/*
+		Clear all cache
+	*/
+	clear: (success) !->
+		store.reports = []
+		store.hasMore = true
+		$log.debug "Reports cleared."
+		success! if success
 	/*
 		Load reports from server
 	*/
-	load: loadServer
+	load: (success) !->
+		last-id = store.reports[store.reports.length - 1]?.id ? null
+		loadServer last-id, (more) !->
+			store.hasMore = limit <= more.length
+			store.reports = store.reports ++ more
+			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
+			success! if success
+	/*
+		Add report
+	*/
+	add: (report) !->
+		store.reports.unshift report
 	/*
 		Remove report specified by index
 	*/
-	remove: (removing-id, success) !->
+	remove: (index, success) !->
+		removing-id = store.reports[index].id
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.remove-report ticket, removing-id
 			, !->
 				$log.info "Deleted report: #{removing-id}"
+				store.reports.splice index, 1
 				success!
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to remove from server"
 					template: error.msg
 	/*
-		Update report specified by index
+		Update report
 	*/
 	update: (report, success) ->
 		AccountFactory.ticket.get (ticket) !->
@@ -317,7 +351,9 @@
 
 	submit = (session, success, report) -> (publishing = null) !->
 		ServerFactory.submit-report session, report, publishing
-		, success
+		, !->
+			ReportFactory.add report
+			success!
 		, (error) !->
 			$ionicPopup.alert do
 				title: 'Error'

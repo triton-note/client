@@ -11,28 +11,20 @@
 	$scope.showMap = !->
 		GMapFactory.showMap $scope.report.location.geoinfo
 
-	ionic.Platform.ready !->
-		$log.info "Clear Reports List"
-		$scope.$apply clear
-	clear = !->
-		$scope.reports = []
-		$scope.hasMoreReports = true
+	$scope.reports = ReportFactory.cachedList
+	$scope.hasMoreReports = ReportFactory.hasMore
 	$scope.refresh = !->
-		clear!
-		$scope.$broadcast 'scroll.refreshComplete'
+		ReportFactory.clear !->
+			$scope.$broadcast 'scroll.refreshComplete'
 	$scope.moreReports = !->
-		last-id = $scope.reports[$scope.reports.length - 1]?.id ? null
-		ReportFactory.load last-id, (more) !->
-			$scope.hasMoreReports = ! _.empty more
-			$log.info "Set hasMoreReports = #{$scope.hasMoreReports}"
-			$scope.reports = $scope.reports ++ more
+		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
-	$scope.$on 'fathens-reports-changed', (event, args) !->
-		clear!
+	ionic.Platform.ready !->
+		$scope.$apply ReportFactory.clear
 
 	$scope.detail = (index) !->
 		$scope.index = index
-		$scope.report = $scope.reports[index]
+		$scope.report = ReportFactory.getReport index
 		$scope.modal.show!
 
 	$scope.delete = (index) !->
@@ -40,8 +32,8 @@
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"
 		.then (res) !-> if res
-			ReportFactory.remove $scope.reports[index].id, !->
-				$scope.reports.splice index, 1
+			ReportFactory.remove index, !->
+				$log.debug "Remove completed."
 			$scope.modal.hide!
 
 	$scope.close = !-> $scope.modal.hide!
@@ -146,7 +138,6 @@
 		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
 			$log.debug "Success on submitting report"
-			$rootScope.$broadcast 'fathens-reports-changed'
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicPopup) !->
