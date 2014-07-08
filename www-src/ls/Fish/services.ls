@@ -119,26 +119,47 @@
 					title: "Failed to update to server"
 					template: error.msg
 
-.factory 'UnitFactory', (LocalStorageFactory) ->
+.factory 'UnitFactory', ($log, AccountFactory, ServerFactory, LocalStorageFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
+	default-units =
+		length: 'cm'
+		weight: 'kg'
 
 	save-current = (units) ->
 		LocalStorageFactory.units.save units
-	load-current = ->
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.change-units ticket, units
+			, !-> $log.debug "Success to change units"
+			, (error) !-> $log.debug "Failed to change units"
+	load-local = -> LocalStorageFactory.units.load! ? default-units
+	load-server = (taker) !->
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.load-units ticket
+			, (units) !->
+				$log.debug "Loaded account units: #{units}"
+				LocalStorageFactory.units.save units
+				taker units
+			, (error) !->
+				$log.error "Failed to load account units: #{error}"
+				taker default-units
+	load-current = (taker) !->
 		if LocalStorageFactory.units.load!
-		then that
-		else save-current do
-			length: 'cm'
-			weight: 'kg'
-	
+		then taker that
+		else load-server taker
+	refresh = !->
+		if !LocalStorageFactory.units.load!
+		then load-server (units) !->
+			$log.debug "Refresh units: #{angular.toJson units}"
+
 	units: -> angular.copy do
 		length: ['cm', 'inch']
 		weight: ['kg', 'pond']
 	load: load-current
 	save: save-current
 	length: (src) ->
-		dst-unit = load-current!.length
+		refresh!
+		dst-unit = load-local!.length
 		convert = -> switch src.unit
 		| dst-unit => src.value
 		| 'inch'   => src.value * inchToCm
@@ -148,7 +169,8 @@
 			unit: dstUnit
 		}
 	weight: (src) ->
-		dst-unit = load-current!.weight
+		refresh!
+		dst-unit = load-local!.weight
 		convert = -> switch src.unit
 		| dst-unit => src.value
 		| 'pond'   => src.value * pondToKg
@@ -319,6 +341,20 @@
 		$log.debug "Updating report: #{angular.toJson report}"
 		http('POST', "report/update/#{ticket}",
 			report: report
+		) success, error-taker
+	/*
+	Load units in account settings
+	*/
+	load-units: (ticket, success, error-taker) !->
+		$log.debug "Loading unit"
+		http('GET', "account/unit/load/#{ticket}") success, error-taker
+	/*
+	Update units in account settings
+	*/
+	change-units: (ticket, unit, success, error-taker) !->
+		$log.debug "Changing unit: #{angular.toJson unit}"
+		http('POST', "account/unit/change/#{ticket}",
+			unit: unit
 		) success, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->

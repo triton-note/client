@@ -18,8 +18,9 @@
 
 	clear = !->
 		$scope.units = UnitFactory.units!
-		$scope.settings =
-			unit: UnitFactory.load!
+		UnitFactory.load (units) !->
+			$scope.settings =
+				unit: units
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory, GMapFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
@@ -166,14 +167,16 @@
 	$scope.deleteFish = (index) !-> $scope.report.fishes.splice index, 1
 	$scope.units = UnitFactory.units!
 	$scope.addFish = !->
-		$scope.fish = {
+		$scope.fish =
 			name: null
 			count: 1
 			length:
-				unit: UnitFactory.load!.length
+				unit: null
 			weight:
-				unit: UnitFactory.load!.weight
-		}
+				unit: null
+		UnitFactory.load (units) !->
+			$scope.fish.length.unit = units.length
+			$scope.fish.weight.unit = units.weight
 		$ionicPopup.show {
 			title: 'Add Fish'
 			templateUrl: "add-fish"
