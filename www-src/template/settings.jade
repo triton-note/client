@@ -1,0 +1,19 @@
+.modal
+	ion-header-bar
+		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
+		h1.title Settings
+		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
+	ion-content
+		.list.list-inset
+			.item.item-divider
+				h2.title Unit
+			.item.item-input.item-select
+				.input-label
+					p Length
+				select(ng-model="settings.unit.length")
+					option(ng-repeat="unit in units.length") {{ unit }}
+			.item.item-input.item-select
+				.input-label
+					p Weight
+				select(ng-model="settings.unit.weight")
+					option(ng-repeat="unit in units.weight") {{ unit }}

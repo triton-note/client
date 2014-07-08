@@ -123,17 +123,20 @@
 	inchToCm = 2.54
 	pondToKg = 0.4536
 
+	save-current = (units) ->
+		LocalStorageFactory.units.save units
 	load-current = ->
 		if LocalStorageFactory.units.load!
 		then that
-		else LocalStorageFactory.units.save do
+		else save-current do
 			length: 'cm'
 			weight: 'kg'
 	
 	units: -> angular.copy do
 		length: ['cm', 'inch']
 		weight: ['kg', 'pond']
-	current: load-current
+	load: load-current
+	save: save-current
 	length: (src) ->
 		dst-unit = load-current!.length
 		convert = -> switch src.unit
