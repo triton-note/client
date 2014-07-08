@@ -14,7 +14,7 @@
 	$scope.reports = ReportFactory.cachedList
 	$scope.hasMoreReports = ReportFactory.hasMore
 	$scope.refresh = !->
-		ReportFactory.clear !->
+		ReportFactory.refresh !->
 			$scope.$broadcast 'scroll.refreshComplete'
 	$scope.moreReports = !->
 		ReportFactory.load !->

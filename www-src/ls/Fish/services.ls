@@ -35,7 +35,7 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
+.factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
 	limit = 30
 	store =
 		reports: []
@@ -63,19 +63,26 @@
 	/*
 		Clear all cache
 	*/
-	clear: (success) !->
+	clear: !->
 		store.reports = []
 		store.hasMore = true
 		$log.debug "Reports cleared."
-		success! if success
+	/*
+		Refresh cache
+	*/
+	refresh: (success) !->
+		loadServer null, (more) !->
+			store.reports = more
+			store.hasMore = limit <= more.length
+			success! if success
 	/*
 		Load reports from server
 	*/
 	load: (success) !->
 		last-id = store.reports[store.reports.length - 1]?.id ? null
 		loadServer last-id, (more) !->
-			store.hasMore = limit <= more.length
 			store.reports = store.reports ++ more
+			store.hasMore = limit <= more.length
 			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
 			success! if success
 	/*
