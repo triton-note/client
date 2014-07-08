@@ -81,7 +81,8 @@
 		ables: []
 
 	newReport = (uri, geoinfo) ->
-		photo: uri
+		photo:
+			mainview: uri
 		dateAt: $filter('date') new Date!, 'yyyy-MM-dd'
 		location:
 			name: "Here"
