@@ -141,17 +141,18 @@
 			$log.debug "Success on submitting report"
 		$scope.modal.hide!
 
-.controller 'AddFishCtrl', ($scope, $ionicPopup) !->
+.controller 'AddFishCtrl', ($scope, $ionicPopup, UnitFactory) !->
 	# $scope.report.fishes
 	$scope.deleteFish = (index) !-> $scope.report.fishes.splice index, 1
+	$scope.units = UnitFactory.units!
 	$scope.addFish = !->
 		$scope.fish = {
 			name: null
 			count: 1
 			length:
-				unit: 'cm'
+				unit: UnitFactory.current!.length
 			weight:
-				unit: 'kg'
+				unit: UnitFactory.current!.weight
 		}
 		$ionicPopup.show {
 			title: 'Add Fish'

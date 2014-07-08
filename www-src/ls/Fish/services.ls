@@ -119,19 +119,41 @@
 					title: "Failed to update to server"
 					template: error.msg
 
-.factory 'UnitFactory', ->
+.factory 'UnitFactory', (LocalStorageFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
-	
-	length: (value, srcUnit, dstUnit) -> switch srcUnit
-		| dstUnit => value
-		| 'inch'  => value * inchToCm
-		| 'cm'    => value / inchToCm
 
-	weight: (value, srcUnit, dstUnit) -> switch srcUnit
-		| dstUnit => value
-		| 'pond'  => value * pondToKg
-		| 'kg'    => value / pondToKg
+	load-current = ->
+		if LocalStorageFactory.units.load!
+		then that
+		else LocalStorageFactory.units.save do
+			length: 'cm'
+			weight: 'kg'
+	
+	units: -> angular.copy do
+		length: ['cm', 'inch']
+		weight: ['kg', 'pond']
+	current: load-current
+	length: (src) ->
+		dst-unit = load-current!.length
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'inch'   => src.value * inchToCm
+		| 'cm'     => src.value / inchToCm
+		{
+			value: convert!
+			unit: dstUnit
+		}
+	weight: (src) ->
+		dst-unit = load-current!.weight
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'pond'   => src.value * pondToKg
+		| 'kg'     => src.value / pondToKg
+		{
+			value: convert!
+			unit: dstUnit
+		}
 
 .factory 'GMapFactory', ($log) ->
 	store =
@@ -316,6 +338,7 @@
 			value = if v then saver(v) else null
 			$log.debug "localStorage['#{name}'] <= #{value}"
 			window.localStorage[name] = value
+			v
 		remove: !->
 			window.localStorage.removeItem name
 
@@ -329,6 +352,10 @@
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/
 	acceptance: make 'Acceptance'
+	/*
+	Unit setting
+	*/
+	units: make 'Units', true
 
 .factory 'SocialFactory', ($log) ->
 	facebook = (...perm) -> (token-taker, error-taker) !->

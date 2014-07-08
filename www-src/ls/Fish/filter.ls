@@ -13,14 +13,13 @@
 			}
 		}
 	*/
-	(fish, units = {length: 'inch', weight: 'pond'}) ->
+	(fish) ->
 		size = (u) ->
 			src = eval "fish.#{u}"
 			if src?.value then
-				dstUnit = eval "units.#{u}"
 				converter = eval "UnitFactory.#{u}"
-				converted = converter(src.value, src.unit, dstUnit)
-				"#{$filter('number')(converted, 0)} #{dstUnit}"
+				converted = converter(src)
+				"#{$filter('number')(converted.value, 0)} #{converted.unit}"
 			else []
 		sizes = (_.flatten _.map(size) ["length", "weight"]).join ', '
 		volume =
