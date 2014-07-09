@@ -30,11 +30,17 @@
 	*/
 	select: (onSuccess, onFailure = (msg) !-> alert msg) !->
 		navigator.camera.getPicture onSuccess, onFailure,
+			correctOrientation: true
+			encodingType: Camera.EncodingType.JPEG
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory, LocalStorageFactory) ->
+.factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
 	limit = 30
+	store =
+		reports: []
+		hasMore: false
+
 	loadServer = (last-id = null, taker) !->
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.load-reports ticket, limit, last-id, taker
@@ -44,25 +50,63 @@
 					template: error.msg
 				.then (res) !-> taker null
 
+	cachedList: ->
+		store.reports
+	hasMore: ->
+		store.hasMore
+	/*
+		Get a report by index of cached list
+	*/
+	getReport: (index) ->
+		$log.debug "Getting report[#{index}]"
+		store.reports[index]
+	/*
+		Clear all cache
+	*/
+	clear: !->
+		store.reports = []
+		store.hasMore = true
+		$log.debug "Reports cleared."
+	/*
+		Refresh cache
+	*/
+	refresh: (success) !->
+		loadServer null, (more) !->
+			store.reports = more
+			store.hasMore = limit <= more.length
+			success! if success
 	/*
 		Load reports from server
 	*/
-	load: loadServer
+	load: (success) !->
+		last-id = store.reports[store.reports.length - 1]?.id ? null
+		loadServer last-id, (more) !->
+			store.reports = store.reports ++ more
+			store.hasMore = limit <= more.length
+			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
+			success! if success
+	/*
+		Add report
+	*/
+	add: (report) !->
+		store.reports = angular.copy([report] ++ store.reports)
 	/*
 		Remove report specified by index
 	*/
-	remove: (removing-id, success) !->
+	remove: (index, success) !->
+		removing-id = store.reports[index].id
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.remove-report ticket, removing-id
 			, !->
 				$log.info "Deleted report: #{removing-id}"
+				store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
 				success!
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to remove from server"
 					template: error.msg
 	/*
-		Update report specified by index
+		Update report
 	*/
 	update: (report, success) ->
 		AccountFactory.ticket.get (ticket) !->
@@ -75,19 +119,69 @@
 					title: "Failed to update to server"
 					template: error.msg
 
-.factory 'UnitFactory', ->
+.factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
-	
-	length: (value, srcUnit, dstUnit) -> switch srcUnit
-		| dstUnit => value
-		| 'inch'  => value * inchToCm
-		| 'cm'    => value / inchToCm
+	default-units =
+		length: 'cm'
+		weight: 'kg'
 
-	weight: (value, srcUnit, dstUnit) -> switch srcUnit
-		| dstUnit => value
-		| 'pond'  => value * pondToKg
-		| 'kg'    => value / pondToKg
+	store =
+		unit: null
+
+	save-current = (units) ->
+		store.unit = angular.copy units
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.change-units ticket, units
+			, !-> $log.debug "Success to change units"
+			, (error) !-> $log.debug "Failed to change units"
+	load-local = -> store.unit ? default-units
+	load-server = (taker) !->
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.load-units ticket
+			, (units) !->
+				$log.debug "Loaded account units: #{units}"
+				store.unit = angular.copy units
+				taker units
+			, (error) !->
+				$log.error "Failed to load account units: #{error}"
+				taker(angular.copy default-units)
+	load-current = (taker) !->
+		if store.unit
+		then taker(angular.copy that)
+		else load-server taker
+	init = !->
+		if ! store.unit
+		then load-server (units) !->
+			$log.debug "Refresh units: #{angular.toJson units}"
+
+	units: -> angular.copy do
+		length: ['cm', 'inch']
+		weight: ['kg', 'pond']
+	load: load-current
+	save: save-current
+	length: (src) ->
+		init!
+		dst-unit = load-local!.length
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'inch'   => src.value * inchToCm
+		| 'cm'     => src.value / inchToCm
+		{
+			value: convert!
+			unit: dstUnit
+		}
+	weight: (src) ->
+		init!
+		dst-unit = load-local!.weight
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'pond'   => src.value * pondToKg
+		| 'kg'     => src.value / pondToKg
+		{
+			value: convert!
+			unit: dstUnit
+		}
 
 .factory 'GMapFactory', ($log) ->
 	store =
@@ -102,13 +196,9 @@
 				zoom: true
 		store.gmap.on plugin.google.maps.event.MAP_READY, onReady(center)
 	onReady = (center) -> (gmap) !->
-		centering = (latLng) !->
-			addMarker latLng
-			gmap.setCenter latLng
 		if center
-			centering center
-		else gmap.getMyLocation (latLng) !-> centering latLng
-		gmap.setZoom 10
+			addMarker center
+			gmap.setCenter center
 		gmap.showDialog!
 	addMarker = (latLng) !->
 		store.marker?.remove!
@@ -117,7 +207,10 @@
 		}, (marker) !->
 			store.marker = marker
 
-	showMap: (center, setter) ->
+	showMap: (theCenter, setter = null) ->
+		center =
+			lat: theCenter.latitude
+			lng: theCenter.longitude
 		if store.gmap
 			onReady(center) store.gmap
 		else create center
@@ -125,7 +218,9 @@
 		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
 			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{setter}"
 			if setter
-				setter latLng
+				setter do
+					latitude: latLng.lat
+					longitude: latLng.lng
 				addMarker latLng
 		store.gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
 			$log.debug "Map close: #{e}"
@@ -250,6 +345,20 @@
 		http('POST', "report/update/#{ticket}",
 			report: report
 		) success, error-taker
+	/*
+	Load units in account settings
+	*/
+	load-units: (ticket, success, error-taker) !->
+		$log.debug "Loading unit"
+		http('GET', "account/unit/load/#{ticket}") success, error-taker
+	/*
+	Update units in account settings
+	*/
+	change-units: (ticket, unit, success, error-taker) !->
+		$log.debug "Changing unit: #{angular.toJson unit}"
+		http('POST', "account/unit/change/#{ticket}",
+			unit: unit
+		) success, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -271,6 +380,7 @@
 			value = if v then saver(v) else null
 			$log.debug "localStorage['#{name}'] <= #{value}"
 			window.localStorage[name] = value
+			v
 		remove: !->
 			window.localStorage.removeItem name
 
@@ -314,7 +424,9 @@
 
 	submit = (session, success, report) -> (publishing = null) !->
 		ServerFactory.submit-report session, report, publishing
-		, success
+		, !->
+			ReportFactory.add report
+			success!
 		, (error) !->
 			$ionicPopup.alert do
 				title: 'Error'
@@ -355,13 +467,13 @@
 						template: error
 			else sub!
 
-.factory 'AccountFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory, SocialFactory) ->
+.factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
 		ticket: null
 
 	getLoginWay = (way-taker) !->
 		if LocalStorageFactory.login-way.load! then way-taker that
-		else
+		else AcceptanceFactory.obtain !->
 			$ionicPopup.show do
 				template: 'Select for Login'
 				buttons:
@@ -395,41 +507,39 @@
 		action = !-> doLogin token-taker, error-taker
 		action!
 
-	getTicket = (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
-		if store.ticket then ticket-taker that
-		else
-			login (ticket) !->
-				store.ticket = ticket
-				ticket-taker ticket
-
 	ticket:
-		get: getTicket
+		get: (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
+			if store.ticket then ticket-taker that
+			else
+				login (ticket) !->
+					store.ticket = ticket
+					ticket-taker ticket
 
-.factory 'AcceptanceFactory', ($log, $ionicPopup, LocalStorageFactory, ServerFactory) ->
-	store =
-		terms-of-use: null
+.factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
+	scope = $rootScope.$new(true)
+	scope.accept = !->
+		$log.info "Acceptance obtained"
+		LocalStorageFactory.acceptance.save true
+		scope.modal.remove!
+		scope.success!
+	scope.reject = !->
+		$ionicPopup.alert do
+			title: "Good Bye !"
+			ok-text: "Exit"
+			ok-type: "button-stable"
+		.then (res) !->
+			ionic.Platform.exitApp!
 
-	terms-of-use: -> store.terms-of-use
 	obtain: (success) !->
 		if LocalStorageFactory.acceptance.load!
 		then success!
 		else ServerFactory.terms-of-use (text) !->
-			store.terms-of-use = text
-			$ionicPopup.confirm do
-				title: "Terms of Use and Disclaimer"
-				templateUrl: 'template/terms-of-use.html'
-				ok-text: "Accept"
-				ok-type: "button-stable"
-				cancel-text: "Reject"
-				cancel-type: "button-stable"
-			.then (res) !->
-				if res then
-					LocalStorageFactory.acceptance.save true
-					success!
-				else
-					$ionicPopup.alert do
-						title: "Good Bye !"
-						ok-text: "Exit"
-						ok-type: "button-stable"
-					.then (res) !->
-						ionic.Platform.exitApp!
+			scope.terms-of-use = text
+			$ionicModal.fromTemplateUrl 'template/terms-of-use.html'
+			, (modal) !->
+				scope.success = success
+				scope.modal = modal
+				modal.show!
+			,
+				scope: scope
+				animation: 'slide-in-up'

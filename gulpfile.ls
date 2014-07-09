@@ -69,12 +69,12 @@ gulp.task "bower", ->
 	cssFilter = gp.filter("**/*.css")
 	gp.bower-files!
 		.pipe jsFilter
-		.pipe gp.if isRelease, gp.uglify {
+		.pipe gp.uglify {
 			preserveComments: "some"
 		}
 		.pipe jsFilter.restore!
 		.pipe cssFilter
-		.pipe gp.if isRelease, gp.minify-css!
+		.pipe gp.minify-css!
 		.pipe cssFilter.restore!
 		.pipe gulp.dest paths.bower.dst-dir
 

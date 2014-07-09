@@ -1,8 +1,26 @@
-.controller 'MenuCtrl', ($log, $scope) !->
-	$scope.openMap = !-> alert "Open Map"
+.controller 'MapCtrl', ($log, $scope) !->
+	$scope.open = !-> alert "Open Map"
 
-.controller 'AcceptanceCtrl', ($log, $scope, AcceptanceFactory) !->
-	$scope.terms = AcceptanceFactory.terms-of-use!
+.controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
+	$ionicModal.fromTemplateUrl 'template/settings.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+	$scope.open = !->
+		clear!
+		$scope.modal.show!
+	$scope.cancel = !->
+		$scope.modal.hide!
+	$scope.submit = !->
+		UnitFactory.save $scope.settings.unit
+		$scope.modal.hide!
+
+	clear = !->
+		$scope.units = UnitFactory.units!
+		UnitFactory.load (units) !->
+			$scope.settings =
+				unit: units
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory, GMapFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
@@ -12,30 +30,22 @@
 			animation: 'slide-in-up'
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.latLng
+		GMapFactory.showMap $scope.report.location.geoinfo
 
-	$scope.reports = []
-	$scope.hasMoreReports = false
+	$scope.reports = ReportFactory.cachedList
+	$scope.hasMoreReports = ReportFactory.hasMore
+	$scope.refresh = !->
+		ReportFactory.refresh !->
+			$scope.$broadcast 'scroll.refreshComplete'
 	$scope.moreReports = !->
-		last-id = $scope.reports[$scope.reports.length - 1]?.id ? null
-		ReportFactory.load last-id, (more) !->
-			if _.empty more
-			then $scope.hasMoreReports = false
-			else $scope.reports = $scope.reports ++ more
+		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
-	$scope.refreshReports = !->
-		$scope.hasMoreReports = false
-		$scope.reports = []
-		ReportFactory.load null, (more) !->
-			$scope.hasMoreReports = ! _.empty more
-			$log.info "Set hasMoreReports = #{$scope.hasMoreReports}"
-			$scope.reports = more
-	$scope.$on 'fathens-reports-changed', (event, args) !->
-		$scope.refreshReports!
+	ionic.Platform.ready !->
+		$scope.$apply ReportFactory.clear
 
 	$scope.detail = (index) !->
 		$scope.index = index
-		$scope.report = $scope.reports[index]
+		$scope.report = ReportFactory.getReport index
 		$scope.modal.show!
 
 	$scope.delete = (index) !->
@@ -43,14 +53,13 @@
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"
 		.then (res) !-> if res
-			ReportFactory.remove $scope.reports[index].id, !->
-				$scope.reports.splice index, 1
-				$scope.$broadcast 'fathens-reports-changed'
+			ReportFactory.remove index, !->
+				$log.debug "Remove completed."
 			$scope.modal.hide!
 
 	$scope.close = !-> $scope.modal.hide!
 
-.controller 'EditReportCtrl', ($log, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
+.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
 	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -62,11 +71,12 @@
 	$scope.title = "Edit Report"
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.latLng ,(latLng) !->
-			$scope.report.location.latLng = latLng
+		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
+			$scope.report.location.geoinfo = gi
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
+		$scope.report.dateAt = $filter('date') new Date($scope.report.dateAt), 'yyyy-MM-dd'
 		$scope.modal.show!
 
 	$scope.cancel = !->
@@ -76,7 +86,7 @@
 	$scope.submit = !->
 		$scope.currentReport = null
 		ReportFactory.update $scope.report, !->
-			$rootScope.$broadcast 'fathens-reports-changed'
+			$log.debug "Edit completed."
 		$scope.modal.hide!
 
 .controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
@@ -92,7 +102,8 @@
 		ables: []
 
 	newReport = (uri, geoinfo) ->
-		photo: uri
+		photo:
+			mainview: uri
 		dateAt: $filter('date') new Date!, 'yyyy-MM-dd'
 		location:
 			name: "Here"
@@ -107,6 +118,7 @@
 				PhotoFactory.select (uri) !->
 					SessionFactory.put-photo uri, (inference) !->
 						$scope.$apply !->
+							$scope.report.photo = inference.url
 							if inference.location
 								$scope.report.location.name = that
 							if inference.fishes && inference.fishes.length > 0
@@ -115,7 +127,10 @@
 						$log.error "Failed to infer: #{error}"
 					$scope.$apply !->
 						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that] else []
-						$scope.report = newReport uri, geoinfo
+						imageUrl = if device.platform == 'Android'
+							then ""
+							else uri
+						$scope.report = newReport imageUrl, geoinfo
 					$scope.modal.show!
 				, (msg) !->
 					$ionicPopup.alert do
@@ -136,10 +151,8 @@
 				start!
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.latLng ,(latLng) !->
-			$scope.report.location.geoinfo =
-				latitude: latLng.lat
-				longitude: latLng.lng
+		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
+			$scope.report.location.geoinfo = gi
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
@@ -147,21 +160,23 @@
 		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
 			$log.debug "Success on submitting report"
-			$rootScope.$broadcast 'fathens-reports-changed'
 		$scope.modal.hide!
 
-.controller 'AddFishCtrl', ($scope, $ionicPopup) !->
+.controller 'AddFishCtrl', ($scope, $ionicPopup, UnitFactory) !->
 	# $scope.report.fishes
 	$scope.deleteFish = (index) !-> $scope.report.fishes.splice index, 1
+	$scope.units = UnitFactory.units!
 	$scope.addFish = !->
-		$scope.fish = {
+		$scope.fish =
 			name: null
 			count: 1
 			length:
-				unit: 'cm'
+				unit: null
 			weight:
-				unit: 'kg'
-		}
+				unit: null
+		UnitFactory.load (units) !->
+			$scope.fish.length.unit = units.length
+			$scope.fish.weight.unit = units.weight
 		$ionicPopup.show {
 			title: 'Add Fish'
 			templateUrl: "add-fish"

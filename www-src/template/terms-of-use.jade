@@ -1,1 +1,12 @@
-textarea(ng-controller='AcceptanceCtrl', readonly, rows=20, cols=30, ng-model="terms")
+.modal
+	ion-header-bar
+		h1.title Terms of User and Disclaimer
+	ion-content
+		.itam
+			pre {{ termsOfUse }}
+	ion-footer-bar
+		.buttons
+			.button.button.button-stable(ng-click="reject()") Reject
+		h1.title
+		.buttons
+			.button.button.button-stable(ng-click="accept()") Accept
