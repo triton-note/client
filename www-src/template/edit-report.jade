@@ -45,12 +45,12 @@
 					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.count")
 					input(type="number", ng-model="fish.count", placeholder="Count", min="1", required)
 				.item.item-input.item-select
-					i.icon.placeholder-icon.ion-checkmark-round.balanced(ng-show="fish.length.value")
+					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.length.value")
 					input(type="number", ng-model="fish.length.value", placeholder="Length")
 					select(ng-model="fish.length.unit")
 						option(ng-repeat="unit in units.length") {{ unit }}
 				.item.item-input.item-select
-					i.icon.placeholder-icon.ion-checkmark-round.balanced(ng-show="fish.weight.value")
+					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.weight.value")
 					input(type="number", ng-model="fish.weight.value", placeholder="Weight")
 					select(ng-model="fish.weight.unit")
 						option(ng-repeat="unit in units.weight") {{ unit }}
