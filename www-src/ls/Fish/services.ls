@@ -119,36 +119,39 @@
 					title: "Failed to update to server"
 					template: error.msg
 
-.factory 'UnitFactory', ($log, AccountFactory, ServerFactory, LocalStorageFactory) ->
+.factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
 	default-units =
 		length: 'cm'
 		weight: 'kg'
 
+	store =
+		unit: null
+
 	save-current = (units) ->
-		LocalStorageFactory.units.save units
+		store.unit = angular.copy units
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.change-units ticket, units
 			, !-> $log.debug "Success to change units"
 			, (error) !-> $log.debug "Failed to change units"
-	load-local = -> LocalStorageFactory.units.load! ? default-units
+	load-local = -> store.unit ? default-units
 	load-server = (taker) !->
 		AccountFactory.ticket.get (ticket) !->
 			ServerFactory.load-units ticket
 			, (units) !->
 				$log.debug "Loaded account units: #{units}"
-				LocalStorageFactory.units.save units
+				store.unit = angular.copy units
 				taker units
 			, (error) !->
 				$log.error "Failed to load account units: #{error}"
-				taker default-units
+				taker(angular.copy default-units)
 	load-current = (taker) !->
-		if LocalStorageFactory.units.load!
-		then taker that
+		if store.unit
+		then taker(angular.copy that)
 		else load-server taker
-	refresh = !->
-		if !LocalStorageFactory.units.load!
+	init = !->
+		if ! store.unit
 		then load-server (units) !->
 			$log.debug "Refresh units: #{angular.toJson units}"
 
@@ -158,7 +161,7 @@
 	load: load-current
 	save: save-current
 	length: (src) ->
-		refresh!
+		init!
 		dst-unit = load-local!.length
 		convert = -> switch src.unit
 		| dst-unit => src.value
@@ -169,7 +172,7 @@
 			unit: dstUnit
 		}
 	weight: (src) ->
-		refresh!
+		init!
 		dst-unit = load-local!.weight
 		convert = -> switch src.unit
 		| dst-unit => src.value
@@ -391,10 +394,6 @@
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/
 	acceptance: make 'Acceptance'
-	/*
-	Unit setting
-	*/
-	units: make 'Units', true
 
 .factory 'SocialFactory', ($log) ->
 	facebook = (...perm) -> (token-taker, error-taker) !->
