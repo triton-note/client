@@ -415,7 +415,7 @@
 		login: google 'email'
 		publish: google 'publish'
 
-.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
+.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, TicketFactory) ->
 	store =
 		session: null
 
@@ -429,28 +429,24 @@
 			ReportFactory.add report
 			success!
 		, (error) !->
+			store.session = null
 			$ionicPopup.alert do
 				title: 'Error'
 				template: error.msg
 
 	start: (geoinfo, success, error-taker) !->
-		get-session = !->
-			store.session = null
-			AccountFactory.ticket.get (ticket) !->
-				ServerFactory.start-session ticket, geoinfo
-				, (session) !->
-					store.session = session
-					success!
-				, (error) !->
-					switch error.type
-					| ServerFactory.error-types.expired =>
-						# When ticket is time out
-						start-session!
-					| _ => error-taker error.msg
-		get-session!
+		store.session = null
+		TicketFactory.get (ticket) !->
+			ServerFactory.start-session ticket, geoinfo
+		, (session) !->
+			store.session = session
+			success!
+		, (-> it.msg) >> error-taker
 	put-photo: (uri, inference-taker, error-taker) !->
 		if store.session
-		then ServerFactory.put-photo that, uri, inference-taker, (-> it.msg) >> error-taker
+		then ServerFactory.put-photo that, uri, inference-taker, (error) !->
+			store.session = null
+			error-taker error.msg
 		else error-taker "No session started"
 	finish: (report, publish-way, success) !->
 		if store.session
