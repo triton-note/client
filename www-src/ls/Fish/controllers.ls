@@ -124,7 +124,11 @@
 							if inference.fishes && inference.fishes.length > 0
 								$scope.report.fishes = inference.fishes
 					, (error) !->
-						$log.error "Failed to infer: #{error}"
+						$ionicPopup.alert do
+							title: "Failed to upload"
+							template: error
+						.then (res) !->
+							$scope.modal.hide!
 					$scope.$apply !->
 						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that] else []
 						imageUrl = if device.platform == 'Android'
