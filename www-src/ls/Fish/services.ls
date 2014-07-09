@@ -436,7 +436,7 @@
 
 	start: (geoinfo, success, error-taker) !->
 		store.session = null
-		TicketFactory.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.start-session ticket, geoinfo
 		, (session) !->
 			store.session = session
