@@ -35,20 +35,21 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
+.factory 'ReportFactory', ($log, $ionicPopup, TicketFactory, ServerFactory) ->
 	limit = 30
 	store =
 		reports: []
 		hasMore: false
 
 	loadServer = (last-id = null, taker) !->
-		AccountFactory.ticket.get (ticket) !->
-			ServerFactory.load-reports ticket, limit, last-id, taker
-			, (error) !->
-				$ionicPopup.alert do
-					title: "Failed to load from server"
-					template: error.msg
-				.then (res) !-> taker null
+		TicketFactory.get (ticket) ->
+			ServerFactory.load-reports ticket, limit, last-id
+		, taker
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Failed to load from server"
+				template: error.msg
+			.then (res) !-> taker null
 
 	cachedList: ->
 		store.reports
@@ -95,31 +96,31 @@
 	*/
 	remove: (index, success) !->
 		removing-id = store.reports[index].id
-		AccountFactory.ticket.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.remove-report ticket, removing-id
-			, !->
-				$log.info "Deleted report: #{removing-id}"
-				store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
-				success!
-			, (error) !->
-				$ionicPopup.alert do
-					title: "Failed to remove from server"
-					template: error.msg
+		, !->
+			$log.info "Deleted report: #{removing-id}"
+			store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
+			success!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Failed to remove from server"
+				template: error.msg
 	/*
 		Update report
 	*/
 	update: (report, success) ->
-		AccountFactory.ticket.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.update-report ticket, report
-			, !->
-				$log.info "Updated report: #{report.id}"
-				success!
-			, (error) !->
-				$ionicPopup.alert do
-					title: "Failed to update to server"
-					template: error.msg
+		, !->
+			$log.info "Updated report: #{report.id}"
+			success!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Failed to update to server"
+				template: error.msg
 
-.factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
+.factory 'UnitFactory', ($log, TicketFactory, ServerFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
 	default-units =
@@ -129,23 +130,23 @@
 	store =
 		unit: null
 
-	save-current = (units) ->
+	save-current = (units) !->
 		store.unit = angular.copy units
-		AccountFactory.ticket.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.change-units ticket, units
-			, !-> $log.debug "Success to change units"
-			, (error) !-> $log.debug "Failed to change units"
+		, !-> $log.debug "Success to change units"
+		, (error) !-> $log.debug "Failed to change units"
 	load-local = -> store.unit ? default-units
 	load-server = (taker) !->
-		AccountFactory.ticket.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.load-units ticket
-			, (units) !->
-				$log.debug "Loaded account units: #{units}"
-				store.unit = angular.copy units
-				taker units
-			, (error) !->
-				$log.error "Failed to load account units: #{error}"
-				taker(angular.copy default-units)
+		, (units) !->
+			$log.debug "Loaded account units: #{units}"
+			store.unit = angular.copy units
+			taker units
+		, (error) !->
+			$log.error "Failed to load account units: #{error}"
+			taker(angular.copy default-units)
 	load-current = (taker) !->
 		if store.unit
 		then taker(angular.copy that)
@@ -298,10 +299,10 @@
 	/*
 	Get start session by server, then pass to taker
 	*/
-	start-session: (ticket, geoinfo, session-taker, error-taker) !->
+	start-session: (ticket, geoinfo) -> (session-taker, error-taker) !->
 		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
 		http('POST', "report/new-session/#{ticket}",
-			geoinfo: geoinfo
+				geoinfo: geoinfo
 		) session-taker, error-taker
 	/*
 	Put a photo which is encoded by base64 to session
@@ -323,7 +324,7 @@
 	/*
 	Load report from server, then pass to taker
 	*/
-	load-reports: (ticket, count, last-id, taker, error-taker) !->
+	load-reports: (ticket, count, last-id) -> (taker, error-taker) !->
 		$log.debug "Loading #{count} reports from #{last-id}"
 		http('POST', "report/load/#{ticket}",
 			count: count
@@ -332,7 +333,7 @@
 	/*
 	Remove report from server
 	*/
-	remove-report: (ticket, id, success, error-taker) !->
+	remove-report: (ticket, id) -> (success, error-taker) !->
 		$log.debug "Removing report(#{id})"
 		http('POST', "report/remove/#{ticket}",
 			id: id
@@ -340,7 +341,7 @@
 	/*
 	Update report to server. ID has to be contain given report.
 	*/
-	update-report: (ticket, report, success, error-taker) !->
+	update-report: (ticket, report) -> (success, error-taker) !->
 		$log.debug "Updating report: #{angular.toJson report}"
 		http('POST', "report/update/#{ticket}",
 			report: report
@@ -348,13 +349,13 @@
 	/*
 	Load units in account settings
 	*/
-	load-units: (ticket, success, error-taker) !->
+	load-units: (ticket) -> (success, error-taker) !->
 		$log.debug "Loading unit"
 		http('GET', "account/unit/load/#{ticket}") success, error-taker
 	/*
 	Update units in account settings
 	*/
-	change-units: (ticket, unit, success, error-taker) !->
+	change-units: (ticket, unit) -> (success, error-taker) !->
 		$log.debug "Changing unit: #{angular.toJson unit}"
 		http('POST', "account/unit/change/#{ticket}",
 			unit: unit
@@ -414,7 +415,7 @@
 		login: google 'email'
 		publish: google 'publish'
 
-.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
+.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, TicketFactory) ->
 	store =
 		session: null
 
@@ -428,28 +429,24 @@
 			ReportFactory.add report
 			success!
 		, (error) !->
+			store.session = null
 			$ionicPopup.alert do
 				title: 'Error'
 				template: error.msg
 
 	start: (geoinfo, success, error-taker) !->
-		get-session = !->
-			store.session = null
-			AccountFactory.ticket.get (ticket) !->
-				ServerFactory.start-session ticket, geoinfo
-				, (session) !->
-					store.session = session
-					success!
-				, (error) !->
-					switch error.type
-					| ServerFactory.error-types.expired =>
-						# When ticket is time out
-						start-session!
-					| _ => error-taker error.msg
-		get-session!
+		store.session = null
+		TicketFactory.get (ticket) ->
+			ServerFactory.start-session ticket, geoinfo
+		, (session) !->
+			store.session = session
+			success!
+		, (-> it.msg) >> error-taker
 	put-photo: (uri, inference-taker, error-taker) !->
 		if store.session
-		then ServerFactory.put-photo that, uri, inference-taker, (-> it.msg) >> error-taker
+		then ServerFactory.put-photo that, uri, inference-taker, (error) !->
+			store.session = null
+			error-taker error.msg
 		else error-taker "No session started"
 	finish: (report, publish-way, success) !->
 		if store.session
@@ -466,6 +463,27 @@
 						title: 'Rejected'
 						template: error
 			else sub!
+
+.factory 'TicketFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
+	store =
+		ticket: null
+
+	expirable = (proc, success, error-taker) !->
+		take-it = (ticket) !->
+			store.ticket = ticket
+			proc(ticket) success, (error) !->
+				if error.type != ServerFactory.error-types.expired
+				then error-taker error
+				else
+					store.ticket = null
+					doit!
+		doit = !->
+			if store.ticket
+			then take-it(that)
+			else AccountFactory.login take-it
+		doit!
+
+	get: expirable
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
@@ -493,7 +511,7 @@
 		| SocialFactory.ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
 		| _                           => ionic.Platform.exitApp!
 
-	login = (ticket-taker) !->
+	login: (ticket-taker) !->
 		error-taker = (error-msg) !->
 			$ionicPopup.alert do
 				title: 'Error'
@@ -506,14 +524,6 @@
 					error-taker error.msg
 		action = !-> doLogin token-taker, error-taker
 		action!
-
-	ticket:
-		get: (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
-			if store.ticket then ticket-taker that
-			else
-				login (ticket) !->
-					store.ticket = ticket
-					ticket-taker ticket
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	scope = $rootScope.$new(true)
