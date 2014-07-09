@@ -469,17 +469,19 @@
 		ticket: null
 
 	expirable = (proc, success, error-taker) !->
-		doit = (ticket) !->
+		take-it = (ticket) !->
 			store.ticket = ticket
 			proc(ticket) success, (error) !->
-				if error.type != ServerFactory.http-error.types.expired
+				if error.type != ServerFactory.error-types.expired
 				then error-taker error
 				else
 					store.ticket = null
 					doit!
-		if store.ticket
-		then doit(that)
-		else AccountFactory.login doit
+		doit = !->
+			if store.ticket
+			then take-it(that)
+			else AccountFactory.login take-it
+		doit!
 
 	get: expirable
 
