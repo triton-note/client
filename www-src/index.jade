@@ -26,9 +26,9 @@ html(ng-app=app.name)
 				ion-header-bar
 					.button.button.button-clear.icon.ion-ios7-close-empty.button-dark(menu-close)
 					h1.title Menu
-				ion-content(ng-controller='MenuCtrl')
+				ion-content
 					.list
-						.item(ng-click="openMap()")
+						.item(ng-controller='MapCtrl', ng-click="open()")
 							p View on Map
-						.item(ng-click="connectFB()")
-							p Connect to Facebook
+						.item(ng-controller='SettingsCtrl', ng-click="open()")
+							p Settings

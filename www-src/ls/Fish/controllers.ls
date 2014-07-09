@@ -1,5 +1,26 @@
-.controller 'MenuCtrl', ($log, $scope) !->
-	$scope.openMap = !-> alert "Open Map"
+.controller 'MapCtrl', ($log, $scope) !->
+	$scope.open = !-> alert "Open Map"
+
+.controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
+	$ionicModal.fromTemplateUrl 'template/settings.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+	$scope.open = !->
+		clear!
+		$scope.modal.show!
+	$scope.cancel = !->
+		$scope.modal.hide!
+	$scope.submit = !->
+		UnitFactory.save $scope.settings.unit
+		$scope.modal.hide!
+
+	clear = !->
+		$scope.units = UnitFactory.units!
+		UnitFactory.load (units) !->
+			$scope.settings =
+				unit: units
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory, GMapFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
@@ -141,18 +162,21 @@
 			$log.debug "Success on submitting report"
 		$scope.modal.hide!
 
-.controller 'AddFishCtrl', ($scope, $ionicPopup) !->
+.controller 'AddFishCtrl', ($scope, $ionicPopup, UnitFactory) !->
 	# $scope.report.fishes
 	$scope.deleteFish = (index) !-> $scope.report.fishes.splice index, 1
+	$scope.units = UnitFactory.units!
 	$scope.addFish = !->
-		$scope.fish = {
+		$scope.fish =
 			name: null
 			count: 1
 			length:
-				unit: 'cm'
+				unit: null
 			weight:
-				unit: 'kg'
-		}
+				unit: null
+		UnitFactory.load (units) !->
+			$scope.fish.length.unit = units.length
+			$scope.fish.weight.unit = units.weight
 		$ionicPopup.show {
 			title: 'Add Fish'
 			templateUrl: "add-fish"

@@ -119,19 +119,69 @@
 					title: "Failed to update to server"
 					template: error.msg
 
-.factory 'UnitFactory', ->
+.factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
-	
-	length: (value, srcUnit, dstUnit) -> switch srcUnit
-		| dstUnit => value
-		| 'inch'  => value * inchToCm
-		| 'cm'    => value / inchToCm
+	default-units =
+		length: 'cm'
+		weight: 'kg'
 
-	weight: (value, srcUnit, dstUnit) -> switch srcUnit
-		| dstUnit => value
-		| 'pond'  => value * pondToKg
-		| 'kg'    => value / pondToKg
+	store =
+		unit: null
+
+	save-current = (units) ->
+		store.unit = angular.copy units
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.change-units ticket, units
+			, !-> $log.debug "Success to change units"
+			, (error) !-> $log.debug "Failed to change units"
+	load-local = -> store.unit ? default-units
+	load-server = (taker) !->
+		AccountFactory.ticket.get (ticket) !->
+			ServerFactory.load-units ticket
+			, (units) !->
+				$log.debug "Loaded account units: #{units}"
+				store.unit = angular.copy units
+				taker units
+			, (error) !->
+				$log.error "Failed to load account units: #{error}"
+				taker(angular.copy default-units)
+	load-current = (taker) !->
+		if store.unit
+		then taker(angular.copy that)
+		else load-server taker
+	init = !->
+		if ! store.unit
+		then load-server (units) !->
+			$log.debug "Refresh units: #{angular.toJson units}"
+
+	units: -> angular.copy do
+		length: ['cm', 'inch']
+		weight: ['kg', 'pond']
+	load: load-current
+	save: save-current
+	length: (src) ->
+		init!
+		dst-unit = load-local!.length
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'inch'   => src.value * inchToCm
+		| 'cm'     => src.value / inchToCm
+		{
+			value: convert!
+			unit: dstUnit
+		}
+	weight: (src) ->
+		init!
+		dst-unit = load-local!.weight
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'pond'   => src.value * pondToKg
+		| 'kg'     => src.value / pondToKg
+		{
+			value: convert!
+			unit: dstUnit
+		}
 
 .factory 'GMapFactory', ($log) ->
 	store =
@@ -295,6 +345,20 @@
 		http('POST', "report/update/#{ticket}",
 			report: report
 		) success, error-taker
+	/*
+	Load units in account settings
+	*/
+	load-units: (ticket, success, error-taker) !->
+		$log.debug "Loading unit"
+		http('GET', "account/unit/load/#{ticket}") success, error-taker
+	/*
+	Update units in account settings
+	*/
+	change-units: (ticket, unit, success, error-taker) !->
+		$log.debug "Changing unit: #{angular.toJson unit}"
+		http('POST', "account/unit/change/#{ticket}",
+			unit: unit
+		) success, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -316,6 +380,7 @@
 			value = if v then saver(v) else null
 			$log.debug "localStorage['#{name}'] <= #{value}"
 			window.localStorage[name] = value
+			v
 		remove: !->
 			window.localStorage.removeItem name
 
