@@ -168,37 +168,56 @@
 
 .controller 'AddFishCtrl', ($scope, $ionicPopup, UnitFactory) !->
 	# $scope.report.fishes
-	$scope.deleteFish = (index) !-> $scope.report.fishes.splice index, 1
-	$scope.units = UnitFactory.units!
-	$scope.addFish = !->
-		$scope.fish =
+	fish-template = (o = null) ->
+		r =
 			name: null
 			count: 1
-			length:
-				unit: null
-			weight:
-				unit: null
+		r <<< o if o
+		r.length = {} unless r.length
+		r.weight = {} unless r.weight
 		UnitFactory.load (units) !->
-			$scope.fish.length.unit = units.length
-			$scope.fish.weight.unit = units.weight
+			r.length.unit = units.length
+			r.weight.unit = units.weight
+		r
+	buttons =
+		cancel:
+			text: "Cancel"
+			type: "button-default"
+			onTap: (e) -> null
+		ok:
+			text: "OK"
+			type: "button-positive"
+			onTap: (e) !->
+				if $scope.tmpFish.name?.length > 0 && $scope.tmpFish.count > 0
+				then
+					if ! $scope.tmpFish.length.value then $scope.tmpFish.length = null
+					if ! $scope.tmpFish.weight.value then $scope.tmpFish.weight = null
+					return $scope.tmpFish
+				else e.preventDefault!
+	show = (func, ...bs) !->
 		$ionicPopup.show {
 			title: 'Add Fish'
 			templateUrl: "add-fish"
 			scope: $scope
-			buttons:
-				*text: "Cancel"
-					type: "button-default"
-					onTap: (e) -> null
-				*text: "OK"
-					type: "button-positive"
-					onTap: (e) !->
-						if $scope.fish.name?.length > 0 && $scope.fish.count > 0
-						then
-							if ! $scope.fish.length.value then $scope.fish.length = null
-							if ! $scope.fish.weight.value then $scope.fish.weight = null
-							return $scope.fish
-						else e.preventDefault!
+			buttons: bs
 		}
-		.then (res) !-> $scope.report.fishes.push res if res
-			, (err) !-> alert "Error: #err"
-			, (msg) !-> alert "Message: #msg"
+		.then (res) !->
+			func res if res
+
+	$scope.units = UnitFactory.units!
+	$scope.addFish = !->
+		$scope.tmpFish = fish-template!
+		show (fish) !-> $scope.report.fishes.push fish
+		,buttons.cancel, buttons.ok
+	$scope.editFish = (index) !->
+		$scope.tmpFish = fish-template $scope.report.fishes[index]
+		del =
+			text: "Delete"
+			type: "button-assertive"
+			onTap: (e) ->
+				$ionicPopup.confirm do
+					template: "Are you sure to delete this catch ?"
+				.then (res) !-> if res
+					$scope.report.fishes.splice index, 1
+		show (fish) !-> angular.copy(fish, $scope.report.fishes[index])
+		,buttons.cancel, del, buttons.ok
