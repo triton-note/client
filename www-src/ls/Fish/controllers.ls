@@ -213,7 +213,7 @@
 		$scope.tmpFish = fish-template $scope.report.fishes[index]
 		del =
 			text: "Delete"
-			type: "button-assertive"
+			type: "button-outline button-assertive"
 			onTap: (e) ->
 				$ionicPopup.confirm do
 					template: "Are you sure to delete this catch ?"
