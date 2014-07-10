@@ -215,6 +215,8 @@
 		$scope.tmpFish = fish-template!
 		show (fish) !-> $scope.report.fishes.push fish
 		,buttons.cancel, buttons.ok
+	$scope.deleteFish = (index) !->
+		$scope.report.fishes.splice index, 1
 	$scope.editFish = (index) !->
 		$scope.tmpFish = fish-template $scope.report.fishes[index]
 		del =
@@ -224,6 +226,6 @@
 				$ionicPopup.confirm do
 					template: "Are you sure to delete this catch ?"
 				.then (res) !-> if res
-					$scope.report.fishes.splice index, 1
+					$scope.deleteFish index
 		show (fish) !-> angular.copy(fish, $scope.report.fishes[index])
 		,buttons.cancel, del, buttons.ok
