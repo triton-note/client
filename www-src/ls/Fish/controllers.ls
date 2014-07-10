@@ -59,7 +59,7 @@
 
 	$scope.close = !-> $scope.modal.hide!
 
-.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
+.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicListDelegate, ReportFactory, GMapFactory) !->
 	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -73,6 +73,12 @@
 	$scope.showMap = !->
 		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
 			$scope.report.location.geoinfo = gi
+
+	$scope.editOnList = (index) !->
+		$ionicListDelegate.closeOptionButtons!
+		$scope.index = index
+		$scope.report = ReportFactory.getReport index
+		$scope.edit!
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report

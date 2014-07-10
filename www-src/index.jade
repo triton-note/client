@@ -13,13 +13,15 @@ html(ng-app=app.name)
 
 				ion-content(ng-controller='ShowReportsCtrl')
 					ion-refresher(on-refresh="refresh()")
-					.list.card
-						.item.item-thumbnail-left(ng-repeat="report in reports()")
-							img(src="{{ report.photo.thumbnail }}", ng-click="detail({{ $index }})")
+					ion-list
+						ion-item.item-thumbnail-left(ng-repeat="report in reports()")
+							img(src="{{ report.photo.thumbnail }}", ng-click="detail($index)")
 							h2 {{report.location.name}} {{report.dateAt | date: 'yyyy/MM/dd'}}
 							.list
 								.item(ng-repeat="fish in report.fishes")
 									p {{fish | fishFilter}}
+							ion-option-button.button-clear.icon.ion-minus-circled.button-assertive(ng-click="delete($index)")
+							ion-option-button.button-clear.icon.ion-edit.button-balanced(ng-controller="EditReportCtrl", ng-click="editOnList($index)")
 					ion-infinite-scroll(ng-if="hasMoreReports()", on-infinite="moreReports()")
 
 			ion-side-menu(side="left")

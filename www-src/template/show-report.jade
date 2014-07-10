@@ -2,7 +2,9 @@
 	ion-header-bar
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
 		h1.title Report Detail
-		button.button.button-clear.icon.ion-edit.button-balanced(ng-controller='EditReportCtrl', ng-click="edit()")
+		.buttons
+			button.button.button-clear.icon.ion-minus-circled.button-assertive(ng-click="delete(index)")
+			button.button.button-clear.icon.ion-edit.button-balanced(ng-controller='EditReportCtrl', ng-click="edit()")
 	ion-content
 		.card
 			.item.item-image
@@ -31,7 +33,3 @@
 			ion-list
 				ion-item.item-button-right(ng-repeat="fish in report.fishes")
 					p {{fish | fishFilter}}
-
-		.list
-			.item.item-divider
-				button.button.button-block.button-small.button-outline.button-assertive.icon.icon-left.ion-close(ng-click="delete(index)") Delete this report
