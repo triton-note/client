@@ -202,7 +202,6 @@
 				else e.preventDefault!
 	show = (func, ...bs) !->
 		$ionicPopup.show {
-			title: 'Add Fish'
 			templateUrl: "add-fish"
 			scope: $scope
 			buttons: bs
