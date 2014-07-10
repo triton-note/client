@@ -59,7 +59,7 @@
 
 	$scope.close = !-> $scope.modal.hide!
 
-.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, ReportFactory, GMapFactory) !->
+.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicListDelegate, ReportFactory, GMapFactory) !->
 	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -73,6 +73,12 @@
 	$scope.showMap = !->
 		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
 			$scope.report.location.geoinfo = gi
+
+	$scope.editOnList = (index) !->
+		$ionicListDelegate.closeOptionButtons!
+		$scope.index = index
+		$scope.report = ReportFactory.getReport index
+		$scope.edit!
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
@@ -166,7 +172,7 @@
 			$log.debug "Success on submitting report"
 		$scope.modal.hide!
 
-.controller 'AddFishCtrl', ($scope, $ionicPopup, UnitFactory) !->
+.controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
 	# $scope.report.fishes
 	fish-template = (o = null) ->
 		r =
@@ -179,45 +185,45 @@
 			r.length.unit = units.length
 			r.weight.unit = units.weight
 		r
-	buttons =
-		cancel:
-			text: "Cancel"
-			type: "button-default"
-			onTap: (e) -> null
-		ok:
-			text: "OK"
-			type: "button-positive"
-			onTap: (e) !->
-				if $scope.tmpFish.name?.length > 0 && $scope.tmpFish.count > 0
-				then
-					if ! $scope.tmpFish.length.value then $scope.tmpFish.length = null
-					if ! $scope.tmpFish.weight.value then $scope.tmpFish.weight = null
-					return $scope.tmpFish
-				else e.preventDefault!
-	show = (func, ...bs) !->
-		$ionicPopup.show {
-			title: 'Add Fish'
-			templateUrl: "add-fish"
+	$ionicModal.fromTemplateUrl 'add-fish'
+		, (modal) !-> $scope.modal = modal
+		,
 			scope: $scope
-			buttons: bs
-		}
-		.then (res) !->
-			func res if res
+			animation: 'slide-in-up'
+
+	show = (func) !->
+		$scope.commit = func
+		$scope.modal.show!
+
+	$scope.cancel = !->
+		$scope.fishIndex = null
+		$scope.tmpFish = null
+		$scope.modal.hide!
+	$scope.submit = !->
+		fish = $scope.tmpFish
+		if fish.name?.length > 0 && fish.count > 0
+		then
+			fish.length = null unless fish.length.value
+			fish.weight = null unless fish.weight.value
+			$scope.commit fish
+			$scope.commit = null
+			$scope.fishIndex = null
+			$scope.tmpFish = null
+			$scope.modal.hide!
 
 	$scope.units = UnitFactory.units!
 	$scope.addFish = !->
 		$scope.tmpFish = fish-template!
 		show (fish) !-> $scope.report.fishes.push fish
-		,buttons.cancel, buttons.ok
 	$scope.editFish = (index) !->
+		$scope.fishIndex = index
 		$scope.tmpFish = fish-template $scope.report.fishes[index]
-		del =
-			text: "Delete"
-			type: "button-assertive"
-			onTap: (e) ->
+		show (fish) !-> $scope.report.fishes[index] <<< fish
+	$scope.deleteFish = (index, confirm = true) !->
+		del = !-> $scope.report.fishes.splice index, 1
+		if !confirm then del! else
 				$ionicPopup.confirm do
 					template: "Are you sure to delete this catch ?"
 				.then (res) !-> if res
-					$scope.report.fishes.splice index, 1
-		show (fish) !-> angular.copy(fish, $scope.report.fishes[index])
-		,buttons.cancel, del, buttons.ok
+				$scope.modal.hide!
+				del!
