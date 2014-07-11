@@ -1,0 +1,12 @@
+.modal
+	ion-header-bar
+		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
+		h1.title Map View
+		.buttons
+			button.button.button-clear.icon.button-stable(class="{{ person().icon }}", ng-click="view.person = person().next")
+	ion-content
+		.item.item-input.item-select
+			input(type="text", placeholder="Every Fish")
+			select(ng-model="view.person", ng-options="key as key for (key, value) in persons")
+		.card
+			.item#google-maps

@@ -1,5 +1,45 @@
-.controller 'MapCtrl', ($log, $scope) !->
-	$scope.open = !-> alert "Open Map"
+.controller 'MapCtrl', ($log, $scope, $ionicModal) !->
+	$ionicModal.fromTemplateUrl 'template/map-view.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+	$scope.gmap = null
+	$scope.open = !->
+		$scope.modal.show!.then !->
+			el = ->
+				e = document.getElementById 'google-maps'
+				maxH = document.documentElement.clientHeight
+				eTop = e.getBoundingClientRect!.top
+				h= (maxH - eTop)
+				e.style.height = "#{h}px"
+				$log.debug "Calculating: doc.h=#{maxH}, e.top=#{eTop}  ==> #{h}"
+				e
+			gmap = plugin.google.maps.Map.getMap el!,
+				mapType: plugin.google.maps.MapTypeId.HYBRID
+				controls:
+					myLocationButton: true
+					zoom: false
+			gmap.on plugin.google.maps.event.MAP_READY, (gmap) !->
+				$scope.gmap = gmap
+				$scope.gmap.setVisible true
+				gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
+					$log.debug "Close map in #{el}"
+					$scope.modal.hide!
+	$scope.close = !->
+		$scope.gmap.setVisible false
+		$scope.modal.hide!
+
+	$scope.persons =
+		mine:
+			icon: 'ion-ios7-person'
+			next: 'mine and others'
+		'mine and others':
+			icon: 'ion-ios7-people'
+			next: 'mine'
+	$scope.view =
+		person: 'mine'
+	$scope.person = -> $scope.persons[$scope.view.person]
 
 .controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
 	$ionicModal.fromTemplateUrl 'template/settings.html'
@@ -222,8 +262,8 @@
 	$scope.deleteFish = (index, confirm = true) !->
 		del = !-> $scope.report.fishes.splice index, 1
 		if !confirm then del! else
-				$ionicPopup.confirm do
-					template: "Are you sure to delete this catch ?"
-				.then (res) !-> if res
+			$ionicPopup.confirm do
+				template: "Are you sure to delete this catch ?"
+			.then (res) !-> if res
 				$scope.modal.hide!
 				del!
