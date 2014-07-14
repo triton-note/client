@@ -1,0 +1,10 @@
+.modal
+	ion-header-bar
+		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="closeMap()")
+		h1.title Spot
+	ion-content
+		.item.item-input.item-select
+			.input-label
+				p Map Type
+			select(ng-model="gmapType", ng-options="key as value for (key, value) in gmapTypes")
+		fathens-google-maps

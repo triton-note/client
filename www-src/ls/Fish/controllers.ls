@@ -13,6 +13,7 @@
 		$log.debug "Closing #{$scope.gmap.obj}"
 		$scope.gmap-visible = false
 		$scope.modal.hide!
+	$scope.gmap-type = 'HYBRID'
 
 	$scope.persons =
 		mine:
@@ -46,15 +47,30 @@
 			$scope.settings =
 				unit: units
 
-.controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory, GMapFactory) !->
+.controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
 
+	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
+		, (modal) !-> $scope.gmap = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.geoinfo
+		$scope.gmap.show!.then !->
+			$scope.gmap-center = $scope.report.location.geoinfo
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.gmap-visible = false
+		$scope.gmap.hide!
+	$scope.gmap-type = 'HYBRID'
+	$scope.gmap-types =
+		ROADMAP: 'normal'
+		HYBRID: 'with Satelite'
 
 	$scope.reports = ReportFactory.cachedList
 	$scope.hasMoreReports = ReportFactory.hasMore
