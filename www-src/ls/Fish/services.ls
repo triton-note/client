@@ -184,50 +184,6 @@
 			unit: dstUnit
 		}
 
-.factory 'GMapFactory', ($log) ->
-	store =
-		gmap: null
-		marker: null
-
-	create = (center) !->
-		store.gmap = plugin.google.maps.Map.getMap do
-			mapType: plugin.google.maps.MapTypeId.HYBRID
-			controls:
-				myLocationButton: true
-				zoom: true
-		store.gmap.on plugin.google.maps.event.MAP_READY, onReady(center)
-	onReady = (center) -> (gmap) !->
-		if center
-			addMarker center
-			gmap.setCenter center
-		gmap.showDialog!
-	addMarker = (latLng) !->
-		store.marker?.remove!
-		store.gmap.addMarker {
-			position: latLng
-		}, (marker) !->
-			store.marker = marker
-
-	showMap: (theCenter, setter = null) ->
-		center =
-			lat: theCenter.latitude
-			lng: theCenter.longitude
-		if store.gmap
-			onReady(center) store.gmap
-		else create center
-
-		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
-			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{setter}"
-			if setter
-				setter do
-					latitude: latLng.lat
-					longitude: latLng.lng
-				addMarker latLng
-		store.gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
-			$log.debug "Map close: #{e}"
-			store.gmap.clear!
-			store.gmap.off!
-
 .factory 'ServerFactory', ($log, $timeout, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
 	retryable = (retry, config, res-taker, error-taker) !->

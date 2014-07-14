@@ -150,9 +150,15 @@
 			$log.debug "Edit completed."
 		$scope.modal.hide!
 
-.controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
+.controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
+	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
+		, (modal) !-> $scope.modal-gmap = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
@@ -216,8 +222,21 @@
 				start!
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
-			$scope.report.location.geoinfo = gi
+		$scope.modal-gmap.show!.then !->
+			$scope.gmap-center = $scope.report.location.geoinfo
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.gmap-visible = false
+		$scope.modal-gmap.hide!
+	$scope.gmap-markers = []
+	$scope.gmap-onTap = (marker, gi) !->
+		if $scope.gmap-markers?.length > 0 then
+			for m in $scope.gmap-markers
+				if m != marker then
+					m.remove!
+		$scope.gmap-markers = [marker]
+		$log.debug "Set location: #{angular.toJson gi}"
+		$scope.report.location.geoinfo = gi
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
