@@ -4,13 +4,14 @@
 		,
 			scope: $scope
 			animation: 'slide-in-up'
-	$scope.gmap =
-		obj: null
+	$scope.gmap = null
+	$scope.setGmap = (gmap) !->
+		$log.debug "Setting GMap:#{gmap}"
+		$scope.gmap = gmap
 	$scope.open = !->
 		$scope.modal.show!.then !->
 			$scope.gmap-visible = true
 	$scope.close = !->
-		$log.debug "Closing #{$scope.gmap.obj}"
 		$scope.gmap-visible = false
 		$scope.modal.hide!
 	$scope.gmap-type = 'HYBRID'
@@ -54,24 +55,6 @@
 			scope: $scope
 			animation: 'slide-in-up'
 
-	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
-		, (modal) !-> $scope.gmap = modal
-		,
-			scope: $scope
-			animation: 'slide-in-up'
-
-	$scope.showMap = !->
-		$scope.gmap.show!.then !->
-			$scope.gmap-center = $scope.report.location.geoinfo
-			$scope.gmap-visible = true
-	$scope.closeMap = !->
-		$scope.gmap-visible = false
-		$scope.gmap.hide!
-	$scope.gmap-type = 'HYBRID'
-	$scope.gmap-types =
-		ROADMAP: 'normal'
-		HYBRID: 'with Satelite'
-
 	$scope.reports = ReportFactory.cachedList
 	$scope.hasMoreReports = ReportFactory.hasMore
 	$scope.refresh = !->
@@ -87,7 +70,7 @@
 		$scope.index = index
 		$scope.report = ReportFactory.getReport index
 		$scope.modal.show!
-
+	$scope.close = !-> $scope.modal.hide!
 	$scope.delete = (index) !->
 		$ionicPopup.confirm do
 			title: "Delete Report"
@@ -97,9 +80,22 @@
 				$log.debug "Remove completed."
 			$scope.modal.hide!
 
-	$scope.close = !-> $scope.modal.hide!
+.controller 'DetailReportCtrl', ($log, $scope, $ionicModal, ReportFactory) !->
+	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
 
-.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicListDelegate, ReportFactory, GMapFactory) !->
+	$scope.showMap = !->
+		$scope.modal.show!.then !->
+			$scope.gmap-center =  $scope.report.location.geoinfo
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.gmap-visible = false
+		$scope.modal.hide!
+
+.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicListDelegate, ReportFactory) !->
 	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -108,11 +104,30 @@
 			scope: $scope
 			animation: 'slide-in-up'
 
+	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
+		, (modal) !-> $scope.modal-gmap = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
 	$scope.title = "Edit Report"
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
-			$scope.report.location.geoinfo = gi
+		$scope.modal-gmap.show!.then !->
+			$scope.gmap-center =  $scope.report.location.geoinfo
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.gmap-visible = false
+		$scope.modal-gmap.hide!
+	$scope.gmap-markers = []
+	$scope.gmap-onTap = (marker, gi) !->
+		if $scope.gmap-markers?.length > 0 then
+			for m in $scope.gmap-markers
+				if m != marker then
+					m.remove!
+		$scope.gmap-markers = [marker]
+		$log.debug "Set location: #{angular.toJson gi}"
+		$scope.report.location.geoinfo = gi
 
 	$scope.editOnList = (index) !->
 		$ionicListDelegate.closeOptionButtons!

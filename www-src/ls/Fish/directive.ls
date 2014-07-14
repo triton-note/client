@@ -13,6 +13,13 @@
 	replace: true
 	scope: false
 	controller:	($scope, $element, $attrs) !->
+		gmap-setter = $attrs.fathens-gmap-setter ? 'setGmap'
+		gmap-visible = $attrs.fathens-gmap-visible ? 'gmapVisible'
+		gmap-type = $attrs.fathens-gmap-type ? 'gmapType'
+		gmap-center = $attrs.fathens-gmap-center ? 'gmapCenter'
+		gmap-onTap = $attrs.fathens-gmap-onTap ? 'gmapOnTap'
+		gmap-markers = $attrs.fathens-gmap-markers ? 'gmapMarkers'
+
 		ionic.Platform.ready !->
 			$log.debug "Linking directie fathens-google-maps by controller"
 			gmap = plugin.google.maps.Map.getMap do
@@ -22,20 +29,46 @@
 					zoom: false
 			gmap.on plugin.google.maps.event.MAP_READY, (gmap) !->
 				visible = (value) !->
-					$log.debug "gmap-visible is changed: #{value}"
+					$log.debug "gmap-visible(#{gmap-visible}) is changed: #{value}"
+					gmap.clear!
+					gmap.off!
 					v = value == true
-					gmap.setDiv(if v then raw($element) else null)
+					if v
+					then
+						gmap.setDiv raw($element)
+						map-type $scope[gmap-type]
+						map-center $scope[gmap-center]
+						map-onTap $scope[gmap-onTap]
+						if $scope[gmap-setter] then
+							that gmap
+					else
+						gmap.setDiv null
 					gmap.setVisible v
-					map-type $scope.gmap-type
-					map-center $scope.gmap-center
-					if $scope[$attrs.fathens-gmap ? 'gmap'] then
-						that.obj = gmap
 				map-center = (value) !->
+					$log.debug "gmap-center(#{gmap-center}) is changed: #{value}"
 					if value then
-						gmap.setCenter do
+						center =
 							lat: value.latitude
 							lng: value.longitude
+						gmap.setCenter center
+						gmap.addMarker {
+							position: center
+						}, (m) !->
+							$scope[gmap-markers]?.push m
+				map-onTap = (proc) !->
+					$log.debug "gmap-onTap(#{gmap-onTap}) is changed: #{proc}"
+					if proc	then
+						gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
+							$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{proc}"
+							gmap.addMarker {
+								position: latLng
+							}, (m) !->
+								$scope[gmap-markers]?.push m
+								proc m,
+									latitude: latLng.lat
+									longitude: latLng.lng
 				map-type = (value) !->
+					$log.debug "gmap-type(#{gmap-type}) is changed: #{value}"
 					v = switch value
 					| 'ROADMAP'   => plugin.google.maps.MapTypeId.ROADMAP
 					| 'SATELLITE' => plugin.google.maps.MapTypeId.SATELLITE
@@ -44,10 +77,9 @@
 					| _           => plugin.google.maps.MapTypeId.HYBRID
 					$log.debug "Set Map type: #{v}"
 					gmap.setMapTypeId v
-				$scope.$watch 'gmapVisible', visible
-				$scope.$watch 'gmapType', map-type
-				$scope.$watch 'gmapCenter', map-center
+				$scope.$watch gmap-visible, visible
+				$scope.$watch gmap-type, map-type
 				$log.debug "GMap is shown: #{gmap}"
 				gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
-					$log.debug "Close map in element"
+					$log.debug "Close map in element:#{$element}"
 					visible false

@@ -6,5 +6,7 @@
 		.item.item-input.item-select
 			.input-label
 				p Map Type
-			select(ng-model="gmapType", ng-options="key as value for (key, value) in gmapTypes")
+			select(ng-model="gmapType", ng-init="gmapType = 'HYBRID'")
+				option(value="ROADMAP") Road View
+				option(value="HYBRID", selected) Satellite View
 		fathens-google-maps
