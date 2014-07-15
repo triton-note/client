@@ -1,5 +1,5 @@
-.controller 'MapCtrl', ($log, $scope, $ionicModal) !->
-	$ionicModal.fromTemplateUrl 'template/map-view.html'
+.controller 'DistributionMapCtrl', ($log, $scope, $ionicModal) !->
+	$ionicModal.fromTemplateUrl 'template/distribution-map.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
