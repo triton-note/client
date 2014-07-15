@@ -24,7 +24,14 @@
 			next: 'mine'
 	$scope.view =
 		person: 'mine'
+		fish: ''
 	$scope.person = -> $scope.persons[$scope.view.person]
+
+	$scope.$watch 'view.person', (value) !->
+		$log.debug "Changing 'view.person': #{angular.toJson value}"
+
+	$scope.$watch 'view.fish', (value) !->
+		$log.debug "Changing 'view.fish': #{angular.toJson value}"
 
 .controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
 	$ionicModal.fromTemplateUrl 'template/settings.html'
