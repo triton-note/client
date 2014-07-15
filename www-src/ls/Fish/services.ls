@@ -184,7 +184,46 @@
 			unit: dstUnit
 		}
 
-.factory 'ServerFactory', ($log, $timeout, $http, $ionicPopup, serverURL) ->
+.factory 'DistributionFactory', ($log, $ionicPopup, ServerFactory) ->
+	/*
+	Fish:
+		id: String
+		name: String
+		count: Int
+		date: Date
+		geoinfo:
+			latitude: Double
+			longitude: Double
+	*/
+	sample = 
+		{
+		name: "Snapper"
+		count: 10
+		date: 1405406826148
+		geoinfo:
+			latitude: 34.2822
+			longitude: 132.2784
+		}, {
+		name: "Squid"
+		count: 2
+		date: 1405406512345
+		geoinfo:
+			latitude: 34.2802
+			longitude: 132.2573
+		}
+
+	name-suggestion: (pre, success) !->
+		success [
+			"Snapper"
+			"Snappy"
+			"Squid"
+		]
+	mine: (pre-name, success) !->
+		success sample
+	others: (pre-name, success) !->
+		success sample
+
+.factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
 	retryable = (retry, config, res-taker, error-taker) !->
 		$http config
