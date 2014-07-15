@@ -2,11 +2,7 @@
 	ion-header-bar
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="closeMap()")
 		h1.title Spot
+		.buttons(ng-show="gmapOnTap != null")
+			button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submitMap()")
 	ion-content
-		.item.item-input.item-select
-			.input-label
-				p Map Type
-			select(ng-model="gmapType", ng-init="gmapType = 'HYBRID'")
-				option(value="ROADMAP") Road View
-				option(value="HYBRID", selected) Satellite View
 		fathens-google-maps

@@ -3,7 +3,7 @@
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
-			animation: 'slide-in-up'
+			animation: 'slide-in-left'
 	$scope.gmap = null
 	$scope.setGmap = (gmap) !->
 		$log.debug "Setting GMap:#{gmap}"
@@ -14,7 +14,6 @@
 	$scope.close = !->
 		$scope.gmap-visible = false
 		$scope.modal.hide!
-	$scope.gmap-type = 'HYBRID'
 
 	$scope.persons =
 		mine:
@@ -85,11 +84,11 @@
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
-			animation: 'slide-in-up'
+			animation: 'slide-in-left'
 
 	$scope.showMap = !->
 		$scope.modal.show!.then !->
-			$scope.gmap-center =  $scope.report.location.geoinfo
+			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
 		$scope.gmap-visible = false
@@ -108,15 +107,18 @@
 		, (modal) !-> $scope.modal-gmap = modal
 		,
 			scope: $scope
-			animation: 'slide-in-up'
+			animation: 'slide-in-left'
 
 	$scope.title = "Edit Report"
 
 	$scope.showMap = !->
 		$scope.modal-gmap.show!.then !->
-			$scope.gmap-center =  $scope.report.location.geoinfo
+			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
+		$scope.report.location.geoinfo = $scope.gmap-center
+		$scope.submitMap!
+	$scope.submitMap = !->
 		$scope.gmap-visible = false
 		$scope.modal-gmap.hide!
 	$scope.gmap-markers = []
@@ -128,12 +130,6 @@
 		$scope.gmap-markers = [marker]
 		$log.debug "Set location: #{angular.toJson gi}"
 		$scope.report.location.geoinfo = gi
-
-	$scope.editOnList = (index) !->
-		$ionicListDelegate.closeOptionButtons!
-		$scope.index = index
-		$scope.report = ReportFactory.getReport index
-		$scope.edit!
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
@@ -161,7 +157,7 @@
 		, (modal) !-> $scope.modal-gmap = modal
 		,
 			scope: $scope
-			animation: 'slide-in-up'
+			animation: 'slide-in-left'
 
 	$scope.title = "New Report"
 	$scope.publish =
@@ -226,6 +222,9 @@
 			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
+		$scope.report.location.geoinfo = $scope.gmap-center
+		$scope.submitMap!
+	$scope.submitMap = !->
 		$scope.gmap-visible = false
 		$scope.modal-gmap.hide!
 	$scope.gmap-markers = []
