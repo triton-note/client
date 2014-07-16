@@ -56,6 +56,11 @@
 	hasMore: ->
 		store.hasMore
 	/*
+		Get index of list by report id
+	*/
+	getIndex: (id) ->
+		_.find-index (.id == id), store.reports
+	/*
 		Get a report by index of cached list
 	*/
 	getReport: (index) ->
@@ -187,6 +192,7 @@
 .factory 'DistributionFactory', ($log, $ionicPopup, ServerFactory) ->
 	/*
 	Fish:
+		report-id: String
 		id: String
 		name: String
 		count: Int
@@ -197,6 +203,8 @@
 	*/
 	sample = 
 		{
+		report-id: '94461da22dfc030f4bee262bb96a532f6a1570b8'
+		id: 'ABC'
 		name: "Snapper"
 		count: 10
 		date: 1405406826148
@@ -204,6 +212,8 @@
 			latitude: 34.2822
 			longitude: 132.2784
 		}, {
+		report-id: '565e69e103894868d138595ac9fa1fa6878bacc0'
+		id: 'XYZ'
 		name: "Squid"
 		count: 2
 		date: 1405406512345

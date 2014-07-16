@@ -1,95 +1,3 @@
-.controller 'DistributionMapCtrl', ($log, $scope, $filter, $ionicModal, DistributionFactory) !->
-	$ionicModal.fromTemplateUrl 'template/distribution-map.html'
-		, (modal) !-> $scope.modal = modal
-		,
-			scope: $scope
-			animation: 'slide-in-left'
-	$scope.gmap = null
-	$scope.setGmap = (gmap) !->
-		$log.debug "Setting GMap:#{gmap}"
-		$scope.gmap = gmap
-		map-distribution!
-	$scope.open = !->
-		$scope.modal.show!.then !->
-			$scope.gmap-visible = true
-	$scope.close = !->
-		$scope.gmap-visible = false
-		$scope.modal.hide!
-
-	$scope.persons =
-		mine:
-			icon: 'ion-ios7-person'
-			next: 'mine and others'
-		'mine and others':
-			icon: 'ion-ios7-people'
-			next: 'mine'
-	$scope.view =
-		person: 'mine'
-		fish: ''
-	$scope.person = -> $scope.persons[$scope.view.person]
-
-	$scope.$watch 'view.person', (value) !->
-		$log.debug "Changing 'view.person': #{angular.toJson value}"
-		map-distribution!
-
-	$scope.$watch 'view.fish', (value) !->
-		$log.debug "Changing 'view.fish': #{angular.toJson value}"
-		map-distribution!
-
-	map-distribution = !->
-		gmap = $scope.gmap
-		person = $scope.view.person
-		fish-name = $scope.view.fish
-		
-		map-mine = (list) !->
-			$log.debug "Mapping my distribution (filtered by '#{fish-name}'): #{list}"
-			gmap.clear!
-			detail = (fish) -> (marker) !->
-				marker.on plugin.google.maps.event.INFO_CLICK, !->
-					$log.debug "Detail for fish: #{angular.toJson fish}"
-			for fish in list
-				gmap.addMarker do
-					title: "#{fish.name} x #{fish.count}"
-					snippet: $filter('date') new Date(fish.date), 'yyyy-MM-dd'
-					position:
-						lat: fish.geoinfo.latitude
-						lng: fish.geoinfo.longitude
-					, detail fish
-		map-others = (list) !->
-			$log.debug "Mapping other's distribution (filtered by '#{fish-name}'): #{list}"
-			icon = (fish) ->
-				color = ->
-					rate = (255 - 255 * fish.count / 10).toFixed!
-					v = if rate >= 0 then rate else 0
-					"rgba(255, #{v}, #{v}, 0.7)"
-				canvas = document.createElement 'canvas'
-				canvas.width = 20
-				canvas.height = 20
-				context = canvas.getContext '2d'
-				context.beginPath!
-				context.fillStyle = color!
-				context.arc 10, 10, 10, 0, 3.14159263 * 2, true
-				context.fill!
-				canvas.toDataURL!
-			gmap.clear!
-			for fish in list
-				url = icon(fish)
-				$log.debug "Icon url: #{url}"
-				gmap.addMarker do
-					title: "#{fish.name} x #{fish.count}"
-					icon:
-						url: url
-						size:
-							width: 20
-							height: 20
-					position:
-						lat: fish.geoinfo.latitude
-						lng: fish.geoinfo.longitude
-		
-		switch person
-		| 'mine'            => DistributionFactory.mine fish-name, map-mine
-		| 'mine and others' => DistributionFactory.others fish-name, map-others
-		
 .controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
 	$ionicModal.fromTemplateUrl 'template/settings.html'
 		, (modal) !-> $scope.modal = modal
@@ -364,3 +272,124 @@
 			.then (res) !-> if res
 				$scope.modal.hide!
 				del!
+
+.controller 'DistributionMapCtrl', ($log, $scope, $filter, $ionicModal, $ionicPopup, DistributionFactory, ReportFactory) !->
+	$ionicModal.fromTemplateUrl 'template/distribution-map.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-left'
+	$scope.gmap = null
+	$scope.setGmap = (gmap) !->
+		$log.debug "Setting GMap:#{gmap}"
+		$scope.gmap = gmap
+		map-distribution!
+	$scope.open = !->
+		$scope.modal.show!.then !->
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.gmap-visible = false
+		$scope.modal.hide!
+
+	$scope.persons =
+		mine:
+			icon: 'ion-ios7-person'
+			next: 'mine and others'
+		'mine and others':
+			icon: 'ion-ios7-people'
+			next: 'mine'
+	$scope.view =
+		person: 'mine'
+		fish: ''
+	$scope.person = -> $scope.persons[$scope.view.person]
+
+	$scope.$watch 'view.person', (value) !->
+		$log.debug "Changing 'view.person': #{angular.toJson value}"
+		map-distribution!
+
+	$scope.$watch 'view.fish', (value) !->
+		$log.debug "Changing 'view.fish': #{angular.toJson value}"
+		map-distribution!
+
+	$ionicModal.fromTemplateUrl 'template/show-report.html'
+		, (modal) !-> $scope.modal-detail = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
+	$scope.close = !->
+		$scope.modal-detail.hide!
+		$scope.gmap-visible = true
+	$scope.delete = (index) !->
+		$ionicPopup.confirm do
+			title: "Delete Report"
+			template: "Are you sure to delete this report ?"
+		.then (res) !-> if res
+			ReportFactory.remove index, !->
+				$log.debug "Remove completed."
+			$scope.close!
+
+	map-distribution = !->
+		gmap = $scope.gmap
+		person = $scope.view.person
+		fish-name = $scope.view.fish
+
+		map-mine = (list) !->
+			$log.debug "Mapping my distribution (filtered by '#{fish-name}'): #{list}"
+			gmap.clear!
+			detail = (fish) -> (marker) !->
+				marker.on plugin.google.maps.event.INFO_CLICK, !->
+					$log.debug "Detail for fish: #{angular.toJson fish}"
+					find-or = (fail) !->
+						$scope.index = ReportFactory.getIndex fish.report-id
+						if $scope.index >= 0 then
+							$scope.report = ReportFactory.getReport $scope.index
+							$scope.gmap-visible = false
+							$scope.modal-detail.show!
+						else fail!
+					find-or !->
+						ReportFactory.refresh !->
+							find-or !->
+								$log.error "Report not found by id: #{fish.report-id}"
+			for fish in list
+				gmap.addMarker do
+					title: "#{fish.name} x #{fish.count}"
+					snippet: $filter('date') new Date(fish.date), 'yyyy-MM-dd'
+					position:
+						lat: fish.geoinfo.latitude
+						lng: fish.geoinfo.longitude
+					, detail fish
+		map-others = (list) !->
+			$log.debug "Mapping other's distribution (filtered by '#{fish-name}'): #{list}"
+			icon = (fish) ->
+				color = ->
+					rate = (255 - 255 * fish.count / 10).toFixed!
+					v = if rate >= 0 then rate else 0
+					"rgba(255, #{v}, #{v}, 0.7)"
+				canvas = document.createElement 'canvas'
+				canvas.width = 20
+				canvas.height = 20
+				context = canvas.getContext '2d'
+				context.beginPath!
+				context.fillStyle = color!
+				context.arc 10, 10, 10, 0, _.pi * 2, true
+				context.fill!
+				canvas.toDataURL!
+			gmap.clear!
+			for fish in list
+				url = icon(fish)
+				$log.debug "Icon url: #{url}"
+				gmap.addMarker do
+					title: "#{fish.name} x #{fish.count}"
+					icon:
+						url: url
+						size:
+							width: 20
+							height: 20
+					position:
+						lat: fish.geoinfo.latitude
+						lng: fish.geoinfo.longitude
+
+		switch person
+		| 'mine'            => DistributionFactory.mine fish-name, map-mine
+		| 'mine and others' => DistributionFactory.others fish-name, map-others
