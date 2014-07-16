@@ -214,7 +214,7 @@
 	refresh-mine = (success) !->
 		suc = !->
 			success! if success
-		TicketFactory.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.catches-mine ticket
 		, (list) !->
 			store.catches.mine = list
@@ -228,7 +228,7 @@
 	refresh-others = (success) !->
 		suc = !->
 			success! if success
-		TicketFactory.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.catches-others ticket
 		, (list) !->
 			store.catches.others = list
@@ -242,7 +242,7 @@
 	refresh-names = (success) !->
 		suc = !->
 			success! if success
-		TicketFactory.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.catches-names ticket
 		, (list) !->
 			store.names = list
