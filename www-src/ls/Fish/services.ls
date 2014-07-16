@@ -194,7 +194,6 @@
 		/*
 		List of
 			report-id: String (only if mine)
-			id: String
 			name: String
 			count: Int
 			date: Date
