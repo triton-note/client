@@ -252,8 +252,10 @@
 
 	name-suggestion: (pre, success) !->
 		check-or = (fail) !->
-			if store.names then
-				list = _.find (_.indexOf(pre) == 0), that
+			if store.names?.length then
+				src = store.names
+				$log.debug "Distributions of names: #{angular.toJson src}"
+				list = _.filter (.indexOf(pre) == 0), src
 				success _.map (.name), _.reverse _.sort-by (.count), list
 				refresh-mine!
 			else fail!
@@ -263,8 +265,11 @@
 					success []
 	mine: (pre-name, success) !->
 		check-or = (fail) !->
-			if store.catches.mine then
-				list = _.find (_.name.indexOf(pre-name) == 0), that
+			if store.catches.mine?.length then
+				src = store.catches.mine
+				pre = pre-name ? ""
+				$log.debug "Distributions of mine: #{angular.toJson src}"
+				list = _.filter (.name.indexOf(pre) == 0), src
 				success list
 				refresh-mine!
 			else fail!
@@ -274,8 +279,11 @@
 					success []
 	others: (pre-name, success) !->
 		check-or = (fail) !->
-			if store.catches.others then
-				list = _.find (_.name.indexOf(pre-name) == 0), that
+			if store.catches.others?.length then
+				src = store.catches.others
+				pre = pre-name ? ""
+				$log.debug "Distributions of others: #{angular.toJson src}"
+				list = _.filter (.name.indexOf(pre) == 0), src
 				success list
 				refresh-others!
 			else fail!
