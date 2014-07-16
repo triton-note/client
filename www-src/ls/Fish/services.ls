@@ -189,49 +189,101 @@
 			unit: dstUnit
 		}
 
-.factory 'DistributionFactory', ($log, $ionicPopup, ServerFactory) ->
-	/*
-	Fish:
-		report-id: String
-		id: String
-		name: String
-		count: Int
-		date: Date
-		geoinfo:
-			latitude: Double
-			longitude: Double
-	*/
-	sample = 
-		{
-		report-id: '94461da22dfc030f4bee262bb96a532f6a1570b8'
-		id: 'ABC'
-		name: "Snapper"
-		count: 10
-		date: 1405406826148
-		geoinfo:
-			latitude: 34.2822
-			longitude: 132.2784
-		}, {
-		report-id: '565e69e103894868d138595ac9fa1fa6878bacc0'
-		id: 'XYZ'
-		name: "Squid"
-		count: 2
-		date: 1405406512345
-		geoinfo:
-			latitude: 34.2802
-			longitude: 132.2573
-		}
+.factory 'DistributionFactory', ($log, $ionicPopup, TicketFactory, ServerFactory) ->
+	store =
+		/*
+		List of
+			report-id: String (only if mine)
+			id: String
+			name: String
+			count: Int
+			date: Date
+			geoinfo:
+				latitude: Double
+				longitude: Double
+		*/
+		catches:
+			mine: []
+			others: []
+		/*
+		List of
+			name: String
+			count: Int
+		*/
+		names: []
+
+	refresh-mine = (success) !->
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) !->
+			ServerFactory.catches-mine ticket
+		, (list) !->
+			store.catches.mine = list
+			suc!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Error"
+				template: "Failed to load catches list"
+			.then !->
+				suc!
+	refresh-others = (success) !->
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) !->
+			ServerFactory.catches-others ticket
+		, (list) !->
+			store.catches.others = list
+			suc!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Error"
+				template: "Failed to load catches list"
+			.then !->
+				suc!
+	refresh-names = (success) !->
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) !->
+			ServerFactory.catches-names ticket
+		, (list) !->
+			store.names = list
+			suc!
+		, (error) !->
+			suc!
 
 	name-suggestion: (pre, success) !->
-		success [
-			"Snapper"
-			"Snappy"
-			"Squid"
-		]
+		check-or = (fail) !->
+			if store.names then
+				list = _.find (_.indexOf(pre) == 0), that
+				success _.map (.name), _.reverse _.sort-by (.count), list
+				refresh-mine!
+			else fail!
+		check-or !->
+			refresh-names !->
+				check-or !->
+					success []
 	mine: (pre-name, success) !->
-		success sample
+		check-or = (fail) !->
+			if store.catches.mine then
+				list = _.find (_.name.indexOf(pre-name) == 0), that
+				success list
+				refresh-mine!
+			else fail!
+		check-or !->
+			refresh-mine !->
+				check-or !->
+					success []
 	others: (pre-name, success) !->
-		success sample
+		check-or = (fail) !->
+			if store.catches.others then
+				list = _.find (_.name.indexOf(pre-name) == 0), that
+				success list
+				refresh-others!
+			else fail!
+		check-or !->
+			refresh-others !->
+				check-or !->
+					success []
 
 .factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
@@ -365,6 +417,24 @@
 		http('POST', "account/unit/change/#{ticket}",
 			unit: unit
 		) success, error-taker
+	/*
+	Load distributions of own catches
+	*/
+	catches-mine: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving my cathces distributions"
+		http('GET', "distribution/mine/#{ticket}") success, error-taker
+	/*
+	Load distributions of all catches that includes others
+	*/
+	catches-others: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving others cathces distributions"
+		http('GET', "distribution/others/#{ticket}") success, error-taker
+	/*
+	Load names of catches with it's count
+	*/
+	catches-names: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving names of catches"
+		http('GET', "distribution/names/#{ticket}") success, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
