@@ -35,7 +35,7 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'ReportFactory', ($log, $ionicPopup, TicketFactory, ServerFactory) ->
+.factory 'ReportFactory', ($log, $ionicPopup, TicketFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	store =
 		reports: []
@@ -96,6 +96,7 @@
 	*/
 	add: (report) !->
 		store.reports = angular.copy([report] ++ store.reports)
+		DistributionFactory.refresh!
 	/*
 		Remove report specified by index
 	*/
@@ -105,6 +106,7 @@
 			ServerFactory.remove-report ticket, removing-id
 		, !->
 			$log.info "Deleted report: #{removing-id}"
+			DistributionFactory.refresh!
 			store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
 			success!
 		, (error) !->
@@ -119,6 +121,7 @@
 			ServerFactory.update-report ticket, report
 		, !->
 			$log.info "Updated report: #{report.id}"
+			DistributionFactory.refresh!
 			success!
 		, (error) !->
 			$ionicPopup.alert do
@@ -189,7 +192,7 @@
 			unit: dstUnit
 		}
 
-.factory 'DistributionFactory', ($log, $ionicPopup, TicketFactory, ServerFactory) ->
+.factory 'DistributionFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory) ->
 	store =
 		/*
 		List of
@@ -250,14 +253,23 @@
 		, (error) !->
 			suc!
 
-	name-suggestion: (pre, success) !->
+	startsWith = (word, pre) ->
+		word.toUpperCase!.indexOf(pre) == 0
+
+	refresh: !->
+		refresh-mine!
+		refresh-others!
+		refresh-names!
+	name-suggestion: (pre-name, success) !->
 		check-or = (fail) !->
 			if store.names?.length then
 				src = store.names
+				pre = pre-name?.toUpperCase!
 				$log.debug "Distributions of names: #{angular.toJson src}"
-				list = _.filter (.indexOf(pre) == 0), src
+				list = if pre
+					then _.filter ((a) -> startsWith(a, pre)), src
+					else []
 				success _.map (.name), _.reverse _.sort-by (.count), list
-				refresh-mine!
 			else fail!
 		check-or !->
 			refresh-names !->
@@ -267,11 +279,12 @@
 		check-or = (fail) !->
 			if store.catches.mine?.length then
 				src = store.catches.mine
-				pre = pre-name ? ""
+				pre = pre-name?.toUpperCase!
 				$log.debug "Distributions of mine: #{angular.toJson src}"
-				list = _.filter (.name.indexOf(pre) == 0), src
-				success list
-				refresh-mine!
+				list = if pre
+					then _.filter ((a) -> startsWith(a.name, pre)), src
+					else src
+				success _.reverse _.sort-by (.count), list
 			else fail!
 		check-or !->
 			refresh-mine !->
@@ -281,11 +294,12 @@
 		check-or = (fail) !->
 			if store.catches.others?.length then
 				src = store.catches.others
-				pre = pre-name ? ""
+				pre = pre-name?.toUpperCase!
 				$log.debug "Distributions of others: #{angular.toJson src}"
-				list = _.filter (.name.indexOf(pre) == 0), src
-				success list
-				refresh-others!
+				list = if pre
+					then _.filter ((a) -> startsWith(a.name, pre)), src
+					else src
+				success _.reverse _.sort-by (.count), list
 			else fail!
 		check-or !->
 			refresh-others !->
