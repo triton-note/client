@@ -35,7 +35,7 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'ReportFactory', ($log, $ionicPopup, TicketFactory, ServerFactory, DistributionFactory) ->
+.factory 'ReportFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	store =
 		reports: []
@@ -50,6 +50,16 @@
 				title: "Failed to load from server"
 				template: error.msg
 			.then (res) !-> taker null
+
+	reload = (success) !->
+		loadServer null, (more) !->
+			store.reports = more
+			store.hasMore = limit <= more.length
+			success! if success
+
+	$interval !->
+		reload!
+	, 6 * 60 * 60 * 1000
 
 	cachedList: ->
 		store.reports
@@ -76,11 +86,7 @@
 	/*
 		Refresh cache
 	*/
-	refresh: (success) !->
-		loadServer null, (more) !->
-			store.reports = more
-			store.hasMore = limit <= more.length
-			success! if success
+	refresh: reload
 	/*
 		Load reports from server
 	*/
@@ -253,13 +259,15 @@
 		, (error) !->
 			suc!
 
-	startsWith = (word, pre) ->
-		word.toUpperCase!.indexOf(pre) == 0
-
-	refresh: !->
+	$interval !->
 		refresh-mine!
 		refresh-others!
 		refresh-names!
+	, 6 * 60 * 60 * 1000
+
+	startsWith = (word, pre) ->
+		word.toUpperCase!.indexOf(pre) == 0
+
 	name-suggestion: (pre-name, success) !->
 		check-or = (fail) !->
 			if store.names?.length then
