@@ -221,6 +221,7 @@
 		names: null
 
 	refresh-mine = (success) !->
+		$log.debug "Refreshing distributions of mine ..."
 		suc = !->
 			success! if success
 		TicketFactory.get (ticket) ->
@@ -235,6 +236,7 @@
 			.then !->
 				suc!
 	refresh-others = (success) !->
+		$log.debug "Refreshing distributions of others ..."
 		suc = !->
 			success! if success
 		TicketFactory.get (ticket) ->
@@ -249,6 +251,7 @@
 			.then !->
 				suc!
 	refresh-names = (success) !->
+		$log.debug "Refreshing distributions of names ..."
 		suc = !->
 			success! if success
 		TicketFactory.get (ticket) ->
@@ -610,11 +613,18 @@
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
+		taking: null
 		ticket: null
 
-	getLoginWay = (way-taker) !->
-		if LocalStorageFactory.login-way.load! then way-taker that
+	wayGet = (way) !->
+		if store.taking
+			store.taking = null
+			for taker in that
+				taker way
+	doGetLoginWay = !->
+		if LocalStorageFactory.login-way.load! then wayGet that
 		else AcceptanceFactory.obtain !->
+			$log.warn "Taking Login Way ..."
 			$ionicPopup.show do
 				template: 'Select for Login'
 				buttons:
@@ -627,7 +637,13 @@
 						type: 'button icon ion-social-googleplus button-assertive'
 						onTap: (e) -> SocialFactory.ways.google
 					}
-			.then way-taker
+			.then wayGet
+	getLoginWay = (way-taker) !->
+		if store.taking
+			store.taking.push way-taker
+		else
+			store.taking = [way-taker]
+			doGetLoginWay!
 
 	doLogin = (token-taker, error-taker) !->
 		getLoginWay (way) !-> switch way
@@ -649,12 +665,15 @@
 		action!
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
+	store =
+		taking: null
+
 	scope = $rootScope.$new(true)
 	scope.accept = !->
 		$log.info "Acceptance obtained"
 		LocalStorageFactory.acceptance.save true
 		scope.modal.remove!
-		scope.success!
+		successIt!
 	scope.reject = !->
 		$ionicPopup.alert do
 			title: "Good Bye !"
@@ -663,16 +682,27 @@
 		.then (res) !->
 			ionic.Platform.exitApp!
 
-	obtain: (success) !->
+	successIt = !->
+		if store.taking
+			store.taking = null
+			for suc in that
+				suc!
+	takeIt = !->
 		if LocalStorageFactory.acceptance.load!
-		then success!
+		then successIt!
 		else ServerFactory.terms-of-use (text) !->
 			scope.terms-of-use = text
+			$log.warn "Taking Acceptance ..."
 			$ionicModal.fromTemplateUrl 'template/terms-of-use.html'
 			, (modal) !->
-				scope.success = success
 				scope.modal = modal
 				modal.show!
 			,
 				scope: scope
 				animation: 'slide-in-up'
+	obtain: (success) !->
+		if store.taking
+			taking.push success
+		else
+			store.taking = [success]
+			takeIt!
