@@ -732,7 +732,7 @@
 		else AcceptanceFactory.obtain !->
 			$log.warn "Taking Login Way ..."
 			$ionicPopup.show do
-				template: 'Select for Login'
+				title: 'Select for Login'
 				buttons:
 					{
 						text: ''
@@ -752,9 +752,10 @@
 			doGetLoginWay!
 
 	doLogin = (token-taker, error-taker) !->
-		getLoginWay (way) !-> switch way
-		| SocialFactory.ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
-		| _                           => ionic.Platform.exitApp!
+		getLoginWay (way) !->
+			if SocialFactory[way]
+			then that.login token-taker(way), error-taker
+			else ionic.Platform.exitApp!
 
 	login: (ticket-taker) !->
 		error-taker = (error-msg) !->
