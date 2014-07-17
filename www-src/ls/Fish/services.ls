@@ -102,7 +102,7 @@
 	*/
 	add: (report) !->
 		store.reports = angular.copy([report] ++ store.reports)
-		DistributionFactory.refresh!
+		DistributionFactory.report.add report
 	/*
 		Remove report specified by index
 	*/
@@ -112,7 +112,7 @@
 			ServerFactory.remove-report ticket, removing-id
 		, !->
 			$log.info "Deleted report: #{removing-id}"
-			DistributionFactory.refresh!
+			DistributionFactory.report.remove removing-id
 			store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
 			success!
 		, (error) !->
@@ -127,7 +127,7 @@
 			ServerFactory.update-report ticket, report
 		, !->
 			$log.info "Updated report: #{report.id}"
-			DistributionFactory.refresh!
+			DistributionFactory.report.update report
 			success!
 		, (error) !->
 			$ionicPopup.alert do
@@ -211,14 +211,14 @@
 				longitude: Double
 		*/
 		catches:
-			mine: []
-			others: []
+			mine: null
+			others: null
 		/*
 		List of
 			name: String
 			count: Int
 		*/
-		names: []
+		names: null
 
 	refresh-mine = (success) !->
 		suc = !->
@@ -265,15 +265,36 @@
 		refresh-names!
 	, 6 * 60 * 60 * 1000
 
+	remove-mine = (report-id) !->
+		$log.debug "Removing distribution of report id:#{report-id}"
+		if store.catches.mine then
+			store.catches.mine = _.filter (.report-id != report-id), that
+	add-mine = (report) !->
+		list = _.map (fish) ->
+			report-id: report.id
+			name: fish.name
+			count: fish.count
+			date: report.dateAt
+			geoinfo: report.location.geoinfo
+		, report.fishes
+		if store.catches.mine then
+			store.catches.mine = that ++ list
+			$log.debug "Added distribution of catches:#{angular.toJson list}"
+
 	startsWith = (word, pre) ->
 		word.toUpperCase!.indexOf(pre) == 0
 
+	report:
+		add: add-mine
+		remove: remove-mine
+		update: (report) !->
+			remove-mine report.id
+			add-mine report
 	name-suggestion: (pre-name, success) !->
 		check-or = (fail) !->
-			if store.names?.length then
-				src = store.names
+			if store.names then
+				src = that
 				pre = pre-name?.toUpperCase!
-				$log.debug "Distributions of names: #{angular.toJson src}"
 				list = if pre
 					then _.filter ((a) -> startsWith(a, pre)), src
 					else []
@@ -285,10 +306,9 @@
 					success []
 	mine: (pre-name, success) !->
 		check-or = (fail) !->
-			if store.catches.mine?.length then
-				src = store.catches.mine
+			if store.catches.mine then
+				src = that
 				pre = pre-name?.toUpperCase!
-				$log.debug "Distributions of mine: #{angular.toJson src}"
 				list = if pre
 					then _.filter ((a) -> startsWith(a.name, pre)), src
 					else src
@@ -300,10 +320,9 @@
 					success []
 	others: (pre-name, success) !->
 		check-or = (fail) !->
-			if store.catches.others?.length then
-				src = store.catches.others
+			if store.catches.others then
+				src = that
 				pre = pre-name?.toUpperCase!
-				$log.debug "Distributions of others: #{angular.toJson src}"
 				list = if pre
 					then _.filter ((a) -> startsWith(a.name, pre)), src
 					else src
