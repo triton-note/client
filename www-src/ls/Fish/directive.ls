@@ -80,6 +80,14 @@
 				$scope.$watch gmap-visible, visible
 				$scope.$watch gmap-type, map-type
 				$log.debug "GMap is shown: #{gmap}"
+				gmap.setZoom 10 unless gmap.getZoom
+				unless gmap.getCenter
+					navigator.geolocation.getCurrentPosition do
+						(pos) !->
+							$log.debug "Gotta geolocation: #{angular.toJson pos}"
+							gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
+						, (error) !->
+							$log.error "Geolocation Error: #{angular.toJson error}"
 				gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
 					$log.debug "Close map in element:#{$element}"
 					visible false
