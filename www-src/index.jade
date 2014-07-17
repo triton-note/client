@@ -20,8 +20,6 @@ html(ng-app=app.name)
 							.list
 								.item(ng-repeat="fish in report.fishes")
 									p {{fish | fishFilter}}
-							ion-option-button.button-clear.icon.ion-ios7-minus-outline.button-assertive(ng-click="delete($index)")
-							ion-option-button.button-clear.icon.ion-edit.button-balanced(ng-controller="EditReportCtrl", ng-click="editOnList($index)")
 					ion-infinite-scroll(ng-if="hasMoreReports()", on-infinite="moreReports()")
 
 			ion-side-menu(side="left")
@@ -30,7 +28,7 @@ html(ng-app=app.name)
 					h1.title Menu
 				ion-content
 					.list
-						.item(ng-controller='MapCtrl', ng-click="open()")
+						.item(ng-controller='DistributionMapCtrl', ng-click="open()")
 							p View on Map
 						.item(ng-controller='SettingsCtrl', ng-click="open()")
 							p Settings

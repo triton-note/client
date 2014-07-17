@@ -1,6 +1,3 @@
-.controller 'MapCtrl', ($log, $scope) !->
-	$scope.open = !-> alert "Open Map"
-
 .controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
 	$ionicModal.fromTemplateUrl 'template/settings.html'
 		, (modal) !-> $scope.modal = modal
@@ -22,15 +19,12 @@
 			$scope.settings =
 				unit: units
 
-.controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory, GMapFactory) !->
+.controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
-
-	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.geoinfo
 
 	$scope.reports = ReportFactory.cachedList
 	$scope.hasMoreReports = ReportFactory.hasMore
@@ -47,7 +41,7 @@
 		$scope.index = index
 		$scope.report = ReportFactory.getReport index
 		$scope.modal.show!
-
+	$scope.close = !-> $scope.modal.hide!
 	$scope.delete = (index) !->
 		$ionicPopup.confirm do
 			title: "Delete Report"
@@ -57,9 +51,22 @@
 				$log.debug "Remove completed."
 			$scope.modal.hide!
 
-	$scope.close = !-> $scope.modal.hide!
+.controller 'DetailReportCtrl', ($log, $scope, $ionicModal, ReportFactory) !->
+	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-left'
 
-.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicListDelegate, ReportFactory, GMapFactory) !->
+	$scope.showMap = !->
+		$scope.modal.show!.then !->
+			$scope.gmap-center = $scope.report.location.geoinfo
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.gmap-visible = false
+		$scope.modal.hide!
+
+.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicListDelegate, ReportFactory) !->
 	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -68,17 +75,33 @@
 			scope: $scope
 			animation: 'slide-in-up'
 
+	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
+		, (modal) !-> $scope.modal-gmap = modal
+		,
+			scope: $scope
+			animation: 'slide-in-left'
+
 	$scope.title = "Edit Report"
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
-			$scope.report.location.geoinfo = gi
-
-	$scope.editOnList = (index) !->
-		$ionicListDelegate.closeOptionButtons!
-		$scope.index = index
-		$scope.report = ReportFactory.getReport index
-		$scope.edit!
+		$scope.modal-gmap.show!.then !->
+			$scope.gmap-center = $scope.report.location.geoinfo
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.report.location.geoinfo = $scope.gmap-center
+		$scope.submitMap!
+	$scope.submitMap = !->
+		$scope.gmap-visible = false
+		$scope.modal-gmap.hide!
+	$scope.gmap-markers = []
+	$scope.gmap-onTap = (marker, gi) !->
+		if $scope.gmap-markers?.length > 0 then
+			for m in $scope.gmap-markers
+				if m != marker then
+					m.remove!
+		$scope.gmap-markers = [marker]
+		$log.debug "Set location: #{angular.toJson gi}"
+		$scope.report.location.geoinfo = gi
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
@@ -95,12 +118,18 @@
 			$log.debug "Edit completed."
 		$scope.modal.hide!
 
-.controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, GMapFactory, SessionFactory, LocalStorageFactory) !->
+.controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
+
+	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
+		, (modal) !-> $scope.modal-gmap = modal
+		,
+			scope: $scope
+			animation: 'slide-in-left'
 
 	$scope.title = "New Report"
 	$scope.publish =
@@ -161,8 +190,24 @@
 				start!
 
 	$scope.showMap = !->
-		GMapFactory.showMap $scope.report.location.geoinfo, (gi) !->
-			$scope.report.location.geoinfo = gi
+		$scope.modal-gmap.show!.then !->
+			$scope.gmap-center = $scope.report.location.geoinfo
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.report.location.geoinfo = $scope.gmap-center
+		$scope.submitMap!
+	$scope.submitMap = !->
+		$scope.gmap-visible = false
+		$scope.modal-gmap.hide!
+	$scope.gmap-markers = []
+	$scope.gmap-onTap = (marker, gi) !->
+		if $scope.gmap-markers?.length > 0 then
+			for m in $scope.gmap-markers
+				if m != marker then
+					m.remove!
+		$scope.gmap-markers = [marker]
+		$log.debug "Set location: #{angular.toJson gi}"
+		$scope.report.location.geoinfo = gi
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
@@ -222,8 +267,129 @@
 	$scope.deleteFish = (index, confirm = true) !->
 		del = !-> $scope.report.fishes.splice index, 1
 		if !confirm then del! else
-				$ionicPopup.confirm do
-					template: "Are you sure to delete this catch ?"
-				.then (res) !-> if res
+			$ionicPopup.confirm do
+				template: "Are you sure to delete this catch ?"
+			.then (res) !-> if res
 				$scope.modal.hide!
 				del!
+
+.controller 'DistributionMapCtrl', ($log, $scope, $filter, $ionicModal, $ionicPopup, DistributionFactory, ReportFactory) !->
+	$ionicModal.fromTemplateUrl 'template/distribution-map.html'
+		, (modal) !-> $scope.modal = modal
+		,
+			scope: $scope
+			animation: 'slide-in-left'
+	$scope.gmap = null
+	$scope.setGmap = (gmap) !->
+		$log.debug "Setting GMap:#{gmap}"
+		$scope.gmap = gmap
+		map-distribution!
+	$scope.open = !->
+		$scope.modal.show!.then !->
+			$scope.gmap-visible = true
+	$scope.closeMap = !->
+		$scope.gmap-visible = false
+		$scope.modal.hide!
+
+	$scope.persons =
+		mine:
+			icon: 'ion-ios7-person'
+			next: 'mine and others'
+		'mine and others':
+			icon: 'ion-ios7-people'
+			next: 'mine'
+	$scope.view =
+		person: 'mine'
+		fish: ''
+	$scope.person = -> $scope.persons[$scope.view.person]
+
+	$scope.$watch 'view.person', (value) !->
+		$log.debug "Changing 'view.person': #{angular.toJson value}"
+		map-distribution!
+
+	$scope.$watch 'view.fish', (value) !->
+		$log.debug "Changing 'view.fish': #{angular.toJson value}"
+		map-distribution!
+
+	$ionicModal.fromTemplateUrl 'template/show-report.html'
+		, (modal) !-> $scope.modal-detail = modal
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
+	$scope.close = !->
+		$scope.modal-detail.hide!
+		$scope.gmap-visible = true
+	$scope.delete = (index) !->
+		$ionicPopup.confirm do
+			title: "Delete Report"
+			template: "Are you sure to delete this report ?"
+		.then (res) !-> if res
+			ReportFactory.remove index, !->
+				$log.debug "Remove completed."
+			$scope.close!
+
+	icons = _.map (count) ->
+		size = 32
+		center = size / 2
+		r = ->
+			min = 4
+			max = center - 1
+			v = min + (max - min) * count / 10
+			_.min max, v
+		canvas = document.createElement 'canvas'
+		canvas.width = size
+		canvas.height = size
+		context = canvas.getContext '2d'
+		context.beginPath!
+		context.strokeStyle = "rgb(80, 0, 0)"
+		context.fillStyle = "rgba(255, 40, 0, 0.7)"
+		context.arc center, center, r!, 0, _.pi * 2, true
+		context.stroke!
+		context.fill!
+		canvas.toDataURL!
+	, [1 to 10]
+	map-distribution = !->
+		gmap = $scope.gmap
+		person = $scope.view.person
+		fish-name = $scope.view.fish
+
+		map-mine = (list) !->
+			$log.debug "Mapping my distribution (filtered by '#{fish-name}'): #{list}"
+			gmap.clear!
+			detail = (fish) -> (marker) !->
+				marker.on plugin.google.maps.event.INFO_CLICK, !->
+					$log.debug "Detail for fish: #{angular.toJson fish}"
+					find-or = (fail) !->
+						$scope.index = ReportFactory.getIndex fish.report-id
+						if $scope.index >= 0 then
+							$scope.report = ReportFactory.getReport $scope.index
+							$scope.gmap-visible = false
+							$scope.modal-detail.show!
+						else fail!
+					find-or !->
+						ReportFactory.refresh !->
+							find-or !->
+								$log.error "Report not found by id: #{fish.report-id}"
+			for fish in list
+				gmap.addMarker do
+					title: "#{fish.name} x #{fish.count}"
+					snippet: $filter('date') new Date(fish.date), 'yyyy-MM-dd'
+					position:
+						lat: fish.geoinfo.latitude
+						lng: fish.geoinfo.longitude
+					, detail fish
+		map-others = (list) !->
+			$log.debug "Mapping other's distribution (filtered by '#{fish-name}'): #{list}"
+			gmap.clear!
+			for fish in list
+				gmap.addMarker do
+					title: "#{fish.name} x #{fish.count}"
+					icon: icons[(_.min fish.count, 10) - 1]
+					position:
+						lat: fish.geoinfo.latitude
+						lng: fish.geoinfo.longitude
+
+		switch person
+		| 'mine'            => DistributionFactory.mine fish-name, map-mine
+		| 'mine and others' => DistributionFactory.others fish-name, map-others

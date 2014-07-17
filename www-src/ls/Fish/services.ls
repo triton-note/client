@@ -35,7 +35,7 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'ReportFactory', ($log, $ionicPopup, TicketFactory, ServerFactory) ->
+.factory 'ReportFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	store =
 		reports: []
@@ -51,10 +51,25 @@
 				template: error.msg
 			.then (res) !-> taker null
 
+	reload = (success) !->
+		loadServer null, (more) !->
+			store.reports = more
+			store.hasMore = limit <= more.length
+			success! if success
+
+	$interval !->
+		reload!
+	, 6 * 60 * 60 * 1000
+
 	cachedList: ->
 		store.reports
 	hasMore: ->
 		store.hasMore
+	/*
+		Get index of list by report id
+	*/
+	getIndex: (id) ->
+		_.find-index (.id == id), store.reports
 	/*
 		Get a report by index of cached list
 	*/
@@ -71,11 +86,7 @@
 	/*
 		Refresh cache
 	*/
-	refresh: (success) !->
-		loadServer null, (more) !->
-			store.reports = more
-			store.hasMore = limit <= more.length
-			success! if success
+	refresh: reload
 	/*
 		Load reports from server
 	*/
@@ -91,6 +102,7 @@
 	*/
 	add: (report) !->
 		store.reports = angular.copy([report] ++ store.reports)
+		DistributionFactory.report.add report
 	/*
 		Remove report specified by index
 	*/
@@ -100,6 +112,7 @@
 			ServerFactory.remove-report ticket, removing-id
 		, !->
 			$log.info "Deleted report: #{removing-id}"
+			DistributionFactory.report.remove removing-id
 			store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
 			success!
 		, (error) !->
@@ -114,6 +127,7 @@
 			ServerFactory.update-report ticket, report
 		, !->
 			$log.info "Updated report: #{report.id}"
+			DistributionFactory.report.update report
 			success!
 		, (error) !->
 			$ionicPopup.alert do
@@ -184,51 +198,145 @@
 			unit: dstUnit
 		}
 
-.factory 'GMapFactory', ($log) ->
+.factory 'DistributionFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory) ->
 	store =
-		gmap: null
-		marker: null
+		/*
+		List of
+			report-id: String (only if mine)
+			name: String
+			count: Int
+			date: Date
+			geoinfo:
+				latitude: Double
+				longitude: Double
+		*/
+		catches:
+			mine: null
+			others: null
+		/*
+		List of
+			name: String
+			count: Int
+		*/
+		names: null
 
-	create = (center) !->
-		store.gmap = plugin.google.maps.Map.getMap do
-			mapType: plugin.google.maps.MapTypeId.HYBRID
-			controls:
-				myLocationButton: true
-				zoom: true
-		store.gmap.on plugin.google.maps.event.MAP_READY, onReady(center)
-	onReady = (center) -> (gmap) !->
-		if center
-			addMarker center
-			gmap.setCenter center
-		gmap.showDialog!
-	addMarker = (latLng) !->
-		store.marker?.remove!
-		store.gmap.addMarker {
-			position: latLng
-		}, (marker) !->
-			store.marker = marker
+	refresh-mine = (success) !->
+		$log.debug "Refreshing distributions of mine ..."
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) ->
+			ServerFactory.catches-mine ticket
+		, (list) !->
+			store.catches.mine = list
+			suc!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Error"
+				template: "Failed to load catches list"
+			.then !->
+				suc!
+	refresh-others = (success) !->
+		$log.debug "Refreshing distributions of others ..."
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) ->
+			ServerFactory.catches-others ticket
+		, (list) !->
+			store.catches.others = list
+			suc!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Error"
+				template: "Failed to load catches list"
+			.then !->
+				suc!
+	refresh-names = (success) !->
+		$log.debug "Refreshing distributions of names ..."
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) ->
+			ServerFactory.catches-names ticket
+		, (list) !->
+			store.names = list
+			suc!
+		, (error) !->
+			suc!
 
-	showMap: (theCenter, setter = null) ->
-		center =
-			lat: theCenter.latitude
-			lng: theCenter.longitude
-		if store.gmap
-			onReady(center) store.gmap
-		else create center
+	$interval !->
+		refresh-mine!
+		refresh-others!
+		refresh-names!
+	, 6 * 60 * 60 * 1000
 
-		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
-			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{setter}"
-			if setter
-				setter do
-					latitude: latLng.lat
-					longitude: latLng.lng
-				addMarker latLng
-		store.gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
-			$log.debug "Map close: #{e}"
-			store.gmap.clear!
-			store.gmap.off!
+	remove-mine = (report-id) !->
+		$log.debug "Removing distribution of report id:#{report-id}"
+		if store.catches.mine then
+			store.catches.mine = _.filter (.report-id != report-id), that
+	add-mine = (report) !->
+		list = _.map (fish) ->
+			report-id: report.id
+			name: fish.name
+			count: fish.count
+			date: report.dateAt
+			geoinfo: report.location.geoinfo
+		, report.fishes
+		if store.catches.mine then
+			store.catches.mine = that ++ list
+			$log.debug "Added distribution of catches:#{angular.toJson list}"
 
-.factory 'ServerFactory', ($log, $timeout, $http, $ionicPopup, serverURL) ->
+	startsWith = (word, pre) ->
+		word.toUpperCase!.indexOf(pre) == 0
+
+	report:
+		add: add-mine
+		remove: remove-mine
+		update: (report) !->
+			remove-mine report.id
+			add-mine report
+	name-suggestion: (pre-name, success) !->
+		check-or = (fail) !->
+			if store.names then
+				src = that
+				pre = pre-name?.toUpperCase!
+				list = if pre
+					then _.filter ((a) -> startsWith(a, pre)), src
+					else []
+				success _.map (.name), _.reverse _.sort-by (.count), list
+			else fail!
+		check-or !->
+			refresh-names !->
+				check-or !->
+					success []
+	mine: (pre-name, success) !->
+		check-or = (fail) !->
+			if store.catches.mine then
+				src = that
+				pre = pre-name?.toUpperCase!
+				list = if pre
+					then _.filter ((a) -> startsWith(a.name, pre)), src
+					else src
+				success _.reverse _.sort-by (.count), list
+			else fail!
+		check-or !->
+			refresh-mine !->
+				check-or !->
+					success []
+	others: (pre-name, success) !->
+		check-or = (fail) !->
+			if store.catches.others then
+				src = that
+				pre = pre-name?.toUpperCase!
+				list = if pre
+					then _.filter ((a) -> startsWith(a.name, pre)), src
+					else src
+				success _.reverse _.sort-by (.count), list
+			else fail!
+		check-or !->
+			refresh-others !->
+				check-or !->
+					success []
+
+.factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
 	retryable = (retry, config, res-taker, error-taker) !->
 		$http config
@@ -360,6 +468,24 @@
 		http('POST', "account/unit/change/#{ticket}",
 			unit: unit
 		) success, error-taker
+	/*
+	Load distributions of own catches
+	*/
+	catches-mine: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving my cathces distributions"
+		http('GET', "distribution/mine/#{ticket}") success, error-taker
+	/*
+	Load distributions of all catches that includes others
+	*/
+	catches-others: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving others cathces distributions"
+		http('GET', "distribution/others/#{ticket}") success, error-taker
+	/*
+	Load names of catches with it's count
+	*/
+	catches-names: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving names of catches"
+		http('GET', "distribution/names/#{ticket}") success, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -487,11 +613,18 @@
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
+		taking: null
 		ticket: null
 
-	getLoginWay = (way-taker) !->
-		if LocalStorageFactory.login-way.load! then way-taker that
+	wayGet = (way) !->
+		if store.taking
+			store.taking = null
+			for taker in that
+				taker way
+	doGetLoginWay = !->
+		if LocalStorageFactory.login-way.load! then wayGet that
 		else AcceptanceFactory.obtain !->
+			$log.warn "Taking Login Way ..."
 			$ionicPopup.show do
 				template: 'Select for Login'
 				buttons:
@@ -504,7 +637,13 @@
 						type: 'button icon ion-social-googleplus button-assertive'
 						onTap: (e) -> SocialFactory.ways.google
 					}
-			.then way-taker
+			.then wayGet
+	getLoginWay = (way-taker) !->
+		if store.taking
+			store.taking.push way-taker
+		else
+			store.taking = [way-taker]
+			doGetLoginWay!
 
 	doLogin = (token-taker, error-taker) !->
 		getLoginWay (way) !-> switch way
@@ -526,12 +665,15 @@
 		action!
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
+	store =
+		taking: null
+
 	scope = $rootScope.$new(true)
 	scope.accept = !->
 		$log.info "Acceptance obtained"
 		LocalStorageFactory.acceptance.save true
 		scope.modal.remove!
-		scope.success!
+		successIt!
 	scope.reject = !->
 		$ionicPopup.alert do
 			title: "Good Bye !"
@@ -540,16 +682,27 @@
 		.then (res) !->
 			ionic.Platform.exitApp!
 
-	obtain: (success) !->
+	successIt = !->
+		if store.taking
+			store.taking = null
+			for suc in that
+				suc!
+	takeIt = !->
 		if LocalStorageFactory.acceptance.load!
-		then success!
+		then successIt!
 		else ServerFactory.terms-of-use (text) !->
 			scope.terms-of-use = text
+			$log.warn "Taking Acceptance ..."
 			$ionicModal.fromTemplateUrl 'template/terms-of-use.html'
 			, (modal) !->
-				scope.success = success
 				scope.modal = modal
 				modal.show!
 			,
 				scope: scope
 				animation: 'slide-in-up'
+	obtain: (success) !->
+		if store.taking
+			taking.push success
+		else
+			store.taking = [success]
+			takeIt!
