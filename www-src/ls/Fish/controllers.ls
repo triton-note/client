@@ -329,6 +329,26 @@
 				$log.debug "Remove completed."
 			$scope.close!
 
+	icons = _.map (count) ->
+		size = 32
+		center = size / 2
+		r = ->
+			min = 4
+			max = center - 1
+			v = min + (max - min) * count / 10
+			_.min max, v
+		canvas = document.createElement 'canvas'
+		canvas.width = size
+		canvas.height = size
+		context = canvas.getContext '2d'
+		context.beginPath!
+		context.strokeStyle = "rgb(80, 0, 0)"
+		context.fillStyle = "rgba(255, 40, 0, 0.7)"
+		context.arc center, center, r!, 0, _.pi * 2, true
+		context.stroke!
+		context.fill!
+		canvas.toDataURL!
+	, [1 to 10]
 	map-distribution = !->
 		gmap = $scope.gmap
 		person = $scope.view.person
@@ -361,31 +381,11 @@
 					, detail fish
 		map-others = (list) !->
 			$log.debug "Mapping other's distribution (filtered by '#{fish-name}'): #{list}"
-			icon = (fish) ->
-				color = ->
-					rate = (255 - 255 * fish.count / 10).toFixed!
-					v = if rate >= 0 then rate else 0
-					"rgba(255, #{v}, #{v}, 0.7)"
-				canvas = document.createElement 'canvas'
-				canvas.width = 20
-				canvas.height = 20
-				context = canvas.getContext '2d'
-				context.beginPath!
-				context.fillStyle = color!
-				context.arc 10, 10, 10, 0, _.pi * 2, true
-				context.fill!
-				canvas.toDataURL!
 			gmap.clear!
 			for fish in list
-				url = icon(fish)
-				$log.debug "Icon url: #{url}"
 				gmap.addMarker do
 					title: "#{fish.name} x #{fish.count}"
-					icon:
-						url: url
-						size:
-							width: 20
-							height: 20
+					icon: icons[(_.min fish.count, 10) - 1]
 					position:
 						lat: fish.geoinfo.latitude
 						lng: fish.geoinfo.longitude
