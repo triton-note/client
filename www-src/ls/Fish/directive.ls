@@ -28,6 +28,14 @@
 					myLocationButton: true
 					zoom: false
 			gmap.on plugin.google.maps.event.MAP_READY, (gmap) !->
+				default-view = !->
+					gmap.setZoom 10
+					navigator.geolocation.getCurrentPosition do
+						(pos) !->
+							$log.debug "Gotta geolocation: #{angular.toJson pos}"
+							gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
+						, (error) !->
+							$log.error "Geolocation Error: #{angular.toJson error}"
 				visible = (value) !->
 					$log.debug "gmap-visible(#{gmap-visible}) is changed: #{value}"
 					gmap.clear!
@@ -41,6 +49,10 @@
 						map-onTap $scope[gmap-onTap]
 						if $scope[gmap-setter] then
 							that gmap
+						gmap.getCameraPosition (camera) !->
+							console.log "GMap camera: #{angular.toJson camera}"
+							if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
+								default-view!
 					else
 						gmap.setDiv null
 					gmap.setVisible v
@@ -80,14 +92,6 @@
 				$scope.$watch gmap-visible, visible
 				$scope.$watch gmap-type, map-type
 				$log.debug "GMap is shown: #{gmap}"
-				gmap.setZoom 10 unless gmap.getZoom
-				unless gmap.getCenter
-					navigator.geolocation.getCurrentPosition do
-						(pos) !->
-							$log.debug "Gotta geolocation: #{angular.toJson pos}"
-							gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
-						, (error) !->
-							$log.error "Geolocation Error: #{angular.toJson error}"
 				gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
 					$log.debug "Close map in element:#{$element}"
 					visible false
