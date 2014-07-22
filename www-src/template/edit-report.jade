@@ -2,7 +2,7 @@
 	ion-header-bar
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
 		h1.title {{title}}
-		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
+		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-disabled="unsubmittable")
 	ion-content
 		.card
 			.item.item-image

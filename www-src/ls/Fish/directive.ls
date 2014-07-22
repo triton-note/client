@@ -37,12 +37,12 @@
 						, (error) !->
 							$log.error "Geolocation Error: #{angular.toJson error}"
 				visible = (value) !->
-					$log.debug "gmap-visible(#{gmap-visible}) is changed: #{value}"
 					gmap.clear!
 					gmap.off!
 					v = value == true
 					if v
 					then
+						$log.debug "gmap-visible(#{gmap-visible}) is changed: #{value}"
 						gmap.setDiv raw($element)
 						map-type $scope[gmap-type]
 						map-center $scope[gmap-center]
@@ -50,7 +50,6 @@
 						if $scope[gmap-setter] then
 							that gmap
 						gmap.getCameraPosition (camera) !->
-							console.log "GMap camera: #{angular.toJson camera}"
 							if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
 								default-view!
 					else
@@ -80,14 +79,14 @@
 									latitude: latLng.lat
 									longitude: latLng.lng
 				map-type = (value) !->
-					$log.debug "gmap-type(#{gmap-type}) is changed: #{value}"
+					$log.debug "gmap-type(#{gmap-type}) is changed: #{value}" if value
 					v = switch value
 					| 'ROADMAP'   => plugin.google.maps.MapTypeId.ROADMAP
 					| 'SATELLITE' => plugin.google.maps.MapTypeId.SATELLITE
 					| 'HYBRID'    => plugin.google.maps.MapTypeId.HYBRID
 					| 'TERRAIN'   => plugin.google.maps.MapTypeId.TERRAIN
 					| _           => plugin.google.maps.MapTypeId.HYBRID
-					$log.debug "Set Map type: #{v}"
+					$log.debug "Set Map type: #{v}" if value
 					gmap.setMapTypeId v
 				$scope.$watch gmap-visible, visible
 				$scope.$watch gmap-type, map-type

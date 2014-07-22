@@ -151,13 +151,16 @@
 			SessionFactory.start geoinfo
 			, !->
 				PhotoFactory.select (uri) !->
-					SessionFactory.put-photo uri, (inference) !->
-						$scope.$apply !->
-							$scope.report.photo = inference.url
-							if inference.location
-								$scope.report.location.name = that
-							if inference.fishes && inference.fishes.length > 0
-								$scope.report.fishes = inference.fishes
+					SessionFactory.put-photo uri, (result) !->
+						$log.debug "Get result of upload: #{angular.toJson result}"
+						$scope.report.photo = result.url
+						$scope.unsubmittable = false
+					, (inference) !->
+						$log.debug "Get inference: #{angular.toJson inference}"
+						if inference.location
+							$scope.report.location.name = that
+						if inference.fishes && inference.fishes.length > 0
+							$scope.report.fishes = inference.fishes
 					, (error) !->
 						$ionicPopup.alert do
 							title: "Failed to upload"
@@ -170,6 +173,7 @@
 							then ""
 							else uri
 						$scope.report = newReport imageUrl, geoinfo
+					$scope.unsubmittable = true
 					$scope.modal.show!
 				, (msg) !->
 					$ionicPopup.alert do
