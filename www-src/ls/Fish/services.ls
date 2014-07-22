@@ -35,25 +35,41 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'ReportFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
+.factory 'ReportFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	store =
 		reports: []
 		hasMore: false
 
 	loadServer = (last-id = null, taker) !->
-		AccountFactory.ticket.get (ticket) !->
-			ServerFactory.load-reports ticket, limit, last-id, taker
-			, (error) !->
-				$ionicPopup.alert do
-					title: "Failed to load from server"
-					template: error.msg
-				.then (res) !-> taker null
+		TicketFactory.get (ticket) ->
+			ServerFactory.load-reports ticket, limit, last-id
+		, taker
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Failed to load from server"
+				template: error.msg
+			.then (res) !-> taker null
+
+	reload = (success) !->
+		loadServer null, (more) !->
+			store.reports = more
+			store.hasMore = limit <= more.length
+			success! if success
+
+	$interval !->
+		reload!
+	, 6 * 60 * 60 * 1000
 
 	cachedList: ->
 		store.reports
 	hasMore: ->
 		store.hasMore
+	/*
+		Get index of list by report id
+	*/
+	getIndex: (id) ->
+		_.find-index (.id == id), store.reports
 	/*
 		Get a report by index of cached list
 	*/
@@ -70,11 +86,7 @@
 	/*
 		Refresh cache
 	*/
-	refresh: (success) !->
-		loadServer null, (more) !->
-			store.reports = more
-			store.hasMore = limit <= more.length
-			success! if success
+	refresh: reload
 	/*
 		Load reports from server
 	*/
@@ -90,36 +102,39 @@
 	*/
 	add: (report) !->
 		store.reports = angular.copy([report] ++ store.reports)
+		DistributionFactory.report.add report
 	/*
 		Remove report specified by index
 	*/
 	remove: (index, success) !->
 		removing-id = store.reports[index].id
-		AccountFactory.ticket.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.remove-report ticket, removing-id
-			, !->
-				$log.info "Deleted report: #{removing-id}"
-				store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
-				success!
-			, (error) !->
-				$ionicPopup.alert do
-					title: "Failed to remove from server"
-					template: error.msg
+		, !->
+			$log.info "Deleted report: #{removing-id}"
+			DistributionFactory.report.remove removing-id
+			store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
+			success!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Failed to remove from server"
+				template: error.msg
 	/*
 		Update report
 	*/
 	update: (report, success) ->
-		AccountFactory.ticket.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.update-report ticket, report
-			, !->
-				$log.info "Updated report: #{report.id}"
-				success!
-			, (error) !->
-				$ionicPopup.alert do
-					title: "Failed to update to server"
-					template: error.msg
+		, !->
+			$log.info "Updated report: #{report.id}"
+			DistributionFactory.report.update report
+			success!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Failed to update to server"
+				template: error.msg
 
-.factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
+.factory 'UnitFactory', ($log, TicketFactory, ServerFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
 	default-units =
@@ -129,23 +144,23 @@
 	store =
 		unit: null
 
-	save-current = (units) ->
+	save-current = (units) !->
 		store.unit = angular.copy units
-		AccountFactory.ticket.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.change-units ticket, units
-			, !-> $log.debug "Success to change units"
-			, (error) !-> $log.debug "Failed to change units"
+		, !-> $log.debug "Success to change units"
+		, (error) !-> $log.debug "Failed to change units"
 	load-local = -> store.unit ? default-units
 	load-server = (taker) !->
-		AccountFactory.ticket.get (ticket) !->
+		TicketFactory.get (ticket) ->
 			ServerFactory.load-units ticket
-			, (units) !->
-				$log.debug "Loaded account units: #{units}"
-				store.unit = angular.copy units
-				taker units
-			, (error) !->
-				$log.error "Failed to load account units: #{error}"
-				taker(angular.copy default-units)
+		, (units) !->
+			$log.debug "Loaded account units: #{units}"
+			store.unit = angular.copy units
+			taker units
+		, (error) !->
+			$log.error "Failed to load account units: #{error}"
+			taker(angular.copy default-units)
 	load-current = (taker) !->
 		if store.unit
 		then taker(angular.copy that)
@@ -183,51 +198,145 @@
 			unit: dstUnit
 		}
 
-.factory 'GMapFactory', ($log) ->
+.factory 'DistributionFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory) ->
 	store =
-		gmap: null
-		marker: null
+		/*
+		List of
+			report-id: String (only if mine)
+			name: String
+			count: Int
+			date: Date
+			geoinfo:
+				latitude: Double
+				longitude: Double
+		*/
+		catches:
+			mine: null
+			others: null
+		/*
+		List of
+			name: String
+			count: Int
+		*/
+		names: null
 
-	create = (center) !->
-		store.gmap = plugin.google.maps.Map.getMap do
-			mapType: plugin.google.maps.MapTypeId.HYBRID
-			controls:
-				myLocationButton: true
-				zoom: true
-		store.gmap.on plugin.google.maps.event.MAP_READY, onReady(center)
-	onReady = (center) -> (gmap) !->
-		if center
-			addMarker center
-			gmap.setCenter center
-		gmap.showDialog!
-	addMarker = (latLng) !->
-		store.marker?.remove!
-		store.gmap.addMarker {
-			position: latLng
-		}, (marker) !->
-			store.marker = marker
+	refresh-mine = (success) !->
+		$log.debug "Refreshing distributions of mine ..."
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) ->
+			ServerFactory.catches-mine ticket
+		, (list) !->
+			store.catches.mine = list
+			suc!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Error"
+				template: "Failed to load catches list"
+			.then !->
+				suc!
+	refresh-others = (success) !->
+		$log.debug "Refreshing distributions of others ..."
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) ->
+			ServerFactory.catches-others ticket
+		, (list) !->
+			store.catches.others = list
+			suc!
+		, (error) !->
+			$ionicPopup.alert do
+				title: "Error"
+				template: "Failed to load catches list"
+			.then !->
+				suc!
+	refresh-names = (success) !->
+		$log.debug "Refreshing distributions of names ..."
+		suc = !->
+			success! if success
+		TicketFactory.get (ticket) ->
+			ServerFactory.catches-names ticket
+		, (list) !->
+			store.names = list
+			suc!
+		, (error) !->
+			suc!
 
-	showMap: (theCenter, setter = null) ->
-		center =
-			lat: theCenter.latitude
-			lng: theCenter.longitude
-		if store.gmap
-			onReady(center) store.gmap
-		else create center
+	$interval !->
+		refresh-mine!
+		refresh-others!
+		refresh-names!
+	, 6 * 60 * 60 * 1000
 
-		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
-			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{setter}"
-			if setter
-				setter do
-					latitude: latLng.lat
-					longitude: latLng.lng
-				addMarker latLng
-		store.gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
-			$log.debug "Map close: #{e}"
-			store.gmap.clear!
-			store.gmap.off!
+	remove-mine = (report-id) !->
+		$log.debug "Removing distribution of report id:#{report-id}"
+		if store.catches.mine then
+			store.catches.mine = _.filter (.report-id != report-id), that
+	add-mine = (report) !->
+		list = _.map (fish) ->
+			report-id: report.id
+			name: fish.name
+			count: fish.count
+			date: report.dateAt
+			geoinfo: report.location.geoinfo
+		, report.fishes
+		if store.catches.mine then
+			store.catches.mine = that ++ list
+			$log.debug "Added distribution of catches:#{angular.toJson list}"
 
-.factory 'ServerFactory', ($log, $timeout, $http, $ionicPopup, serverURL) ->
+	startsWith = (word, pre) ->
+		word.toUpperCase!.indexOf(pre) == 0
+
+	report:
+		add: add-mine
+		remove: remove-mine
+		update: (report) !->
+			remove-mine report.id
+			add-mine report
+	name-suggestion: (pre-name, success) !->
+		check-or = (fail) !->
+			if store.names then
+				src = that
+				pre = pre-name?.toUpperCase!
+				list = if pre
+					then _.filter ((a) -> startsWith(a, pre)), src
+					else []
+				success _.map (.name), _.reverse _.sort-by (.count), list
+			else fail!
+		check-or !->
+			refresh-names !->
+				check-or !->
+					success []
+	mine: (pre-name, success) !->
+		check-or = (fail) !->
+			if store.catches.mine then
+				src = that
+				pre = pre-name?.toUpperCase!
+				list = if pre
+					then _.filter ((a) -> startsWith(a.name, pre)), src
+					else src
+				success _.reverse _.sort-by (.count), list
+			else fail!
+		check-or !->
+			refresh-mine !->
+				check-or !->
+					success []
+	others: (pre-name, success) !->
+		check-or = (fail) !->
+			if store.catches.others then
+				src = that
+				pre = pre-name?.toUpperCase!
+				list = if pre
+					then _.filter ((a) -> startsWith(a.name, pre)), src
+					else src
+				success _.reverse _.sort-by (.count), list
+			else fail!
+		check-or !->
+			refresh-others !->
+				check-or !->
+					success []
+
+.factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
 	retryable = (retry, config, res-taker, error-taker) !->
 		$http config
@@ -298,7 +407,7 @@
 	/*
 	Get start session by server, then pass to taker
 	*/
-	start-session: (ticket, geoinfo, session-taker, error-taker) !->
+	start-session: (ticket, geoinfo) -> (session-taker, error-taker) !->
 		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
 		http('POST', "report/new-session/#{ticket}",
 			geoinfo: geoinfo
@@ -306,24 +415,37 @@
 	/*
 	Put a photo which is encoded by base64 to session
 	*/
-	put-photo: (session, photo, inference-taker, error-taker) !->
-		$log.debug "Putting a photo with #{session}: #{photo}"
-		new FileTransfer().upload photo, url("report/photo/#{session}")
-		, (-> it.response) >> angular.fromJson >> inference-taker
-		, (-> http-error.gen it.http_status, it.body) >> error-taker
+	put-photo: (session, ...photos) -> (success-taker, error-taker) !->
+		$log.debug "Putting a photo with #{session}: #{photos}"
+		http('POST', "report/photo/#{session}",
+			names: photos
+		) success-taker, error-taker
+	/*
+	Put a photo which is encoded by base64 to session
+	*/
+	infer-photo: (session) -> (success-taker, error-taker) !->
+		$log.debug "Inferring a photo with #{session}"
+		http('GET', "report/infer/#{session}") success-taker, error-taker
 	/*
 	Put given report to the session
 	*/
-	submit-report: (session, report, publishing, success, error-taker) !->
-		$log.debug "Submitting report with #{session}: #{angular.toJson report} and #{angular.toJson publishing}"
+	submit-report: (session, report) -> (success, error-taker) !->
+		$log.debug "Submitting report with #{session}: #{angular.toJson report}"
 		http('POST', "report/submit/#{session}",
 			report: report
+		) success, error-taker
+	/*
+	Put given report to the session
+	*/
+	publish-report: (session, publishing) -> (success, error-taker) !->
+		$log.debug "Publishing report with #{session}: #{angular.toJson publishing}"
+		http('POST', "report/publish/#{session}",
 			publishing: publishing
 		) success, error-taker
 	/*
 	Load report from server, then pass to taker
 	*/
-	load-reports: (ticket, count, last-id, taker, error-taker) !->
+	load-reports: (ticket, count, last-id) -> (taker, error-taker) !->
 		$log.debug "Loading #{count} reports from #{last-id}"
 		http('POST', "report/load/#{ticket}",
 			count: count
@@ -332,7 +454,7 @@
 	/*
 	Remove report from server
 	*/
-	remove-report: (ticket, id, success, error-taker) !->
+	remove-report: (ticket, id) -> (success, error-taker) !->
 		$log.debug "Removing report(#{id})"
 		http('POST', "report/remove/#{ticket}",
 			id: id
@@ -340,7 +462,7 @@
 	/*
 	Update report to server. ID has to be contain given report.
 	*/
-	update-report: (ticket, report, success, error-taker) !->
+	update-report: (ticket, report) -> (success, error-taker) !->
 		$log.debug "Updating report: #{angular.toJson report}"
 		http('POST', "report/update/#{ticket}",
 			report: report
@@ -348,17 +470,35 @@
 	/*
 	Load units in account settings
 	*/
-	load-units: (ticket, success, error-taker) !->
+	load-units: (ticket) -> (success, error-taker) !->
 		$log.debug "Loading unit"
 		http('GET', "account/unit/load/#{ticket}") success, error-taker
 	/*
 	Update units in account settings
 	*/
-	change-units: (ticket, unit, success, error-taker) !->
+	change-units: (ticket, unit) -> (success, error-taker) !->
 		$log.debug "Changing unit: #{angular.toJson unit}"
 		http('POST', "account/unit/change/#{ticket}",
 			unit: unit
 		) success, error-taker
+	/*
+	Load distributions of own catches
+	*/
+	catches-mine: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving my cathces distributions"
+		http('GET', "distribution/mine/#{ticket}") success, error-taker
+	/*
+	Load distributions of all catches that includes others
+	*/
+	catches-others: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving others cathces distributions"
+		http('GET', "distribution/others/#{ticket}") success, error-taker
+	/*
+	Load names of catches with it's count
+	*/
+	catches-names: (ticket) -> (success, error-taker) !->
+		$log.debug "Retrieving names of catches"
+		http('GET', "distribution/names/#{ticket}") success, error-taker
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -414,66 +554,126 @@
 		login: google 'email'
 		publish: google 'publish'
 
-.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
+.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, TicketFactory) ->
 	store =
 		session: null
+		upload-info: null
 
 	permit-publish = (way, token-taker, error-taker) !->
 		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
 
-	submit = (session, success, report) -> (publishing = null) !->
-		ServerFactory.submit-report session, report, publishing
-		, !->
+	publish = (session, way) !->
+		permit-publish way
+		, (token) !->
+			ServerFactory.publish-report(session,
+				way: way
+				token: token
+			) !->
+				$log.info "Success to publish session: #{session}"
+			, (error) !->
+				$ionicPopup.alert do
+					title: 'Error'
+					template: "Failed to publish to #{way}"
+		, (error) !->
+			$ionicPopup.alert do
+				title: 'Rejected'
+				template: error
+
+	submit = (session, report, success) !->
+		ServerFactory.submit-report(session, report) (report-id) !->
+			report.id = report-id
 			ReportFactory.add report
 			success!
 		, (error) !->
+			store.session = null
 			$ionicPopup.alert do
 				title: 'Error'
 				template: error.msg
 
+	upload = (uri, success, error) !->
+		filename = _.head _.reverse uri.toString!.split('/')
+		new FileTransfer().upload uri, store.upload-info.url
+			, (e) !->
+				$log.info "Success to upload: #{angular.toJson e}"
+				success filename
+			, (e) !->
+				$log.error "Failed to upload: #{angular.toJson e}"
+				error e
+			,
+				fileKey: 'file'
+				fileName: filename
+				mimeType: 'image/jpeg'
+				chunkedMode: false
+				params: angular.copy store.upload-info.params
+
 	start: (geoinfo, success, error-taker) !->
-		get-session = !->
-			store.session = null
-			AccountFactory.ticket.get (ticket) !->
-				ServerFactory.start-session ticket, geoinfo
-				, (session) !->
-					store.session = session
-					success!
-				, (error) !->
-					switch error.type
-					| ServerFactory.error-types.expired =>
-						# When ticket is time out
-						start-session!
-					| _ => error-taker error.msg
-		get-session!
-	put-photo: (uri, inference-taker, error-taker) !->
+		store.session = null
+		TicketFactory.get (ticket) ->
+			ServerFactory.start-session ticket, geoinfo
+		, (result) !->
+			store.session = result.session
+			store.upload-info = result.upload
+			success!
+		, (-> it.msg) >> error-taker
+	put-photo: (uri, success, inference-taker, error-taker) !->
 		if store.session
-		then ServerFactory.put-photo that, uri, inference-taker, (-> it.msg) >> error-taker
+			upload uri
+				, (filename)!->
+					ServerFactory.put-photo(that, filename) (urls) !->
+						ServerFactory.infer-photo(that) inference-taker, (error) !->
+							store.session = null
+							error-taker error
+						success urls
+					, (error) !->
+						store.session = null
+						error-taker error.msg
+				, (error) !->
+					error-taker "Failed to upload"
 		else error-taker "No session started"
 	finish: (report, publish-way, success) !->
-		if store.session
-			sub = submit that, success, report
+		if (session = store.session)
 			store.session = null
-			if publish-way?.length > 0 then
-				permit-publish publish-way
-				, (token) !->
-					sub do
-						way: publish-way
-						token: token
-				, (error) !->
-					$ionicPopup.alert do
-						title: 'Rejected'
-						template: error
-			else sub!
+			submit session, report, !->
+				publish(session, publish-way) if publish-way?.length > 0
+				success!
+		else error-taker "No session started"
 
-.factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
+.factory 'TicketFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
 	store =
 		ticket: null
 
-	getLoginWay = (way-taker) !->
-		if LocalStorageFactory.login-way.load! then way-taker that
+	expirable = (proc, success, error-taker) !->
+		take-it = (ticket) !->
+			store.ticket = ticket
+			proc(ticket) success, (error) !->
+				if error.type != ServerFactory.error-types.expired
+				then error-taker error
+				else
+					store.ticket = null
+					doit!
+		doit = !->
+			if store.ticket
+			then take-it(that)
+			else AccountFactory.login take-it
+		doit!
+
+	get: expirable
+
+.factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
+	store =
+		taking: null
+		ticket: null
+
+	wayGet = (way) !->
+		if store.taking
+			store.taking = null
+			for taker in that
+				taker way
+	doGetLoginWay = !->
+		if LocalStorageFactory.login-way.load! then wayGet that
 		else AcceptanceFactory.obtain !->
+			$log.warn "Taking Login Way ..."
 			$ionicPopup.show do
 				template: 'Select for Login'
 				buttons:
@@ -486,14 +686,20 @@
 						type: 'button icon ion-social-googleplus button-assertive'
 						onTap: (e) -> SocialFactory.ways.google
 					}
-			.then way-taker
+			.then wayGet
+	getLoginWay = (way-taker) !->
+		if store.taking
+			store.taking.push way-taker
+		else
+			store.taking = [way-taker]
+			doGetLoginWay!
 
 	doLogin = (token-taker, error-taker) !->
 		getLoginWay (way) !-> switch way
 		| SocialFactory.ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
 		| _                           => ionic.Platform.exitApp!
 
-	login = (ticket-taker) !->
+	login: (ticket-taker) !->
 		error-taker = (error-msg) !->
 			$ionicPopup.alert do
 				title: 'Error'
@@ -507,21 +713,16 @@
 		action = !-> doLogin token-taker, error-taker
 		action!
 
-	ticket:
-		get: (ticket-taker = (t) !-> $log.debug "Ticket: #{t}") !->
-			if store.ticket then ticket-taker that
-			else
-				login (ticket) !->
-					store.ticket = ticket
-					ticket-taker ticket
-
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
+	store =
+		taking: null
+
 	scope = $rootScope.$new(true)
 	scope.accept = !->
 		$log.info "Acceptance obtained"
 		LocalStorageFactory.acceptance.save true
 		scope.modal.remove!
-		scope.success!
+		successIt!
 	scope.reject = !->
 		$ionicPopup.alert do
 			title: "Good Bye !"
@@ -530,16 +731,27 @@
 		.then (res) !->
 			ionic.Platform.exitApp!
 
-	obtain: (success) !->
+	successIt = !->
+		if store.taking
+			store.taking = null
+			for suc in that
+				suc!
+	takeIt = !->
 		if LocalStorageFactory.acceptance.load!
-		then success!
+		then successIt!
 		else ServerFactory.terms-of-use (text) !->
 			scope.terms-of-use = text
+			$log.warn "Taking Acceptance ..."
 			$ionicModal.fromTemplateUrl 'template/terms-of-use.html'
 			, (modal) !->
-				scope.success = success
 				scope.modal = modal
 				modal.show!
 			,
 				scope: scope
 				animation: 'slide-in-up'
+	obtain: (success) !->
+		if store.taking
+			taking.push success
+		else
+			store.taking = [success]
+			takeIt!

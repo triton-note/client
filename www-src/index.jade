@@ -13,9 +13,9 @@ html(ng-app=app.name)
 
 				ion-content(ng-controller='ShowReportsCtrl')
 					ion-refresher(on-refresh="refresh()")
-					.list.card
-						.item.item-thumbnail-left(ng-repeat="report in reports()")
-							img(src="{{ report.photo.thumbnail }}", ng-click="detail({{ $index }})")
+					ion-list
+						ion-item.item-thumbnail-left(ng-repeat="report in reports()")
+							img(src="{{ report.photo.thumbnail }}", ng-click="detail($index)")
 							h2 {{report.location.name}} {{report.dateAt | date: 'yyyy/MM/dd'}}
 							.list
 								.item(ng-repeat="fish in report.fishes")
@@ -28,7 +28,7 @@ html(ng-app=app.name)
 					h1.title Menu
 				ion-content
 					.list
-						.item(ng-controller='MapCtrl', ng-click="open()")
+						.item(ng-controller='DistributionMapCtrl', ng-click="open()")
 							p View on Map
 						.item(ng-controller='SettingsCtrl', ng-click="open()")
 							p Settings

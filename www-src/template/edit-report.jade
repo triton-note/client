@@ -2,7 +2,7 @@
 	ion-header-bar
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
 		h1.title {{title}}
-		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
+		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-disabled="unsubmittable")
 	ion-content
 		.card
 			.item.item-image
@@ -26,34 +26,13 @@
 					textarea(ng-model="report.comment", placeholder="Comments")
 
 		.list(ng-controller='AddFishCtrl')
-			.bar.item
+			.bar.item.item-divider
 				p.title Catches
 				button.button.button-clear.icon.ion-plus-circled.button-positive(ng-click="addFish()")
-			ion-list
-				ion-item.item-button-right(ng-repeat="fish in report.fishes")
+			ion-list(show-delete="true")
+				ion-item.item-button-right(ng-repeat="fish in report.fishes", ng-click="editFish($index)")
+					ion-delete-button.icon.ion-ios7-minus-outline(ng-click="deleteFish($index, false)")
 					p {{fish | fishFilter}}
-					button.button.button-clear.icon.ion-minus-circled.button-stable(ng-click="deleteFish($index)")
-
-			script#add-fish(type="text/ng-template")
-
-				.item.item-input
-					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="fish.name")
-					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.name")
-					input(type="text", ng-model="fish.name", placeholder="Name", required)
-				.item.item-input
-					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="fish.count")
-					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.count")
-					input(type="number", ng-model="fish.count", placeholder="Count", min="1", required)
-				.item.item-input.item-select
-					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.length.value")
-					input(type="number", ng-model="fish.length.value", placeholder="Length")
-					select(ng-model="fish.length.unit")
-						option(ng-repeat="unit in units.length") {{ unit }}
-				.item.item-input.item-select
-					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="fish.weight.value")
-					input(type="number", ng-model="fish.weight.value", placeholder="Weight")
-					select(ng-model="fish.weight.unit")
-						option(ng-repeat="unit in units.weight") {{ unit }}
 
 		.card.padding-vertical
 			ion-checkbox(ng-repeat="name in publish.ables", ng-model="publish.do[name]") Publish to {{name}}
