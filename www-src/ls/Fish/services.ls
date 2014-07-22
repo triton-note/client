@@ -415,11 +415,11 @@
 	/*
 	Put a photo which is encoded by base64 to session
 	*/
-	put-photo: (session, photo, inference-taker, error-taker) !->
-		$log.debug "Putting a photo with #{session}: #{photo}"
-		new FileTransfer().upload photo, url("report/photo/#{session}")
-		, (-> it.response) >> angular.fromJson >> inference-taker
-		, (-> http-error.gen it.http_status, it.body) >> error-taker
+	put-photo: (session, ...photos) -> (inference-taker, error-taker) !->
+		$log.debug "Putting a photo with #{session}: #{photos}"
+		http('POST', "report/photo/#{session}",
+			names: photos
+		) inference-taker, error-taker
 	/*
 	Put given report to the session
 	*/
@@ -544,6 +544,7 @@
 .factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, TicketFactory) ->
 	store =
 		session: null
+		upload-info: null
 
 	permit-publish = (way, token-taker, error-taker) !->
 		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
@@ -560,19 +561,41 @@
 				title: 'Error'
 				template: error.msg
 
+	upload = (uri, success, error) !->
+		filename = _.head _.reverse uri.toString!.split('/')
+		new FileTransfer().upload uri, store.upload-info.url
+			, (e) !->
+				$log.info "Success to upload: #{angular.toJson e}"
+				success filename
+			, (e) !->
+				$log.error "Failed to upload: #{angular.toJson e}"
+				error e
+			,
+				fileKey: 'file'
+				fileName: filename
+				mimeType: 'image/jpeg'
+				chunkedMode: false
+				params: angular.copy store.upload-info.params
+
 	start: (geoinfo, success, error-taker) !->
 		store.session = null
 		TicketFactory.get (ticket) ->
 			ServerFactory.start-session ticket, geoinfo
-		, (session) !->
-			store.session = session
+		, (result) !->
+			store.session = result.session
+			store.upload-info = result.upload
 			success!
 		, (-> it.msg) >> error-taker
 	put-photo: (uri, inference-taker, error-taker) !->
 		if store.session
-		then ServerFactory.put-photo that, uri, inference-taker, (error) !->
-			store.session = null
-			error-taker error.msg
+		then
+			upload uri
+				, (filename)!->
+					ServerFactory.put-photo(that, filename) inference-taker, (error) !->
+						store.session = null
+						error-taker error.msg
+				, (error) !->
+					error-taker "Failed to upload"
 		else error-taker "No session started"
 	finish: (report, publish-way, success) !->
 		if store.session

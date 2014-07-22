@@ -152,12 +152,12 @@
 			, !->
 				PhotoFactory.select (uri) !->
 					SessionFactory.put-photo uri, (inference) !->
-						$scope.$apply !->
-							$scope.report.photo = inference.url
-							if inference.location
-								$scope.report.location.name = that
-							if inference.fishes && inference.fishes.length > 0
-								$scope.report.fishes = inference.fishes
+						$log.debug "Get inference: #{angular.toJson inference}"
+						$scope.report.photo = inference.url
+						if inference.location
+							$scope.report.location.name = that
+						if inference.fishes && inference.fishes.length > 0
+							$scope.report.fishes = inference.fishes
 					, (error) !->
 						$ionicPopup.alert do
 							title: "Failed to upload"
