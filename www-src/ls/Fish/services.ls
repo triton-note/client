@@ -618,7 +618,6 @@
 		, (-> it.msg) >> error-taker
 	put-photo: (uri, success, inference-taker, error-taker) !->
 		if store.session
-		then
 			upload uri
 				, (filename)!->
 					ServerFactory.put-photo(that, filename) (urls) !->
@@ -638,6 +637,7 @@
 			submit session, report, !->
 				publish(session, publish-way) if publish-way?.length > 0
 				success!
+		else error-taker "No session started"
 
 .factory 'TicketFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
 	store =
