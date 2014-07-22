@@ -410,23 +410,36 @@
 	start-session: (ticket, geoinfo) -> (session-taker, error-taker) !->
 		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
 		http('POST', "report/new-session/#{ticket}",
-				geoinfo: geoinfo
+			geoinfo: geoinfo
 		) session-taker, error-taker
 	/*
 	Put a photo which is encoded by base64 to session
 	*/
-	put-photo: (session, ...photos) -> (inference-taker, error-taker) !->
+	put-photo: (session, ...photos) -> (success-taker, error-taker) !->
 		$log.debug "Putting a photo with #{session}: #{photos}"
 		http('POST', "report/photo/#{session}",
 			names: photos
-		) inference-taker, error-taker
+		) success-taker, error-taker
+	/*
+	Put a photo which is encoded by base64 to session
+	*/
+	infer-photo: (session) -> (success-taker, error-taker) !->
+		$log.debug "Inferring a photo with #{session}"
+		http('GET', "report/infer/#{session}") success-taker, error-taker
 	/*
 	Put given report to the session
 	*/
-	submit-report: (session, report, publishing, success, error-taker) !->
-		$log.debug "Submitting report with #{session}: #{angular.toJson report} and #{angular.toJson publishing}"
+	submit-report: (session, report) -> (success, error-taker) !->
+		$log.debug "Submitting report with #{session}: #{angular.toJson report}"
 		http('POST', "report/submit/#{session}",
 			report: report
+		) success, error-taker
+	/*
+	Put given report to the session
+	*/
+	publish-report: (session, publishing) -> (success, error-taker) !->
+		$log.debug "Publishing report with #{session}: #{angular.toJson publishing}"
+		http('POST', "report/publish/#{session}",
 			publishing: publishing
 		) success, error-taker
 	/*
@@ -550,9 +563,26 @@
 		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
 		| _             => ionic.Platform.exitApp!
 
-	submit = (session, success, report) -> (publishing = null) !->
-		ServerFactory.submit-report session, report, publishing
-		, !->
+	publish = (session, way) !->
+		permit-publish way
+		, (token) !->
+			ServerFactory.publish-report(session,
+				way: way
+				token: token
+			) !->
+				$log.info "Success to publish session: #{session}"
+			, (error) !->
+				$ionicPopup.alert do
+					title: 'Error'
+					template: "Failed to publish to #{way}"
+		, (error) !->
+			$ionicPopup.alert do
+				title: 'Rejected'
+				template: error
+
+	submit = (session, report, success) !->
+		ServerFactory.submit-report(session, report) (report-id) !->
+			report.id = report-id
 			ReportFactory.add report
 			success!
 		, (error) !->
@@ -586,32 +616,28 @@
 			store.upload-info = result.upload
 			success!
 		, (-> it.msg) >> error-taker
-	put-photo: (uri, inference-taker, error-taker) !->
+	put-photo: (uri, success, inference-taker, error-taker) !->
 		if store.session
 		then
 			upload uri
 				, (filename)!->
-					ServerFactory.put-photo(that, filename) inference-taker, (error) !->
+					ServerFactory.put-photo(that, filename) (urls) !->
+						ServerFactory.infer-photo(that) inference-taker, (error) !->
+							store.session = null
+							error-taker error
+						success urls
+					, (error) !->
 						store.session = null
 						error-taker error.msg
 				, (error) !->
 					error-taker "Failed to upload"
 		else error-taker "No session started"
 	finish: (report, publish-way, success) !->
-		if store.session
-			sub = submit that, success, report
+		if (session = store.session)
 			store.session = null
-			if publish-way?.length > 0 then
-				permit-publish publish-way
-				, (token) !->
-					sub do
-						way: publish-way
-						token: token
-				, (error) !->
-					$ionicPopup.alert do
-						title: 'Rejected'
-						template: error
-			else sub!
+			submit session, report, !->
+				publish(session, publish-way) if publish-way?.length > 0
+				success!
 
 .factory 'TicketFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
 	store =
