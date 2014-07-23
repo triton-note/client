@@ -37,14 +37,42 @@
 
 .factory 'ReportFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
+	expiration = 50 * 60 * 1000 # 50 minutes
 	store =
+		/*
+		List of
+			timestamp: Long (DateTime)
+			report:
+				id: String
+				photo:
+					original: String (URL)
+					mainview: String (URL)
+					thumbnail: String (URL)
+				dateAt: Date
+				location:
+					name: String
+					geoinfo:
+						latitude: Double
+						longitude: Double
+				comment: String
+				fishes: List of ...
+					name: String
+					count: Int
+					length:
+						value: Double
+						unit: 'inch'|'cm'
+					weight:
+						value: Double
+						unit: 'pond'|'kg'
+		*/
 		reports: []
 		hasMore: false
 
 	loadServer = (last-id = null, taker) !->
 		TicketFactory.get (ticket) ->
 			ServerFactory.load-reports ticket, limit, last-id
-		, taker
+		, (list) !->
+			taker save list
 		, (error) !->
 			$ionicPopup.alert do
 				title: "Failed to load from server"
@@ -61,21 +89,43 @@
 		reload!
 	, 6 * 60 * 60 * 1000
 
+	save = (list) ->
+		now = new Date!.getTime!
+		_.map (report) ->
+			timestamp: now
+			report: report
+		, list
+
+	read = (item) ->
+		now = new Date!.getTime!
+		past = now - item.timestamp
+		$log.debug "Report timestamp past: #{past}ms"
+		if expiration < past then
+			item.timestamp = now
+			TicketFactory.get (ticket) ->
+				ServerFactory.read-report ticket, item.report.id
+			, (result) !->
+				$log.debug "Read report: #{angular.toJson result}"
+				angular.copy result.report, item.report
+			, (error) !->
+				$log.error "Failed to read report(#{item.report.id}) from server"
+		item.report
+
 	cachedList: ->
-		store.reports
+		_.map read, store.reports
 	hasMore: ->
 		store.hasMore
 	/*
 		Get index of list by report id
 	*/
 	getIndex: (id) ->
-		_.find-index (.id == id), store.reports
+		_.find-index (.report.id == id), store.reports
 	/*
 		Get a report by index of cached list
 	*/
 	getReport: (index) ->
 		$log.debug "Getting report[#{index}]"
-		store.reports[index]
+		read store.reports[index]
 	/*
 		Clear all cache
 	*/
@@ -101,13 +151,13 @@
 		Add report
 	*/
 	add: (report) !->
-		store.reports = angular.copy([report] ++ store.reports)
+		store.reports = angular.copy(save([report]) ++ store.reports)
 		DistributionFactory.report.add report
 	/*
 		Remove report specified by index
 	*/
 	remove: (index, success) !->
-		removing-id = store.reports[index].id
+		removing-id = store.reports[index].report.id
 		TicketFactory.get (ticket) ->
 			ServerFactory.remove-report ticket, removing-id
 		, !->
@@ -450,7 +500,14 @@
 		http('POST', "report/load/#{ticket}",
 			count: count
 			last: last-id
-		) angular.fromJson >> taker, error-taker
+		) taker, error-taker
+	/*
+	*/
+	read-report: (ticket, id) -> (taker, error-taker) !->
+		$log.debug "Reading report(id:#{id})"
+		http('POST', "report/read/#{ticket}",
+			id: id
+		) taker, error-taker
 	/*
 	Remove report from server
 	*/
