@@ -709,24 +709,40 @@
 
 .factory 'TicketFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
 	store =
+		taking: null
 		ticket: null
 
-	expirable = (proc, success, error-taker) !->
-		take-it = (ticket) !->
+	go-ahead = !-> if store.taking
+		that! if _.head store.taking
+	go-next = !-> if store.taking
+		store.taking = _.tail store.taking
+		go-ahead!
+	auth = !->
+		AccountFactory.login (ticket) !->
 			store.ticket = ticket
-			proc(ticket) success, (error) !->
-				if error.type != ServerFactory.error-types.expired
-				then error-taker error
-				else
-					store.ticket = null
-					doit!
-		doit = !->
-			if store.ticket
-			then take-it(that)
-			else AccountFactory.login take-it
-		doit!
+			go-ahead!
+	expirable = (take-it) !->
+		if store.ticket
+			take-it!
+		else
+			if store.taking
+			then that.push take-it
+			else store.taking = [take-it]
+		auth!
 
-	get: expirable
+	get: (proc, success, error-taker) !->
+		$log.debug "Getting ticket for: #{proc}, #{success}"
+		expirable !->
+			proc(store.ticket) !->
+				go-next!
+				success.apply(this, &)
+			, (error) !->
+				if error.type == ServerFactory.error-types.expired
+					store.ticket = null
+					auth!
+				else
+					go-next!
+					error-taker error
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
