@@ -394,6 +394,6 @@
 						lat: fish.geoinfo.latitude
 						lng: fish.geoinfo.longitude
 
-		switch person
+		if (gmap) then switch person
 		| 'mine'            => DistributionFactory.mine fish-name, map-mine
 		| 'mine and others' => DistributionFactory.others fish-name, map-others
