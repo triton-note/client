@@ -594,8 +594,7 @@
 
 .factory 'SocialFactory', ($log) ->
 	facebook = (...perm) -> (account-name, token-taker, error-taker) !->
-		# Ignore account-name
-		$log.info "Logging in to Facebook: #{perm}"
+		$log.info "Logging in to Facebook: #{perm}, ignoring account-name:#{account-name}"
 		facebookConnectPlugin.login perm
 			, (result) !->
 				$log.debug "Get access: #{angular.toJson result}"
@@ -628,7 +627,6 @@
 		facebook: 'facebook'
 		google: 'google'
 	login: (way, token-taker, error-taker) !->
-		$log.debug "Try to login: #{angular.toJson way}"
 		login-ways[way.name] way.account-name, token-taker, error-taker
 	publish: (way-name, token-taker, error-taker) !->
 		publish-ways[way-name] token-taker, error-taker
