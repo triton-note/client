@@ -629,7 +629,7 @@
 	login: (way, token-taker, error-taker) !->
 		login-ways[way.name] way.account-name, token-taker, error-taker
 	publish: (way-name, token-taker, error-taker) !->
-		publish-ways[way-name] token-taker, error-taker
+		publish-ways[way-name] null, token-taker, error-taker
 	disconnect: (way, onSuccess, error-taker) !->
 		disconnect-ways[way.name] way.account-name, onSuccess, error-taker
 
