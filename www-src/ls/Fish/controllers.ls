@@ -168,7 +168,7 @@
 						.then (res) !->
 							$scope.modal.hide!
 					$scope.$apply !->
-						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that] else []
+						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that.name] else []
 						imageUrl = if device.platform == 'Android'
 							then ""
 							else uri
@@ -394,6 +394,6 @@
 						lat: fish.geoinfo.latitude
 						lng: fish.geoinfo.longitude
 
-		switch person
+		if (gmap) then switch person
 		| 'mine'            => DistributionFactory.mine fish-name, map-mine
 		| 'mine and others' => DistributionFactory.others fish-name, map-others

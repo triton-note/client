@@ -586,43 +586,64 @@
 	/*
 	List of String value to express the way of login
 	*/
-	login-way: make 'login-way'
+	login-way: make 'login-way', true
 	/*
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/
 	acceptance: make 'Acceptance'
 
 .factory 'SocialFactory', ($log) ->
-	facebook = (...perm) -> (token-taker, error-taker) !->
-		$log.info "Logging in to Facebook: #{perm}"
+	facebook = (...perm) -> (account-name, token-taker, error-taker) !->
+		$log.info "Logging in to Facebook: #{perm}, ignoring account-name:#{account-name}"
 		facebookConnectPlugin.login perm
-			, (data) !-> token-taker data.authResponse.accessToken
+			, (result) !->
+				$log.debug "Get access: #{angular.toJson result}"
+				token-taker result.authResponse.userID, result.authResponse.accessToken
 			, error-taker
-	google = (...perm) -> (token-taker, error-taker) !->
-		# TODO
+	google-login = (account-name, token-taker, error-taker) !->
+		$log.info "Logging in to Google+: #{account-name}"
+		googlePlusConnectPlugin.getAccessToken account-name
+			, (result) !->
+				$log.debug "Get access: #{angular.toJson result}"
+				token-taker result.account-name, result.access-token
+			, error-taker
+	google-disconnect = (account-name, onSuccess, error-taker) !->
+		$log.info "Disconnect to Google+: #{account-name}"
+		googlePlusConnectPlugin.disconnect account-name
+			, !->
+				$log.debug "Success to disconnect"
+				onSuccess!
+			, error-taker
+
+	login-ways =
+		facebook: facebook 'public_profile'
+		google: google-login
+	publish-ways =
+		facebook: facebook 'publish_actions'
+	disconnect-ways =
+		google: google-disconnect
 
 	ways:
 		facebook: 'facebook'
 		google: 'google'
-	facebook:
-		login: facebook 'basic_info'
-		publish: facebook 'publish_actions'
-	google:
-		login: google 'email'
-		publish: google 'publish'
+	login: (way, token-taker, error-taker) !->
+		login-ways[way.name] way.account-name, token-taker, error-taker
+	publish: (way-name, token-taker, error-taker) !->
+		publish-ways[way-name] token-taker, error-taker
+	disconnect: (way, onSuccess, error-taker) !->
+		disconnect-ways[way.name] way.account-name, onSuccess, error-taker
 
 .factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, TicketFactory) ->
 	store =
 		session: null
 		upload-info: null
 
-	permit-publish = (way, token-taker, error-taker) !->
-		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
-		| _             => ionic.Platform.exitApp!
+	permit-publish = (way-name, token-taker, error-taker) !->
+		SocialFactory.publish way-name, token-taker, error-taker
 
-	publish = (session, way) !->
-		permit-publish way
-		, (token) !->
+	publish = (session, way-name) !->
+		permit-publish way-name
+		, (account-name, token) !->
 			ServerFactory.publish-report(session,
 				way: way
 				token: token
@@ -698,41 +719,52 @@
 
 .factory 'TicketFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
 	store =
+		taking: null
 		ticket: null
 
-	expirable = (proc, success, error-taker) !->
-		take-it = (ticket) !->
+	go-ahead = !-> if store.taking
+		that! if _.head store.taking
+	go-next = !-> if store.taking
+		store.taking = _.tail store.taking
+		go-ahead!
+	auth = !->
+		AccountFactory.login (ticket) !->
 			store.ticket = ticket
-			proc(ticket) success, (error) !->
-				if error.type != ServerFactory.error-types.expired
-				then error-taker error
-				else
-					store.ticket = null
-					doit!
-		doit = !->
-			if store.ticket
-			then take-it(that)
-			else AccountFactory.login take-it
-		doit!
+			go-ahead!
+	expirable = (take-it) !->
+		if store.ticket
+			take-it!
+		else
+			if store.taking
+			then that.push take-it
+			else store.taking = [take-it]
+		auth!
 
-	get: expirable
+	get: (proc, success, error-taker) !->
+		$log.debug "Getting ticket for: #{proc}, #{success}"
+		expirable !->
+			proc(store.ticket) !->
+				go-next!
+				success.apply(this, &)
+			, (error) !->
+				if error.type == ServerFactory.error-types.expired
+					store.ticket = null
+					auth!
+				else
+					go-next!
+					error-taker error
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
 		taking: null
 		ticket: null
 
-	wayGet = (way) !->
-		if store.taking
-			store.taking = null
-			for taker in that
-				taker way
-	doGetLoginWay = !->
-		if LocalStorageFactory.login-way.load! then wayGet that
+	doGetLoginWay = (taker) !->
+		if LocalStorageFactory.login-way.load! then taker that
 		else AcceptanceFactory.obtain !->
 			$log.warn "Taking Login Way ..."
 			$ionicPopup.show do
-				template: 'Select for Login'
+				title: 'Select for Login'
 				buttons:
 					{
 						text: ''
@@ -743,31 +775,35 @@
 						type: 'button icon ion-social-googleplus button-assertive'
 						onTap: (e) -> SocialFactory.ways.google
 					}
-			.then wayGet
-	getLoginWay = (way-taker) !->
-		if store.taking
-			store.taking.push way-taker
-		else
-			store.taking = [way-taker]
-			doGetLoginWay!
+			.then (way-name) !->
+				taker do
+					name: way-name
 
-	doLogin = (token-taker, error-taker) !->
-		getLoginWay (way) !-> switch way
-		| SocialFactory.ways.facebook => SocialFactory.facebook.login token-taker(way), error-taker
-		| _                           => ionic.Platform.exitApp!
+	doLogin = (ticket-taker, error-taker) !->
+		taker = (way, token) !->
+			ServerFactory.login way.name, token, ticket-taker, (error) !->
+				if error.type != ServerFactory.error-types.fatal
+					error-taker error.msg
+		if store.taking
+			that.push taker
+			$log.debug "Into queue: #{taker}"
+		else
+			store.taking = [taker]
+			doGetLoginWay (way) !->
+				SocialFactory.login way, (way.account-name, token) !->
+					LocalStorageFactory.login-way.save way
+					if store.taking
+						store.taking = null
+						for t in that
+							t way, token
+				, error-taker
 
 	login: (ticket-taker) !->
-		error-taker = (error-msg) !->
+		action = !-> doLogin ticket-taker, (error-msg) !->
 			$ionicPopup.alert do
 				title: 'Error'
 				template: error-msg
 			.then (res) !-> action!
-		token-taker = (way-name) -> (token) !->
-			LocalStorageFactory.login-way.save way-name
-			ServerFactory.login way-name, token, ticket-taker, (error) !->
-				if error.type != ServerFactory.error-types.fatal
-					error-taker error.msg
-		action = !-> doLogin token-taker, error-taker
 		action!
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
