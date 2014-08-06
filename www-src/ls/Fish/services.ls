@@ -586,54 +586,66 @@
 	/*
 	List of String value to express the way of login
 	*/
-	login-way: make 'login-way'
+	login-way: make 'login-way', true
 	/*
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/
 	acceptance: make 'Acceptance'
 
 .factory 'SocialFactory', ($log) ->
-	store =
-		google:
-			email: null
-
-	facebook = (...perm) -> (token-taker, error-taker) !->
+	facebook = (...perm) -> (account-name, token-taker, error-taker) !->
+		# Ignore account-name
 		$log.info "Logging in to Facebook: #{perm}"
 		facebookConnectPlugin.login perm
-			, (data) !-> token-taker data.authResponse.accessToken
-			, error-taker
-	google = (...perm) -> (token-taker, error-taker) !->
-		# Ignore perm...
-		$log.info "Logging in to Google+"
-		googlePlusConnectPlugin.getAccessToken store.google.email
 			, (result) !->
 				$log.debug "Get access: #{angular.toJson result}"
-				store.google.email = result.account-name
-				token-taker result.access-token
+				token-taker result.authResponse.userID, result.authResponse.accessToken
 			, error-taker
+	google-login = (account-name, token-taker, error-taker) !->
+		$log.info "Logging in to Google+: #{account-name}"
+		googlePlusConnectPlugin.getAccessToken account-name
+			, (result) !->
+				$log.debug "Get access: #{angular.toJson result}"
+				token-taker result.account-name, result.access-token
+			, error-taker
+	google-disconnect = (account-name, onSuccess, error-taker) !->
+		$log.info "Disconnect to Google+: #{account-name}"
+		googlePlusConnectPlugin.disconnect account-name
+			, !->
+				$log.debug "Success to disconnect"
+				onSuccess!
+			, error-taker
+
+	login-ways =
+		facebook: facebook 'public_profile'
+		google: google-login
+	publish-ways =
+		facebook: facebook 'publish_actions'
+	disconnect-ways =
+		google: google-disconnect
 
 	ways:
 		facebook: 'facebook'
 		google: 'google'
-	facebook:
-		login: facebook 'basic_info'
-		publish: facebook 'publish_actions'
-	google:
-		login: google 'email'
-		publish: google 'publish'
+	login: (way, token-taker, error-taker) !->
+		$log.debug "Try to login: #{angular.toJson way}"
+		login-ways[way.name] way.account-name, token-taker, error-taker
+	publish: (way-name, token-taker, error-taker) !->
+		publish-ways[way-name] token-taker, error-taker
+	disconnect: (way, onSuccess, error-taker) !->
+		disconnect-ways[way.name] way.account-name, onSuccess, error-taker
 
 .factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, TicketFactory) ->
 	store =
 		session: null
 		upload-info: null
 
-	permit-publish = (way, token-taker, error-taker) !->
-		| SocialFactory.ways.facebook => SocialFactory.facebook.publish token-taker, error-taker
-		| _             => ionic.Platform.exitApp!
+	permit-publish = (way-name, token-taker, error-taker) !->
+		SocialFactory.publish way-name, token-taker, error-taker
 
-	publish = (session, way) !->
-		permit-publish way
-		, (token) !->
+	publish = (session, way-name) !->
+		permit-publish way-name
+		, (account-name, token) !->
 			ServerFactory.publish-report(session,
 				way: way
 				token: token
@@ -765,12 +777,13 @@
 						type: 'button icon ion-social-googleplus button-assertive'
 						onTap: (e) -> SocialFactory.ways.google
 					}
-			.then taker
+			.then (way-name) !->
+				taker do
+					name: way-name
 
 	doLogin = (ticket-taker, error-taker) !->
-		taker = (way-name, token) !->
-			LocalStorageFactory.login-way.save way-name
-			ServerFactory.login way-name, token, ticket-taker, (error) !->
+		taker = (way, token) !->
+			ServerFactory.login way.name, token, ticket-taker, (error) !->
 				if error.type != ServerFactory.error-types.fatal
 					error-taker error.msg
 		if store.taking
@@ -779,7 +792,8 @@
 		else
 			store.taking = [taker]
 			doGetLoginWay (way) !->
-				SocialFactory[way].login (token) !->
+				SocialFactory.login way, (way.account-name, token) !->
+					LocalStorageFactory.login-way.save way
 					if store.taking
 						store.taking = null
 						for t in that

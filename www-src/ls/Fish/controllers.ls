@@ -168,7 +168,7 @@
 						.then (res) !->
 							$scope.modal.hide!
 					$scope.$apply !->
-						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that] else []
+						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that.name] else []
 						imageUrl = if device.platform == 'Android'
 							then ""
 							else uri
