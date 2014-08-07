@@ -13,11 +13,30 @@
 		UnitFactory.save $scope.settings.unit
 		$scope.modal.hide!
 
+	$scope.checkGoogle = !->
+		$scope.account.social.google.connected = true unless $scope.account.forLogin != $scope.account.social.google.title
+		$scope.account.social.google.email = if $scope.account.social.google.connected then "google@triton-note.org" else null
+	$scope.checkFacebook = !->
+		$scope.account.social.facebook.connected = true unless $scope.account.forLogin != $scope.account.social.facebook.title
+		$scope.account.social.facebook.email = if $scope.account.social.facebook.connected then "facebook@triton-note.org" else null
+
 	clear = !->
 		$scope.units = UnitFactory.units!
 		UnitFactory.load (units) !->
-			$scope.settings =
-				unit: units
+			$scope.unit = units
+		$scope.account =
+			forLogin: "Google+"
+			enabled: ->
+				[obj.title for key, obj of $scope.account.social when obj.connected]
+			social:
+				google:
+					title: 'Google+'
+					connected: true
+					email: "google@triton-note.org"
+				facebook:
+					title: 'Facebook'
+					connected: false
+					email: null
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
