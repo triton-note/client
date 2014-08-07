@@ -742,7 +742,7 @@
 			if store.taking
 			then that.push take-it
 			else store.taking = [take-it]
-		auth!
+			auth!
 
 	get: (proc, success, error-taker) !->
 		$log.debug "Getting ticket for: #{proc}, #{success}"
@@ -786,15 +786,18 @@
 	doLogin = (ticket-taker, error-taker) !->
 		if store.taking
 			that.push ticket-taker
-			$log.debug "Into queue: #{ticket-taker}"
+			$log.debug "Pushed into queue: #{that}"
 		else
 			store.taking = [ticket-taker]
+			$log.debug "First listener in queue: #{store.taking}"
 			doGetLoginWay (way) !->
+				$log.debug "Get login way: #{way}"
 				SocialFactory.login way, (way.account-name, token) !->
 					ServerFactory.login way.name, token
 					, (ticket) !->
 						LocalStorageFactory.login-way.save way
 						if store.taking
+							$log.debug "Clear and invoking all listeners: #{store.taking}"
 							store.taking = null
 							for t in that
 								t ticket
