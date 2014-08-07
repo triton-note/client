@@ -598,7 +598,11 @@
 		facebookConnectPlugin.login perm
 			, (result) !->
 				$log.debug "Get access: #{angular.toJson result}"
-				token-taker result.authResponse.userID, result.authResponse.accessToken
+				facebookConnectPlugin.api "#{result.authResponse.userID}/?fields=email", ['email']
+				, (info) !->
+					$log.debug "Get info: #{angular.toJson info}"
+					token-taker info.email, result.authResponse.accessToken
+				, error-taker
 			, error-taker
 	google-login = (account-name, token-taker, error-taker) !->
 		$log.info "Logging in to Google+: #{account-name}"
@@ -616,7 +620,7 @@
 			, error-taker
 
 	login-ways =
-		facebook: facebook 'public_profile'
+		facebook: facebook 'public_profile', 'email'
 		google: google-login
 	publish-ways =
 		facebook: facebook 'publish_actions'
@@ -780,22 +784,23 @@
 					name: way-name
 
 	doLogin = (ticket-taker, error-taker) !->
-		taker = (way, token) !->
-			ServerFactory.login way.name, token, ticket-taker, (error) !->
-				if error.type != ServerFactory.error-types.fatal
-					error-taker error.msg
 		if store.taking
-			that.push taker
-			$log.debug "Into queue: #{taker}"
+			that.push ticket-taker
+			$log.debug "Into queue: #{ticket-taker}"
 		else
-			store.taking = [taker]
+			store.taking = [ticket-taker]
 			doGetLoginWay (way) !->
 				SocialFactory.login way, (way.account-name, token) !->
-					LocalStorageFactory.login-way.save way
-					if store.taking
-						store.taking = null
-						for t in that
-							t way, token
+					ServerFactory.login way.name, token
+					, (ticket) !->
+						LocalStorageFactory.login-way.save way
+						if store.taking
+							store.taking = null
+							for t in that
+								t ticket
+					, (error) !->
+						if error.type != ServerFactory.error-types.fatal
+							error-taker error.msg
 				, error-taker
 
 	login: (ticket-taker) !->
