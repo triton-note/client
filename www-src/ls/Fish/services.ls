@@ -584,7 +584,12 @@
 	clear-all: !-> for name in names
 		window.localStorage.removeItem name
 	/*
-	List of String value to express the way of login
+	Express the way of login
+		for-login: 'google'|'facebook'
+		google:
+			email: String
+		facebook:
+			email: String
 	*/
 	login-way: make 'login-way', true
 	/*
@@ -593,7 +598,7 @@
 	acceptance: make 'Acceptance'
 
 .factory 'SocialFactory', ($log) ->
-	facebook = (...perm) -> (account-name, token-taker, error-taker) !->
+	facebook-login = (...perm) -> (account-name, token-taker, error-taker) !->
 		$log.info "Logging in to Facebook: #{perm}, ignoring account-name:#{account-name}"
 		facebookConnectPlugin.login perm
 			, (result) !->
@@ -602,6 +607,20 @@
 				, (info) !->
 					$log.debug "Get info: #{angular.toJson info}"
 					token-taker info.email, result.authResponse.accessToken
+				, error-taker
+			, error-taker
+	facebook-disconnect = (account-name, onSuccess, error-taker) !->
+		$log.info "Disconnecting from facebook, ignoring account-name:#{account-name}"
+		facebookConnectPlugin.login ['public_profile']
+			, (result) !->
+				$log.debug "Get access: #{angular.toJson result}"
+				facebookConnectPlugin.api "#{result.authResponse.userID}/permissions?method=delete", []
+				, (info) !->
+					$log.debug "Revoked: #{angular.toJson info}"
+					facebookConnectPlugin.logout (out) !->
+						$log.debug "Logout: #{angular.toJson out}"
+						onSuccess!
+					, error-taker
 				, error-taker
 			, error-taker
 	google-login = (account-name, token-taker, error-taker) !->
@@ -619,23 +638,17 @@
 				onSuccess!
 			, error-taker
 
-	login-ways =
-		facebook: facebook 'public_profile', 'email'
-		google: google-login
-	publish-ways =
-		facebook: facebook 'publish_actions'
-	disconnect-ways =
-		google: google-disconnect
-
 	ways:
 		facebook: 'facebook'
 		google: 'google'
-	login: (way, token-taker, error-taker) !->
-		login-ways[way.name] way.account-name, token-taker, error-taker
-	publish: (way-name, token-taker, error-taker) !->
-		publish-ways[way-name] null, token-taker, error-taker
-	disconnect: (way, onSuccess, error-taker) !->
-		disconnect-ways[way.name] way.account-name, onSuccess, error-taker
+	login:
+		facebook: facebook-login 'public_profile', 'email'
+		google: google-login
+	publish:
+		facebook: facebook-login 'publish_actions'
+	disconnect:
+		facebook: facebook-disconnect
+		google: google-disconnect
 
 .factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, TicketFactory) ->
 	store =
@@ -643,7 +656,7 @@
 		upload-info: null
 
 	permit-publish = (way-name, token-taker, error-taker) !->
-		SocialFactory.publish way-name, token-taker, error-taker
+		SocialFactory.publish[way-name] null, token-taker, error-taker
 
 	publish = (session, way-name) !->
 		permit-publish way-name
@@ -764,7 +777,7 @@
 		ticket: null
 
 	doGetLoginWay = (taker) !->
-		if LocalStorageFactory.login-way.load! then taker that
+		if LocalStorageFactory.login-way.load!?.for-login then taker that
 		else AcceptanceFactory.obtain !->
 			$log.warn "Taking Login Way ..."
 			$ionicPopup.show do
@@ -780,8 +793,30 @@
 						onTap: (e) -> SocialFactory.ways.google
 					}
 			.then (way-name) !->
-				taker do
-					name: way-name
+				taker way-name
+
+	connect = (way-name) -> (token-taker, error-taker) !->
+		way = LocalStorageFactory.login-way.load! ? { for-login: way-name }
+		SocialFactory.login[way-name] way[way-name]?.email ? null
+		, (account-name, token) !->
+			way[way-name] = { email: account-name }
+			LocalStorageFactory.login-way.save way
+			token-taker token
+		, error-taker
+	disconnect = (way-name) -> (onSuccess, onError) !->
+		way = LocalStorageFactory.login-way.load!
+		if way && way[way-name]?.email && way.for-login != way-name
+			SocialFactory.disconnect[way-name] way[way-name].email
+			, !->
+				way[way-name] = undefined
+				LocalStorageFactory.login-way.save way
+				onSuccess!
+			, onError
+		else
+			if way?.for-login == way-name
+				onError "This way is used for login: #{way-name}"
+			else
+				onError "This way is not connected: #{way-name}"
 
 	doLogin = (ticket-taker, error-taker) !->
 		if store.taking
@@ -790,12 +825,11 @@
 		else
 			store.taking = [ticket-taker]
 			$log.debug "First listener in queue: #{store.taking}"
-			doGetLoginWay (way) !->
-				$log.debug "Get login way: #{way}"
-				SocialFactory.login way, (way.account-name, token) !->
-					ServerFactory.login way.name, token
+			doGetLoginWay (way-name) !->
+				$log.debug "Get login way: #{way-name}"
+				connect(way-name) (token) !->
+					ServerFactory.login way-name, token
 					, (ticket) !->
-						LocalStorageFactory.login-way.save way
 						if store.taking
 							$log.debug "Clear and invoking all listeners: #{store.taking}"
 							store.taking = null
@@ -813,6 +847,10 @@
 				template: error-msg
 			.then (res) !-> action!
 		action!
+	connect: (way-name, onSuccess, onError) !->
+		connect(way-name) onSuccess, onError
+	disconnect: (way-name, onSuccess, onError) !->
+		disconnect(way-name) onSuccess, onError
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	store =

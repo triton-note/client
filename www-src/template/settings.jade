@@ -9,7 +9,7 @@
 				h2.title Account Connection
 			.item.item-input.item-select.item-stable
 				.input-label Use to login
-				select(ng-model="account.forLogin", ng-options="label for label in account.enabled()")
+				select(ng-model="account.forLogin", ng-options="key as value for (key, value) in account.enabled()", ng-change="changeLogin()")
 			.item.item-toggle
 				.input-label Google+
 				label.toggle.toggle-balanced

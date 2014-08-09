@@ -1,4 +1,4 @@
-.controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
+.controller 'SettingsCtrl', ($log, $scope, $ionicPopup, $ionicModal, UnitFactory, LocalStorageFactory, AccountFactory) !->
 	$ionicModal.fromTemplateUrl 'template/settings.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -13,30 +13,62 @@
 		UnitFactory.save $scope.settings.unit
 		$scope.modal.hide!
 
-	$scope.checkGoogle = !->
-		$scope.account.social.google.connected = true unless $scope.account.forLogin != $scope.account.social.google.title
-		$scope.account.social.google.email = if $scope.account.social.google.connected then "google@triton-note.org" else null
-	$scope.checkFacebook = !->
-		$scope.account.social.facebook.connected = true unless $scope.account.forLogin != $scope.account.social.facebook.title
-		$scope.account.social.facebook.email = if $scope.account.social.facebook.connected then "facebook@triton-note.org" else null
+	$scope.social =
+		google: 'Google+'
+		facebook: 'Facebook'
+
+	checkSocial = (name) !->
+		if $scope.account.social[name].connected
+			AccountFactory.connect name, !->
+				way = LocalStorageFactory.login-way.load!
+				$scope.$apply !->
+					$scope.account.social[name].email = way[name].email
+				$log.debug "Account connected: #{angular.toJson $scope.account}"
+			, (msg) !->
+				$scope.account.social[name].connected = false
+				$ionicPopup.alert do
+					title: 'Error'
+					template: msg
+		else
+			if $scope.account.forLogin == name
+				$scope.account.social[name].connected = true
+			else
+				AccountFactory.disconnect name, !->
+					way = LocalStorageFactory.login-way.load!
+					$scope.$apply !->
+						$scope.account.social[name].email = null
+					$log.debug "Account disconnected: #{angular.toJson $scope.account}"
+				, (msg) !->
+					$scope.account.social[name].connected = true
+					$ionicPopup.alert do
+						title: 'Error'
+						template: msg
+	$scope.checkGoogle = !-> checkSocial('google')
+	$scope.checkFacebook = !-> checkSocial('facebook')
+	$scope.changeLogin = !->
+		way = LocalStorageFactory.login-way.load!
+		way.for-login = $scope.account.for-login
+		LocalStorageFactory.login-way.save way
 
 	clear = !->
 		$scope.units = UnitFactory.units!
 		UnitFactory.load (units) !->
 			$scope.unit = units
+		way = LocalStorageFactory.login-way.load!
 		$scope.account =
-			forLogin: "Google+"
+			for-login: way.for-login
 			enabled: ->
-				[obj.title for key, obj of $scope.account.social when obj.connected]
+				{[key, $scope.account.titles[key]] for key, obj of $scope.account.social when obj.connected}
+			titles:
+				google: 'Google+'
+				facebook: 'Facebook'
 			social:
 				google:
-					title: 'Google+'
-					connected: true
-					email: "google@triton-note.org"
+					connected: if way.google?.email then true else false
+					email: way.google?.email ? null
 				facebook:
-					title: 'Facebook'
-					connected: false
-					email: null
+					connected: if way.facebook?.email then true else false
+					email: way.facebook?.email ? null
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
@@ -187,7 +219,7 @@
 						.then (res) !->
 							$scope.modal.hide!
 					$scope.$apply !->
-						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that.name] else []
+						$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.account-name then ['facebook'] else []
 						imageUrl = if device.platform == 'Android'
 							then ""
 							else uri
