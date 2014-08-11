@@ -1,19 +1,42 @@
 .modal
-	ion-header-bar
+	ion-header-bar.bar-dark
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
 		h1.title Settings
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
 	ion-content
-		.list.list-inset
+		.list
+			.item.item-divider
+				h2.title Social Connection
+			.item.item-input.item-select.item-stable
+				.input-label Use for login
+				select(ng-model="social.forLogin", ng-options="key as value for (key, value) in social.listEnabled()", ng-change="social.changeLogin()", ng-disabled="social.changing")
+			.item.item-toggle
+				.input-label Google+
+				label.toggle.toggle-balanced
+					input(type='checkbox', ng-model="social.service.google.connected", ng-change="social.checkGoogle()", ng-disabled="social.changing")
+					.track
+						.handle
+				.item-text-wrap(ng-show="social.service.google.connected")
+					p {{ social.service.google.email }}
+			.item.item-toggle
+				.input-label Facebook
+				label.toggle.toggle-balanced
+					input(type='checkbox', ng-model="social.service.facebook.connected", ng-change="social.checkFacebook()", ng-disabled="social.changing")
+					.track
+						.handle
+				.item-text-wrap(ng-show="social.service.facebook.connected")
+					p {{ social.service.facebook.email }}
+
+		.list
 			.item.item-divider
 				h2.title Unit
 			.item.item-input.item-select
 				.input-label
 					p Length
-				select(ng-model="settings.unit.length")
+				select(ng-model="unit.length")
 					option(ng-repeat="unit in units.length") {{ unit }}
 			.item.item-input.item-select
 				.input-label
 					p Weight
-				select(ng-model="settings.unit.weight")
+				select(ng-model="unit.weight")
 					option(ng-repeat="unit in units.weight") {{ unit }}

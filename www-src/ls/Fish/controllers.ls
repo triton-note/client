@@ -1,4 +1,4 @@
-.controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
+.controller 'SettingsCtrl', ($log, $scope, $ionicPopup, $ionicModal, UnitFactory, LocalStorageFactory, AccountFactory) !->
 	$ionicModal.fromTemplateUrl 'template/settings.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -13,11 +13,73 @@
 		UnitFactory.save $scope.settings.unit
 		$scope.modal.hide!
 
+	$scope.social =
+		google: 'Google+'
+		facebook: 'Facebook'
+
+	checkSocial = (name) !->
+		$scope.social.changing = true
+		$log.debug "Changing social: #{angular.toJson $scope.social}"
+		if $scope.social.service[name].connected
+			AccountFactory.connect name, !->
+				way = LocalStorageFactory.login-way.load!
+				$scope.social.service[name].email = way[name].email
+				$log.debug "Account connected: #{angular.toJson $scope.social}"
+				$scope.social.changing = false
+			, (msg) !->
+				$scope.social.service[name].connected = false
+				$scope.social.changing = false
+				$ionicPopup.alert do
+					title: 'Error'
+					template: msg
+		else
+			if $scope.social.forLogin == name
+				$log.debug "Used for login: #{name}"
+				$scope.social.service[name].connected = true
+				$scope.social.changing = false
+			else
+				AccountFactory.disconnect name, !->
+					way = LocalStorageFactory.login-way.load!
+					$scope.social.service[name].email = null
+					$log.debug "Account disconnected: #{angular.toJson $scope.social}"
+					$scope.social.changing = false
+				, (msg) !->
+					$scope.social.service[name].connected = true
+					$scope.social.changing = false
+					$ionicPopup.alert do
+						title: 'Error'
+						template: msg
+
 	clear = !->
 		$scope.units = UnitFactory.units!
 		UnitFactory.load (units) !->
-			$scope.settings =
-				unit: units
+			$scope.unit = units
+		way = LocalStorageFactory.login-way.load!
+		$scope.social =
+			changing: false
+			for-login: way.for-login
+			titles:
+				google: 'Google+'
+				facebook: 'Facebook'
+			service:
+				google:
+					connected: if way.google?.email then true else false
+					email: way.google?.email ? null
+				facebook:
+					connected: if way.facebook?.email then true else false
+					email: way.facebook?.email ? null
+			listEnabled: ->
+				{[key, $scope.social.titles[key]] for key, obj of $scope.social.service when obj.connected}
+			changeLogin: !->
+				$scope.social.changing = true
+				$log.debug "Changing social: #{angular.toJson $scope.social}"
+				way = LocalStorageFactory.login-way.load!
+				way.for-login = $scope.social.for-login
+				LocalStorageFactory.login-way.save way
+				$scope.social.changing = false
+			checkGoogle: !-> checkSocial('google')
+			checkFacebook: !-> checkSocial('facebook')
+		$log.debug "Initialized social: #{angular.toJson $scope.social}"
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
@@ -168,7 +230,7 @@
 						.then (res) !->
 							$scope.modal.hide!
 					$scope.$apply !->
-						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that.name] else []
+						$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.account-name then ['facebook'] else []
 						imageUrl = if device.platform == 'Android'
 							then ""
 							else uri
