@@ -756,7 +756,7 @@
 		taking: null
 		ticket: null
 
-	doGetLoginWay = (taker) !->
+	select-way-name = (taker) !->
 		if LocalStorageFactory.login-way.load!?.for-login then taker that
 		else AcceptanceFactory.obtain !->
 			$log.warn "Taking Login Way ..."
@@ -775,6 +775,44 @@
 			.then (way-name) !->
 				taker way-name
 
+	stack-login = (ticket-taker, error-taker) !->
+		if store.ticket then ticket-taker store.ticket
+		else
+			if store.taking
+				that.push ticket-taker
+				$log.debug "Pushed into queue: #{that}"
+			else
+				store.taking = [ticket-taker]
+				$log.debug "First listener in queue: #{store.taking}"
+				select-way-name (way-name) !->
+					$log.debug "Get login way: #{way-name}"
+					connect(way-name) (token) !->
+						ServerFactory.login way-name, token
+						, (ticket) !->
+							store.ticket = ticket
+							if store.taking
+								$log.debug "Clear and invoking all listeners: #{store.taking}"
+								store.taking = null
+								for t in that
+									t ticket
+						, (error) !->
+							if error.type != ServerFactory.error-types.fatal
+								error-taker error.msg
+					, error-taker
+
+	with-ticket = (ticket-proc, success-taker, error-taker) !->
+		$log.debug "Getting ticket for: #{ticket-proc}, #{success-taker}"
+		auth = !->
+			stack-login (ticket) ->
+				ticket-proc(ticket) success-taker, (error) !->
+					if error.type == ServerFactory.error-types.expired
+					then
+						store.ticket = null
+						auth!
+					else error-taker error
+			, error-taker
+		auth!
+
 	connect = (way-name) -> (token-taker, error-taker) !->
 		way = LocalStorageFactory.login-way.load! ? { for-login: way-name }
 		SocialFactory.login[way-name] way[way-name]?.email ? null
@@ -783,6 +821,7 @@
 			LocalStorageFactory.login-way.save way
 			token-taker token
 		, error-taker
+
 	disconnect = (way-name) -> (success-taker, error-taker) !->
 		way = LocalStorageFactory.login-way.load!
 		if way && way[way-name]?.email && way.for-login != way-name
@@ -801,44 +840,6 @@
 				error-taker "This way is used for login: #{way-name}"
 			else
 				error-taker "This way is not connected: #{way-name}"
-
-	with-ticket = (ticket-proc, success-taker, error-taker) !->
-		$log.debug "Getting ticket for: #{ticket-proc}, #{success-taker}"
-		auth = !->
-			stack-login (ticket) ->
-				ticket-proc(ticket) success-taker, (error) !->
-					if error.type == ServerFactory.error-types.expired
-					then
-						store.ticket = null
-						auth!
-					else error-taker error
-			, error-taker
-		auth!
-
-	stack-login = (ticket-taker, error-taker) !->
-		if store.ticket then ticket-taker store.ticket
-		else
-			if store.taking
-				that.push ticket-taker
-				$log.debug "Pushed into queue: #{that}"
-			else
-				store.taking = [ticket-taker]
-				$log.debug "First listener in queue: #{store.taking}"
-				doGetLoginWay (way-name) !->
-					$log.debug "Get login way: #{way-name}"
-					connect(way-name) (token) !->
-						ServerFactory.login way-name, token
-						, (ticket) !->
-							store.ticket = ticket
-							if store.taking
-								$log.debug "Clear and invoking all listeners: #{store.taking}"
-								store.taking = null
-								for t in that
-									t ticket
-						, (error) !->
-							if error.type != ServerFactory.error-types.fatal
-								error-taker error.msg
-					, error-taker
 
 	with-ticket: with-ticket		
 	connect: (way-name, success-taker, error-taker) !->

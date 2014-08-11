@@ -6,26 +6,26 @@
 	ion-content
 		.list
 			.item.item-divider
-				h2.title Account Connection
+				h2.title Social Connection
 			.item.item-input.item-select.item-stable
-				.input-label Use to login
-				select(ng-model="account.forLogin", ng-options="key as value for (key, value) in account.enabled()", ng-change="changeLogin()")
+				.input-label Use for login
+				select(ng-model="social.forLogin", ng-options="key as value for (key, value) in social.listEnabled()", ng-change="social.changeLogin()", ng-disabled="social.changing")
 			.item.item-toggle
 				.input-label Google+
 				label.toggle.toggle-balanced
-					input(type='checkbox', ng-model="account.social.google.connected", ng-change="checkGoogle()")
+					input(type='checkbox', ng-model="social.service.google.connected", ng-change="social.checkGoogle()", ng-disabled="social.changing")
 					.track
 						.handle
-				.item-text-wrap(ng-show="account.social.google.connected")
-					p {{ account.social.google.email }}
+				.item-text-wrap(ng-show="social.service.google.connected")
+					p {{ social.service.google.email }}
 			.item.item-toggle
 				.input-label Facebook
 				label.toggle.toggle-balanced
-					input(type='checkbox', ng-model="account.social.facebook.connected", ng-change="checkFacebook()")
+					input(type='checkbox', ng-model="social.service.facebook.connected", ng-change="social.checkFacebook()", ng-disabled="social.changing")
 					.track
 						.handle
-				.item-text-wrap(ng-show="account.social.facebook.connected")
-					p {{ account.social.facebook.email }}
+				.item-text-wrap(ng-show="social.service.facebook.connected")
+					p {{ social.service.facebook.email }}
 
 		.list
 			.item.item-divider
