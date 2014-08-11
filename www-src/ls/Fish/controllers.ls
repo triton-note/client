@@ -21,8 +21,7 @@
 		if $scope.account.social[name].connected
 			AccountFactory.connect name, !->
 				way = LocalStorageFactory.login-way.load!
-				$scope.$apply !->
-					$scope.account.social[name].email = way[name].email
+				$scope.account.social[name].email = way[name].email
 				$log.debug "Account connected: #{angular.toJson $scope.account}"
 			, (msg) !->
 				$scope.account.social[name].connected = false
@@ -35,8 +34,7 @@
 			else
 				AccountFactory.disconnect name, !->
 					way = LocalStorageFactory.login-way.load!
-					$scope.$apply !->
-						$scope.account.social[name].email = null
+					$scope.account.social[name].email = null
 					$log.debug "Account disconnected: #{angular.toJson $scope.account}"
 				, (msg) !->
 					$scope.account.social[name].connected = true

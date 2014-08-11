@@ -35,7 +35,7 @@
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 			destinationType: Camera.DestinationType.FILE_URI
 
-.factory 'ReportFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory, DistributionFactory) ->
+.factory 'ReportFactory', ($log, $interval, $ionicPopup, AccountFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	expiration = 50 * 60 * 1000 # 50 minutes
 	store =
@@ -69,7 +69,7 @@
 		hasMore: false
 
 	loadServer = (last-id = null, taker) !->
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.load-reports ticket, limit, last-id
 		, (list) !->
 			taker save list
@@ -102,7 +102,7 @@
 		$log.debug "Report timestamp past: #{past}ms"
 		if expiration < past then
 			item.timestamp = now
-			TicketFactory.get (ticket) ->
+			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.read-report ticket, item.report.id
 			, (result) !->
 				$log.debug "Read report: #{angular.toJson result}"
@@ -158,7 +158,7 @@
 	*/
 	remove: (index, success) !->
 		removing-id = store.reports[index].report.id
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.remove-report ticket, removing-id
 		, !->
 			$log.info "Deleted report: #{removing-id}"
@@ -173,7 +173,7 @@
 		Update report
 	*/
 	update: (report, success) ->
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.update-report ticket, report
 		, !->
 			$log.info "Updated report: #{report.id}"
@@ -184,7 +184,7 @@
 				title: "Failed to update to server"
 				template: error.msg
 
-.factory 'UnitFactory', ($log, TicketFactory, ServerFactory) ->
+.factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
 	default-units =
@@ -196,13 +196,13 @@
 
 	save-current = (units) !->
 		store.unit = angular.copy units
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.change-units ticket, units
 		, !-> $log.debug "Success to change units"
 		, (error) !-> $log.debug "Failed to change units"
 	load-local = -> store.unit ? default-units
 	load-server = (taker) !->
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.load-units ticket
 		, (units) !->
 			$log.debug "Loaded account units: #{units}"
@@ -248,7 +248,7 @@
 			unit: dstUnit
 		}
 
-.factory 'DistributionFactory', ($log, $interval, $ionicPopup, TicketFactory, ServerFactory) ->
+.factory 'DistributionFactory', ($log, $interval, $ionicPopup, AccountFactory, ServerFactory) ->
 	store =
 		/*
 		List of
@@ -274,7 +274,7 @@
 		$log.debug "Refreshing distributions of mine ..."
 		suc = !->
 			success! if success
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-mine ticket
 		, (list) !->
 			store.catches.mine = list
@@ -289,7 +289,7 @@
 		$log.debug "Refreshing distributions of others ..."
 		suc = !->
 			success! if success
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-others ticket
 		, (list) !->
 			store.catches.others = list
@@ -304,7 +304,7 @@
 		$log.debug "Refreshing distributions of names ..."
 		suc = !->
 			success! if success
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-names ticket
 		, (list) !->
 			store.names = list
@@ -454,6 +454,23 @@
 		http('POST', "login/#{way}",
 			token: token
 		) ticket-taker, error-taker
+	/*
+	Connect account to social service
+	*/
+	connect: (ticket, way-name, token) -> (success-taker, error-taker) !->
+		$log.debug "Connecting to #{way-name} by token:#{token}"
+		http('POST', "account/connect/#{ticket}",
+			way: way-name
+			token: token
+		) success-taker, error-taker
+	/*
+	Disconnect account to social service
+	*/
+	disconnect: (ticket, way-name) -> (success-taker, error-taker) !->
+		$log.debug "Disconnecting from #{way-name}"
+		http('POST', "account/disconnect/#{ticket}",
+			way: way-name
+		) success-taker, error-taker
 	/*
 	Get start session by server, then pass to taker
 	*/
@@ -650,7 +667,7 @@
 		facebook: facebook-disconnect
 		google: google-disconnect
 
-.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, TicketFactory) ->
+.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
 		session: null
 		upload-info: null
@@ -704,7 +721,7 @@
 
 	start: (geoinfo, success, error-taker) !->
 		store.session = null
-		TicketFactory.get (ticket) ->
+		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.start-session ticket, geoinfo
 		, (result) !->
 			store.session = result.session
@@ -733,43 +750,6 @@
 				publish(session, publish-way) if publish-way?.length > 0
 				success!
 		else error-taker "No session started"
-
-.factory 'TicketFactory', ($log, $ionicPopup, AccountFactory, ServerFactory) ->
-	store =
-		taking: null
-		ticket: null
-
-	go-ahead = !-> if store.taking
-		that! if _.head store.taking
-	go-next = !-> if store.taking
-		store.taking = _.tail store.taking
-		go-ahead!
-	auth = !->
-		AccountFactory.login (ticket) !->
-			store.ticket = ticket
-			go-ahead!
-	expirable = (take-it) !->
-		if store.ticket
-			take-it!
-		else
-			if store.taking
-			then that.push take-it
-			else store.taking = [take-it]
-			auth!
-
-	get: (proc, success, error-taker) !->
-		$log.debug "Getting ticket for: #{proc}, #{success}"
-		expirable !->
-			proc(store.ticket) !->
-				go-next!
-				success.apply(this, &)
-			, (error) !->
-				if error.type == ServerFactory.error-types.expired
-					store.ticket = null
-					auth!
-				else
-					go-next!
-					error-taker error
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
@@ -803,54 +783,74 @@
 			LocalStorageFactory.login-way.save way
 			token-taker token
 		, error-taker
-	disconnect = (way-name) -> (onSuccess, onError) !->
+	disconnect = (way-name) -> (success-taker, error-taker) !->
 		way = LocalStorageFactory.login-way.load!
 		if way && way[way-name]?.email && way.for-login != way-name
 			SocialFactory.disconnect[way-name] way[way-name].email
 			, !->
-				way[way-name] = undefined
-				LocalStorageFactory.login-way.save way
-				onSuccess!
-			, onError
+				with-ticket (ticket) ->
+					ServerFactory.disconnect ticket, way-name
+				, (result) !->
+					way[way-name] = undefined
+					LocalStorageFactory.login-way.save way
+					success-taker!
+				, (-> it.msg) >> error-taker
+			, error-taker
 		else
 			if way?.for-login == way-name
-				onError "This way is used for login: #{way-name}"
+				error-taker "This way is used for login: #{way-name}"
 			else
-				onError "This way is not connected: #{way-name}"
+				error-taker "This way is not connected: #{way-name}"
 
-	doLogin = (ticket-taker, error-taker) !->
-		if store.taking
-			that.push ticket-taker
-			$log.debug "Pushed into queue: #{that}"
+	with-ticket = (ticket-proc, success-taker, error-taker) !->
+		$log.debug "Getting ticket for: #{ticket-proc}, #{success-taker}"
+		auth = !->
+			stack-login (ticket) ->
+				ticket-proc(ticket) success-taker, (error) !->
+					if error.type == ServerFactory.error-types.expired
+					then
+						store.ticket = null
+						auth!
+					else error-taker error
+			, error-taker
+		auth!
+
+	stack-login = (ticket-taker, error-taker) !->
+		if store.ticket then ticket-taker store.ticket
 		else
-			store.taking = [ticket-taker]
-			$log.debug "First listener in queue: #{store.taking}"
-			doGetLoginWay (way-name) !->
-				$log.debug "Get login way: #{way-name}"
-				connect(way-name) (token) !->
-					ServerFactory.login way-name, token
-					, (ticket) !->
-						if store.taking
-							$log.debug "Clear and invoking all listeners: #{store.taking}"
-							store.taking = null
-							for t in that
-								t ticket
-					, (error) !->
-						if error.type != ServerFactory.error-types.fatal
-							error-taker error.msg
-				, error-taker
+			if store.taking
+				that.push ticket-taker
+				$log.debug "Pushed into queue: #{that}"
+			else
+				store.taking = [ticket-taker]
+				$log.debug "First listener in queue: #{store.taking}"
+				doGetLoginWay (way-name) !->
+					$log.debug "Get login way: #{way-name}"
+					connect(way-name) (token) !->
+						ServerFactory.login way-name, token
+						, (ticket) !->
+							store.ticket = ticket
+							if store.taking
+								$log.debug "Clear and invoking all listeners: #{store.taking}"
+								store.taking = null
+								for t in that
+									t ticket
+						, (error) !->
+							if error.type != ServerFactory.error-types.fatal
+								error-taker error.msg
+					, error-taker
 
-	login: (ticket-taker) !->
-		action = !-> doLogin ticket-taker, (error-msg) !->
-			$ionicPopup.alert do
-				title: 'Error'
-				template: error-msg
-			.then (res) !-> action!
-		action!
-	connect: (way-name, onSuccess, onError) !->
-		connect(way-name) onSuccess, onError
-	disconnect: (way-name, onSuccess, onError) !->
-		disconnect(way-name) onSuccess, onError
+	with-ticket: with-ticket		
+	connect: (way-name, success-taker, error-taker) !->
+		connect(way-name) (token) !->
+			with-ticket (ticket) ->
+				ServerFactory.connect ticket, way-name, token
+			, (result) !->
+				success-taker!
+			, (-> it.msg) >> error-taker
+		, error-taker
+	disconnect: (way-name, success-taker, error-taker) !->
+		disconnect(way-name) success-taker, error-taker
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	store =
