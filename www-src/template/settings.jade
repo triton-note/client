@@ -3,7 +3,7 @@
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
 		h1.title Settings
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
-	ion-content
+	ion-content(header-shrink, scroll-event-interval="5")
 		.list
 			.item.item-divider
 				h2.title Social Connection
@@ -26,6 +26,36 @@
 						.handle
 				.item-text-wrap(ng-show="social.service.facebook.connected")
 					p {{ social.service.facebook.email }}
+
+		.list
+			.item.item-divider
+				h2.title Profile
+			.item.item-thumbnail-right
+				image(ng-click="profile.changeAvatar()", src="{{ profile.avatar }}")
+				.input-label
+					p Image
+			.item.item-input.item-button-right
+				.input-label
+					p Name
+				button.button.button-clear(ng-click="profile.changeName()") {{ profile.name }}
+			.item.item-input.item-button-right
+				.input-label
+					p Email
+				button.button.button-clear(ng-click="profile.changeEmail()") {{ profile.email }}
+
+			script#selection(type="text/ng-template")
+
+				.item.item-input
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="selection.value")
+					i.icon.placeholder-icon.ion-checkmark-round.balanced(ng-show="selection.value")
+					input(type="text", ng-model="selection.value", placeholder="{{ selection.title }}", ng-required="true")
+				.item-text-wrap
+					ion-checkbox(ng-model="selection.value", ng-repeat="value in selection.values", ng-true-value="{{ value }}", ng-click="selection.value = value") {{ value }}
+
+			script#selection-avatar(type="text/ng-template")
+
+				ion-checkbox(ng-model="selection.value", ng-repeat="value in selection.values", ng-true-value="{{ value }}", ng-click="selection.value = value")
+					image(src="{{ value }}")
 
 		.list
 			.item.item-divider

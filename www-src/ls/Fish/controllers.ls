@@ -5,12 +5,24 @@
 			scope: $scope
 			animation: 'slide-in-up'
 	$scope.open = !->
-		clear!
-		$scope.modal.show!
+		clear !->
+			$scope.modal.show!
 	$scope.cancel = !->
 		$scope.modal.hide!
 	$scope.submit = !->
-		UnitFactory.save $scope.settings.unit
+		UnitFactory.save $scope.unit
+		profile =
+			name: $scope.profile.name
+			email: $scope.profile.email
+			avatar: $scope.profile.avatar
+		if profile.name != $scope.profile.original.name || profile.email != $scope.profile.original.email || profile.avatar != $scope.profile.original.avatar
+			AccountFactory.save-profile profile
+			, !->
+				$log.info "Success to save user profile"
+			, (error) !->
+				$ionicPopup.alert do
+					title: 'Failed to save profile'
+					template: error
 		$scope.modal.hide!
 
 	$scope.social =
@@ -24,8 +36,10 @@
 			AccountFactory.connect name, !->
 				way = LocalStorageFactory.login-way.load!
 				$scope.social.service[name].email = way[name].email
-				$log.debug "Account connected: #{angular.toJson $scope.social}"
+				load-profile !->
+					$log.debug "User profile is reloaded."
 				$scope.social.changing = false
+				$log.debug "Account connected: #{angular.toJson $scope.social}"
 			, (msg) !->
 				$scope.social.service[name].connected = false
 				$scope.social.changing = false
@@ -40,9 +54,13 @@
 			else
 				AccountFactory.disconnect name, !->
 					way = LocalStorageFactory.login-way.load!
-					$scope.social.service[name].email = null
-					$log.debug "Account disconnected: #{angular.toJson $scope.social}"
+					$scope.social.service[name] =
+						connected: false
+						email: null
+					load-profile !->
+						$log.debug "User profile is reloaded."
 					$scope.social.changing = false
+					$log.debug "Account disconnected: #{angular.toJson $scope.social}"
 				, (msg) !->
 					$scope.social.service[name].connected = true
 					$scope.social.changing = false
@@ -50,10 +68,31 @@
 						title: 'Error'
 						template: msg
 
-	clear = !->
+	load-profile = (onSuccess) !->
+		error-taker = (msg) !->
+			$ionicPopup.alert do
+				title: 'Error'
+				template: msg
+		AccountFactory.load-profile (profile) !->
+			$scope.profile <<< profile if !$scope.profile.email?
+			$scope.profile.original = profile
+			$log.debug "Initialized profile: #{angular.toJson $scope.profile}"
+			AccountFactory.all-profile (services) !->
+				for key, obj of services
+					tmp = $scope.social.service[key] <<< obj
+					tmp.connected = tmp.email?
+				$log.debug "Initialized social: #{angular.toJson $scope.social}"				
+				onSuccess!
+			, error-taker
+		, error-taker
+
+	clear = (onSuccess) !->
+		# Initialize units
 		$scope.units = UnitFactory.units!
 		UnitFactory.load (units) !->
 			$scope.unit = units
+		
+		# Initialize social
 		way = LocalStorageFactory.login-way.load!
 		$scope.social =
 			changing: false
@@ -63,11 +102,15 @@
 				facebook: 'Facebook'
 			service:
 				google:
-					connected: if way.google?.email then true else false
-					email: way.google?.email ? null
+					connected: null
+					email: null
+					name: null
+					avatar: null
 				facebook:
-					connected: if way.facebook?.email then true else false
-					email: way.facebook?.email ? null
+					connected: null
+					email: null
+					name: null
+					avatar: null
 			listEnabled: ->
 				{[key, $scope.social.titles[key]] for key, obj of $scope.social.service when obj.connected}
 			changeLogin: !->
@@ -79,7 +122,52 @@
 				$scope.social.changing = false
 			checkGoogle: !-> checkSocial('google')
 			checkFacebook: !-> checkSocial('facebook')
-		$log.debug "Initialized social: #{angular.toJson $scope.social}"
+		
+		# Initialize profile
+		$scope.profile =
+			original: null
+			name: null
+			email: null
+			avatar: null
+			popup: (template-id, fProp, result-taker) !->
+				$scope.selection.value = fProp($scope.profile)
+				$scope.selection.values = _.unique [fProp(obj) for key, obj of $scope.social.service when fProp(obj)?]
+				$ionicPopup.show do
+					title: "Profile (#{$scope.selection.title})"
+					templateUrl: template-id
+					scope: $scope
+					buttons: [
+						{
+							text: 'Cancel'
+						},{
+							text: 'OK'
+							type: 'button-positive'
+							onTap: (e) !->
+								if $scope.selection.value
+								then return that
+								else e.preventDefault!
+						}
+					]
+				.then (res) !->
+					$log.debug "Take input #{$scope.selection.title}: #{res}"
+					result-taker res
+			changeAvatar: !->
+				$scope.selection =
+					title: 'Image'
+				$scope.profile.popup 'selection-avatar', (.avatar), (result) !->
+					$scope.profile.avatar = result if result
+			changeName: !->
+				$scope.selection =
+					title: 'Name'
+				$scope.profile.popup 'selection', (.name), (result) !->
+					$scope.profile.name = result if result
+			changeEmail: !->
+				$scope.selection =
+					title: 'Email'
+				$scope.profile.popup 'selection', (.email), (result) !->
+					$scope.profile.email = result if result
+
+		load-profile onSuccess
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'

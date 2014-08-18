@@ -455,6 +455,26 @@
 			token: token
 		) ticket-taker, error-taker
 	/*
+	Load User Profile
+	*/
+	load-profile: (ticket) -> (success-taker, error-taker) !->
+		$log.debug "Loading user profile: #{ticket}"
+		http('GET', "account/profile/load/#{ticket}") success-taker, error-taker
+	/*
+	Change User Profile
+	*/
+	change-profile: (ticket, profile) -> (success-taker, error-taker) !->
+		$log.debug "Changing user profile: #{profile}, #{ticket}"
+		http('POST', "account/profile/change/#{ticket}",
+			profile: profile
+		) success-taker, error-taker
+	/*
+	Read User Social Profile
+	*/
+	social-profile: (ticket, tokens) -> (success-taker, error-taker) !->
+		$log.debug "Reading user social profile: #{angular.toJson tokens}, #{ticket}"
+		http('POST', "account/profile/social/#{ticket}", tokens) success-taker, error-taker
+	/*
 	Connect account to social service
 	*/
 	connect: (ticket, way-name, token) -> (success-taker, error-taker) !->
@@ -620,26 +640,22 @@
 		facebookConnectPlugin.login perm
 			, (result) !->
 				$log.debug "Get access: #{angular.toJson result}"
-				facebookConnectPlugin.api "#{result.authResponse.userID}/?fields=email", ['email']
+				facebookConnectPlugin.api "me?fields=email", ['email']
 				, (info) !->
 					$log.debug "Get info: #{angular.toJson info}"
 					token-taker info.email, result.authResponse.accessToken
 				, error-taker
 			, error-taker
 	facebook-disconnect = (account-name, onSuccess, error-taker) !->
-		$log.info "Disconnecting from facebook, ignoring account-name:#{account-name}"
-		facebookConnectPlugin.login ['public_profile']
-			, (result) !->
-				$log.debug "Get access: #{angular.toJson result}"
-				facebookConnectPlugin.api "#{result.authResponse.userID}/permissions?method=delete", []
-				, (info) !->
-					$log.debug "Revoked: #{angular.toJson info}"
-					facebookConnectPlugin.logout (out) !->
-						$log.debug "Logout: #{angular.toJson out}"
-						onSuccess!
-					, error-taker
-				, error-taker
+		$log.info "Disconnecting from facebook, ignoring account-name: #{account-name}"
+		facebookConnectPlugin.api "me/permissions?method=delete", []
+		, (info) !->
+			$log.debug "Revoked: #{angular.toJson info}"
+			facebookConnectPlugin.logout (out) !->
+				$log.debug "Logout: #{angular.toJson out}"
+				onSuccess!
 			, error-taker
+		, error-taker
 	google-login = (account-name, token-taker, error-taker) !->
 		$log.info "Logging in to Google+: #{account-name}"
 		googlePlusConnectPlugin.getAccessToken account-name
@@ -789,6 +805,9 @@
 					connect(way-name) (token) !->
 						ServerFactory.login way-name, token
 						, (ticket) !->
+							way = LocalStorageFactory.login-way.load! ? {}
+							way.for-login = way-name
+							LocalStorageFactory.login-way.save way
 							store.ticket = ticket
 							if store.taking
 								$log.debug "Clear and invoking all listeners: #{store.taking}"
@@ -817,8 +836,9 @@
 		way = LocalStorageFactory.login-way.load! ? { for-login: way-name }
 		SocialFactory.login[way-name] way[way-name]?.email ? null
 		, (account-name, token) !->
-			way[way-name] = { email: account-name }
-			LocalStorageFactory.login-way.save way
+			if way[way-name]?.email != account-name
+				way[way-name] = { email: account-name }
+				LocalStorageFactory.login-way.save way
 			token-taker token
 		, error-taker
 
@@ -852,6 +872,39 @@
 		, error-taker
 	disconnect: (way-name, success-taker, error-taker) !->
 		disconnect(way-name) success-taker, error-taker
+	all-profile: (success-taker, error-taker) !->
+		way = LocalStorageFactory.login-way.load! ? {}
+		getToken = (tokens, [service, ...left]: list) !->
+			$log.debug "Taking profile of services: #{service}, #{left} of #{angular.toJson way}"
+			if service? then
+				SocialFactory.login[service] way[service].email
+				, (account-name, token) !->
+					tokens[service] =
+						token: token
+					$log.debug "Tokens stack: #{angular.toJson tokens}"
+					getToken tokens, left
+				, error-taker
+			else
+				with-ticket (ticket) ->
+					ServerFactory.social-profile ticket, tokens
+				, (profiles) !->
+					$log.debug "Gotta profiles: #{angular.toJson profiles}"
+					LocalStorageFactory.login-way.save (way <<< profiles)
+					success-taker profiles
+				, (-> it.msg) >> error-taker
+		getToken {}, [key for key, obj of way when obj.email?]
+	load-profile: (success-taker, error-taker) !->
+		with-ticket (ticket) ->
+			ServerFactory.load-profile ticket
+		, (result) !->
+			success-taker result
+		, (-> it.msg) >> error-taker
+	save-profile: (profile, success-taker, error-taker) !->
+		with-ticket (ticket) ->
+			ServerFactory.change-profile ticket, profile
+		, (result) !->
+			success-taker!
+		, (-> it.msg) >> error-taker
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	store =
