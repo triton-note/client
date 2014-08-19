@@ -455,6 +455,26 @@
 			token: token
 		) ticket-taker, error-taker
 	/*
+	Load User Profile
+	*/
+	load-profile: (ticket) -> (success-taker, error-taker) !->
+		$log.debug "Loading user profile: #{ticket}"
+		http('GET', "account/profile/load/#{ticket}") success-taker, error-taker
+	/*
+	Change User Profile
+	*/
+	change-profile: (ticket, profile) -> (success-taker, error-taker) !->
+		$log.debug "Changing user profile: #{profile}, #{ticket}"
+		http('POST', "account/profile/change/#{ticket}",
+			profile: profile
+		) success-taker, error-taker
+	/*
+	Read User Social Profile
+	*/
+	social-profile: (ticket, tokens) -> (success-taker, error-taker) !->
+		$log.debug "Reading user social profile: #{angular.toJson tokens}, #{ticket}"
+		http('POST', "account/profile/social/#{ticket}", tokens) success-taker, error-taker
+	/*
 	Connect account to social service
 	*/
 	connect: (ticket, way-name, token) -> (success-taker, error-taker) !->
@@ -618,42 +638,58 @@
 	facebook-login = (...perm) -> (account-name, token-taker, error-taker) !->
 		$log.info "Logging in to Facebook: #{perm}, ignoring account-name:#{account-name}"
 		facebookConnectPlugin.login perm
-			, (result) !->
-				$log.debug "Get access: #{angular.toJson result}"
-				facebookConnectPlugin.api "#{result.authResponse.userID}/?fields=email", ['email']
-				, (info) !->
-					$log.debug "Get info: #{angular.toJson info}"
-					token-taker info.email, result.authResponse.accessToken
-				, error-taker
+		, (result) !->
+			$log.debug "Get access: #{angular.toJson result}"
+			facebook-profile null
+			, (profile) !->
+				token-taker profile, result.authResponse.accessToken
 			, error-taker
+		, error-taker
+	facebook-profile = (account-name, profile-taker, error-taker) !->
+		$log.info "Getting profile of Facebook, ignoring account-name:#{account-name}"
+		facebookConnectPlugin.api "me?fields=email,name,picture", ['public_profile', 'email']
+		, (info) !->
+			$log.debug "Get profile: #{angular.toJson info}"
+			profile-taker do
+				id: info.id
+				name: info.name
+				email: info.email
+				avatar: info.picture?.data?.url
+		, error-taker
 	facebook-disconnect = (account-name, onSuccess, error-taker) !->
-		$log.info "Disconnecting from facebook, ignoring account-name:#{account-name}"
-		facebookConnectPlugin.login ['public_profile']
-			, (result) !->
-				$log.debug "Get access: #{angular.toJson result}"
-				facebookConnectPlugin.api "#{result.authResponse.userID}/permissions?method=delete", []
-				, (info) !->
-					$log.debug "Revoked: #{angular.toJson info}"
-					facebookConnectPlugin.logout (out) !->
-						$log.debug "Logout: #{angular.toJson out}"
-						onSuccess!
-					, error-taker
-				, error-taker
+		$log.info "Disconnecting from facebook, ignoring account-name: #{account-name}"
+		facebookConnectPlugin.api "me/permissions?method=delete", []
+		, (info) !->
+			$log.debug "Revoked: #{angular.toJson info}"
+			facebookConnectPlugin.logout (out) !->
+				$log.debug "Logout: #{angular.toJson out}"
+				onSuccess!
 			, error-taker
+		, error-taker
 	google-login = (account-name, token-taker, error-taker) !->
 		$log.info "Logging in to Google+: #{account-name}"
 		googlePlusConnectPlugin.getAccessToken account-name
-			, (result) !->
-				$log.debug "Get access: #{angular.toJson result}"
-				token-taker result.account-name, result.access-token
+		, (result) !->
+			$log.debug "Get access: #{angular.toJson result}"
+			google-profile result.account-name
+			, (profile) !->
+				token-taker profile, result.access-token
 			, error-taker
+		, error-taker
+	google-profile = (account-name, profile-taker, error-taker) !->
+		$log.info "Getting profile of Google+: #{account-name}"
+		googlePlusConnectPlugin.profile account-name
+		, (info) !->
+			$log.debug "Get profile: #{angular.toJson info}"
+			profile-taker info
+		, error-taker
 	google-disconnect = (account-name, onSuccess, error-taker) !->
 		$log.info "Disconnect to Google+: #{account-name}"
 		googlePlusConnectPlugin.disconnect account-name
-			, !->
-				$log.debug "Success to disconnect"
-				onSuccess!
-			, error-taker
+		, !->
+			$log.debug "Success to disconnect"
+			onSuccess!
+		, error-taker
 
 	ways:
 		facebook: 'facebook'
@@ -661,6 +697,9 @@
 	login:
 		facebook: facebook-login 'public_profile', 'email'
 		google: google-login
+	profile:
+		facebook: facebook-profile
+		google: google-profile
 	publish:
 		facebook: facebook-login 'publish_actions'
 	disconnect:
@@ -789,6 +828,9 @@
 					connect(way-name) (token) !->
 						ServerFactory.login way-name, token
 						, (ticket) !->
+							way = LocalStorageFactory.login-way.load! ? {}
+							way.for-login = way-name
+							LocalStorageFactory.login-way.save way
 							store.ticket = ticket
 							if store.taking
 								$log.debug "Clear and invoking all listeners: #{store.taking}"
@@ -816,8 +858,8 @@
 	connect = (way-name) -> (token-taker, error-taker) !->
 		way = LocalStorageFactory.login-way.load! ? { for-login: way-name }
 		SocialFactory.login[way-name] way[way-name]?.email ? null
-		, (account-name, token) !->
-			way[way-name] = { email: account-name }
+		, (profile, token) !->
+			way[way-name] = profile
 			LocalStorageFactory.login-way.save way
 			token-taker token
 		, error-taker
@@ -852,6 +894,31 @@
 		, error-taker
 	disconnect: (way-name, success-taker, error-taker) !->
 		disconnect(way-name) success-taker, error-taker
+	all-profile: (success-taker, error-taker) !->
+		way = LocalStorageFactory.login-way.load! ? {}
+		getProfile = (profiles, [service, ...left]: list) !->
+			$log.debug "Taking profile of services: #{service}, #{left} of #{angular.toJson way}"
+			if service? then
+				SocialFactory.profile[service] way[service].email
+				, (profile) !->
+					profiles[service] = profile
+					$log.debug "Profiles stack: #{angular.toJson profiles}"
+					getProfile profiles, left
+				, error-taker
+			else success-taker profiles
+		getProfile {}, [key for key, obj of way when obj.email?]
+	load-profile: (success-taker, error-taker) !->
+		with-ticket (ticket) ->
+			ServerFactory.load-profile ticket
+		, (result) !->
+			success-taker result
+		, (-> it.msg) >> error-taker
+	save-profile: (profile, success-taker, error-taker) !->
+		with-ticket (ticket) ->
+			ServerFactory.change-profile ticket, profile
+		, (result) !->
+			success-taker!
+		, (-> it.msg) >> error-taker
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	store =
