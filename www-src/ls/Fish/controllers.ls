@@ -35,9 +35,9 @@
 		if $scope.social.service[name].connected
 			AccountFactory.connect name, !->
 				way = LocalStorageFactory.login-way.load!
-				$scope.social.service[name].email = way[name].email
-				load-profile !->
-					$log.debug "User profile is reloaded."
+				$scope.social.service[name] <<< way[name]
+				$scope.social.service[name].connected = way[name].email?
+				$log.debug "User profile of #{name} is loaded."
 				$scope.social.changing = false
 				$log.debug "Account connected: #{angular.toJson $scope.social}"
 			, (msg) !->
@@ -57,8 +57,7 @@
 					$scope.social.service[name] =
 						connected: false
 						email: null
-					load-profile !->
-						$log.debug "User profile is reloaded."
+					$log.debug "User profile of #{name} is cleared."
 					$scope.social.changing = false
 					$log.debug "Account disconnected: #{angular.toJson $scope.social}"
 				, (msg) !->
