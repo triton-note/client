@@ -469,12 +469,6 @@
 			profile: profile
 		) success-taker, error-taker
 	/*
-	Read User Social Profile
-	*/
-	social-profile: (ticket, tokens) -> (success-taker, error-taker) !->
-		$log.debug "Reading user social profile: #{angular.toJson tokens}, #{ticket}"
-		http('POST', "account/profile/social/#{ticket}", tokens) success-taker, error-taker
-	/*
 	Connect account to social service
 	*/
 	connect: (ticket, way-name, token) -> (success-taker, error-taker) !->
