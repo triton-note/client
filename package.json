@@ -1,13 +1,12 @@
 {
   "name": "TritonNote",
-  "version": "0.4",
+  "version": "0.5",
   "description": "Triton Note Client",
   "dependencies": {},
   "devDependencies": {
     "LiveScript": "^1.2.0",
     "event-stream": "^3.1.5",
     "gulp": "^3.5.6",
-    "gulp-bower-files": "^0.2.2",
     "gulp-clean": "^0.3.1",
     "gulp-concat": "^2.2.0",
     "gulp-filter": "^0.4.1",
@@ -24,6 +23,7 @@
     "gulp-sass": "^0.7.1",
     "gulp-uglify": "^0.2.1",
     "gulp-util": "^2.2.14",
+    "main-bower-files": "^1.0.2",
     "prelude-ls": "^1.1.1"
   }
 }

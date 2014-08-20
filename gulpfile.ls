@@ -1,6 +1,7 @@
 require! {
 	fs
 	gulp
+	'main-bower-files'
 	es: 'event-stream'
 	_: 'prelude-ls'
 }
@@ -67,7 +68,7 @@ gulp.task "sass", ->
 gulp.task "bower", ->
 	jsFilter = gp.filter("**/*.js")
 	cssFilter = gp.filter("**/*.css")
-	gp.bower-files!
+	gulp.src main-bower-files!, { base: 'bower_components' }
 		.pipe jsFilter
 		.pipe gp.uglify {
 			preserveComments: "some"

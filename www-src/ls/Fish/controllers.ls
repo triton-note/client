@@ -1,23 +1,172 @@
-.controller 'SettingsCtrl', ($log, $scope, $ionicModal, UnitFactory) !->
+.controller 'SettingsCtrl', ($log, $scope, $ionicPopup, $ionicModal, UnitFactory, LocalStorageFactory, AccountFactory) !->
 	$ionicModal.fromTemplateUrl 'template/settings.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
 			animation: 'slide-in-up'
 	$scope.open = !->
-		clear!
-		$scope.modal.show!
+		clear !->
+			$scope.modal.show!
 	$scope.cancel = !->
 		$scope.modal.hide!
 	$scope.submit = !->
-		UnitFactory.save $scope.settings.unit
+		UnitFactory.save $scope.unit
+		profile =
+			name: $scope.profile.name
+			email: $scope.profile.email
+			avatar: $scope.profile.avatar
+		if profile.name != $scope.profile.original.name || profile.email != $scope.profile.original.email || profile.avatar != $scope.profile.original.avatar
+			AccountFactory.save-profile profile
+			, !->
+				$log.info "Success to save user profile"
+			, (error) !->
+				$ionicPopup.alert do
+					title: 'Failed to save profile'
+					template: error
 		$scope.modal.hide!
 
-	clear = !->
+	$scope.social =
+		google: 'Google+'
+		facebook: 'Facebook'
+
+	checkSocial = (name) !->
+		$scope.social.changing = true
+		$log.debug "Changing social: #{angular.toJson $scope.social}"
+		if $scope.social.service[name].connected
+			AccountFactory.connect name, !->
+				way = LocalStorageFactory.login-way.load!
+				$scope.social.service[name] <<< way[name]
+				$scope.social.service[name].connected = way[name].email?
+				$log.debug "User profile of #{name} is loaded."
+				$scope.social.changing = false
+				$log.debug "Account connected: #{angular.toJson $scope.social}"
+			, (msg) !->
+				$scope.social.service[name].connected = false
+				$scope.social.changing = false
+				$ionicPopup.alert do
+					title: 'Error'
+					template: msg
+		else
+			if $scope.social.forLogin == name
+				$log.debug "Used for login: #{name}"
+				$scope.social.service[name].connected = true
+				$scope.social.changing = false
+			else
+				AccountFactory.disconnect name, !->
+					way = LocalStorageFactory.login-way.load!
+					$scope.social.service[name] =
+						connected: false
+						email: null
+					$log.debug "User profile of #{name} is cleared."
+					$scope.social.changing = false
+					$log.debug "Account disconnected: #{angular.toJson $scope.social}"
+				, (msg) !->
+					$scope.social.service[name].connected = true
+					$scope.social.changing = false
+					$ionicPopup.alert do
+						title: 'Error'
+						template: msg
+
+	load-profile = (onSuccess) !->
+		error-taker = (msg) !->
+			$ionicPopup.alert do
+				title: 'Error'
+				template: msg
+		AccountFactory.load-profile (profile) !->
+			$scope.profile <<< profile if !$scope.profile.email?
+			$scope.profile.original = profile
+			$log.debug "Initialized profile: #{angular.toJson $scope.profile}"
+			AccountFactory.all-profile (services) !->
+				for key, obj of services
+					tmp = $scope.social.service[key] <<< obj
+					tmp.connected = tmp.email?
+				$log.debug "Initialized social: #{angular.toJson $scope.social}"				
+				onSuccess!
+			, error-taker
+		, error-taker
+
+	clear = (onSuccess) !->
+		# Initialize units
 		$scope.units = UnitFactory.units!
 		UnitFactory.load (units) !->
-			$scope.settings =
-				unit: units
+			$scope.unit = units
+		
+		# Initialize social
+		way = LocalStorageFactory.login-way.load!
+		$scope.social =
+			changing: false
+			for-login: way.for-login
+			titles:
+				google: 'Google+'
+				facebook: 'Facebook'
+			service:
+				google:
+					connected: null
+					email: null
+					name: null
+					avatar: null
+				facebook:
+					connected: null
+					email: null
+					name: null
+					avatar: null
+			listEnabled: ->
+				{[key, $scope.social.titles[key]] for key, obj of $scope.social.service when obj.connected}
+			changeLogin: !->
+				$scope.social.changing = true
+				$log.debug "Changing social: #{angular.toJson $scope.social}"
+				way = LocalStorageFactory.login-way.load!
+				way.for-login = $scope.social.for-login
+				LocalStorageFactory.login-way.save way
+				$scope.social.changing = false
+			checkGoogle: !-> checkSocial('google')
+			checkFacebook: !-> checkSocial('facebook')
+		
+		# Initialize profile
+		$scope.profile =
+			original: null
+			name: null
+			email: null
+			avatar: null
+			popup: (template-id, fProp, result-taker) !->
+				$scope.selection.value = fProp($scope.profile)
+				$scope.selection.values = _.unique [fProp(obj) for key, obj of $scope.social.service when fProp(obj)?]
+				$ionicPopup.show do
+					title: "Profile (#{$scope.selection.title})"
+					templateUrl: template-id
+					scope: $scope
+					buttons: [
+						{
+							text: 'Cancel'
+						},{
+							text: 'OK'
+							type: 'button-positive'
+							onTap: (e) !->
+								if $scope.selection.value
+								then return that
+								else e.preventDefault!
+						}
+					]
+				.then (res) !->
+					$log.debug "Take input #{$scope.selection.title}: #{res}"
+					result-taker res
+			changeAvatar: !->
+				$scope.selection =
+					title: 'Image'
+				$scope.profile.popup 'selection-avatar', (.avatar), (result) !->
+					$scope.profile.avatar = result if result
+			changeName: !->
+				$scope.selection =
+					title: 'Name'
+				$scope.profile.popup 'selection', (.name), (result) !->
+					$scope.profile.name = result if result
+			changeEmail: !->
+				$scope.selection =
+					title: 'Email'
+				$scope.profile.popup 'selection', (.email), (result) !->
+					$scope.profile.email = result if result
+
+		load-profile onSuccess
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
@@ -168,7 +317,7 @@
 						.then (res) !->
 							$scope.modal.hide!
 					$scope.$apply !->
-						$scope.publish.ables = if LocalStorageFactory.login-way.load! then [that] else []
+						$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.account-name then ['facebook'] else []
 						imageUrl = if device.platform == 'Android'
 							then ""
 							else uri
@@ -394,6 +543,6 @@
 						lat: fish.geoinfo.latitude
 						lng: fish.geoinfo.longitude
 
-		switch person
+		if (gmap) then switch person
 		| 'mine'            => DistributionFactory.mine fish-name, map-mine
 		| 'mine and others' => DistributionFactory.others fish-name, map-others
