@@ -29,5 +29,8 @@ cordova plugin add plugin.google.maps --variable API_KEY_FOR_IOS='AIzaSyBbBpBdB0
 # Remove confliction with platforms/android/FacebookLib/libs/android-support-v4.jar
 (cd platforms/android && [ -e libs/android-support-v4.jar ] && cp -vf FacebookLib/libs/android-support-v4.jar libs/)
 
+# Aid to bug of Http
+cordova plugin add https://github.com/sawatani/Cordova-plugin-okhttp.git
+
 # Crash Report
 cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable MAIL_TO='devel+triton_note-crash@fathens.org' --variable TOAST_TEXT='Crash Report Sent'
