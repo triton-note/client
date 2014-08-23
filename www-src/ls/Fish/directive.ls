@@ -1,12 +1,11 @@
 .directive 'fathensGoogleMaps', ($log) ->
-	raw = (jqe) ->
+	arrange-heiht = (jqe) ->
 		e = jqe[0]
 		maxH = document.documentElement.clientHeight
 		eTop = e.getBoundingClientRect!.top
 		h= (maxH - eTop)
 		e.style.height = "#{h}px"
 		$log.debug "Calculating: doc.h=#{maxH}, e.top=#{eTop}  ==> #{h}"
-		e
 
 	restrict: 'E'
 	template: '<div></div>'
@@ -28,6 +27,7 @@
 					myLocationButton: true
 					zoom: false
 			gmap.on plugin.google.maps.event.MAP_READY, (gmap) !->
+				arrange-heiht $element
 				default-view = !->
 					gmap.setZoom 10
 					navigator.geolocation.getCurrentPosition do
@@ -43,7 +43,7 @@
 					if v
 					then
 						$log.debug "gmap-visible(#{gmap-visible}) is changed: #{value}"
-						gmap.setDiv raw($element)
+						gmap.setDiv $element[0]
 						map-type $scope[gmap-type]
 						map-center $scope[gmap-center]
 						map-onTap $scope[gmap-onTap]
