@@ -25,7 +25,7 @@ cordova plugin add https://github.com/sawatani/phonegap-facebook-plugin.git --va
 (cd platforms/android/FacebookLib && android update lib-project -p . && ant instrument) # Make gen
 
 # Google Maps
-cordova plugin add plugin.google.maps --variable API_KEY_FOR_IOS='AIzaSyBbBpBdB0rQQPsvd1Xv1QW_vftXxsgDYr4' --variable API_KEY_FOR_ANDROID='AIzaSyDYNGDBMUgZsnAzFZ4-uZB4VQuSxEfe1Lg'
+cordova plugin add https://github.com/sawatani/phonegap-googlemaps-plugin.git --variable API_KEY_FOR_IOS='AIzaSyBbBpBdB0rQQPsvd1Xv1QW_vftXxsgDYr4' --variable API_KEY_FOR_ANDROID='AIzaSyDYNGDBMUgZsnAzFZ4-uZB4VQuSxEfe1Lg'
 
 # Remove confliction with platforms/android/FacebookLib/libs/android-support-v4.jar
 (cd platforms/android && [ -e libs/android-support-v4.jar ] && cp -vf FacebookLib/libs/android-support-v4.jar libs/)

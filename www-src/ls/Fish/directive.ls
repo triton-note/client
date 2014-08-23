@@ -52,6 +52,7 @@
 						gmap.getCameraPosition (camera) !->
 							if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
 								default-view!
+						gmap.refreshLayout true
 					else
 						gmap.setDiv null
 					gmap.setVisible v
