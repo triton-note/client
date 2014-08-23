@@ -52,7 +52,6 @@
 						map-onTap $scope[gmap-onTap]
 						if $scope[gmap-setter] then
 							that gmap
-						gmap.refreshLayout true
 					else
 						gmap.setDiv null
 					gmap.setVisible v
