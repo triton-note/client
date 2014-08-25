@@ -200,7 +200,7 @@
 				$log.debug "Remove completed."
 			$scope.modal.hide!
 
-.controller 'DetailReportCtrl', ($log, $scope, $ionicModal, ReportFactory) !->
+.controller 'DetailReportCtrl', ($log, $ionicPlatform, $scope, $ionicModal, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -209,13 +209,17 @@
 
 	$scope.showMap = !->
 		$scope.modal.show!.then !->
+			onBackbutton = !->
+				$scope.gmap-visible = false
+				$ionicPlatform.offHardwareBackButton onBackbutton
+			$ionicPlatform.onHardwareBackButton onBackbutton
 			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
 		$scope.gmap-visible = false
 		$scope.modal.hide!
 
-.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicListDelegate, ReportFactory) !->
+.controller 'EditReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, ReportFactory) !->
 	# $scope.report = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -234,6 +238,10 @@
 
 	$scope.showMap = !->
 		$scope.modal-gmap.show!.then !->
+			onBackbutton = !->
+				$scope.gmap-visible = false
+				$ionicPlatform.offHardwareBackButton onBackbutton
+			$ionicPlatform.onHardwareBackButton onBackbutton
 			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
@@ -267,7 +275,7 @@
 			$log.debug "Edit completed."
 		$scope.modal.hide!
 
-.controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -344,6 +352,10 @@
 
 	$scope.showMap = !->
 		$scope.modal-gmap.show!.then !->
+			onBackbutton = !->
+				$scope.gmap-visible = false
+				$ionicPlatform.offHardwareBackButton onBackbutton
+			$ionicPlatform.onHardwareBackButton onBackbutton
 			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
@@ -426,7 +438,7 @@
 				$scope.modal.hide!
 				del!
 
-.controller 'DistributionMapCtrl', ($log, $scope, $filter, $ionicModal, $ionicPopup, DistributionFactory, ReportFactory) !->
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $filter, $ionicModal, $ionicPopup, DistributionFactory, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/distribution-map.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -439,6 +451,10 @@
 		map-distribution!
 	$scope.open = !->
 		$scope.modal.show!.then !->
+			onBackbutton = !->
+				$scope.gmap-visible = false
+				$ionicPlatform.offHardwareBackButton onBackbutton
+			$ionicPlatform.onHardwareBackButton onBackbutton
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
 		$scope.gmap-visible = false
