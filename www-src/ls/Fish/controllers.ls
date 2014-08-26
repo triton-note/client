@@ -325,7 +325,7 @@
 						.then (res) !->
 							$scope.modal.hide!
 					$scope.$apply !->
-						$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.account-name then ['facebook'] else []
+						$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.email then ['facebook'] else []
 						imageUrl = if device.platform == 'Android'
 							then ""
 							else uri
