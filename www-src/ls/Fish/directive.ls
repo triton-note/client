@@ -55,6 +55,17 @@
 					else
 						gmap.setDiv null
 					gmap.setVisible v
+				add-marker = (latLng, success) !->
+					gmap.addMarker {
+						position: latLng
+					}, (marker) !->
+						m =
+							marker: marker
+							geoinfo:
+								latitude: latLng.lat
+								longitude: latLng.lng
+						$scope[gmap-markers].push m
+						success m if success
 				map-center = (value) !->
 					$log.debug "gmap-center(#{gmap-center}) is changed: #{value}"
 					if value then
@@ -62,22 +73,13 @@
 							lat: value.latitude
 							lng: value.longitude
 						gmap.setCenter center
-						gmap.addMarker {
-							position: center
-						}, (m) !->
-							$scope[gmap-markers]?.push m
+						add-marker center
 				map-onTap = (proc) !->
 					$log.debug "gmap-onTap(#{gmap-onTap}) is changed: #{proc}"
 					if proc	then
 						gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
 							$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{proc}"
-							gmap.addMarker {
-								position: latLng
-							}, (m) !->
-								$scope[gmap-markers]?.push m
-								proc m,
-									latitude: latLng.lat
-									longitude: latLng.lng
+							add-marker latLng, proc
 				map-type = (value) !->
 					$log.debug "gmap-type(#{gmap-type}) is changed: #{value}" if value
 					v = switch value

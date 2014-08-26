@@ -245,20 +245,20 @@
 			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
-		$scope.report.location.geoinfo = $scope.gmap-center
-		$scope.submitMap!
-	$scope.submitMap = !->
 		$scope.gmap-visible = false
 		$scope.modal-gmap.hide!
-	$scope.gmap-markers = []
-	$scope.gmap-onTap = (marker, gi) !->
+	$scope.submitMap = !->
 		if $scope.gmap-markers?.length > 0 then
-			for m in $scope.gmap-markers
-				if m != marker then
-					m.remove!
-		$scope.gmap-markers = [marker]
-		$log.debug "Set location: #{angular.toJson gi}"
-		$scope.report.location.geoinfo = gi
+			gi = $scope.gmap-markers[0].geoinfo
+			$log.debug "Set location: #{angular.toJson gi}"
+			$scope.report.location.geoinfo = gi
+		$scope.closeMap!
+	$scope.gmap-markers = []
+	$scope.gmap-onTap = (mg) !->
+		for m in $scope.gmap-markers
+			if m.geoinfo != mg.geoinfo then
+				m.marker.remove!
+		$scope.gmap-markers = [mg]
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
@@ -359,20 +359,20 @@
 			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
-		$scope.report.location.geoinfo = $scope.gmap-center
-		$scope.submitMap!
-	$scope.submitMap = !->
 		$scope.gmap-visible = false
 		$scope.modal-gmap.hide!
+	$scope.submitMap = !->
+		if $scope.gmap-markers?.length > 0 then
+			gi = $scope.gmap-markers[0].geoinfo
+			$log.debug "Set location: #{angular.toJson gi}"
+			$scope.report.location.geoinfo = gi
+		$scope.closeMap!
 	$scope.gmap-markers = []
 	$scope.gmap-onTap = (marker, gi) !->
-		if $scope.gmap-markers?.length > 0 then
-			for m in $scope.gmap-markers
-				if m != marker then
-					m.remove!
-		$scope.gmap-markers = [marker]
-		$log.debug "Set location: #{angular.toJson gi}"
-		$scope.report.location.geoinfo = gi
+		for m in $scope.gmap-markers
+			if m.geoinfo != gi then
+				m.marker.remove!
+		$scope.gmap-markers = [mg]
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
