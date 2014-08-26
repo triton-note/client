@@ -43,10 +43,10 @@
 					if v
 					then
 						$log.debug "gmap-visible(#{gmap-visible}) is changed: #{value}"
-						gmap.setDiv $element[0]
 						gmap.getCameraPosition (camera) !->
 							if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
 								default-view!
+						gmap.setDiv $element[0]
 						map-type $scope[gmap-type]
 						map-center $scope[gmap-center]
 						map-onTap $scope[gmap-onTap]
