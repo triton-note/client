@@ -64,7 +64,7 @@
 							geoinfo:
 								latitude: latLng.lat
 								longitude: latLng.lng
-						$scope[gmap-markers].push m
+						$scope[gmap-markers]?.push m
 						success m if success
 				map-center = (value) !->
 					$log.debug "gmap-center(#{gmap-center}) is changed: #{value}"
