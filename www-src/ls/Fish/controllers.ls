@@ -220,7 +220,7 @@
 		$scope.modal.hide!
 
 .controller 'EditReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, ReportFactory) !->
-	# $scope.report = 表示中のレコード
+	# $scope.currentReport = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
@@ -242,7 +242,7 @@
 				$scope.gmap-visible = false
 				$ionicPlatform.offHardwareBackButton onBackbutton
 			$ionicPlatform.onHardwareBackButton onBackbutton
-			$scope.gmap-center = $scope.report.location.geoinfo
+			$scope.gmap-center = $scope.currentReport.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
 		$scope.gmap-visible = false
@@ -251,7 +251,7 @@
 		if $scope.gmap-markers?.length > 0 then
 			gi = $scope.gmap-markers[0].geoinfo
 			$log.debug "Set location: #{angular.toJson gi}"
-			$scope.report.location.geoinfo = gi
+			$scope.currentReport.location.geoinfo = gi
 		$scope.closeMap!
 	$scope.gmap-markers = []
 	$scope.gmap-onTap = (mg) !->
@@ -262,15 +262,14 @@
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
-		$scope.report.dateAt = $filter('date') new Date($scope.report.dateAt), 'yyyy-MM-dd'
+		$scope.currentReport.dateAt = $filter('date') new Date($scope.currentReport.dateAt), 'yyyy-MM-dd'
 		$scope.modal.show!
 
 	$scope.cancel = !->
-		angular.copy $scope.currentReport, $scope.report
 		$scope.modal.hide!
 	
 	$scope.submit = !->
-		$scope.currentReport = null
+		angular.copy $scope.currentReport, $scope.report
 		ReportFactory.update $scope.report, !->
 			$log.debug "Edit completed."
 		$scope.modal.hide!
@@ -310,14 +309,14 @@
 				PhotoFactory.select (uri) !->
 					SessionFactory.put-photo uri, (result) !->
 						$log.debug "Get result of upload: #{angular.toJson result}"
-						$scope.report.photo = result.url
+						$scope.currentReport.photo = result.url
 						$scope.unsubmittable = false
 					, (inference) !->
 						$log.debug "Get inference: #{angular.toJson inference}"
 						if inference.location
-							$scope.report.location.name = that
+							$scope.currentReport.location.name = that
 						if inference.fishes && inference.fishes.length > 0
-							$scope.report.fishes = inference.fishes
+							$scope.currentReport.fishes = inference.fishes
 					, (error) !->
 						$ionicPopup.alert do
 							title: "Failed to upload"
@@ -329,7 +328,7 @@
 						imageUrl = if device.platform == 'Android'
 							then ""
 							else uri
-						$scope.report = newReport imageUrl, geoinfo
+						$scope.currentReport = newReport imageUrl, geoinfo
 					$scope.unsubmittable = true
 					$scope.modal.show!
 				, (msg) !->
@@ -356,7 +355,7 @@
 				$scope.gmap-visible = false
 				$ionicPlatform.offHardwareBackButton onBackbutton
 			$ionicPlatform.onHardwareBackButton onBackbutton
-			$scope.gmap-center = $scope.report.location.geoinfo
+			$scope.gmap-center = $scope.currentReport.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
 		$scope.gmap-visible = false
@@ -365,7 +364,7 @@
 		if $scope.gmap-markers?.length > 0 then
 			gi = $scope.gmap-markers[0].geoinfo
 			$log.debug "Set location: #{angular.toJson gi}"
-			$scope.report.location.geoinfo = gi
+			$scope.currentReport.location.geoinfo = gi
 		$scope.closeMap!
 	$scope.gmap-markers = []
 	$scope.gmap-onTap = (marker, gi) !->
@@ -376,14 +375,14 @@
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
-		report = angular.copy $scope.report
+		report = angular.copy $scope.currentReport
 		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
 			$log.debug "Success on submitting report"
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
-	# $scope.report.fishes
+	# $scope.currentReport.fishes
 	fish-template = (o = null) ->
 		r =
 			name: null
@@ -424,13 +423,13 @@
 	$scope.units = UnitFactory.units!
 	$scope.addFish = !->
 		$scope.tmpFish = fish-template!
-		show (fish) !-> $scope.report.fishes.push fish
+		show (fish) !-> $scope.currentReport.fishes.push fish
 	$scope.editFish = (index) !->
 		$scope.fishIndex = index
-		$scope.tmpFish = fish-template $scope.report.fishes[index]
-		show (fish) !-> $scope.report.fishes[index] <<< fish
+		$scope.tmpFish = fish-template $scope.currentReport.fishes[index]
+		show (fish) !-> $scope.currentReport.fishes[index] <<< fish
 	$scope.deleteFish = (index, confirm = true) !->
-		del = !-> $scope.report.fishes.splice index, 1
+		del = !-> $scope.currentReport.fishes.splice index, 1
 		if !confirm then del! else
 			$ionicPopup.confirm do
 				template: "Are you sure to delete this catch ?"
