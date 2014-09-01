@@ -96,6 +96,3 @@
 				$scope.$watch gmap-visible, visible
 				$scope.$watch gmap-type, map-type
 				$log.debug "GMap is ready: #{gmap}"
-				gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
-					$log.debug "Close map in element:#{$element}"
-					visible false
