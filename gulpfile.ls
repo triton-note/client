@@ -39,10 +39,6 @@ gulp.task "jade", ->
 
 gulp.task "image", ->
 	gulp.src paths.image.src
-		.pipe gp.imagemin {
-			optimizationLevel: 7
-			progressive: true
-		}
 		.pipe gulp.dest paths.image.dst-dir
 
 gulp.task "livescript", ->
