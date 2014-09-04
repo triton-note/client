@@ -13,6 +13,8 @@ gulp bower
 
 ./reinstall_plugins.sh
 
+gulp splash
+
 # Build
 
 gulp
