@@ -46,6 +46,8 @@
 		<icon src="resources/android/icon/icon-hdpi.png" density="hdpi" />
 		<icon src="resources/android/icon/icon-xhdpi.png" density="xhdpi" />
 	</platform>
+	<preference name="SplashScreen" value="splash" />
+	<preference name="SplashScreenDelay" value="10000" />
 
     <!-- Don't store local date in an iCloud backup. Turn this to "cloud" to enable storage 
          to be sent to iCloud. Note: enabling this could result in Apple rejecting your app.

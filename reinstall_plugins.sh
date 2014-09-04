@@ -8,6 +8,7 @@ cordova platform add android ios
 cordova plugin add org.apache.cordova.device
 cordova plugin add org.apache.cordova.console
 cordova plugin add org.apache.cordova.camera
+cordova plugin add org.apache.cordova.splashscreen
 
 cordova plugin add org.apache.cordova.file-transfer
 cordova plugin add org.apache.cordova.geolocation
