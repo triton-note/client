@@ -200,7 +200,7 @@
 				$log.debug "Remove completed."
 			$scope.modal.hide!
 
-.controller 'DetailReportCtrl', ($log, $scope, $ionicModal, ReportFactory) !->
+.controller 'DetailReportCtrl', ($log, $ionicPlatform, $scope, $ionicModal, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/view-on-map.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -209,14 +209,18 @@
 
 	$scope.showMap = !->
 		$scope.modal.show!.then !->
+			onBackbutton = !->
+				$scope.gmap-visible = false
+				$ionicPlatform.offHardwareBackButton onBackbutton
+			$ionicPlatform.onHardwareBackButton onBackbutton
 			$scope.gmap-center = $scope.report.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
 		$scope.gmap-visible = false
 		$scope.modal.hide!
 
-.controller 'EditReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicListDelegate, ReportFactory) !->
-	# $scope.report = 表示中のレコード
+.controller 'EditReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, ReportFactory) !->
+	# $scope.currentReport = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
@@ -234,40 +238,43 @@
 
 	$scope.showMap = !->
 		$scope.modal-gmap.show!.then !->
-			$scope.gmap-center = $scope.report.location.geoinfo
+			onBackbutton = !->
+				$scope.gmap-visible = false
+				$ionicPlatform.offHardwareBackButton onBackbutton
+			$ionicPlatform.onHardwareBackButton onBackbutton
+			$scope.gmap-center = $scope.currentReport.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
-		$scope.report.location.geoinfo = $scope.gmap-center
-		$scope.submitMap!
-	$scope.submitMap = !->
 		$scope.gmap-visible = false
 		$scope.modal-gmap.hide!
-	$scope.gmap-markers = []
-	$scope.gmap-onTap = (marker, gi) !->
+	$scope.submitMap = !->
 		if $scope.gmap-markers?.length > 0 then
-			for m in $scope.gmap-markers
-				if m != marker then
-					m.remove!
-		$scope.gmap-markers = [marker]
-		$log.debug "Set location: #{angular.toJson gi}"
-		$scope.report.location.geoinfo = gi
+			gi = $scope.gmap-markers[0].geoinfo
+			$log.debug "Set location: #{angular.toJson gi}"
+			$scope.currentReport.location.geoinfo = gi
+		$scope.closeMap!
+	$scope.gmap-markers = []
+	$scope.gmap-onTap = (mg) !->
+		for m in $scope.gmap-markers
+			if m.geoinfo != mg.geoinfo then
+				m.marker.remove!
+		$scope.gmap-markers = [mg]
 
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
-		$scope.report.dateAt = $filter('date') new Date($scope.report.dateAt), 'yyyy-MM-dd'
+		$scope.currentReport.dateAt = $filter('date') new Date($scope.currentReport.dateAt), 'yyyy-MM-dd'
 		$scope.modal.show!
 
 	$scope.cancel = !->
-		angular.copy $scope.currentReport, $scope.report
 		$scope.modal.hide!
 	
 	$scope.submit = !->
-		$scope.currentReport = null
+		angular.copy $scope.currentReport, $scope.report
 		ReportFactory.update $scope.report, !->
 			$log.debug "Edit completed."
 		$scope.modal.hide!
 
-.controller 'AddReportCtrl', ($log, $filter, $scope, $rootScope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -302,14 +309,14 @@
 				PhotoFactory.select (uri) !->
 					SessionFactory.put-photo uri, (result) !->
 						$log.debug "Get result of upload: #{angular.toJson result}"
-						$scope.report.photo = result.url
+						$scope.currentReport.photo = result.url
 						$scope.unsubmittable = false
 					, (inference) !->
 						$log.debug "Get inference: #{angular.toJson inference}"
 						if inference.location
-							$scope.report.location.name = that
+							$scope.currentReport.location.name = that
 						if inference.fishes && inference.fishes.length > 0
-							$scope.report.fishes = inference.fishes
+							$scope.currentReport.fishes = inference.fishes
 					, (error) !->
 						$ionicPopup.alert do
 							title: "Failed to upload"
@@ -317,11 +324,11 @@
 						.then (res) !->
 							$scope.modal.hide!
 					$scope.$apply !->
-						$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.account-name then ['facebook'] else []
+						$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.email then ['facebook'] else []
 						imageUrl = if device.platform == 'Android'
 							then ""
 							else uri
-						$scope.report = newReport imageUrl, geoinfo
+						$scope.currentReport = newReport imageUrl, geoinfo
 					$scope.unsubmittable = true
 					$scope.modal.show!
 				, (msg) !->
@@ -344,34 +351,38 @@
 
 	$scope.showMap = !->
 		$scope.modal-gmap.show!.then !->
-			$scope.gmap-center = $scope.report.location.geoinfo
+			onBackbutton = !->
+				$scope.gmap-visible = false
+				$ionicPlatform.offHardwareBackButton onBackbutton
+			$ionicPlatform.onHardwareBackButton onBackbutton
+			$scope.gmap-center = $scope.currentReport.location.geoinfo
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
-		$scope.report.location.geoinfo = $scope.gmap-center
-		$scope.submitMap!
-	$scope.submitMap = !->
 		$scope.gmap-visible = false
 		$scope.modal-gmap.hide!
+	$scope.submitMap = !->
+		if $scope.gmap-markers?.length > 0 then
+			gi = $scope.gmap-markers[0].geoinfo
+			$log.debug "Set location: #{angular.toJson gi}"
+			$scope.currentReport.location.geoinfo = gi
+		$scope.closeMap!
 	$scope.gmap-markers = []
 	$scope.gmap-onTap = (marker, gi) !->
-		if $scope.gmap-markers?.length > 0 then
-			for m in $scope.gmap-markers
-				if m != marker then
-					m.remove!
-		$scope.gmap-markers = [marker]
-		$log.debug "Set location: #{angular.toJson gi}"
-		$scope.report.location.geoinfo = gi
+		for m in $scope.gmap-markers
+			if m.geoinfo != gi then
+				m.marker.remove!
+		$scope.gmap-markers = [mg]
 
 	$scope.cancel = !-> $scope.modal.hide!
 	$scope.submit = !->
-		report = angular.copy $scope.report
+		report = angular.copy $scope.currentReport
 		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
 			$log.debug "Success on submitting report"
 		$scope.modal.hide!
 
 .controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
-	# $scope.report.fishes
+	# $scope.currentReport.fishes
 	fish-template = (o = null) ->
 		r =
 			name: null
@@ -412,13 +423,13 @@
 	$scope.units = UnitFactory.units!
 	$scope.addFish = !->
 		$scope.tmpFish = fish-template!
-		show (fish) !-> $scope.report.fishes.push fish
+		show (fish) !-> $scope.currentReport.fishes.push fish
 	$scope.editFish = (index) !->
 		$scope.fishIndex = index
-		$scope.tmpFish = fish-template $scope.report.fishes[index]
-		show (fish) !-> $scope.report.fishes[index] <<< fish
+		$scope.tmpFish = fish-template $scope.currentReport.fishes[index]
+		show (fish) !-> $scope.currentReport.fishes[index] <<< fish
 	$scope.deleteFish = (index, confirm = true) !->
-		del = !-> $scope.report.fishes.splice index, 1
+		del = !-> $scope.currentReport.fishes.splice index, 1
 		if !confirm then del! else
 			$ionicPopup.confirm do
 				template: "Are you sure to delete this catch ?"
@@ -426,7 +437,7 @@
 				$scope.modal.hide!
 				del!
 
-.controller 'DistributionMapCtrl', ($log, $scope, $filter, $ionicModal, $ionicPopup, DistributionFactory, ReportFactory) !->
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $filter, $ionicModal, $ionicPopup, DistributionFactory, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/distribution-map.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -439,6 +450,10 @@
 		map-distribution!
 	$scope.open = !->
 		$scope.modal.show!.then !->
+			onBackbutton = !->
+				$scope.gmap-visible = false
+				$ionicPlatform.offHardwareBackButton onBackbutton
+			$ionicPlatform.onHardwareBackButton onBackbutton
 			$scope.gmap-visible = true
 	$scope.closeMap = !->
 		$scope.gmap-visible = false

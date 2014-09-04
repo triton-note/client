@@ -1,5 +1,5 @@
 .directive 'fathensGoogleMaps', ($log) ->
-	raw = (jqe) ->
+	arrange-heiht = (jqe) ->
 		e = jqe[0]
 		maxH = document.documentElement.clientHeight
 		eTop = e.getBoundingClientRect!.top
@@ -21,40 +21,54 @@
 		gmap-markers = $attrs.fathens-gmap-markers ? 'gmapMarkers'
 
 		ionic.Platform.ready !->
-			$log.debug "Linking directie fathens-google-maps by controller"
+			$log.debug "Linking directive fathens-google-maps by controller"
 			gmap = plugin.google.maps.Map.getMap do
 				mapType: plugin.google.maps.MapTypeId.HYBRID
 				controls:
 					myLocationButton: true
 					zoom: false
 			gmap.on plugin.google.maps.event.MAP_READY, (gmap) !->
-				default-view = !->
-					gmap.setZoom 10
-					navigator.geolocation.getCurrentPosition do
-						(pos) !->
-							$log.debug "Gotta geolocation: #{angular.toJson pos}"
-							gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
-						, (error) !->
-							$log.error "Geolocation Error: #{angular.toJson error}"
 				visible = (value) !->
-					gmap.clear!
-					gmap.off!
-					v = value == true
-					if v
-					then
-						$log.debug "gmap-visible(#{gmap-visible}) is changed: #{value}"
-						gmap.setDiv raw($element)
-						map-type $scope[gmap-type]
-						map-center $scope[gmap-center]
-						map-onTap $scope[gmap-onTap]
-						if $scope[gmap-setter] then
-							that gmap
+					$log.debug "gmap-visible(#{gmap-visible}) is changed: #{value}"
+					if value != true then
+						gmap.clear!
+						gmap.off!
+						gmap.setDiv null
+					else
+						setup = !->
+							map-type $scope[gmap-type]
+							map-center $scope[gmap-center]
+							map-onTap $scope[gmap-onTap]
+							gmap.setDiv arrange-heiht($element)
+							if $scope[gmap-setter] then
+								that gmap
+						default-view = !->
+							gmap.setZoom 10
+							navigator.geolocation.getCurrentPosition do
+								(pos) !->
+									$log.debug "Gotta geolocation: #{angular.toJson pos}"
+									gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
+									setup!
+								, (error) !->
+									$log.error "Geolocation Error: #{angular.toJson error}"
+									setup!
 						gmap.getCameraPosition (camera) !->
 							if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
+							then
 								default-view!
-					else
-						gmap.setDiv null
-					gmap.setVisible v
+							else
+								setup!
+				add-marker = (latLng, success) !->
+					gmap.addMarker {
+						position: latLng
+					}, (marker) !->
+						m =
+							marker: marker
+							geoinfo:
+								latitude: latLng.lat
+								longitude: latLng.lng
+						$scope[gmap-markers]?.push m
+						success m if success
 				map-center = (value) !->
 					$log.debug "gmap-center(#{gmap-center}) is changed: #{value}"
 					if value then
@@ -62,22 +76,13 @@
 							lat: value.latitude
 							lng: value.longitude
 						gmap.setCenter center
-						gmap.addMarker {
-							position: center
-						}, (m) !->
-							$scope[gmap-markers]?.push m
+						add-marker center
 				map-onTap = (proc) !->
 					$log.debug "gmap-onTap(#{gmap-onTap}) is changed: #{proc}"
 					if proc	then
 						gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
 							$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{proc}"
-							gmap.addMarker {
-								position: latLng
-							}, (m) !->
-								$scope[gmap-markers]?.push m
-								proc m,
-									latitude: latLng.lat
-									longitude: latLng.lng
+							add-marker latLng, proc
 				map-type = (value) !->
 					$log.debug "gmap-type(#{gmap-type}) is changed: #{value}" if value
 					v = switch value
@@ -90,7 +95,4 @@
 					gmap.setMapTypeId v
 				$scope.$watch gmap-visible, visible
 				$scope.$watch gmap-type, map-type
-				$log.debug "GMap is shown: #{gmap}"
-				gmap.on plugin.google.maps.event.MAP_CLOSE, (e) !->
-					$log.debug "Close map in element:#{$element}"
-					visible false
+				$log.debug "GMap is ready: #{gmap}"
