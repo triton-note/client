@@ -309,7 +309,7 @@
 				PhotoFactory.select (uri) !->
 					SessionFactory.put-photo uri, (result) !->
 						$log.debug "Get result of upload: #{angular.toJson result}"
-						$scope.currentReport.photo = result.url
+						$scope.currentReport.url = angular.copy result.url
 						$scope.unsubmittable = false
 					, (inference) !->
 						$log.debug "Get inference: #{angular.toJson inference}"
