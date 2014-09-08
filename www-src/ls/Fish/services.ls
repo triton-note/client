@@ -782,7 +782,10 @@
 			submit session, report, !->
 				publish(session, publish-way) if publish-way?.length > 0
 				success!
-		else error-taker "No session started"
+		else 
+			$ionicPopup.alert do
+				title: 'Error'
+				template: "No session started"
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
