@@ -309,7 +309,7 @@
 				PhotoFactory.select (uri) !->
 					SessionFactory.put-photo uri, (result) !->
 						$log.debug "Get result of upload: #{angular.toJson result}"
-						$scope.currentReport.photo = result.url
+						$scope.currentReport.url = angular.copy result.url
 						$scope.unsubmittable = false
 					, (inference) !->
 						$log.debug "Get inference: #{angular.toJson inference}"
@@ -322,14 +322,11 @@
 							title: "Failed to upload"
 							template: error
 						.then (res) !->
-							$scope.modal.hide!
-					$scope.$apply !->
-						$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.email then ['facebook'] else []
-						imageUrl = if device.platform == 'Android'
-							then ""
-							else uri
-						$scope.currentReport = newReport imageUrl, geoinfo
+							$scope.cancel!
+					$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.email then ['facebook'] else []
 					$scope.unsubmittable = true
+					$log.debug "Selected photo: #{uri}"
+					$scope.currentReport = newReport uri, geoinfo
 					$scope.modal.show!
 				, (msg) !->
 					$ionicPopup.alert do
@@ -373,13 +370,18 @@
 				m.marker.remove!
 		$scope.gmap-markers = [mg]
 
-	$scope.cancel = !-> $scope.modal.hide!
+	$scope.close = !->
+		$scope.modal.hide!.then !->
+			$log.debug "AddReportCtrl modal is hidden."
+	$scope.cancel = !-> $scope.close!
 	$scope.submit = !->
 		report = angular.copy $scope.currentReport
+		report.photo = report.url
+		report.url = undefined
 		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
 			$log.debug "Success on submitting report"
-		$scope.modal.hide!
+		$scope.close!
 
 .controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
 	# $scope.currentReport.fishes

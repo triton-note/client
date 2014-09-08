@@ -28,12 +28,19 @@
 		onSuccess(image-uri)
 		onFailure(error-message)
 	*/
-	select: (onSuccess, onFailure = (msg) !-> alert msg) !->
-		navigator.camera.getPicture onSuccess, onFailure,
+	select: (onSuccess, onFailure) !->
+		isAndroid = device.platform == 'Android'
+		taker = (ret) !->
+			onSuccess (if isAndroid
+			then "data:image/jpeg;base64,#{ret}"
+			else ret)
+		navigator.camera.getPicture taker, onFailure,
 			correctOrientation: true
 			encodingType: Camera.EncodingType.JPEG
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
-			destinationType: Camera.DestinationType.FILE_URI
+			destinationType: if isAndroid
+				then Camera.DestinationType.DATA_URL
+				else Camera.DestinationType.FILE_URI
 
 .factory 'ReportFactory', ($log, $interval, $ionicPopup, AccountFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
@@ -782,7 +789,10 @@
 			submit session, report, !->
 				publish(session, publish-way) if publish-way?.length > 0
 				success!
-		else error-taker "No session started"
+		else 
+			$ionicPopup.alert do
+				title: 'Error'
+				template: "No session started"
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
