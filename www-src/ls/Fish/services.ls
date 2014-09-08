@@ -28,12 +28,12 @@
 		onSuccess(image-uri)
 		onFailure(error-message)
 	*/
-	select: (onSuccess, onFailure = (msg) !-> alert msg) !->
+	select: (onSuccess, onFailure) !->
 		navigator.camera.getPicture onSuccess, onFailure,
 			correctOrientation: true
 			encodingType: Camera.EncodingType.JPEG
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
-			destinationType: Camera.DestinationType.FILE_URI
+			destinationType: Camera.DestinationType.DATA_URL
 
 .factory 'ReportFactory', ($log, $interval, $ionicPopup, AccountFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
