@@ -1,3 +1,87 @@
+.controller 'SNSCtrl', ($log, $scope, $ionicPopup, $ionicModal, UnitFactory, LocalStorageFactory, AccountFactory) !->
+	$ionicModal.fromTemplateUrl 'template/sns.html'
+		, (modal) !->
+			$scope.open = !->
+				init !->
+					modal.show!
+			$scope.close = !->
+				modal.hide!
+		,
+			scope: $scope
+			animation: 'slide-in-up'
+
+	init = (onSuccess) !->
+		$scope.changing = false
+		$scope.service =
+			for-login: LocalStorageFactory.login-way.load!.for-login
+			google:
+				title: 'Google+'
+			facebook:
+				title: 'Facebook'
+		reload onSuccess
+
+	reload = (onSuccess, onError = !-> {}) !->
+		AccountFactory.all-profile (services) !->
+			for key, obj of services
+				tmp = $scope.service[key] <<< obj
+				tmp.connected = tmp.email?
+			$log.debug "Profile reloaded: #{angular.toJson $scope.service}"
+			onSuccess!
+		, (msg) !->
+			$ionicPopup.alert do
+				title: 'Error'
+				template: msg
+			.then (res) !->
+				onError!
+
+	$scope.list-enabled = ->
+		{[key, obj.title] for key, obj of $scope.service when obj.connected}
+
+	$scope.changeLogin = !->
+		$scope.changing = true
+		$log.debug "Changing for-login: #{angular.toJson $scope.service.for-login}"
+		way = LocalStorageFactory.login-way.load!
+		way.for-login = $scope.service.for-login
+		LocalStorageFactory.login-way.save way
+		$scope.changing = false
+
+	$scope.checkGoogle = !-> checkSocial('google')
+	$scope.checkFacebook = !-> checkSocial('facebook')
+	checkSocial = (name) !->
+		$scope.changing = true
+		$log.debug "Changing social: #{angular.toJson $scope.service}"
+		if $scope.service[name].connected
+			AccountFactory.connect name, !->
+				reload !->
+					$scope.$apply $scope.changing = false
+					$log.debug "Account connected: #{angular.toJson $scope.service}"
+				, !-> $scope.changing = false
+			, (msg) !->
+				$scope.service[name].connected = false
+				$scope.changing = false
+				$ionicPopup.alert do
+					title: 'Error'
+					template: msg
+		else
+			if $scope.service.for-login == name
+				$ionicPopup.alert do
+					title: "Can not disconnect"
+					template: 'Used for login'
+				$scope.service[name].connected = true
+				$scope.changing = false
+			else
+				AccountFactory.disconnect name, !->
+					reload !->
+						$scope.$apply $scope.changing = false
+						$log.debug "Account disconnected: #{angular.toJson $scope.service}"
+					, !-> $scope.changing = false
+				, (msg) !->
+					$scope.service[name].connected = true
+					$scope.changing = false
+					$ionicPopup.alert do
+						title: 'Error'
+						template: msg
+
 .controller 'SettingsCtrl', ($log, $scope, $ionicPopup, $ionicModal, UnitFactory, LocalStorageFactory, AccountFactory) !->
 	$ionicModal.fromTemplateUrl 'template/settings.html'
 		, (modal) !-> $scope.modal = modal
@@ -5,7 +89,7 @@
 			scope: $scope
 			animation: 'slide-in-up'
 	$scope.open = !->
-		clear !->
+		init !->
 			$scope.modal.show!
 	$scope.cancel = !->
 		$scope.modal.hide!
@@ -25,102 +109,11 @@
 					template: error
 		$scope.modal.hide!
 
-	$scope.social =
-		google: 'Google+'
-		facebook: 'Facebook'
-
-	checkSocial = (name) !->
-		$scope.social.changing = true
-		$log.debug "Changing social: #{angular.toJson $scope.social}"
-		if $scope.social.service[name].connected
-			AccountFactory.connect name, !->
-				way = LocalStorageFactory.login-way.load!
-				$scope.social.service[name] <<< way[name]
-				$scope.social.service[name].connected = way[name].email?
-				$log.debug "User profile of #{name} is loaded."
-				$scope.social.changing = false
-				$log.debug "Account connected: #{angular.toJson $scope.social}"
-			, (msg) !->
-				$scope.social.service[name].connected = false
-				$scope.social.changing = false
-				$ionicPopup.alert do
-					title: 'Error'
-					template: msg
-		else
-			if $scope.social.forLogin == name
-				$log.debug "Used for login: #{name}"
-				$scope.social.service[name].connected = true
-				$scope.social.changing = false
-			else
-				AccountFactory.disconnect name, !->
-					way = LocalStorageFactory.login-way.load!
-					$scope.social.service[name] =
-						connected: false
-						email: null
-					$log.debug "User profile of #{name} is cleared."
-					$scope.social.changing = false
-					$log.debug "Account disconnected: #{angular.toJson $scope.social}"
-				, (msg) !->
-					$scope.social.service[name].connected = true
-					$scope.social.changing = false
-					$ionicPopup.alert do
-						title: 'Error'
-						template: msg
-
-	load-profile = (onSuccess) !->
-		error-taker = (msg) !->
-			$ionicPopup.alert do
-				title: 'Error'
-				template: msg
-		AccountFactory.load-profile (profile) !->
-			$scope.profile <<< profile if !$scope.profile.email?
-			$scope.profile.original = profile
-			$log.debug "Initialized profile: #{angular.toJson $scope.profile}"
-			AccountFactory.all-profile (services) !->
-				for key, obj of services
-					tmp = $scope.social.service[key] <<< obj
-					tmp.connected = tmp.email?
-				$log.debug "Initialized social: #{angular.toJson $scope.social}"				
-				onSuccess!
-			, error-taker
-		, error-taker
-
-	clear = (onSuccess) !->
+	init = (onSuccess) !->
 		# Initialize units
 		$scope.units = UnitFactory.units!
 		UnitFactory.load (units) !->
 			$scope.unit = units
-		
-		# Initialize social
-		way = LocalStorageFactory.login-way.load!
-		$scope.social =
-			changing: false
-			for-login: way.for-login
-			titles:
-				google: 'Google+'
-				facebook: 'Facebook'
-			service:
-				google:
-					connected: null
-					email: null
-					name: null
-					avatar: null
-				facebook:
-					connected: null
-					email: null
-					name: null
-					avatar: null
-			listEnabled: ->
-				{[key, $scope.social.titles[key]] for key, obj of $scope.social.service when obj.connected}
-			changeLogin: !->
-				$scope.social.changing = true
-				$log.debug "Changing social: #{angular.toJson $scope.social}"
-				way = LocalStorageFactory.login-way.load!
-				way.for-login = $scope.social.for-login
-				LocalStorageFactory.login-way.save way
-				$scope.social.changing = false
-			checkGoogle: !-> checkSocial('google')
-			checkFacebook: !-> checkSocial('facebook')
 		
 		# Initialize profile
 		$scope.profile =
@@ -130,7 +123,7 @@
 			avatar: null
 			popup: (template-id, fProp, result-taker) !->
 				$scope.selection.value = fProp($scope.profile)
-				$scope.selection.values = _.unique [fProp(obj) for key, obj of $scope.social.service when fProp(obj)?]
+				$scope.selection.values = _.unique [fProp(obj) for key, obj of LocalStorageFactory.login-way.load! when fProp(obj)?]
 				$ionicPopup.show do
 					title: "Profile (#{$scope.selection.title})"
 					templateUrl: template-id
@@ -166,7 +159,15 @@
 				$scope.profile.popup 'selection', (.email), (result) !->
 					$scope.profile.email = result if result
 
-		load-profile onSuccess
+		AccountFactory.load-profile (profile) !->
+			$scope.profile <<< profile if !$scope.profile.email?
+			$scope.profile.original = profile
+			$log.debug "Initialized profile: #{angular.toJson $scope.profile}"
+			onSuccess!
+		, (msg) !->
+			$ionicPopup.alert do
+				title: 'Error'
+				template: msg
 
 .controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
