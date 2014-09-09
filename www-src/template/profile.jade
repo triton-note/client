@@ -1,7 +1,7 @@
 ion-modal-view
 	ion-header-bar.bar-dark
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
-		h1.title Settings
+		h1.title User Info
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
 	ion-content(header-shrink, scroll-event-interval="5")
 		.list
@@ -14,11 +14,11 @@ ion-modal-view
 			.item.item-input.item-button-right
 				.input-label
 					p Name
-				button.button.button-clear(ng-click="profile.changeName()") {{ profile.name }}
+				button.button.button-clear.button-dark(ng-click="profile.changeName()") {{ profile.name }}
 			.item.item-input.item-button-right
 				.input-label
 					p Email
-				button.button.button-clear(ng-click="profile.changeEmail()") {{ profile.email }}
+				button.button.button-clear.button-dark(ng-click="profile.changeEmail()") {{ profile.email }}
 
 			script#selection(type="text/ng-template")
 
