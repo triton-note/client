@@ -8,7 +8,8 @@ ion-modal-view
 	ion-content(ng-controller='DetailReportCtrl')
 		.card
 			.item.item-image
-				img.full-image(ng-src="{{ report.photo.mainview }}")
+				ion-scroll(direction="xy", zooming="true", min-zoom="0.5", max-zoom="4", style="height: device-width")
+					img(ng-src="{{ report.photo.mainview }}")
 		.list
 			.row.item.item-input
 				.col-25.input-label

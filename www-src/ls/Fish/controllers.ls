@@ -169,7 +169,7 @@
 				title: 'Error'
 				template: msg
 
-.controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, ReportFactory) !->
+.controller 'ShowReportsCtrl', ($log, $scope, $ionicModal, $ionicPopup, $ionicScrollDelegate, ReportFactory) !->
 	$ionicModal.fromTemplateUrl 'template/show-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -190,6 +190,7 @@
 	$scope.detail = (index) !->
 		$scope.index = index
 		$scope.report = ReportFactory.getReport index
+		$ionicScrollDelegate.zoomTo 1
 		$scope.modal.show!
 	$scope.close = !-> $scope.modal.hide!
 	$scope.delete = (index) !->
