@@ -3,7 +3,7 @@ require! {
 }
 
 angular.module('Fish', ['ionic'])
-.run ($log, LocalStorageFactory) !->
+.run ($log) !->
 	ionic.Platform.ready !->
 		$log.info "Device is ready"
 		StatusBar.styleDefault! if (window.StatusBar)
