@@ -277,7 +277,7 @@
 			$log.debug "Edit completed."
 		$scope.modal.hide!
 
-.controller 'AddReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, $ionicPopup, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, $ionicPopup, $ionicScrollDelegate, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -330,6 +330,7 @@
 					$scope.unsubmittable = true
 					$log.debug "Selected photo: #{uri}"
 					$scope.currentReport = newReport uri, geoinfo
+					$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
 					$scope.modal.show!
 				, (msg) !->
 					$ionicPopup.alert do
