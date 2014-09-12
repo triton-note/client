@@ -1,3 +1,34 @@
+.directive 'fathensFitImg', ($log) ->
+	getProp = (obj, [h, ...left]:list) ->
+		next = obj[h]
+		if next && left.length > 0
+		then getProp(next, left)
+		else next
+
+	restrict: 'E'
+	template: '<div><img/></div>'
+	replace: true
+	scope: false
+	link: ($scope, $element, $attrs) !->
+		div = $element[0]
+		img = $element.children!
+		photo = $attrs['src']
+		if photo && photo.length > 0
+			chain = photo.split('.')
+			$scope.$watch chain[0], !->
+				photo-url = getProp $scope, chain
+				if photo-url
+					$log.debug "img=#{img}, photo=#{photo}, src=#{photo-url}"
+					img.attr('src', photo-url)
+					img.on 'load', !->
+						rect =
+							width: img[0].clientWidth
+							height: img[0].clientHeight
+						max = if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width else rect.height
+						div.style.width = "#{_.min max, rect.width}px"
+						div.style.height = "#{_.min max, rect.height}px"
+						$log.debug "Directive Squared Image: #{angular.toJson rect} ==> #{max}"
+
 .directive 'fathensGoogleMaps', ($log) ->
 	arrange-heiht = (jqe) ->
 		e = jqe[0]
