@@ -6,7 +6,8 @@ ion-modal-view
 	ion-content
 		.card
 			.item.item-image
-				img.full-image(ng-src="{{ currentReport.photo.mainview }}")
+				ion-scroll(delegate-handle="scroll-img-edit-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
+					fathens-fit-img(src="currentReport.photo.mainview")
 		.list
 			.row.item.item-input
 				.col-25.input-label

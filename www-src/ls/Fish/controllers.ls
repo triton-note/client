@@ -190,7 +190,7 @@
 	$scope.detail = (index) !->
 		$scope.index = index
 		$scope.report = ReportFactory.getReport index
-		$ionicScrollDelegate.zoomTo 1
+		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
 		$scope.modal.show!
 	$scope.close = !-> $scope.modal.hide!
 	$scope.delete = (index) !->
@@ -221,7 +221,7 @@
 		$scope.gmap-visible = false
 		$scope.modal.hide!
 
-.controller 'EditReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, ReportFactory) !->
+.controller 'EditReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, $ionicScrollDelegate, ReportFactory) !->
 	# $scope.currentReport = 表示中のレコード
 	# $scope.index = 表示中のレコードの index
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
@@ -265,6 +265,7 @@
 	$scope.edit = !->
 		$scope.currentReport = angular.copy $scope.report
 		$scope.currentReport.dateAt = $filter('date') new Date($scope.currentReport.dateAt), 'yyyy-MM-dd'
+		$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
 		$scope.modal.show!
 
 	$scope.cancel = !->
