@@ -8,7 +8,7 @@
 				modal.hide!
 		,
 			scope: $scope
-			animation: 'slide-in-up'
+			animation: 'slide-in-left'
 
 	init = (onSuccess) !->
 		$scope.changing = false
@@ -87,7 +87,7 @@
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
-			animation: 'slide-in-up'
+			animation: 'slide-in-left'
 	$scope.open = !->
 		init !->
 			$scope.modal.show!
