@@ -8,7 +8,7 @@ ion-modal-view
 	ion-content(ng-controller='DetailReportCtrl')
 		.card
 			.item.item-image
-				img.full-image(ng-src="{{ report.photo.mainview }}")
+				fathens-fit-img(src="report.photo.mainview", delegate-handle="scroll-img-show-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
 		.list
 			.row.item.item-input
 				.col-25.input-label
