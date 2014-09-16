@@ -29,22 +29,22 @@
 		| 400 =>
 			if data.indexOf('Expired') > -1 then
 				type: @types.expired
-				msg: data
+				msg: "Token Expired"
 			else
 				type: @types.Error
-				msg: data
+				msg: "Application Error"
 		| 404 =>
 			type: @types.fatal
 			msg: "Not Found"
 		| 501 =>
 			type: @types.fatal
-			msg: "Not Implemented: #{data}"
+			msg: "Not Implemented"
 		| 503 =>
 			type: @types.fatal
-			msg: "Service Unavailable: #{data}"
+			msg: "Service Unavailable"
 		| _   =>
 			type: @types.error
-			msg: "Error: #{data}"
+			msg: "Error"
 
 	error-types: http-error.types
 	/*
