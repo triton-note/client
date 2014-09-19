@@ -376,7 +376,7 @@
 					then
 						store.ticket = null
 						auth!
-					else error-taker error
+					else error-taker error.msg
 			, error-taker
 		auth!
 
@@ -400,7 +400,7 @@
 					way[way-name] = undefined
 					LocalStorageFactory.login-way.save way
 					success-taker!
-				, (-> it.msg) >> error-taker
+				, error-taker
 			, error-taker
 		else
 			if way?.for-login == way-name
@@ -408,14 +408,14 @@
 			else
 				error-taker "This way is not connected: #{way-name}"
 
-	with-ticket: with-ticket		
+	with-ticket: with-ticket
 	connect: (way-name, success-taker, error-taker) !->
 		connect(way-name) (token) !->
 			with-ticket (ticket) ->
 				ServerFactory.connect ticket, way-name, token
 			, (result) !->
 				success-taker!
-			, (-> it.msg) >> error-taker
+			, error-taker
 		, error-taker
 	disconnect: (way-name, success-taker, error-taker) !->
 		disconnect(way-name) success-taker, error-taker
@@ -437,13 +437,13 @@
 			ServerFactory.load-profile ticket
 		, (result) !->
 			success-taker result
-		, (-> it.msg) >> error-taker
+		, error-taker
 	save-profile: (profile, success-taker, error-taker) !->
 		with-ticket (ticket) ->
 			ServerFactory.change-profile ticket, profile
 		, (result) !->
 			success-taker!
-		, (-> it.msg) >> error-taker
+		, error-taker
 
 .factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
@@ -505,7 +505,7 @@
 			store.session = result.session
 			store.upload-info = result.upload
 			success!
-		, (-> it.msg) >> error-taker
+		, error-taker
 	put-photo: (uri, success, inference-taker, error-taker) !->
 		if store.session
 			upload uri
@@ -513,7 +513,7 @@
 					ServerFactory.put-photo(that, filename) (urls) !->
 						ServerFactory.infer-photo(that) inference-taker, (error) !->
 							store.session = null
-							error-taker error
+							error-taker error.msg
 						success urls
 					, (error) !->
 						store.session = null
@@ -573,7 +573,7 @@
 		, (error) !->
 			$ionicPopup.alert do
 				title: "Failed to load from server"
-				template: error.msg
+				template: error
 			.then (res) !-> taker null
 
 	reload = (success) !->
@@ -605,7 +605,7 @@
 				$log.debug "Read report: #{angular.toJson result}"
 				angular.copy result.report, item.report
 			, (error) !->
-				$log.error "Failed to read report(#{item.report.id}) from server"
+				$log.error "Failed to read report(#{item.report.id}) from server: #{error}"
 		item.report
 
 	cachedList: ->
@@ -665,7 +665,7 @@
 		, (error) !->
 			$ionicPopup.alert do
 				title: "Failed to remove from server"
-				template: error.msg
+				template: error
 	/*
 		Update report
 	*/
@@ -679,7 +679,7 @@
 		, (error) !->
 			$ionicPopup.alert do
 				title: "Failed to update to server"
-				template: error.msg
+				template: error
 
 .factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
@@ -696,7 +696,7 @@
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.change-units ticket, units
 		, !-> $log.debug "Success to change units"
-		, (error) !-> $log.debug "Failed to change units"
+		, (error) !-> $log.debug "Failed to change units: #{error}"
 	load-local = -> store.unit ? default-units
 	load-server = (taker) !->
 		AccountFactory.with-ticket (ticket) ->
