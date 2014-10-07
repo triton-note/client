@@ -315,29 +315,28 @@
 		facebook: facebook-disconnect
 		google: google-disconnect
 
-.factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
+.factory 'AccountFactory', ($log, $rootScope, $ionicModal, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
 		taking: null
 		ticket: null
 
+
+	scope = $rootScope.$new(true)
 	select-way-name = (taker) !->
 		if LocalStorageFactory.login-way.load!?.for-login then taker that
 		else AcceptanceFactory.obtain !->
 			$log.warn "Taking Login Way ..."
-			$ionicPopup.show do
-				title: 'Select for Login'
-				buttons:
-					{
-						text: ''
-						type: 'button icon ion-social-facebook button-positive'
-						onTap: (e) -> SocialFactory.ways.facebook
-					},{
-						text: ''
-						type: 'button icon ion-social-googleplus button-assertive'
-						onTap: (e) -> SocialFactory.ways.google
-					}
-			.then (way-name) !->
+			scope.ways = SocialFactory.ways
+			scope.signin = (way-name) !->
+				scope.modal.remove!
 				taker way-name
+			$ionicModal.fromTemplateUrl 'template/signin.html'
+			, (modal) !->
+				scope.modal = modal
+				modal.show!
+			,
+				scope: scope
+				animation: 'slide-in-up'
 
 	stack-login = (ticket-taker, error-taker) !->
 		if store.ticket then ticket-taker store.ticket
