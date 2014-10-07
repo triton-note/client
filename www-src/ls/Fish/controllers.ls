@@ -82,8 +82,8 @@
 						title: 'Error'
 						template: msg
 
-.controller 'ProfileCtrl', ($log, $scope, $ionicPopup, $ionicModal, UnitFactory, LocalStorageFactory, AccountFactory) !->
-	$ionicModal.fromTemplateUrl 'template/profile.html'
+.controller 'PreferencesCtrl', ($log, $scope, $ionicPopup, $ionicModal, UnitFactory, LocalStorageFactory, AccountFactory) !->
+	$ionicModal.fromTemplateUrl 'template/preferences.html'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
