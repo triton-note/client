@@ -9,8 +9,8 @@ ion-modal-view
 			.item.item-toggle
 				.input-label Facebook
 				label.toggle.toggle-balanced
-					input(type='checkbox', ng-model="service.facebook.connected", ng-change="checkFacebook()", ng-disabled="changing")
+					input(type='checkbox', ng-model="login", ng-change="checkSocial()", ng-disabled="changing")
 					.track
 						.handle
-				.item-text-wrap(ng-show="service.facebook.connected")
-					p {{ service.facebook.email }}
+				.item-text-wrap(ng-show="login")
+					p {{ username }}

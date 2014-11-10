@@ -45,14 +45,11 @@
 	clear-all: !-> for name in names
 		window.localStorage.removeItem name
 	/*
-	Express the way of login
-		for-login: 'google'|'facebook'
-		google:
-			email: String
-		facebook:
-			email: String
+	Express the account of login
+		id: String
+		name: String
 	*/
-	login-way: make 'login-way', true
+	account: make 'account', true
 	/*
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
 	*/

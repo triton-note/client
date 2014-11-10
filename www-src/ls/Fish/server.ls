@@ -61,29 +61,17 @@
 	/*
 	Login to Server
 	*/
-	login: (way, token, ticket-taker, error-taker) !->
+	login: (token, ticket-taker, error-taker) !->
+		way = 'facebook'
 		$log.debug "Login to server with #{way} by #{token}"
 		http('POST', "login/#{way}",
 			token: token
 		) ticket-taker, error-taker
 	/*
-	Load User Profile
-	*/
-	load-profile: (ticket) -> (success-taker, error-taker) !->
-		$log.debug "Loading user profile: #{ticket}"
-		http('GET', "account/profile/load/#{ticket}") success-taker, error-taker
-	/*
-	Change User Profile
-	*/
-	change-profile: (ticket, profile) -> (success-taker, error-taker) !->
-		$log.debug "Changing user profile: #{profile}, #{ticket}"
-		http('POST', "account/profile/change/#{ticket}",
-			profile: profile
-		) success-taker, error-taker
-	/*
 	Connect account to social service
 	*/
-	connect: (ticket, way-name, token) -> (success-taker, error-taker) !->
+	connect: (ticket, token) -> (success-taker, error-taker) !->
+		way-name = 'facebook'
 		$log.debug "Connecting to #{way-name} by token:#{token}"
 		http('POST', "account/connect/#{ticket}",
 			way: way-name
@@ -92,7 +80,8 @@
 	/*
 	Disconnect account to social service
 	*/
-	disconnect: (ticket, way-name) -> (success-taker, error-taker) !->
+	disconnect: (ticket) -> (success-taker, error-taker) !->
+		way-name = 'facebook'
 		$log.debug "Disconnecting from #{way-name}"
 		http('POST', "account/disconnect/#{ticket}",
 			way: way-name
@@ -130,10 +119,12 @@
 	/*
 	Put given report to the session
 	*/
-	publish-report: (session, publishing) -> (success, error-taker) !->
-		$log.debug "Publishing report with #{session}: #{angular.toJson publishing}"
+	publish-report: (session, token) -> (success, error-taker) !->
+		$log.debug "Publishing report with #{session}: #{token}"
 		http('POST', "report/publish/#{session}",
-			publishing: publishing
+			publishing:
+				way: 'facebook'
+				token: token
 		) success, error-taker
 	/*
 	Load report from server, then pass to taker
@@ -244,29 +235,26 @@
 			takeIt!
 
 .factory 'SocialFactory', ($log) ->
-	facebook-login = (...perm) -> (account-name, token-taker, error-taker) !->
-		$log.info "Logging in to Facebook: #{perm}, ignoring account-name:#{account-name}"
+	facebook-login = (...perm) -> (token-taker, error-taker) !->
+		$log.info "Logging in to Facebook: #{perm}"
 		facebookConnectPlugin.login perm
 		, (result) !->
 			$log.debug "Get access: #{angular.toJson result}"
-			facebook-profile null
-			, (profile) !->
+			facebook-profile (profile) !->
 				token-taker profile, result.authResponse.accessToken
 			, error-taker
 		, error-taker
-	facebook-profile = (account-name, profile-taker, error-taker) !->
-		$log.info "Getting profile of Facebook, ignoring account-name:#{account-name}"
-		facebookConnectPlugin.api "me?fields=email,name,picture", ['public_profile', 'email']
+	facebook-profile = (profile-taker, error-taker) !->
+		$log.info "Getting profile of Facebook"
+		facebookConnectPlugin.api "me?fields=name", ['public_profile']
 		, (info) !->
 			$log.debug "Get profile: #{angular.toJson info}"
 			profile-taker do
 				id: info.id
 				name: info.name
-				email: info.email
-				avatar: info.picture?.data?.url
 		, error-taker
-	facebook-disconnect = (account-name, onSuccess, error-taker) !->
-		$log.info "Disconnecting from facebook, ignoring account-name: #{account-name}"
+	facebook-disconnect = (onSuccess, error-taker) !->
+		$log.info "Disconnecting from facebook"
 		facebookConnectPlugin.api "me/permissions?method=delete", []
 		, (info) !->
 			$log.debug "Revoked: #{angular.toJson info}"
@@ -275,61 +263,24 @@
 				onSuccess!
 			, error-taker
 		, error-taker
-	google-login = (account-name, token-taker, error-taker) !->
-		$log.info "Logging in to Google+: #{account-name}"
-		googlePlusConnectPlugin.getAccessToken account-name
-		, (result) !->
-			$log.debug "Get access: #{angular.toJson result}"
-			google-profile result.account-name
-			, (profile) !->
-				token-taker profile, result.access-token
-			, error-taker
-		, error-taker
-	google-profile = (account-name, profile-taker, error-taker) !->
-		$log.info "Getting profile of Google+: #{account-name}"
-		googlePlusConnectPlugin.profile account-name
-		, (info) !->
-			$log.debug "Get profile: #{angular.toJson info}"
-			profile-taker info
-		, error-taker
-	google-disconnect = (account-name, onSuccess, error-taker) !->
-		$log.info "Disconnect to Google+: #{account-name}"
-		googlePlusConnectPlugin.disconnect account-name
-		, !->
-			$log.debug "Success to disconnect"
-			onSuccess!
-		, error-taker
 
-	ways:
-		facebook: 'facebook'
-		google: 'google'
-	login:
-		facebook: facebook-login 'public_profile', 'email'
-		google: google-login
-	profile:
-		facebook: facebook-profile
-		google: google-profile
-	publish:
-		facebook: facebook-login 'publish_actions'
-	disconnect:
-		facebook: facebook-disconnect
-		google: google-disconnect
+	login: facebook-login 'public_profile'
+	publish: facebook-login 'publish_actions'
+	disconnect: facebook-disconnect
 
 .factory 'AccountFactory', ($log, $rootScope, $ionicModal, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
 		taking: null
 		ticket: null
 
-
 	scope = $rootScope.$new(true)
-	select-way-name = (taker) !->
-		if LocalStorageFactory.login-way.load!?.for-login then taker that
+	accept-account = (taker) !->
+		if LocalStorageFactory.account.load!?.id then taker!
 		else AcceptanceFactory.obtain !->
-			$log.warn "Taking Login Way ..."
-			scope.ways = SocialFactory.ways
-			scope.signin = (way-name) !->
+			$log.warn "Taking Login Account ..."
+			scope.signin = !->
 				scope.modal.remove!
-				taker way-name
+				taker!
 			$ionicModal.fromTemplateUrl 'template/signin.html'
 			, (modal) !->
 				scope.modal = modal
@@ -347,14 +298,11 @@
 			else
 				store.taking = [ticket-taker]
 				$log.debug "First listener in queue: #{store.taking}"
-				select-way-name (way-name) !->
-					$log.debug "Get login way: #{way-name}"
-					connect(way-name) (token) !->
-						ServerFactory.login way-name, token
+				accept-account !->
+					$log.debug "Get login"
+					connect (token) !->
+						ServerFactory.login token
 						, (ticket) !->
-							way = LocalStorageFactory.login-way.load! ? {}
-							way.for-login = way-name
-							LocalStorageFactory.login-way.save way
 							store.ticket = ticket
 							if store.taking
 								$log.debug "Clear and invoking all listeners: #{store.taking}"
@@ -379,91 +327,65 @@
 			, error-taker
 		auth!
 
-	connect = (way-name) -> (token-taker, error-taker) !->
-		way = LocalStorageFactory.login-way.load! ? { for-login: way-name }
-		SocialFactory.login[way-name] way[way-name]?.email ? null
-		, (profile, token) !->
-			way[way-name] = profile
-			LocalStorageFactory.login-way.save way
+	connect = (token-taker, error-taker) !->
+		SocialFactory.login (profile, token) !->
+			LocalStorageFactory.account.save profile
+			$log.info "Social connected."
 			token-taker token
 		, error-taker
 
-	disconnect = (way-name) -> (success-taker, error-taker) !->
-		way = LocalStorageFactory.login-way.load!
-		if way && way[way-name]?.email && way.for-login != way-name
-			SocialFactory.disconnect[way-name] way[way-name].email
-			, !->
-				with-ticket (ticket) ->
-					ServerFactory.disconnect ticket, way-name
-				, (result) !->
-					way[way-name] = undefined
-					LocalStorageFactory.login-way.save way
+	disconnect = (success-taker, error-taker) !->
+		account = LocalStorageFactory.account.load!
+		if account?.id
+			$log.warn "Social Disconnecting..."
+			with-ticket (ticket) ->
+				ServerFactory.disconnect ticket
+			, (result) !->
+				SocialFactory.disconnect !->
+					LocalStorageFactory.account.remove!
+					$log.info "Social disconnected."
 					success-taker!
 				, error-taker
 			, error-taker
 		else
-			if way?.for-login == way-name
-				error-taker "This way is used for login: #{way-name}"
-			else
-				error-taker "This way is not connected: #{way-name}"
+			error-taker "Not connected"
 
 	with-ticket: with-ticket
-	connect: (way-name, success-taker, error-taker) !->
-		connect(way-name) (token) !->
+	connect: (success-taker, error-taker) !->
+		connect (token) !->
 			with-ticket (ticket) ->
-				ServerFactory.connect ticket, way-name, token
+				ServerFactory.connect ticket, token
 			, (result) !->
-				success-taker!
+				username = LocalStorageFactory.account.load!?.name
+				success-taker name
 			, error-taker
 		, error-taker
-	disconnect: (way-name, success-taker, error-taker) !->
-		disconnect(way-name) success-taker, error-taker
-	all-profile: (success-taker, error-taker) !->
-		way = LocalStorageFactory.login-way.load! ? {}
-		getProfile = (profiles, [service, ...left]: list) !->
-			$log.debug "Taking profile of services: #{service}, #{left} of #{angular.toJson way}"
-			if service? then
-				SocialFactory.profile[service] way[service].email
-				, (profile) !->
-					profiles[service] = profile
-					$log.debug "Profiles stack: #{angular.toJson profiles}"
-					getProfile profiles, left
-				, error-taker
-			else success-taker profiles
-		getProfile {}, [key for key, obj of way when obj.email?]
-	load-profile: (success-taker, error-taker) !->
-		with-ticket (ticket) ->
-			ServerFactory.load-profile ticket
-		, (result) !->
-			success-taker result
-		, error-taker
-	save-profile: (profile, success-taker, error-taker) !->
-		with-ticket (ticket) ->
-			ServerFactory.change-profile ticket, profile
-		, (result) !->
-			success-taker!
-		, error-taker
+	disconnect: (success-taker, error-taker) !->
+		disconnect success-taker, error-taker
+	is-connected: ->
+		!!LocalStorageFactory.account.load!?.id
+	get-username: (success-taker, error-taker) !->
+		if LocalStorageFactory.account.load!
+			success-taker that.name
+		else
+			error-taker "Not login"
 
 .factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
 		session: null
 		upload-info: null
 
-	permit-publish = (way-name, token-taker, error-taker) !->
-		SocialFactory.publish[way-name] null, token-taker, error-taker
+	permit-publish = (token-taker, error-taker) !->
+		SocialFactory.publish token-taker, error-taker
 
-	publish = (session, way-name) !->
-		permit-publish way-name
-		, (account-name, token) !->
-			ServerFactory.publish-report(session,
-				way: way
-				token: token
-			) !->
+	publish = (session) !->
+		permit-publish (account-name, token) !->
+			ServerFactory.publish-report(session, token) !->
 				$log.info "Success to publish session: #{session}"
 			, (error) !->
 				$ionicPopup.alert do
 					title: 'Error'
-					template: "Failed to publish to #{way}"
+					template: "Failed to publish"
 		, (error) !->
 			$ionicPopup.alert do
 				title: 'Rejected'
@@ -520,11 +442,11 @@
 				, (error) !->
 					error-taker "Failed to upload"
 		else error-taker "No session started"
-	finish: (report, publish-way, success) !->
+	finish: (report, is-publish, success) !->
 		if (session = store.session)
 			store.session = null
 			submit session, report, !->
-				publish(session, publish-way) if publish-way?.length > 0
+				publish(session) if is-publish
 				success!
 		else 
 			$ionicPopup.alert do
