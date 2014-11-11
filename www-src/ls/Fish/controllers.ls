@@ -229,7 +229,7 @@
 							template: error
 						.then (res) !->
 							$scope.cancel!
-					$scope.publish.ables = if LocalStorageFactory.login-way.load!?.facebook?.email then ['facebook'] else []
+					$scope.publish.ables = if LocalStorageFactory.account.load!?.id then ['facebook'] else []
 					$scope.unsubmittable = true
 					$log.debug "Selected photo: #{uri}"
 					$scope.currentReport = newReport uri, geoinfo
