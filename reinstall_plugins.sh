@@ -16,9 +16,6 @@ cordova plugin add org.apache.cordova.geolocation
 # Ionic Keyboard
 cordova plugin add https://github.com/driftyco/ionic-plugins-keyboard.git
 
-# Google+ connect
-cordova plugin add https://github.com/sawatani/Cordova-GooglePlus.git --variable IOS_CLIENT_ID='945048561360-k8admbvmnc16qkj69s5f6kj154holr7p.apps.googleusercontent.com'
-
 # Facebook connect
 cordova plugin add https://github.com/sawatani/phonegap-facebook-plugin.git --variable APP_ID="751407064903894" --variable APP_NAME="TritonNote"
 (cd platforms/android/ && android update project -p . -l FacebookLib) # Add as library

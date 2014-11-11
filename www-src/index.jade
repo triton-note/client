@@ -10,6 +10,7 @@ html(ng-app="Fish")
 		script(src="lib/angular-animate/angular-animate.js")
 		script(src="lib/angular-sanitize/angular-sanitize.js")
 		script(src="lib/angular-ui-router/release/angular-ui-router.js")
+		script(src="lib/collide/collide.js")
 		script(src="lib/ionic/js/ionic-angular.js")
 		script(src="lib/ionic/js/ionic.js")
 		script(src="lib/prelude-ls/browser/prelude-browser.js")
@@ -46,7 +47,7 @@ html(ng-app="Fish")
 					.list
 						.item(ng-controller='DistributionMapCtrl', ng-click="open()")
 							p View on Map
-						.item(ng-controller='ProfileCtrl', ng-click="open()")
-							p User Info
+						.item(ng-controller='PreferencesCtrl', ng-click="open()")
+							p Preferences
 						.item(ng-controller='SNSCtrl', ng-click="open()")
 							p Social Connections

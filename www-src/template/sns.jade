@@ -5,25 +5,12 @@ ion-modal-view
 	ion-content(header-shrink, scroll-event-interval="5")
 		.list
 			.item.item-divider
-				h2.title Use for login
-			.item.item-input.item-select.item-stable
-				.input-label Connect to
-				select(ng-model="service.forLogin", ng-options="key as value for (key, value) in listEnabled()", ng-change="changeLogin()", ng-disabled="changing")
-			.item.item-divider
 				h2.title Connections
-			.item.item-toggle
-				.input-label Google+
-				label.toggle.toggle-balanced
-					input(type='checkbox', ng-model="service.google.connected", ng-change="checkGoogle()", ng-disabled="changing")
-					.track
-						.handle
-				.item-text-wrap(ng-show="service.google.connected")
-					p {{ service.google.email }}
 			.item.item-toggle
 				.input-label Facebook
 				label.toggle.toggle-balanced
-					input(type='checkbox', ng-model="service.facebook.connected", ng-change="checkFacebook()", ng-disabled="changing")
+					input(type='checkbox', ng-model="login", ng-change="checkSocial()", ng-disabled="changing")
 					.track
 						.handle
-				.item-text-wrap(ng-show="service.facebook.connected")
-					p {{ service.facebook.email }}
+				.item-text-wrap(ng-show="login")
+					p {{ username }}
