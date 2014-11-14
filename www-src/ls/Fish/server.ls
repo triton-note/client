@@ -253,14 +253,14 @@
 				id: info.id
 				name: info.name
 		, error-taker
-	facebook-disconnect = (onSuccess, error-taker) !->
+	facebook-disconnect = (on-success, error-taker) !->
 		$log.info "Disconnecting from facebook"
 		facebookConnectPlugin.api "me/permissions?method=delete", []
 		, (info) !->
 			$log.debug "Revoked: #{angular.toJson info}"
 			facebookConnectPlugin.logout (out) !->
 				$log.debug "Logout: #{angular.toJson out}"
-				onSuccess!
+				on-success!
 			, error-taker
 		, error-taker
 
@@ -375,11 +375,8 @@
 		session: null
 		upload-info: null
 
-	permit-publish = (token-taker, error-taker) !->
-		SocialFactory.publish token-taker, error-taker
-
 	publish = (session) !->
-		permit-publish (account-name, token) !->
+		SocialFactory.publish (token) !->
 			ServerFactory.publish-report(session, token) !->
 				$log.info "Success to publish session: #{session}"
 			, (error) !->
@@ -509,10 +506,9 @@
 
 	save = (list) ->
 		now = new Date!.getTime!
-		_.map (report) ->
+		list |> _.map (report) ->
 			timestamp: now
 			report: report
-		, list
 
 	read = (item) ->
 		now = new Date!.getTime!
@@ -530,7 +526,7 @@
 		item.report
 
 	cachedList: ->
-		_.map read, store.reports
+		store.reports |> _.map read
 	hasMore: ->
 		store.hasMore
 	/*
@@ -741,14 +737,13 @@
 		if store.catches.mine then
 			store.catches.mine = _.filter (.report-id != report-id), that
 	add-mine = (report) !->
-		list = _.map (fish) ->
-			report-id: report.id
-			name: fish.name
-			count: fish.count
-			date: report.dateAt
-			geoinfo: report.location.geoinfo
-		, report.fishes
 		if store.catches.mine then
+			list = report.fishes |> _.map (fish) ->
+				report-id: report.id
+				name: fish.name
+				count: fish.count
+				date: report.dateAt
+				geoinfo: report.location.geoinfo
 			store.catches.mine = that ++ list
 			$log.debug "Added distribution of catches:#{angular.toJson list}"
 
@@ -769,7 +764,7 @@
 				list = if pre
 					then _.filter ((a) -> startsWith(a, pre)), src
 					else []
-				success _.map (.name), _.reverse _.sort-by (.count), list
+				list |> _.sort-by (.count) |> _.reverse |> _.map (.name) |> success 
 			else fail!
 		check-or !->
 			refresh-names !->

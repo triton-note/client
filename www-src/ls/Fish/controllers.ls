@@ -180,7 +180,7 @@
 			$log.debug "Edit completed."
 		$scope.modal.hide!
 
-.controller 'AddReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, $ionicPopup, $ionicScrollDelegate, PhotoFactory, ReportFactory, SessionFactory, LocalStorageFactory) !->
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $filter, $scope, $ionicModal, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory) !->
 	$ionicModal.fromTemplateUrl 'template/edit-report.html'
 		, (modal) !-> $scope.modal = modal
 		,
@@ -194,9 +194,7 @@
 			animation: 'slide-in-left'
 
 	$scope.title = "New Report"
-	$scope.publish =
-		do: {}
-		ables: []
+	$scope.publish = false
 
 	newReport = (uri, geoinfo) ->
 		photo:
@@ -229,7 +227,6 @@
 							template: error
 						.then (res) !->
 							$scope.cancel!
-					$scope.publish.ables = if LocalStorageFactory.account.load!?.id then ['facebook'] else []
 					$scope.unsubmittable = true
 					$log.debug "Selected photo: #{uri}"
 					$scope.currentReport = newReport uri, geoinfo
@@ -286,9 +283,8 @@
 		report.photo = report.url
 		report.url = undefined
 		report.dateAt = new Date(report.dateAt).getTime!
-		SessionFactory.finish report, [name for name, value of $scope.publish.do when value][0], !->
-			$log.debug "Success on submitting report"
-		$scope.close!
+		SessionFactory.finish report, $scope.publish, !->
+			$scope.close!
 
 .controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
 	# $scope.currentReport.fishes
