@@ -194,7 +194,6 @@
 			animation: 'slide-in-left'
 
 	$scope.title = "New Report"
-	$scope.publish = false
 
 	newReport = (uri, geoinfo) ->
 		photo:
@@ -227,6 +226,8 @@
 							template: error
 						.then (res) !->
 							$scope.cancel!
+					$scope.publishing =
+						facebook: false
 					$scope.unsubmittable = true
 					$log.debug "Selected photo: #{uri}"
 					$scope.currentReport = newReport uri, geoinfo
@@ -283,7 +284,7 @@
 		report.photo = report.url
 		report.url = undefined
 		report.dateAt = new Date(report.dateAt).getTime!
-		SessionFactory.finish report, $scope.publish, !->
+		SessionFactory.finish report, $scope.publishing.facebook, !->
 			$scope.close!
 
 .controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
