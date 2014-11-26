@@ -240,9 +240,7 @@
 		facebookConnectPlugin.login perm
 		, (result) !->
 			$log.debug "Get access: #{angular.toJson result}"
-			facebook-profile (profile) !->
-				token-taker profile, result.authResponse.accessToken
-			, error-taker
+			token-taker result.authResponse.accessToken
 		, error-taker
 	facebook-profile = (profile-taker, error-taker) !->
 		$log.info "Getting profile of Facebook"
@@ -266,6 +264,7 @@
 
 	login: facebook-login 'public_profile'
 	publish: facebook-login 'publish_actions'
+	profile: facebook-profile
 	disconnect: facebook-disconnect
 
 .factory 'AccountFactory', ($log, $rootScope, $ionicModal, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
@@ -328,10 +327,12 @@
 		auth!
 
 	connect = (token-taker, error-taker) !->
-		SocialFactory.login (profile, token) !->
-			LocalStorageFactory.account.save profile
-			$log.info "Social connected."
-			token-taker token
+		SocialFactory.login (token) !->
+			SocialFactory.profile (profile) !->
+				LocalStorageFactory.account.save profile
+				$log.info "Social connected."
+				token-taker token
+			, error-taker
 		, error-taker
 
 	disconnect = (success-taker, error-taker) !->
