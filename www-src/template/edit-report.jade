@@ -24,6 +24,14 @@ ion-modal-view
 					p Comment
 				.col
 					textarea(ng-model="currentReport.comment", placeholder="Comments")
+			.row.item.item-toggle
+				.col
+					.input-label
+						p Post to Facebook
+					label.toggle.toggle-positive
+						input(type="checkbox", ng-model="publishing.facebook")
+						.track
+							.handle
 
 		.list(ng-controller='AddFishCtrl')
 			.bar.item.item-divider
@@ -33,6 +41,3 @@ ion-modal-view
 				ion-item.item-button-right(ng-repeat="fish in currentReport.fishes", ng-click="editFish($index)")
 					ion-delete-button.icon.ion-ios7-minus-outline(ng-click="deleteFish($index, false)")
 					p {{fish | fishFilter}}
-
-		.card.padding-vertical
-			ion-checkbox(ng-model="publish") Post to Facebook
