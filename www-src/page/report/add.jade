@@ -1,12 +1,12 @@
-ion-modal-view
+ion-view
 	ion-header-bar
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
-		h1.title {{title}}
-		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-disabled="unsubmittable")
+		h1.title New Report
+		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-disabled="!submit.enabled")
 	ion-content
 		.card
 			.item.item-image
-				fathens-fit-img(src="currentReport.photo.mainview", delegate-handle="scroll-img-edit-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
+				fathens-fit-img(src="currentReport.photo.mainview", delegate-handle="scroll-img-new-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
 		.list
 			.row.item.item-input
 				.col-25.input-label
@@ -18,7 +18,7 @@ ion-modal-view
 					p Spot
 				.col
 					input(type="text", ng-model="currentReport.location.name")
-				.icon.ion-earth.positive(ng-click="showMap()")
+					.icon.ion-earth.positive(ui-sref="edit-on-map({previous: 'new-report'})")
 			.row.item.item-input
 				.col-25.input-label
 					p Comment
@@ -29,7 +29,7 @@ ion-modal-view
 					.input-label
 						p Post to Facebook
 					label.toggle.toggle-positive
-						input(type="checkbox", ng-model="publishing.facebook")
+						input(type="checkbox", ng-model="submit.publishing")
 						.track
 							.handle
 

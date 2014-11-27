@@ -1,11 +1,11 @@
-ion-modal-view
+ion-view
 	ion-header-bar
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
 		h1.title Report Detail
 		.buttons
 			button.button.button-clear.icon.ion-ios7-minus-outline.button-assertive(ng-click="delete(index)")
-			button.button.button-clear.icon.ion-edit.button-balanced(ng-controller='EditReportCtrl', ng-click="edit()")
-	ion-content(ng-controller='DetailReportCtrl')
+			button.button.button-clear.icon.ion-edit.button-balanced(ui-sref="edit-report({index: index})")
+	ion-content
 		.card
 			.item.item-image
 				fathens-fit-img(src="report.photo.mainview", delegate-handle="scroll-img-show-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")

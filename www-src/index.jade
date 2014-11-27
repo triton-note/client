@@ -1,33 +1,25 @@
-extends _top.jade
-block content
+doctype html
+html(ng-app="Fish")
+	head
+		meta(charset="utf-8")
+		meta(name="viewport", content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width")
+		link(href="css/ionic.app.css", rel="stylesheet")
+
+		// Libraries by bower
+		script(src="lib/angular/angular.js")
+		script(src="lib/angular-animate/angular-animate.js")
+		script(src="lib/angular-sanitize/angular-sanitize.js")
+		script(src="lib/angular-ui-router/release/angular-ui-router.js")
+		script(src="lib/collide/collide.js")
+		script(src="lib/ionic/js/ionic-angular.js")
+		script(src="lib/ionic/js/ionic.js")
+		script(src="lib/prelude-ls/browser/prelude-browser.js")
+
+		// Needed for Cordova/PhoneGap (will be a 404 during development)
+		script(src="cordova.js")
+
+		// My Application sctipt
+		script(src="js/Fish.js")
+
 	body
-		ion-side-menus
-			ion-side-menu-content
-				ion-header-bar
-					.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
-					h1.title My Reports
-					.button.button-clear.icon.ion-plus-round.button-positive(ng-controller='AddReportCtrl', ng-click="open()")
-
-				ion-content(ng-controller='ShowReportsCtrl')
-					ion-refresher(on-refresh="refresh()")
-					ion-list
-						ion-item.item-thumbnail-left(ng-repeat="report in reports()")
-							.item.item-image(ng-click="detail($index)")
-								fathens-fit-img(src="report.photo.thumbnail", delegate-handle="scroll-thumbnail-{{ $index }}")
-							h2 {{report.location.name}} {{report.dateAt | date: 'yyyy/MM/dd'}}
-							div(ng-repeat="fish in report.fishes")
-								p {{fish | fishFilter}}
-					ion-infinite-scroll(ng-if="hasMoreReports()", on-infinite="moreReports()")
-
-			ion-side-menu(side="left")
-				ion-header-bar
-					.button.button.button-clear.icon.ion-ios7-close-empty.button-dark(menu-close)
-					h1.title Menu
-				ion-content
-					.list
-						.item(ng-controller='DistributionMapCtrl', ng-click="open()")
-							p View on Map
-						.item(ng-controller='PreferencesCtrl', ng-click="open()")
-							p Preferences
-						.item(ng-controller='SNSCtrl', ng-click="open()")
-							p Social Connections
+		ion-nav-view(animation="slide-left-right")

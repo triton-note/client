@@ -1,0 +1,31 @@
+ion-view
+	ion-side-menus
+		ion-side-menu-content
+			ion-header-bar
+				button.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
+				h1.title My Reports
+				button.button.button-clear.icon.ion-plus-round.button-positive(ui-sref="new-report({init: true})")
+
+			ion-content
+				ion-refresher(on-refresh="refresh()")
+				ion-list
+					ion-item.item-thumbnail-left(ng-repeat="report in reports()")
+						.item.item-image(ui-sref="show-report({index: index})")
+							fathens-fit-img(src="report.photo.thumbnail", delegate-handle="scroll-thumbnail-{{ $index }}")
+						h2 {{report.location.name}} {{report.dateAt | date: 'yyyy/MM/dd'}}
+						div(ng-repeat="fish in report.fishes")
+							p {{fish | fishFilter}}
+				ion-infinite-scroll(ng-if="hasMoreReports()", on-infinite="moreReports()")
+
+		ion-side-menu(side="left")
+			ion-header-bar
+				.button.button.button-clear.icon.ion-ios7-close-empty.button-dark(menu-close)
+				h1.title Menu
+			ion-content
+				.list
+					.item(ui-sref="distribution-map")
+						p View on Map
+					.item(ui-sref="preferences")
+						p Preferences
+					.item(ui-sref="sns")
+						p Social Connections

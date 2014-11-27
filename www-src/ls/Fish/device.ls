@@ -1,4 +1,4 @@
-.factory 'PhotoFactory', ->
+.factory 'PhotoFactory', ($log) ->
 	/*
 		Select a photo from storage.
 		onSuccess(image-uri)
@@ -6,7 +6,9 @@
 	*/
 	select: (onSuccess, onFailure) !->
 		isAndroid = device.platform == 'Android'
+		$log.info "Selecting a photo: android=#{isAndroid}"
 		taker = (ret) !->
+			$log.info "Photo is selected"
 			onSuccess (if isAndroid
 			then "data:image/jpeg;base64,#{ret}"
 			else ret)
@@ -56,17 +58,20 @@
 	acceptance: make 'Acceptance'
 
 .factory 'GMapFactory', ($log) ->
-	gmap = null
-	add-marker = (latLng, success) !->
-		gmap.addMarker {
-			position: latLng
-		}, (marker) !->
-			m =
-				marker: marker
-				geoinfo:
-					latitude: latLng.lat
-					longitude: latLng.lng
-			success m if success
+	store =
+		gmap: null
+	create-map = !->
+		store.gmap = plugin.google.maps.Map.getMap do
+			mapType: plugin.google.maps.MapTypeId.HYBRID
+			controls:
+				myLocationButton: true
+				zoom: false
+	marker = (clear-pre) -> (geoinfo, title, icon) !->
+		store.gmap.clear! if clear-pre
+		store.gmap.addMarker do
+			position: new plugin.google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
+			title: title
+			icon: icon
 
 	fill-height = (e) ->
 		maxH = document.documentElement.clientHeight
@@ -77,36 +82,34 @@
 		e
 
 	onDiv: (name, success, center) ->
-		ionic.Platform.ready !->
-			gmap = plugin.google.maps.Map.getMap do
-				mapType: plugin.google.maps.MapTypeId.HYBRID
-				controls:
-					myLocationButton: true
-					zoom: false
-			if center
-				gmap.setZoom 10
-				pos = new plugin.google.maps.LatLng(center.latitude, center.longitude)
-				gmap.setCenter pos
-				add-marker pos
-			else
-				gmap.getCameraPosition (camera) !->
-					$log.debug "Camera Position: #{angular.toJson camera}"
-					if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
-						gmap.setZoom 10
-						navigator.geolocation.getCurrentPosition (pos) !->
-							$log.debug "Gotta geolocation: #{angular.toJson pos}"
-							gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
-						, (error) !->
-							$log.error "Geolocation Error: #{angular.toJson error}"
-			document.getElementById name |> fill-height |> gmap.setDiv
-			success gmap if success
+		@clear! if store.gmap
+		create-map!
+		if center
+			store.gmap.setZoom 10
+			store.gmap.setCenter new plugin.google.maps.LatLng(center.latitude, center.longitude)
+			@put-marker center
+		else
+			store.gmap.getCameraPosition (camera) !->
+				$log.debug "Camera Position: #{angular.toJson camera}"
+				if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
+					store.gmap.setZoom 10
+					navigator.geolocation.getCurrentPosition (pos) !->
+						$log.debug "Gotta geolocation: #{angular.toJson pos}"
+						store.gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
+					, (error) !->
+						$log.error "Geolocation Error: #{angular.toJson error}"
+		document.getElementById name |> fill-height |> store.gmap.setDiv
+		success store.gmap if success
+	add-marker: marker false
+	put-marker: marker true
 	clear: !->
-		gmap.clear!
-		gmap.off!
-		gmap.setDiv null
+		store.gmap.clear!
+		store.gmap.off!
+		store.gmap.setDiv null
 	onTap: (proc) !->
 		$log.debug "GMap onTap is changed: #{proc}"
-		if proc	then
-			gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
-				$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{proc}"
-				add-marker latLng, proc
+		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
+			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{proc}"
+			proc do
+				latitude: latLng.lat
+				longitude: latLng.lng
