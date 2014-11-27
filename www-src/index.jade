@@ -1,25 +1,5 @@
-doctype html
-html(ng-app="Fish")
-	head
-		meta(charset="utf-8")
-		meta(name="viewport", content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width")
-		link(href="css/ionic.app.css", rel="stylesheet")
-
-		// Libraries by bower
-		script(src="lib/angular/angular.js")
-		script(src="lib/angular-animate/angular-animate.js")
-		script(src="lib/angular-sanitize/angular-sanitize.js")
-		script(src="lib/angular-ui-router/release/angular-ui-router.js")
-		script(src="lib/collide/collide.js")
-		script(src="lib/ionic/js/ionic-angular.js")
-		script(src="lib/ionic/js/ionic.js")
-		script(src="lib/prelude-ls/browser/prelude-browser.js")
-
-		// Needed for Cordova/PhoneGap (will be a 404 during development)
-		script(src="cordova.js")
-
-		// My Application sctipt
-		script(src="js/Fish.js")
+extends _top.jade
+block content
 	body
 		ion-side-menus
 			ion-side-menu-content

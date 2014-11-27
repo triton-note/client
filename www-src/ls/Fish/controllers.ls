@@ -343,27 +343,15 @@
 				$scope.modal.hide!
 				del!
 
-.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $filter, $ionicModal, $ionicPopup, DistributionFactory, ReportFactory) !->
-	$ionicModal.fromTemplateUrl 'template/distribution-map.html'
-		, (modal) !-> $scope.modal = modal
-		,
-			scope: $scope
-			animation: 'slide-in-left'
-	$scope.gmap = null
-	$scope.setGmap = (gmap) !->
-		$log.debug "Setting GMap:#{gmap}"
-		$scope.gmap = gmap
-		map-distribution!
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $filter, $ionicModal, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
 	$scope.open = !->
-		$scope.modal.show!.then !->
-			onBackbutton = !->
-				$scope.gmap-visible = false
-				$ionicPlatform.offHardwareBackButton onBackbutton
-			$ionicPlatform.onHardwareBackButton onBackbutton
-			$scope.gmap-visible = true
+		window.location.href = 'distribution-map.html'
+	$scope.shown = !->
+		GMapFactory.onDiv 'distribution-map', (gmap) !->
+			$scope.gmap = gmap
+			#map-distribution!
 	$scope.closeMap = !->
-		$scope.gmap-visible = false
-		$scope.modal.hide!
+		window.location.href = 'index.html'
 
 	$scope.persons =
 		mine:
@@ -393,7 +381,6 @@
 
 	$scope.close = !->
 		$scope.modal-detail.hide!
-		$scope.gmap-visible = true
 	$scope.delete = (index) !->
 		$ionicPopup.confirm do
 			title: "Delete Report"
