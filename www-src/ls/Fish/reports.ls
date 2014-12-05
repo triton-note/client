@@ -97,6 +97,9 @@
 		Clear all cache
 	*/
 	clear: !->
+		store.current =
+			index: null
+			report: null
 		store.reports = []
 		store.hasMore = true
 		$log.debug "Reports cleared."
@@ -134,8 +137,8 @@
 		Add report
 	*/
 	addByCurrent: !->
-		store.reports = angular.copy(save([report]) ++ store.reports)
-		DistributionFactory.report.add report
+		store.reports = angular.copy(save([store.current.report]) ++ store.reports)
+		DistributionFactory.report.add store.current.report
 	/*
 		Remove report specified by index
 	*/
