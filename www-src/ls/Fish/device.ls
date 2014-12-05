@@ -5,20 +5,11 @@
 		onFailure(error-message)
 	*/
 	select: (onSuccess, onFailure) !->
-		isAndroid = device.platform == 'Android'
-		$log.info "Selecting a photo: android=#{isAndroid}"
-		taker = (ret) !->
-			$log.info "Photo is selected"
-			onSuccess (if isAndroid
-			then "data:image/jpeg;base64,#{ret}"
-			else ret)
-		navigator.camera.getPicture taker, onFailure,
+		navigator.camera.getPicture onSuccess, onFailure,
 			correctOrientation: true
 			encodingType: Camera.EncodingType.JPEG
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
-			destinationType: if isAndroid
-				then Camera.DestinationType.DATA_URL
-				else Camera.DestinationType.FILE_URI
+			destinationType: Camera.DestinationType.FILE_URI
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
