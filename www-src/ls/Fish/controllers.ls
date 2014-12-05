@@ -234,6 +234,8 @@
 			, (error) !->
 				$log.error "Geolocation Error: #{angular.toJson error}"
 				upload!
+			, do
+				timeout: 1000
 		, (error) !->
 			$ionicPopup.alert do
 				title: "No photo selected"
@@ -314,27 +316,25 @@
 .controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $filter, $ionicModal, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
 	GMapFactory.onDiv 'distribution-map', (gmap) !->
 		$scope.gmap = gmap
-		#map-distribution!
+		map-distribution!
 	$scope.closeMap = !->
 		$state.go 'main'
 
-	$scope.persons =
-		mine:
-			icon: 'ion-ios7-person'
-			next: 'mine and others'
-		'mine and others':
-			icon: 'ion-ios7-people'
-			next: 'mine'
+	$scope.showOptions = !->
+		$scope.gmap.setClickable false
+		$ionicPopup.alert do
+			templateUrl: 'distribution-map-options',
+			scope: $scope
+			title: "Options"
+		.then (res) ->
+			$scope.gmap.setClickable true
 	$scope.view =
-		person: 'mine'
-		fish: ''
-	$scope.person = -> $scope.persons[$scope.view.person]
-
-	$scope.$watch 'view.person', (value) !->
+		others: false
+		name: null
+	$scope.$watch 'view.others', (value) !->
 		$log.debug "Changing 'view.person': #{angular.toJson value}"
 		map-distribution!
-
-	$scope.$watch 'view.fish', (value) !->
+	$scope.$watch 'view.name', (value) !->
 		$log.debug "Changing 'view.fish': #{angular.toJson value}"
 		map-distribution!
 
@@ -343,7 +343,6 @@
 		,
 			scope: $scope
 			animation: 'slide-in-up'
-
 	$scope.close = !->
 		$scope.modal-detail.hide!
 	$scope.delete = (index) !->
@@ -355,7 +354,7 @@
 				$log.debug "Remove completed."
 			$scope.close!
 
-	icons = _.map (count) ->
+	icons = [1 to 10] |> _.map (count) ->
 		size = 32
 		center = size / 2
 		r = ->
@@ -374,11 +373,10 @@
 		context.stroke!
 		context.fill!
 		canvas.toDataURL!
-	, [1 to 10]
 	map-distribution = !->
 		gmap = $scope.gmap
-		person = $scope.view.person
-		fish-name = $scope.view.fish
+		others = $scope.view.others
+		fish-name = $scope.view.name
 
 		map-mine = (list) !->
 			$log.debug "Mapping my distribution (filtered by '#{fish-name}'): #{list}"
@@ -416,6 +414,7 @@
 						lat: fish.geoinfo.latitude
 						lng: fish.geoinfo.longitude
 
-		if (gmap) then switch person
-		| 'mine'            => DistributionFactory.mine fish-name, map-mine
-		| 'mine and others' => DistributionFactory.others fish-name, map-others
+		if (gmap)
+			if !others
+			then DistributionFactory.mine fish-name, map-mine
+			else DistributionFactory.others fish-name, map-others

@@ -2,12 +2,20 @@ ion-view
 	ion-header-bar
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="closeMap()")
 		h1.title Map View
-		.buttons
-			button.button.button-clear.icon.button-stable(class="{{ person().icon }}", ng-click="view.person = person().next", ng-disabled="!gmap")
-	ion-content
-		.item.item-input.item-select
-			i.icon.ion-search.placeholder-icon
-			input(type="search", ng-model="view.fish", placeholder="Every Fish", ng-disabled="!gmap")
-			select(ng-model="view.person", ng-options="key as key for (key, value) in persons", ng-disabled="!gmap")
+		button.button.button-clear.icon.ion-more.button-stable(ng-click="showOptions()")
 
-		#distribution-map
+	ion-content(scroll="false")
+		#distribution-map(style="height: 100%")
+
+	script(type="text/ng-template", id="distribution-map-options")
+
+		.list
+			.item.item-input.item-toggle
+				.input-label
+					p Include Others
+				label.toggle.toggle-positive
+					input(type="checkbox", ng-model="view.others")
+					.track
+						.handle
+			.item.item-input
+				input(type="text", ng-model="view.name", placeholder="Fish Name Filter")

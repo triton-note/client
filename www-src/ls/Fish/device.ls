@@ -73,14 +73,6 @@
 			title: title
 			icon: icon
 
-	fill-height = (e) ->
-		maxH = document.documentElement.clientHeight
-		eTop = e.getBoundingClientRect!.top
-		h= (maxH - eTop)
-		e.style.height = "#{h}px"
-		$log.debug "Calculating: doc.h=#{maxH}, e.top=#{eTop}  ==> #{h}"
-		e
-
 	onDiv: (name, success, center) ->
 		@clear! if store.gmap
 		create-map!
@@ -98,7 +90,9 @@
 						store.gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
 					, (error) !->
 						$log.error "Geolocation Error: #{angular.toJson error}"
-		document.getElementById name |> fill-height |> store.gmap.setDiv
+					, do
+						timeout: 1000
+		document.getElementById name |> store.gmap.setDiv
 		success store.gmap if success
 	add-marker: marker false
 	put-marker: marker true
