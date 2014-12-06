@@ -1,15 +1,29 @@
 .factory 'PhotoFactory', ($log) ->
 	/*
 		Select a photo from storage.
-		onSuccess(image-uri)
+		onSuccess(photo[blob or uri])
 		onFailure(error-message)
 	*/
 	select: (onSuccess, onFailure) !->
-		navigator.camera.getPicture onSuccess, onFailure,
+		isAndroid = device.platform == 'Android'
+		taker = (ret) !->
+			toBlob = (src) ->
+				bytes = atob src
+				array = new Uint8Array(bytes.length)
+				for i from 0 to bytes.length - 1
+					array[i] = bytes.charCodeAt(i)
+				new Blob [array],
+					type: 'image/jpeg'
+			if isAndroid
+			then onSuccess toBlob(ret)
+			else onSuccess ret
+		navigator.camera.getPicture taker, onFailure,
 			correctOrientation: true
 			encodingType: Camera.EncodingType.JPEG
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
-			destinationType: Camera.DestinationType.FILE_URI
+			destinationType: if isAndroid
+				then Camera.DestinationType.DATA_URL
+				else Camera.DestinationType.FILE_URI
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []

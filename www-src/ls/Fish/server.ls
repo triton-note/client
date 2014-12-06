@@ -371,7 +371,7 @@
 		else
 			error-taker "Not login"
 
-.factory 'SessionFactory', ($log, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
+.factory 'SessionFactory', ($log, $http, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
 		session: null
 		upload-info: null
@@ -400,11 +400,13 @@
 				title: 'Error'
 				template: error.msg
 
-	upload = (uri, success, error) !->
-		filename = _.head _.reverse uri.toString!.split('/')
-		new FileTransfer().upload uri, store.upload-info.url
+	upload = (photo, success, error) !->
+		filename = "user-photo"
+		byFT = (uri) !->
+			$log.info "Posting photo-image(#{uri}) by FileTransfer with #{angular.toJson store.upload-info}"
+			new FileTransfer().upload uri, store.upload-info.url
 			, (e) !->
-				$log.info "Success to upload: #{angular.toJson e}"
+				$log.info "Success to upload(#{filename}): #{angular.toJson e}"
 				success filename
 			, (e) !->
 				$log.error "Failed to upload: #{angular.toJson e}"
@@ -415,6 +417,23 @@
 				mimeType: 'image/jpeg'
 				chunkedMode: false
 				params: angular.copy store.upload-info.params
+		byHttp = (blob) !->
+			$log.info "Posting photo-image(#{blob}) by $http with #{angular.toJson store.upload-info}"
+			data = new FormData()
+			for name, value of store.upload-info.params
+				data.append name, value
+			data.append 'file', blob, filename
+			$http.post store.upload-info.url, data,
+				transformRequest: angular.identity,
+				headers:
+					'Content-Type': undefined
+			.success (data, status, headers, config) !->
+				$log.debug "Success to upload: #{status}: #{data}, #{headers}, #{angular.toJson config}"
+				success filename
+			.error (data, status, headers, config) !->
+				$log.debug "Failed to upload: #{status}: #{data}, #{headers}, #{angular.toJson config}"
+				error status
+		photo |> if photo instanceof Blob then byHttp else byFT
 
 	start: (geoinfo, success, error-taker) !->
 		store.session = null
@@ -425,20 +444,19 @@
 			store.upload-info = result.upload
 			success!
 		, error-taker
-	put-photo: (uri, success, inference-taker, error-taker) !->
+	put-photo: (photo, success, inference-taker, error-taker) !->
 		if store.session
-			upload uri
-				, (filename)!->
-					ServerFactory.put-photo(that, filename) (urls) !->
-						ServerFactory.infer-photo(that) inference-taker, (error) !->
-							store.session = null
-							error-taker error.msg
-						success urls
-					, (error) !->
+			upload photo, (filename) !->
+				ServerFactory.put-photo(that, filename) (urls) !->
+					ServerFactory.infer-photo(that) inference-taker, (error) !->
 						store.session = null
 						error-taker error.msg
+					success urls
 				, (error) !->
-					error-taker "Failed to upload"
+					store.session = null
+					error-taker error.msg
+			, (error) !->
+				error-taker "Failed to upload"
 		else error-taker "No session started"
 	finish: (report, is-publish, success) !->
 		if (session = store.session)

@@ -194,7 +194,8 @@
 
 .controller 'AddReportCtrl', ($log, $filter, $scope, $state, $stateParams, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory) !->
 	init = !->
-		PhotoFactory.select (uri) !->
+		PhotoFactory.select (photo) !->
+			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
 			$log.debug "Selected photo: #{uri}"
 			$ionicScrollDelegate.$getByHandle("scroll-img-new-report").zoomTo 1
 			$scope.currentReport = ReportFactory.newCurrent uri
@@ -204,7 +205,7 @@
 			upload = (geoinfo = null) !->
 				$scope.currentReport.location.geoinfo = geoinfo
 				SessionFactory.start geoinfo, !->
-					SessionFactory.put-photo uri
+					SessionFactory.put-photo photo
 					, (result) !->
 						$log.debug "Get result of upload: #{angular.toJson result}"
 						$scope.currentReport.photo = angular.copy result.url
