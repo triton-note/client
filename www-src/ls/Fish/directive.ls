@@ -14,7 +14,7 @@
 		photo = $attrs['src']
 		if photo && photo.length > 0
 			chain = photo.split('.')
-			$scope.$watch chain[0], !->
+			$scope.$watch photo, !->
 				photo-url = getProp $scope, chain
 				if photo-url
 					$log.debug "fathensFitImg: img=#{img}, photo=#{photo}, src=#{photo-url}"
