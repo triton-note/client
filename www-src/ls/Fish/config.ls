@@ -13,7 +13,7 @@
 		controller: 'DetailReportCtrl'
 
 	.state 'edit-report',
-		url: '/show-report/:index'
+		url: '/edit-report/:index'
 		templateUrl: 'page/report/edit.html'
 		controller: 'EditReportCtrl'
 
@@ -23,8 +23,8 @@
 		controller: 'AddReportCtrl'
 
 	.state 'view-on-map',
-		url: '/report/view-on-map/{edit:boolean}/:previous'
-		templateUrl: 'page/edit-on-map.html'
+		url: '/view-on-map/:edit/:previous'
+		templateUrl: 'page/report/view-on-map.html'
 		controller: 'ReportOnMapCtrl'
 
 	.state 'distribution-map',
