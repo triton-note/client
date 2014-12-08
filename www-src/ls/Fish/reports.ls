@@ -53,9 +53,12 @@
 			store.hasMore = limit <= more.length
 			success! if success
 
-	$interval !->
-		reload!
-	, 6 * 60 * 60 * 1000
+	ionic.Platform.ready !->
+		store.hasMore = true
+		# reload every 6 hours
+		$interval !->
+			reload!
+		, 6 * 60 * 60 * 1000
 
 	save = (list) ->
 		now = new Date!.getTime!
@@ -93,16 +96,6 @@
 	getReport: (index) ->
 		$log.debug "Getting report[#{index}]"
 		read store.reports[index]
-	/*
-		Clear all cache
-	*/
-	clear: !->
-		store.current =
-			index: null
-			report: null
-		store.reports = []
-		store.hasMore = true
-		$log.debug "Reports cleared."
 	/*
 		Refresh cache
 	*/

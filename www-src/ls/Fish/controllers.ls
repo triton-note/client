@@ -81,8 +81,6 @@
 	$scope.moreReports = !->
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
-	ionic.Platform.ready !->
-		ReportFactory.clear
 
 	$scope.detail = (index) !->
 		$scope.index = index
