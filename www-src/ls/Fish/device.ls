@@ -81,6 +81,7 @@
 	add-marker: marker false
 	put-marker: marker true
 	clear: !->
+		$log.info "Clear GMap"
 		store.gmap.clear!
 		store.gmap.off!
 		store.gmap.setDiv null

@@ -1,11 +1,10 @@
-ion-view
+ion-view(title="My Reports")
 	ion-side-menus
+		ion-nav-buttons(side="left")
+			button.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
+		ion-nav-buttons(side="right")
+			button.button.button-clear.icon.ion-plus-round.button-positive(ui-sref="new-report({init: true})")
 		ion-side-menu-content
-			ion-header-bar
-				button.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
-				h1.title My Reports
-				button.button.button-clear.icon.ion-plus-round.button-positive(ui-sref="new-report({init: true})")
-
 			ion-content
 				ion-refresher(on-refresh="refresh()")
 				ion-list
@@ -18,9 +17,6 @@ ion-view
 				ion-infinite-scroll(ng-if="hasMoreReports()", on-infinite="moreReports()")
 
 		ion-side-menu(side="left", expose-aside-when="large")
-			ion-header-bar
-				.button.button.button-clear.icon.ion-ios7-close-empty.button-dark(menu-close)
-				h1.title Menu
 			ion-content
 				.list
 					.item(ui-sref="distribution-map")

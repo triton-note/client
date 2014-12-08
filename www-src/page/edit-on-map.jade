@@ -1,7 +1,7 @@
-ion-view
-	ion-header-bar
+ion-view(title="Spot")
+	ion-nav-buttons(side="left")
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
-		h1.title Spot
+	ion-nav-buttons(side="right")
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
 	ion-content(scroll="false")
 		#edit-map(style="height: 100%")

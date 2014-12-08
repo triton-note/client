@@ -1,9 +1,9 @@
-ion-view
-	ion-header-bar.bar-dark
+ion-view(title="Preferences")
+	ion-nav-buttons(side="left")
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
-		h1.title Preferences
+	ion-nav-buttons(side="right")
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
-	ion-content(header-shrink, scroll-event-interval="5")
+	ion-content
 		.list
 			.item.item-divider
 				h2.title Unit
