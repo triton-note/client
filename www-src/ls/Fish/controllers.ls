@@ -104,7 +104,7 @@
 		$scope.report.dateAt = $filter('date') new Date($scope.report.dateAt), 'yyyy-MM-dd'
 		$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
 
-.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicScrollDelegate, GMapFactory, ReportFactory) !->
+.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, GMapFactory, ReportFactory) !->
 	$scope.close = !->
 		$state.go $stateParams.previous
 	$scope.submit = !->
