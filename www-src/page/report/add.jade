@@ -2,7 +2,7 @@ ion-view(title="New Report")
 	ion-nav-buttons(side="left")
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
 	ion-nav-buttons(side="right")
-		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-disabled="!submit.enabled")
+		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-disabled="!submission.enabled")
 	ion-content
 		.card
 			.item.item-image
@@ -29,7 +29,7 @@ ion-view(title="New Report")
 					.input-label
 						p Post to Facebook
 					label.toggle.toggle-positive
-						input(type="checkbox", ng-model="submit.publishing")
+						input(type="checkbox", ng-model="submission.publishing")
 						.track
 							.handle
 

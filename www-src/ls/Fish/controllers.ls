@@ -130,7 +130,7 @@
 			$log.debug "Selected photo: #{uri}"
 			$ionicScrollDelegate.$getByHandle("scroll-img-new-report").zoomTo 1
 			$scope.report = ReportFactory.newCurrent uri
-			$scope.submit =
+			$scope.submission =
 				enabled: false
 				publishing: false
 			upload = (geoinfo = null) !->
@@ -140,7 +140,7 @@
 					, (result) !->
 						$log.debug "Get result of upload: #{angular.toJson result}"
 						$scope.report.photo = angular.copy result.url
-						$scope.submit.enabled = true
+						$scope.submission.enabled = true
 					, (inference) !->
 						$log.debug "Get inference: #{angular.toJson inference}"
 						if inference.location
@@ -169,9 +169,9 @@
 		GMapFactory.clear!
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
-		report = ReportFactory.current!.report
+		report = $scope.report
 		report.dateAt = new Date(report.dateAt).getTime!
-		SessionFactory.finish report, $scope.submit.publishing, !->
+		SessionFactory.finish report, $scope.submission.publishing, !->
 			$scope.close!
 
 	$log.debug "AddReportCtrl: params=#{angular.toJson $stateParams}"
