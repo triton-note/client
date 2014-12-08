@@ -190,7 +190,7 @@
 	$scope.report = ReportFactory.current!
 	init!
 
-.controller 'AddReportCtrl', ($log, $filter, $scope, $state, $stateParams, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory) !->
+.controller 'AddReportCtrl', ($log, $filter, $scope, $state, $stateParams, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
 	init = !->
 		PhotoFactory.select (photo) !->
 			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
@@ -225,22 +225,16 @@
 								title: "Error"
 								template: error
 			$log.warn "Getting current location..."
-			navigator.geolocation.getCurrentPosition (pos) !->
-				$log.debug "Gotta geolocation: #{angular.toJson pos}"
-				upload do
-					latitude: pos.coords.latitude
-					longitude: pos.coords.longitude
-			, (error) !->
+			GMapFactory.getGeoinfo upload, (error) !->
 				$log.error "Geolocation Error: #{angular.toJson error}"
 				upload!
-			, do
-				timeout: 1000
 		, (error) !->
 			$ionicPopup.alert do
 				title: "No photo selected"
 				template: "Need a photo to report"
 
 	$scope.close = !->
+		GMapFactory.clear!
 		$state.go 'main'
 	$scope.cancel = !-> $scope.close!
 	$scope.submit = !->
@@ -313,10 +307,12 @@
 				del!
 
 .controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $filter, $ionicModal, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
-	GMapFactory.onDiv 'distribution-map', (gmap) !->
-		$scope.gmap = gmap
-		map-distribution!
+	init = !->
+		GMapFactory.onDiv 'distribution-map', (gmap) !->
+			$scope.gmap = gmap
+			map-distribution!
 	$scope.closeMap = !->
+		GMapFactory.clear!
 		$state.go 'main'
 
 	$scope.showOptions = !->
@@ -417,3 +413,4 @@
 			if !others
 			then DistributionFactory.mine fish-name, map-mine
 			else DistributionFactory.others fish-name, map-others
+	init!

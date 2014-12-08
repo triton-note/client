@@ -65,7 +65,7 @@
 .factory 'GMapFactory', ($log) ->
 	store =
 		gmap: null
-	create-map = !->
+	ionic.Platform.ready !->
 		store.gmap = plugin.google.maps.Map.getMap do
 			mapType: plugin.google.maps.MapTypeId.HYBRID
 			controls:
@@ -78,9 +78,23 @@
 			title: title
 			icon: icon
 
+	add-marker: marker false
+	put-marker: marker true
+	clear: !->
+		store.gmap.clear!
+		store.gmap.off!
+		store.gmap.setDiv null
+	getGeoinfo: (onSuccess, onError) !->
+		store.gmap.getMyLocation (location) !->
+			$log.debug "Gotta GMap Location: #{angular.toJson location}"
+			onSuccess do
+				latitude: location.latLng.lat
+				longitude: location.latLng.lng
+		, (error) !->
+			$log.error "GMap Location Error: #{angular.toJson error}"
+			onError error if onError
 	onDiv: (name, success, center) ->
 		@clear! if store.gmap
-		create-map!
 		if center
 			store.gmap.setZoom 10
 			store.gmap.setCenter new plugin.google.maps.LatLng(center.latitude, center.longitude)
@@ -90,21 +104,13 @@
 				$log.debug "Camera Position: #{angular.toJson camera}"
 				if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
 					store.gmap.setZoom 10
-					navigator.geolocation.getCurrentPosition (pos) !->
-						$log.debug "Gotta geolocation: #{angular.toJson pos}"
-						store.gmap.setCenter new plugin.google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)
+					store.gmap.getMyLocation (location) !->
+						$log.debug "Gotta GMap Location: #{angular.toJson location}"
+						store.gmap.setCenter location.latLng
 					, (error) !->
-						$log.error "Geolocation Error: #{angular.toJson error}"
-					, do
-						timeout: 1000
+						$log.error "GMap Location Error: #{angular.toJson error}"
 		document.getElementById name |> store.gmap.setDiv
 		success store.gmap if success
-	add-marker: marker false
-	put-marker: marker true
-	clear: !->
-		store.gmap.clear!
-		store.gmap.off!
-		store.gmap.setDiv null
 	onTap: (proc) !->
 		$log.debug "GMap onTap is changed: #{proc}"
 		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
