@@ -22,10 +22,10 @@
 		templateUrl: 'page/report/add.html'
 		controller: 'AddReportCtrl'
 
-	.state 'edit-on-map',
-		url: '/edit-on-map/:previous'
+	.state 'view-on-map',
+		url: '/report/view-on-map/{edit:boolean}/:previous'
 		templateUrl: 'page/edit-on-map.html'
-		controller: 'EditReportGMapCtrl'
+		controller: 'ReportOnMapCtrl'
 
 	.state 'distribution-map',
 		url: '/distribution-map'

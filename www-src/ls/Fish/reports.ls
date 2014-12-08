@@ -91,12 +91,6 @@
 	getIndex: (id) ->
 		_.find-index (.report.id == id), store.reports
 	/*
-		Get a report by index of cached list
-	*/
-	getReport: (index) ->
-		$log.debug "Getting report[#{index}]"
-		read store.reports[index]
-	/*
 		Refresh cache
 	*/
 	refresh: reload
@@ -110,8 +104,15 @@
 			store.hasMore = limit <= more.length
 			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
 			success! if success
+	/*
+		Get a report by index of cached list
+	*/
+	getReport: (index) ->
+		$log.debug "Getting report[#{index}]"
+		store.current.index = index
+		store.current.report = angular.copy read store.reports[index]
 	current: ->
-		store.current.report
+		angular.copy store.current
 	newCurrent: (photo-uri = null, geoinfo = null) ->
 		report =
 			photo:
@@ -129,9 +130,9 @@
 	/*
 		Add report
 	*/
-	addByCurrent: !->
-		store.reports = angular.copy(save([store.current.report]) ++ store.reports)
-		DistributionFactory.report.add store.current.report
+	add: (report) !->
+		store.reports = angular.copy(save([report]) ++ store.reports)
+		DistributionFactory.report.add report
 	/*
 		Remove report specified by index
 	*/

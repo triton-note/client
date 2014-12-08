@@ -1,29 +1,29 @@
 ion-view(title="New Report")
 	ion-nav-buttons(side="left")
-		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
+		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
 	ion-nav-buttons(side="right")
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-disabled="!submit.enabled")
 	ion-content
 		.card
 			.item.item-image
-				fathens-fit-img(src="currentReport.photo.mainview", delegate-handle="scroll-img-new-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
+				fathens-fit-img(src="report.photo.mainview", delegate-handle="scroll-img-new-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
 		.list
 			.row.item.item-input
 				.col-25.input-label
 					p Date
 				.col
-					input(type="date", ng-model="currentReport.dateAt")
+					input(type="date", ng-model="report.dateAt")
 			.row.item.item-input.item-icon-right
 				.col-25.input-label
 					p Spot
 				.col
-					input(type="text", ng-model="currentReport.location.name")
-					.icon.ion-earth.positive(ui-sref="edit-on-map({previous: 'new-report'})")
+					input(type="text", ng-model="report.location.name")
+					.icon.ion-earth.positive(ui-sref="view-on-map({edit: true, previous: 'new-report'})")
 			.row.item.item-input
 				.col-25.input-label
 					p Comment
 				.col
-					textarea(ng-model="currentReport.comment", placeholder="Comments")
+					textarea(ng-model="report.comment", placeholder="Comments")
 			.row.item.item-toggle
 				.col
 					.input-label
@@ -38,6 +38,6 @@ ion-view(title="New Report")
 				p.title Catches
 				button.button.button-clear.icon.ion-plus-circled.button-positive(ng-click="addFish()")
 			ion-list(show-delete="true")
-				ion-item.item-button-right(ng-repeat="fish in currentReport.fishes", ng-click="editFish($index)")
+				ion-item.item-button-right(ng-repeat="fish in report.fishes", ng-click="editFish($index)")
 					ion-delete-button.icon.ion-ios7-minus-outline(ng-click="deleteFish($index, false)")
 					p {{fish | fishFilter}}
