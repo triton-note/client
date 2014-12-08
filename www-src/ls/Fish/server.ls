@@ -220,7 +220,7 @@
 		else ServerFactory.terms-of-use (text) !->
 			scope.terms-of-use = text
 			$log.warn "Taking Acceptance ..."
-			$ionicModal.fromTemplateUrl 'template/terms-of-use.html'
+			$ionicModal.fromTemplateUrl 'page/terms-of-use.html'
 			, (modal) !->
 				scope.modal = modal
 				modal.show!
@@ -280,7 +280,7 @@
 			scope.signin = !->
 				scope.modal.remove!
 				taker!
-			$ionicModal.fromTemplateUrl 'template/signin.html'
+			$ionicModal.fromTemplateUrl 'page/signin.html'
 			, (modal) !->
 				scope.modal = modal
 				modal.show!
