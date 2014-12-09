@@ -33,11 +33,4 @@ ion-view(title="New Report")
 						.track
 							.handle
 
-		.list(ng-controller='AddFishCtrl')
-			.bar.item.item-divider
-				p.title Catches
-				button.button.button-clear.icon.ion-plus-circled.button-positive(ng-click="addFish()")
-			ion-list(show-delete="true")
-				ion-item.item-button-right(ng-repeat="fish in report.fishes", ng-click="editFish($index)")
-					ion-delete-button.icon.ion-ios7-minus-outline(ng-click="deleteFish($index, false)")
-					p {{fish | fishFilter}}
+		include _edit-fish.jade

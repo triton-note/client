@@ -198,7 +198,7 @@
 			r.length.unit = units.length
 			r.weight.unit = units.weight
 		r
-	$ionicModal.fromTemplateUrl 'page/report/edit-fish.html'
+	$ionicModal.fromTemplateUrl 'edit-fish'
 		, (modal) !-> $scope.modal = modal
 		,
 			scope: $scope
