@@ -66,11 +66,9 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-	ReportFactory.clear-current!
-
-.controller 'DetailReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, ReportFactory) !->
+.controller 'DetailReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, onBack, ReportFactory) !->
 	$scope.close = !->
-		ReportFactory.clear-current!
+		onBack!
 		$ionicNavBarDelegate.back!
 	$scope.delete = !->
 		$ionicPopup.confirm do
@@ -84,7 +82,7 @@
 	$scope.$on '$viewContentLoaded', (event) !->
 		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
 		$log.debug "DetailReportCtrl: params=#{angular.toJson $stateParams}"
-		if $stateParams.index && !ReportFactory.current!.index
+		if $stateParams.index && ReportFactory.current!.index == null
 			$scope.report = ReportFactory.getReport($scope.index = Number($stateParams.index))
 		else
 			c = ReportFactory.current!
@@ -92,9 +90,9 @@
 			$scope.report = c.report
 		$log.debug "Show Report: #{angular.toJson $scope.report}"
 
-.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicNavBarDelegate, ReportFactory) !->
+.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicNavBarDelegate, onBack, ReportFactory) !->
 	$scope.close = !->
-		ReportFactory.clear-current!
+		onBack!
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
 		ReportFactory.updateByCurrent !->
@@ -126,7 +124,7 @@
 					GMapFactory.put-marker geoinfo
 		, $scope.report.location.geoinfo
 
-.controller 'AddReportCtrl', ($log, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, onBack, PhotoFactory, SessionFactory, ReportFactory) !->
 	init = !->
 		PhotoFactory.select (photo) !->
 			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
@@ -166,8 +164,7 @@
 				title: "No photo selected"
 				template: "Need a photo to report"
 	$scope.close = !->
-		GMapFactory.clear!
-		ReportFactory.clear-current!
+		onBack!
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
 		report = $scope.report

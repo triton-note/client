@@ -11,16 +11,28 @@
 		url: '/show-report?index'
 		templateUrl: 'page/report/show.html'
 		controller: 'DetailReportCtrl'
+		resolve:
+			onBack: (ReportFactory) -> ReportFactory.clear-current
+		onEnter: ($ionicPlatform, onBack) !-> $ionicPlatform.onHardwareBackButton onBack
+		onExit: ($ionicPlatform, onBack) !-> $ionicPlatform.offHardwareBackButton onBack
 
 	.state 'edit-report',
 		url: '/edit-report'
 		templateUrl: 'page/report/edit.html'
 		controller: 'EditReportCtrl'
+		resolve:
+			onBack: (ReportFactory) -> ReportFactory.clear-current
+		onEnter: ($ionicPlatform, onBack) !-> $ionicPlatform.onHardwareBackButton onBack
+		onExit: ($ionicPlatform, onBack) !-> $ionicPlatform.offHardwareBackButton onBack
 
 	.state 'new-report',
 		url: '/new-report'
 		templateUrl: 'page/report/add.html'
 		controller: 'AddReportCtrl'
+		resolve:
+			onBack: (ReportFactory) -> ReportFactory.clear-current
+		onEnter: ($ionicPlatform, onBack) !-> $ionicPlatform.onHardwareBackButton onBack
+		onExit: ($ionicPlatform, onBack) !-> $ionicPlatform.offHardwareBackButton onBack
 
 	.state 'view-on-map',
 		url: '/view-on-map?edit'

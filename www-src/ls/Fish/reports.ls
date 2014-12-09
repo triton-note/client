@@ -116,6 +116,7 @@
 	current: ->
 		store.current
 	clear-current: !->
+		$log.debug "Report current clear!"
 		store.current =
 			index: null
 			report: null
