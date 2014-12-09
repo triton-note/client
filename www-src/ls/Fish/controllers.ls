@@ -66,8 +66,11 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-.controller 'DetailReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, ReportFactory) !->
+	ReportFactory.clear-current!
+
+.controller 'DetailReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, ReportFactory) !->
 	$scope.close = !->
+		ReportFactory.clear-current!
 		$ionicNavBarDelegate.back!
 	$scope.delete = !->
 		$ionicPopup.confirm do
@@ -81,15 +84,17 @@
 	$scope.$on '$viewContentLoaded', (event) !->
 		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
 		$log.debug "DetailReportCtrl: params=#{angular.toJson $stateParams}"
-		if $stateParams.index
-			$scope.report = ReportFactory.getReport($scope.index = $stateParams.index)
+		if $stateParams.index && !ReportFactory.current!.index
+			$scope.report = ReportFactory.getReport($scope.index = Number($stateParams.index))
 		else
 			c = ReportFactory.current!
 			$scope.index = c.index
 			$scope.report = c.report
+		$log.debug "Show Report: #{angular.toJson $scope.report}"
 
 .controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicNavBarDelegate, ReportFactory) !->
 	$scope.close = !->
+		ReportFactory.clear-current!
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
 		ReportFactory.updateByCurrent !->
@@ -98,15 +103,14 @@
 
 	$scope.$on '$viewContentLoaded', (event) !->
 		$log.debug "EditReportCtrl: params=#{angular.toJson $stateParams}"
-		$scope.report = if $stateParams.index
-			then ReportFactory.getReport that
-			else ReportFactory.current!.report
+		$scope.report = ReportFactory.current!.report
 		$scope.report.dateAt = ReportFactory.format-date $scope.report.dateAt
 		$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
 
-.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, GMapFactory, ReportFactory) !->
+.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicNavBarDelegate, GMapFactory, ReportFactory) !->
 	$scope.close = !->
-		$state.go $stateParams.previous
+		GMapFactory.clear!
+		$ionicNavBarDelegate.back!
 	$scope.submit = !->
 		if $scope.geoinfo
 			$scope.report.location.geoinfo = that
@@ -130,16 +134,13 @@
 			$log.debug "Selected photo: #{uri}"
 			$ionicScrollDelegate.$getByHandle("scroll-img-new-report").zoomTo 1
 			$scope.report = ReportFactory.newCurrent uri
-			$scope.submission =
-				enabled: false
-				publishing: false
 			upload = (geoinfo = null) !->
 				$scope.report.location.geoinfo = geoinfo
 				SessionFactory.start geoinfo, !->
 					SessionFactory.put-photo photo
 					, (result) !->
 						$log.debug "Get result of upload: #{angular.toJson result}"
-						$scope.report.photo = angular.copy result.url
+						$scope.report.photo <<< result.url
 						$scope.submission.enabled = true
 					, (inference) !->
 						$log.debug "Get inference: #{angular.toJson inference}"
@@ -167,19 +168,23 @@
 				template: "Need a photo to report"
 	$scope.close = !->
 		GMapFactory.clear!
+		ReportFactory.clear-current!
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
 		report = $scope.report
 		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, $scope.submission.publishing, !->
 			$scope.close!
+	$scope.submission =
+		enabled: false
+		publishing: false
 
 	$log.debug "AddReportCtrl: params=#{angular.toJson $stateParams}"
-	if $stateParams.init
-		init!
-	else
-		$scope.report = ReportFactory.current!.report
+	if ReportFactory.current!.report
+		$scope.report = that
 		$log.debug "Getting current report: #{angular.toJson $scope.report}"
+		$scope.submission.enabled = !!$scope.report.photo.original
+	else init!
 
 .controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
 	# $scope.report.fishes

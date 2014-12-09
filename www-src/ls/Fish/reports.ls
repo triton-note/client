@@ -114,7 +114,11 @@
 		store.current.index = index
 		store.current.report = angular.copy read store.reports[index]
 	current: ->
-		angular.copy store.current
+		store.current
+	clear-current: !->
+		store.current =
+			index: null
+			report: null
 	newCurrent: (photo-uri = null, geoinfo = null) ->
 		report =
 			photo:
@@ -133,7 +137,7 @@
 		Add report
 	*/
 	add: (report) !->
-		store.reports = angular.copy(save([report]) ++ store.reports)
+		store.reports = save([report]) ++ store.reports
 		DistributionFactory.report.add report
 	/*
 		Remove report specified by index

@@ -8,22 +8,22 @@
 		controller: 'ShowReportsCtrl'
 
 	.state 'show-report',
-		url: '/show-report/:index'
+		url: '/show-report?index'
 		templateUrl: 'page/report/show.html'
 		controller: 'DetailReportCtrl'
 
 	.state 'edit-report',
-		url: '/edit-report/:index'
+		url: '/edit-report'
 		templateUrl: 'page/report/edit.html'
 		controller: 'EditReportCtrl'
 
 	.state 'new-report',
-		url: '/new-report/:init'
+		url: '/new-report'
 		templateUrl: 'page/report/add.html'
 		controller: 'AddReportCtrl'
 
 	.state 'view-on-map',
-		url: '/view-on-map/:edit/:previous'
+		url: '/view-on-map?edit'
 		templateUrl: 'page/report/view-on-map.html'
 		controller: 'ReportOnMapCtrl'
 
