@@ -34,7 +34,7 @@
 			report: Report
 		*/
 		reports: []
-		hasMore: false
+		hasMore: null
 
 	loadServer = (last-id = null, taker) !->
 		AccountFactory.with-ticket (ticket) ->
@@ -53,12 +53,10 @@
 			store.hasMore = limit <= more.length
 			success! if success
 
-	ionic.Platform.ready !->
-		store.hasMore = true
-		# reload every 6 hours
-		$interval !->
-			reload!
-		, 6 * 60 * 60 * 1000
+	# reload every 6 hours
+	$interval !->
+		reload!
+	, 6 * 60 * 60 * 1000
 
 	save = (list) ->
 		now = new Date!.getTime!
@@ -81,6 +79,10 @@
 				$log.error "Failed to read report(#{item.report.id}) from server: #{error}"
 		item.report
 
+	init: !->
+		ionic.Platform.ready !->
+			if store.hasMore == null && store.reports.length == 0
+				store.hasMore = true
 	format-date: (date) ->
 		$filter('date') new Date(date), 'yyyy-MM-dd'
 	cachedList: ->
