@@ -109,7 +109,6 @@
 
 .controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicNavBarDelegate, GMapFactory, ReportFactory) !->
 	$scope.close = !->
-		GMapFactory.clear!
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
 		if $scope.geoinfo
@@ -244,7 +243,6 @@
 
 .controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $ionicNavBarDelegate, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
 	$scope.close = !->
-		GMapFactory.clear!
 		$ionicNavBarDelegate.back!
 	$scope.showOptions = !->
 		$scope.gmap.setClickable false

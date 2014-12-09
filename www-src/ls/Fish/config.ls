@@ -26,11 +26,13 @@
 		url: '/view-on-map?edit'
 		templateUrl: 'page/report/view-on-map.html'
 		controller: 'ReportOnMapCtrl'
+		onExit: (GMapFactory) !-> GMapFactory.clear!
 
 	.state 'distribution-map',
 		url: '/distribution-map'
 		templateUrl: 'page/menu/distribution-map.html'
 		controller: 'DistributionMapCtrl'
+		onExit: (GMapFactory) !-> GMapFactory.clear!
 
 	.state 'preferences',
 		url: '/preferences'
