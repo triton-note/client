@@ -88,6 +88,7 @@
 		store.gmap.clear!
 		store.gmap.off!
 		store.gmap.setDiv null
+		store.gmap.setClickable false
 
 	add-marker: marker false
 	put-marker: marker true
@@ -118,6 +119,7 @@
 					, (error) !->
 						$log.error "GMap Location Error: #{angular.toJson error}"
 		document.getElementById name |> store.gmap.setDiv
+		store.gmap.setClickable true
 		success store.gmap if success
 	onTap: (proc) !-> onReady !->
 		$log.debug "GMap onTap is changed: #{proc}"
