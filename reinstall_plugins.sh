@@ -12,9 +12,6 @@ cordova plugin add org.apache.cordova.splashscreen
 
 cordova plugin add org.apache.cordova.file-transfer
 
-# Ionic Keyboard
-cordova plugin add com.ionic.keyboard
-
 # Google Maps
 cordova plugin add plugin.google.maps --variable API_KEY_FOR_IOS='AIzaSyBbBpBdB0rQQPsvd1Xv1QW_vftXxsgDYr4' --variable API_KEY_FOR_ANDROID='AIzaSyDYNGDBMUgZsnAzFZ4-uZB4VQuSxEfe1Lg'
 
