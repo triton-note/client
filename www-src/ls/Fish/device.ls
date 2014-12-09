@@ -5,7 +5,7 @@
 		onFailure(error-message)
 	*/
 	select: (onSuccess, onFailure) !->
-		isAndroid = device.platform == 'Android'
+		isAndroid = ionic.Platform.isAndroid!
 		taker = (ret) !->
 			toBlob = (src) ->
 				bytes = atob src
