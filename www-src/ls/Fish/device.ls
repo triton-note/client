@@ -66,26 +66,33 @@
 	store =
 		gmap: null
 	ionic.Platform.ready !->
-		store.gmap = plugin.google.maps.Map.getMap do
+		gmap = plugin.google.maps.Map.getMap do
 			mapType: plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
 				zoom: false
+		gmap.on plugin.google.maps.event.MAP_READY, !->
+			store.gmap = gmap
 	marker = (clear-pre) -> (geoinfo, title, icon) !->
 		store.gmap.clear! if clear-pre
 		store.gmap.addMarker do
 			position: new plugin.google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
 			title: title
 			icon: icon
-
-	add-marker: marker false
-	put-marker: marker true
-	clear: !->
+	onReady = (proc) !->
+		if store.gmap
+		then proc!
+		else plugin.google.maps.Map.getMap!.on plugin.google.maps.event.MAP_READY, proc
+	clear = !->
 		$log.info "Clear GMap"
 		store.gmap.clear!
 		store.gmap.off!
 		store.gmap.setDiv null
-	getGeoinfo: (onSuccess, onError) !->
+
+	add-marker: marker false
+	put-marker: marker true
+	clear: clear
+	getGeoinfo: (onSuccess, onError) !-> onReady !->
 		store.gmap.getMyLocation (location) !->
 			$log.debug "Gotta GMap Location: #{angular.toJson location}"
 			onSuccess do
@@ -94,12 +101,12 @@
 		, (error) !->
 			$log.error "GMap Location Error: #{angular.toJson error}"
 			onError error if onError
-	onDiv: (name, success, center) ->
-		@clear! if store.gmap
+	onDiv: (name, success, center) !-> onReady !->
+		clear!
 		if center
 			store.gmap.setZoom 10
 			store.gmap.setCenter new plugin.google.maps.LatLng(center.latitude, center.longitude)
-			@put-marker center
+			marker(true) center
 		else
 			store.gmap.getCameraPosition (camera) !->
 				$log.debug "Camera Position: #{angular.toJson camera}"
@@ -112,7 +119,7 @@
 						$log.error "GMap Location Error: #{angular.toJson error}"
 		document.getElementById name |> store.gmap.setDiv
 		success store.gmap if success
-	onTap: (proc) !->
+	onTap: (proc) !-> onReady !->
 		$log.debug "GMap onTap is changed: #{proc}"
 		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
 			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{proc}"
