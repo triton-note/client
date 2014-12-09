@@ -81,6 +81,8 @@
 				$log.error "Failed to read report(#{item.report.id}) from server: #{error}"
 		item.report
 
+	format-date: (date) ->
+		$filter('date') new Date(date), 'yyyy-MM-dd'
 	cachedList: ->
 		store.reports |> _.map read
 	hasMore: ->

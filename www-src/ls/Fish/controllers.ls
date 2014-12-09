@@ -88,7 +88,7 @@
 			$scope.index = c.index
 			$scope.report = c.report
 
-.controller 'EditReportCtrl', ($log, $stateParams, $filter, $scope, $ionicScrollDelegate, $ionicNavBarDelegate, ReportFactory) !->
+.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicNavBarDelegate, ReportFactory) !->
 	$scope.close = !->
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
@@ -101,7 +101,7 @@
 		$scope.report = if $stateParams.index
 			then ReportFactory.getReport that
 			else ReportFactory.current!.report
-		$scope.report.dateAt = $filter('date') new Date($scope.report.dateAt), 'yyyy-MM-dd'
+		$scope.report.dateAt = ReportFactory.format-date $scope.report.dateAt
 		$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
 
 .controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, GMapFactory, ReportFactory) !->
@@ -237,7 +237,7 @@
 				$scope.modal.hide!
 				del!
 
-.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $ionicNavBarDelegate, $filter, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $ionicNavBarDelegate, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
 	$scope.close = !->
 		GMapFactory.clear!
 		$ionicNavBarDelegate.back!
@@ -302,7 +302,7 @@
 			for fish in list
 				gmap.addMarker do
 					title: "#{fish.name} x #{fish.count}"
-					snippet: $filter('date') new Date(fish.date), 'yyyy-MM-dd'
+					snippet: ReportFactory.format-date fish.date
 					position:
 						lat: fish.geoinfo.latitude
 						lng: fish.geoinfo.longitude
