@@ -157,9 +157,9 @@
 			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.update-report ticket, store.current.report
 			, !->
-				$log.info "Updated report: #{report.id}"
+				$log.info "Updated report: #{store.current.report.id}"
 				store.reports[store.current.index] = store.current.report
-				DistributionFactory.report.update report
+				DistributionFactory.report.update store.current.report
 				success!
 			, (error) !->
 				$ionicPopup.alert do
