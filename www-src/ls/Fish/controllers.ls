@@ -115,9 +115,9 @@
 	$scope.$on '$viewContentLoaded', (event) !->
 		$log.debug "ReportOnMapCtrl: params=#{angular.toJson $stateParams}"
 		$scope.report = ReportFactory.current!.report
-		$log.debug "Entering 'ReportOnMapCtrl'"
 		GMapFactory.onDiv 'edit-map', (gmap) !->
 			if $stateParams.edit
+				$scope.geoinfo = $scope.report.location.geoinfo
 				GMapFactory.onTap (geoinfo) !->
 					$scope.geoinfo = geoinfo
 					GMapFactory.put-marker geoinfo
