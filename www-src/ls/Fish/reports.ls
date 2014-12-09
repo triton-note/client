@@ -160,7 +160,7 @@
 				ServerFactory.update-report ticket, store.current.report
 			, !->
 				$log.info "Updated report: #{store.current.report.id}"
-				store.reports[store.current.index] = store.current.report
+				store.reports[store.current.index] = save([store.current.report])[0]
 				DistributionFactory.report.update store.current.report
 				success!
 			, (error) !->
