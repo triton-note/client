@@ -126,6 +126,11 @@
 
 .controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, onBack, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
 	init = !->
+		on-error = (title) -> (error-msg) !->
+			$ionicPopup.alert do
+				title: title
+				template: error-msg
+			.then $scope.close
 		PhotoFactory.select (photo) !->
 			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
 			$log.debug "Selected photo: #{uri}"
@@ -145,24 +150,13 @@
 							$scope.report.location.name = that
 						if inference.fishes?.length > 0
 							$scope.report.fishes = inference.fishes
-					, (error) !->
-						$ionicPopup.alert do
-							title: "Failed to upload"
-							template: error
-						.then (res) !->
-							$scope.cancel!
-						, (error) !->
-							$ionicPopup.alert do
-								title: "Error"
-								template: error
+					, on-error "Failed to upload"
+				, on-error "Error"
 			$log.warn "Getting current location..."
 			GMapFactory.getGeoinfo upload, (error) !->
 				$log.error "Geolocation Error: #{angular.toJson error}"
 				upload!
-		, (error) !->
-			$ionicPopup.alert do
-				title: "No photo selected"
-				template: "Need a photo to report"
+		, on-error "Need one photo"
 	$scope.close = !->
 		onBack!
 		$ionicNavBarDelegate.back!
