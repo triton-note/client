@@ -20,34 +20,7 @@ html(ng-app="Fish")
 
 		// My Application sctipt
 		script(src="js/Fish.js")
+
 	body
-		ion-side-menus
-			ion-side-menu-content
-				ion-header-bar
-					.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
-					h1.title My Reports
-					.button.button-clear.icon.ion-plus-round.button-positive(ng-controller='AddReportCtrl', ng-click="open()")
-
-				ion-content(ng-controller='ShowReportsCtrl')
-					ion-refresher(on-refresh="refresh()")
-					ion-list
-						ion-item.item-thumbnail-left(ng-repeat="report in reports()")
-							.item.item-image(ng-click="detail($index)")
-								fathens-fit-img(src="report.photo.thumbnail", delegate-handle="scroll-thumbnail-{{ $index }}")
-							h2 {{report.location.name}} {{report.dateAt | date: 'yyyy/MM/dd'}}
-							div(ng-repeat="fish in report.fishes")
-								p {{fish | fishFilter}}
-					ion-infinite-scroll(ng-if="hasMoreReports()", on-infinite="moreReports()")
-
-			ion-side-menu(side="left")
-				ion-header-bar
-					.button.button.button-clear.icon.ion-ios7-close-empty.button-dark(menu-close)
-					h1.title Menu
-				ion-content
-					.list
-						.item(ng-controller='DistributionMapCtrl', ng-click="open()")
-							p View on Map
-						.item(ng-controller='PreferencesCtrl', ng-click="open()")
-							p Preferences
-						.item(ng-controller='SNSCtrl', ng-click="open()")
-							p Social Connections
+		ion-nav-bar.bar-stable(animation="nav-title-slide-ios7", no-tap-scroll="true")
+		ion-nav-view(animation="slide-left-right")
