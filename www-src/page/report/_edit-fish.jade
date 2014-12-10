@@ -7,7 +7,7 @@
 			ion-delete-button.icon.ion-ios7-minus-outline(ng-click="deleteFish($index, false)")
 			p {{fish | fishFilter}}
 
-	script(type="text/ng-template", id="edit-fish")
+	script#edit-fish(type="text/ng-template")
 
 		ion-modal-view
 			ion-header-bar
