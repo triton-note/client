@@ -66,9 +66,6 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-	$scope.$on '$viewContentLoaded', (event) !->
-		ReportFactory.init!
-
 .controller 'DetailReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, onBack, ReportFactory) !->
 	$scope.close = !->
 		onBack!
