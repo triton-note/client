@@ -127,7 +127,7 @@
 					GMapFactory.put-marker geoinfo
 		, $scope.report.location.geoinfo
 
-.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, onBack, PhotoFactory, SessionFactory, ReportFactory) !->
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, onBack, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
 	init = !->
 		PhotoFactory.select (photo) !->
 			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
