@@ -34,7 +34,7 @@
 			report: Report
 		*/
 		reports: []
-		hasMore: null
+		hasMore: true
 
 	loadServer = (last-id = null, taker) !->
 		AccountFactory.with-ticket (ticket) ->
@@ -79,10 +79,6 @@
 				$log.error "Failed to read report(#{item.report.id}) from server: #{error}"
 		item.report
 
-	init: !->
-		ionic.Platform.ready !->
-			if store.hasMore == null && store.reports.length == 0
-				store.hasMore = true
 	format-date: (date) ->
 		$filter('date') new Date(date), 'yyyy-MM-dd'
 	cachedList: ->

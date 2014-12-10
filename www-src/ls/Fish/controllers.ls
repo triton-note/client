@@ -66,9 +66,6 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-	$scope.$on '$viewContentLoaded', (event) !->
-		ReportFactory.init!
-
 .controller 'DetailReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, onBack, ReportFactory) !->
 	$scope.close = !->
 		onBack!
@@ -127,7 +124,7 @@
 					GMapFactory.put-marker geoinfo
 		, $scope.report.location.geoinfo
 
-.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, onBack, PhotoFactory, SessionFactory, ReportFactory) !->
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, onBack, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
 	init = !->
 		PhotoFactory.select (photo) !->
 			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo

@@ -4,7 +4,7 @@
 		onSuccess(photo[blob or uri])
 		onFailure(error-message)
 	*/
-	select: (onSuccess, onFailure) !->
+	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
 		isAndroid = ionic.Platform.isAndroid!
 		taker = (ret) !->
 			toBlob = (src) ->

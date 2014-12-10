@@ -1,6 +1,6 @@
 .factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
-	retryable = (retry, config, res-taker, error-taker) !->
+	retryable = (retry, config, res-taker, error-taker) !-> ionic.Platform.ready !->
 		$http config
 		.success (data, status, headers, config) !-> res-taker data
 		.error (data, status, headers, config) !->
@@ -235,14 +235,14 @@
 			takeIt!
 
 .factory 'SocialFactory', ($log) ->
-	facebook-login = (...perm) -> (token-taker, error-taker) !->
+	facebook-login = (...perm) -> (token-taker, error-taker) !-> ionic.Platform.ready !->
 		$log.info "Logging in to Facebook: #{perm}"
 		facebookConnectPlugin.login perm
 		, (result) !->
 			$log.debug "Get access: #{angular.toJson result}"
 			token-taker result.authResponse.accessToken
 		, error-taker
-	facebook-profile = (profile-taker, error-taker) !->
+	facebook-profile = (profile-taker, error-taker) !-> ionic.Platform.ready !->
 		$log.info "Getting profile of Facebook"
 		facebookConnectPlugin.api "me?fields=name", ['public_profile']
 		, (info) !->
@@ -251,7 +251,7 @@
 				id: info.id
 				name: info.name
 		, error-taker
-	facebook-disconnect = (on-success, error-taker) !->
+	facebook-disconnect = (on-success, error-taker) !-> ionic.Platform.ready !->
 		$log.info "Disconnecting from facebook"
 		facebookConnectPlugin.api "me/permissions?method=delete", []
 		, (info) !->
