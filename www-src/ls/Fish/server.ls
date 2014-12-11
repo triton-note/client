@@ -363,8 +363,6 @@
 		, error-taker
 	disconnect: (success-taker, error-taker) !->
 		disconnect success-taker, error-taker
-	is-connected: ->
-		!!LocalStorageFactory.account.load!?.id
 	get-username: (success-taker, error-taker) !->
 		if LocalStorageFactory.account.load!
 			success-taker that.name

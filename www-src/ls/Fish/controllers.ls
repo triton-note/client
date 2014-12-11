@@ -1,60 +1,41 @@
 .controller 'SNSCtrl', ($log, $scope, $ionicPopup, $ionicNavBarDelegate, AccountFactory) !->
-	init = !->
-		$scope.changing = false
-		$scope.login = AccountFactory.is-connected!
-		$log.info "Social view initialized with value: #{$scope.login}"
-		AccountFactory.get-username (username) !->
-			$log.debug "Take username: #{username}"
-			$scope.username = username
-		, (msg) !->
-			$log.debug "Could not take username: #{msg}"
-
 	$scope.close = !->
 		$ionicNavBarDelegate.back!
 	$scope.checkSocial = !->
 		$scope.changing = true
-		next = !AccountFactory.is-connected!
+		next = $scope.username == null
 		$log.debug "Changing social: #{next}"
+		on-error = (error-msg) !->
+			$scope.login = !next
+			$ionicPopup.alert do
+				title: 'Error'
+				template: error-msg
+			$scope.done!
 		if next
-			AccountFactory.connect (username) !->
-				$scope.changing = false
-				$scope.username = username
-				$log.debug "Account connection: #{next}: #{username}"
-			, (msg) !->
-				$scope.login = false
-				$scope.changing = false
-				$ionicPopup.alert do
-					title: 'Error'
-					template: msg
+			AccountFactory.connect $scope.done, on-error
 		else
 			AccountFactory.disconnect !->
-				$scope.$apply !->
-					$scope.changing = false
-					$scope.username = null
-				$log.debug "Account connection: #{next}"
-			, (msg) !->
-				$scope.login = true
-				$scope.changing = false
-				$ionicPopup.alert do
-					title: 'Error'
-					template: msg
+				$scope.$apply !-> $scope.done!
+			, on-error
+	$scope.done = (username = null) !->
+		$scope.username = username
+		$scope.login = username != null
+		$scope.changing = false
+		$log.debug "Account connection: #{$scope.username}"
 
-	init!
+	AccountFactory.get-username $scope.done
+	, (error-msg) !-> $scope.done!
 
 .controller 'PreferencesCtrl', ($log, $scope, $ionicNavBarDelegate, $ionicPopup, UnitFactory) !->
-	init = !->
-		# Initialize units
-		$scope.units = UnitFactory.units!
-		UnitFactory.load (units) !->
-			$scope.unit = units
-
 	$scope.close = !->
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
 		UnitFactory.save $scope.unit
 		$scope.close!
+	$scope.units = UnitFactory.units!
 
-	init!
+	UnitFactory.load (units) !->
+		$scope.unit = units
 
 .controller 'ListReportsCtrl', ($log, $scope, ReportFactory) !->
 	$scope.reports = ReportFactory.cachedList
