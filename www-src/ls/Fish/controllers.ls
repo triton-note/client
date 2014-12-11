@@ -56,7 +56,7 @@
 
 	init!
 
-.controller 'ShowReportsCtrl', ($log, $scope, ReportFactory) !->
+.controller 'ListReportsCtrl', ($log, $scope, ReportFactory) !->
 	$scope.reports = ReportFactory.cachedList
 	$scope.hasMoreReports = ReportFactory.hasMore
 	$scope.refresh = !->
@@ -66,7 +66,7 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-.controller 'DetailReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, onBack, ReportFactory) !->
+.controller 'ShowReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, onBack, ReportFactory) !->
 	$scope.close = !->
 		onBack!
 		$ionicNavBarDelegate.back!
@@ -134,7 +134,7 @@
 		PhotoFactory.select (photo) !->
 			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
 			$log.debug "Selected photo: #{uri}"
-			$ionicScrollDelegate.$getByHandle("scroll-img-new-report").zoomTo 1
+			$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
 			$scope.report = ReportFactory.newCurrent uri
 			upload = (geoinfo = null) !->
 				$scope.report.location.geoinfo = geoinfo
