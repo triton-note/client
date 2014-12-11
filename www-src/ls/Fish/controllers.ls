@@ -284,7 +284,7 @@
 					$log.debug "Detail for fish: #{angular.toJson fish}"
 					find-or = (fail) !->
 						index = ReportFactory.getIndex fish.report-id
-						if $scope.index >= 0 then
+						if index >= 0 then
 							GMapFactory.clear!
 							$state.go 'show-report',
 								index: index

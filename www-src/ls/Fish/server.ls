@@ -358,7 +358,7 @@
 				ServerFactory.connect ticket, token
 			, (result) !->
 				username = LocalStorageFactory.account.load!?.name
-				success-taker name
+				success-taker username
 			, error-taker
 		, error-taker
 	disconnect: (success-taker, error-taker) !->

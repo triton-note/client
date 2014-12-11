@@ -89,7 +89,7 @@
 		Get index of list by report id
 	*/
 	getIndex: (id) ->
-		_.find-index (.report.id == id), store.reports
+		store.reports |> _.find-index (.report.id == id)
 	/*
 		Refresh cache
 	*/
