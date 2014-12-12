@@ -1,62 +1,43 @@
 .controller 'SNSCtrl', ($log, $scope, $ionicPopup, $ionicNavBarDelegate, AccountFactory) !->
-	init = !->
-		$scope.changing = false
-		$scope.login = AccountFactory.is-connected!
-		$log.info "Social view initialized with value: #{$scope.login}"
-		AccountFactory.get-username (username) !->
-			$log.debug "Take username: #{username}"
-			$scope.username = username
-		, (msg) !->
-			$log.debug "Could not take username: #{msg}"
-
 	$scope.close = !->
 		$ionicNavBarDelegate.back!
 	$scope.checkSocial = !->
 		$scope.changing = true
-		next = !AccountFactory.is-connected!
+		next = $scope.username == null
 		$log.debug "Changing social: #{next}"
+		on-error = (error-msg) !->
+			$scope.login = !next
+			$ionicPopup.alert do
+				title: 'Error'
+				template: error-msg
+			$scope.done!
 		if next
-			AccountFactory.connect (username) !->
-				$scope.changing = false
-				$scope.username = username
-				$log.debug "Account connection: #{next}: #{username}"
-			, (msg) !->
-				$scope.login = false
-				$scope.changing = false
-				$ionicPopup.alert do
-					title: 'Error'
-					template: msg
+			AccountFactory.connect $scope.done, on-error
 		else
 			AccountFactory.disconnect !->
-				$scope.$apply !->
-					$scope.changing = false
-					$scope.username = null
-				$log.debug "Account connection: #{next}"
-			, (msg) !->
-				$scope.login = true
-				$scope.changing = false
-				$ionicPopup.alert do
-					title: 'Error'
-					template: msg
+				$scope.$apply !-> $scope.done!
+			, on-error
+	$scope.done = (username = null) !->
+		$scope.username = username
+		$scope.login = username != null
+		$scope.changing = false
+		$log.debug "Account connection: #{$scope.username}"
 
-	init!
+	AccountFactory.get-username $scope.done
+	, (error-msg) !-> $scope.done!
 
 .controller 'PreferencesCtrl', ($log, $scope, $ionicNavBarDelegate, $ionicPopup, UnitFactory) !->
-	init = !->
-		# Initialize units
-		$scope.units = UnitFactory.units!
-		UnitFactory.load (units) !->
-			$scope.unit = units
-
 	$scope.close = !->
 		$ionicNavBarDelegate.back!
 	$scope.submit = !->
 		UnitFactory.save $scope.unit
 		$scope.close!
+	$scope.units = UnitFactory.units!
 
-	init!
+	UnitFactory.load (units) !->
+		$scope.unit = units
 
-.controller 'ShowReportsCtrl', ($log, $scope, ReportFactory) !->
+.controller 'ListReportsCtrl', ($log, $scope, ReportFactory) !->
 	$scope.reports = ReportFactory.cachedList
 	$scope.hasMoreReports = ReportFactory.hasMore
 	$scope.refresh = !->
@@ -66,7 +47,7 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-.controller 'DetailReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, onBack, ReportFactory) !->
+.controller 'ShowReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, onBack, ReportFactory) !->
 	$scope.close = !->
 		onBack!
 		$ionicNavBarDelegate.back!
@@ -126,10 +107,15 @@
 
 .controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, onBack, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
 	init = !->
+		on-error = (title) -> (error-msg) !->
+			$ionicPopup.alert do
+				title: title
+				template: error-msg
+			.then $scope.close
 		PhotoFactory.select (photo) !->
 			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
 			$log.debug "Selected photo: #{uri}"
-			$ionicScrollDelegate.$getByHandle("scroll-img-new-report").zoomTo 1
+			$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
 			$scope.report = ReportFactory.newCurrent uri
 			upload = (geoinfo = null) !->
 				$scope.report.location.geoinfo = geoinfo
@@ -145,24 +131,13 @@
 							$scope.report.location.name = that
 						if inference.fishes?.length > 0
 							$scope.report.fishes = inference.fishes
-					, (error) !->
-						$ionicPopup.alert do
-							title: "Failed to upload"
-							template: error
-						.then (res) !->
-							$scope.cancel!
-						, (error) !->
-							$ionicPopup.alert do
-								title: "Error"
-								template: error
+					, on-error "Failed to upload"
+				, on-error "Error"
 			$log.warn "Getting current location..."
 			GMapFactory.getGeoinfo upload, (error) !->
 				$log.error "Geolocation Error: #{angular.toJson error}"
 				upload!
-		, (error) !->
-			$ionicPopup.alert do
-				title: "No photo selected"
-				template: "Need a photo to report"
+		, on-error "Need one photo"
 	$scope.close = !->
 		onBack!
 		$ionicNavBarDelegate.back!
@@ -290,7 +265,7 @@
 					$log.debug "Detail for fish: #{angular.toJson fish}"
 					find-or = (fail) !->
 						index = ReportFactory.getIndex fish.report-id
-						if $scope.index >= 0 then
+						if index >= 0 then
 							GMapFactory.clear!
 							$state.go 'show-report',
 								index: index

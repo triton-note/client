@@ -5,12 +5,11 @@
 	.state 'main',
 		url: '/'
 		templateUrl: 'page/main.html'
-		controller: 'ShowReportsCtrl'
 
 	.state 'show-report',
 		url: '/show-report?index'
 		templateUrl: 'page/report/show.html'
-		controller: 'DetailReportCtrl'
+		controller: 'ShowReportCtrl'
 		resolve:
 			onBack: (ReportFactory) -> ReportFactory.clear-current
 		onEnter: ($ionicPlatform, onBack) !-> $ionicPlatform.onHardwareBackButton onBack
@@ -25,8 +24,8 @@
 		onEnter: ($ionicPlatform, onBack) !-> $ionicPlatform.onHardwareBackButton onBack
 		onExit: ($ionicPlatform, onBack) !-> $ionicPlatform.offHardwareBackButton onBack
 
-	.state 'new-report',
-		url: '/new-report'
+	.state 'add-report',
+		url: '/add-report'
 		templateUrl: 'page/report/add.html'
 		controller: 'AddReportCtrl'
 		resolve:
