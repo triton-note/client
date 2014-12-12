@@ -373,19 +373,28 @@
 	store =
 		session: null
 		upload-info: null
+		publish-token: null
 
 	publish = (session) !->
-		SocialFactory.publish (token) !->
+		doit = (on-error) -> (token) !->
 			ServerFactory.publish-report(session, token) !->
+				store.publish-token = token
 				$log.info "Success to publish session: #{session}"
-			, (error) !->
+			, on-error
+		renew = !->
+			server = doit (error) !->
 				$ionicPopup.alert do
 					title: 'Error'
 					template: "Failed to publish"
-		, (error) !->
-			$ionicPopup.alert do
-				title: 'Rejected'
-				template: error
+			SocialFactory.publish server, (error) !->
+				$ionicPopup.alert do
+					title: 'Rejected'
+					template: error
+		if store.publish-token
+			that |> doit (error) !->
+				$log.info "Failed to use cached access_token for facebook publish: #{error}"
+				renew!
+		else renew!
 
 	submit = (session, report, success) !->
 		ServerFactory.submit-report(session, report) (report-id) !->
