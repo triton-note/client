@@ -44,8 +44,8 @@
 		, (error) !->
 			$ionicPopup.alert do
 				title: "Failed to load from server"
-				template: error
-			.then (res) !-> taker null
+				template: error.msg
+			.then (res) !-> taker []
 
 	reload = (success) !->
 		loadServer null, (more) !->
@@ -76,7 +76,7 @@
 				$log.debug "Read report: #{angular.toJson result}"
 				angular.copy result.report, item.report
 			, (error) !->
-				$log.error "Failed to read report(#{item.report.id}) from server: #{error}"
+				$log.error "Failed to read report(#{item.report.id}) from server: #{angular.toJson error}"
 		item.report
 
 	format-date: (date) ->
@@ -153,7 +153,7 @@
 		, (error) !->
 			$ionicPopup.alert do
 				title: "Failed to remove from server"
-				template: error
+				template: error.msg
 	/*
 		Update report
 	*/
@@ -169,7 +169,7 @@
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to update to server"
-					template: error
+					template: error.msg
 
 .factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
@@ -186,7 +186,7 @@
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.change-units ticket, units
 		, !-> $log.debug "Success to change units"
-		, (error) !-> $log.debug "Failed to change units: #{error}"
+		, (error) !-> $log.debug "Failed to change units: #{angular.toJson error}"
 	load-local = -> store.unit ? default-units
 	load-server = (taker) !->
 		AccountFactory.with-ticket (ticket) ->
@@ -196,7 +196,7 @@
 			store.unit = angular.copy units
 			taker units
 		, (error) !->
-			$log.error "Failed to load account units: #{error}"
+			$log.error "Failed to load account units: #{angular.toJson error}"
 			taker(angular.copy default-units)
 	load-current = (taker) !->
 		if store.unit
