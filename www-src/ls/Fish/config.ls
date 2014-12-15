@@ -54,5 +54,6 @@
 		url: '/sns'
 		templateUrl: 'page/menu/sns.html'
 		controller: 'SNSCtrl'
+		onExit: (ReportFactory) !-> ReportFactory.clear-list!
 
 	$urlRouterProvider.otherwise('/')

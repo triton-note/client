@@ -15,7 +15,10 @@
 			AccountFactory.connect $scope.done, on-error
 		else
 			AccountFactory.disconnect !->
-				$scope.$apply !-> $scope.done!
+				$ionicPopup.alert do
+					title: "No social connection"
+					template: "Please login to Facebook, if you want to continue this app."
+				.then !-> $scope.done!
 			, on-error
 	$scope.done = (username = null) !->
 		$scope.social =

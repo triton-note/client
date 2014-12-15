@@ -42,9 +42,10 @@
 		, (list) !->
 			taker save list
 		, (error) !->
+			$log.error "Failed to load from server: #{angular.toJson error}"
 			$ionicPopup.alert do
 				title: "Failed to load from server"
-				template: error.msg
+				template: ""
 			.then (res) !-> taker []
 
 	reload = (success) !->
@@ -94,6 +95,9 @@
 		Refresh cache
 	*/
 	refresh: reload
+	clear-list: !->
+		store.reports = []
+		store.hasMore = true
 	/*
 		Load reports from server
 	*/

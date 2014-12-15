@@ -5,7 +5,7 @@ ion-view(title="My Reports")
 		ion-nav-buttons(side="right")
 			button.button.button-clear.icon.ion-plus-round.button-positive(ui-sref="add-report")
 		ion-side-menu-content
-			ion-content(ng-controller="ListReportsCtrl")
+			ion-content(ng-controller="ListReportsCtrl", header-shrink, scroll-event-interval="5")
 				ion-refresher(on-refresh="refresh()")
 				ion-list
 					ion-item.item-thumbnail-left(ng-repeat="report in reports()")

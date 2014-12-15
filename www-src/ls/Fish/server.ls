@@ -82,7 +82,7 @@
 	*/
 	disconnect: (ticket) -> (success-taker, error-taker) !->
 		way-name = 'facebook'
-		$log.debug "Disconnecting from #{way-name}"
+		$log.debug "Disconnecting server from #{way-name}"
 		http('POST', "account/disconnect/#{ticket}",
 			way: way-name
 		) success-taker, error-taker
@@ -285,51 +285,38 @@
 	profile: facebook-profile
 	disconnect: facebook-disconnect
 
-.factory 'AccountFactory', ($log, $rootScope, $ionicModal, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
+.factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
 		taking: null
 		ticket: null
 
-	scope = $rootScope.$new(true)
-	accept-account = (taker) !->
-		if LocalStorageFactory.account.load!?.id then taker!
-		else AcceptanceFactory.obtain !->
-			$log.warn "Taking Login Account ..."
-			scope.signin = !->
-				scope.modal.remove!
-				taker!
-			$ionicModal.fromTemplateUrl 'page/signin.html'
-			, (modal) !->
-				scope.modal = modal
-				modal.show!
-			,
-				scope: scope
-				animation: 'slide-in-up'
-
 	stack-login = (ticket-taker, error-taker) !->
 		if store.ticket then ticket-taker store.ticket
 		else
+			taker =
+				ticket: ticket-taker
+				error: error-taker
 			if store.taking
-				that.push ticket-taker
+				that.push taker
 				$log.debug "Pushed into queue: #{that}"
 			else
-				store.taking = [ticket-taker]
-				$log.debug "First listener in queue: #{store.taking}"
-				accept-account !->
+				broadcast = (proc) !-> if store.taking
+					$log.debug "Clear and invoking all listeners: #{store.taking.length}"
+					store.taking = null
+					that |> _.each proc
+				store.taking = [taker]
+				$log.debug "First listener in queue: #{taker}"
+				AcceptanceFactory.obtain !->
 					$log.debug "Get login"
 					connect (token) !->
 						ServerFactory.login token
 						, (ticket) !->
-							store.ticket = ticket
-							if store.taking
-								$log.debug "Clear and invoking all listeners: #{store.taking}"
-								store.taking = null
-								for t in that
-									t ticket
+							#store.ticket = ticket
+							broadcast (.ticket ticket)
 						, (error) !->
-							if error.type != ServerFactory.error-types.fatal
-								error-taker error.msg
-					, error-taker
+							broadcast (.error error.msg)
+					, (error) !->
+						broadcast (.error error)
 
 	with-ticket = (ticket-proc, success-taker, error-taker) !->
 		$log.debug "Getting ticket for: #{ticket-proc}, #{success-taker}"
@@ -403,9 +390,9 @@
 					title: 'Error'
 					template: "Failed to publish"
 		, (error) !->
-				$ionicPopup.alert do
-					title: 'Rejected'
-					template: error
+			$ionicPopup.alert do
+				title: 'Rejected'
+				template: error
 
 	submit = (session, report, success) !->
 		ServerFactory.submit-report(session, report) (report-id) !->
