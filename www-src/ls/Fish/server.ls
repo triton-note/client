@@ -234,7 +234,7 @@
 			store.taking = [success]
 			takeIt!
 
-.factory 'SocialFactory', ($log) ->
+.factory 'SocialFactory', ($log, LocalStorageFactory) ->
 	facebook-login = (...perm) -> (token-taker, error-taker) !-> ionic.Platform.ready !->
 		$log.info "Logging in to Facebook: #{perm}"
 		facebookConnectPlugin.login perm
@@ -262,8 +262,26 @@
 			, error-taker
 		, error-taker
 
-	login: facebook-login 'public_profile'
-	publish: facebook-login 'publish_actions'
+	login: (token-taker, error-taker) !-> ionic.Platform.ready !->
+		facebookConnectPlugin.getLoginStatus (res) !->
+			account = LocalStorageFactory.account.load!
+			$log.debug "Facebook Login Status for #{angular.toJson account}: #{angular.toJson res}"
+			if res.status == "connected" && (!account?.id || account.id == res.authResponse.userID)
+			then token-taker res.authResponse.accessToken
+			else facebook-login('public_profile') token-taker, error-taker
+		, (error) !->
+			$log.debug "Failed to get Login Status: #{angular.toJson error}"
+			facebook-login('public_profile') token-taker, error-taker
+	publish: (token-taker, error-taker) !-> ionic.Platform.ready !->
+		perm = 'publish_actions'
+		facebookConnectPlugin.api "me/permissions", []
+		, (res) !->
+			$log.debug "Facebook Access Permissions: #{angular.toJson res}"
+			pg = res.data |> _.find (.permission == perm)
+			if pg?.status == "granted"
+			then facebookConnectPlugin.getAccessToken token-taker, error-taker
+			else facebook-login(perm) token-taker, error-taker
+		, error-taker
 	profile: facebook-profile
 	disconnect: facebook-disconnect
 
@@ -373,28 +391,19 @@
 	store =
 		session: null
 		upload-info: null
-		publish-token: null
 
 	publish = (session) !->
-		doit = (on-error) -> (token) !->
+		SocialFactory.publish (token) !->
 			ServerFactory.publish-report(session, token) !->
-				store.publish-token = token
 				$log.info "Success to publish session: #{session}"
-			, on-error
-		renew = !->
-			server = doit (error) !->
+			, (error) !->
 				$ionicPopup.alert do
 					title: 'Error'
 					template: "Failed to publish"
-			SocialFactory.publish server, (error) !->
+		, (error) !->
 				$ionicPopup.alert do
 					title: 'Rejected'
 					template: error
-		if store.publish-token
-			that |> doit (error) !->
-				$log.info "Failed to use cached access_token for facebook publish: #{error}"
-				renew!
-		else renew!
 
 	submit = (session, report, success) !->
 		ServerFactory.submit-report(session, report) (report-id) !->
