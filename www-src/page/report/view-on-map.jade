@@ -1,0 +1,7 @@
+ion-view(title="Spot")
+	ion-nav-buttons(side="left")
+		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
+	ion-nav-buttons(side="right")
+		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-hide="!geoinfo")
+	ion-content(scroll="false")
+		#edit-map(style="height: 100%")

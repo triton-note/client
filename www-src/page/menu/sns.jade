@@ -1,0 +1,15 @@
+ion-view(title="Social Connection")
+	ion-nav-buttons(side="left")
+		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
+	ion-content(header-shrink, scroll-event-interval="5")
+		.list
+			.item.item-divider
+				h2.title Connections
+			.item.item-toggle
+				.input-label Facebook
+				label.toggle.toggle-balanced
+					input(type='checkbox', ng-model="login", ng-change="checkSocial()", ng-disabled="changing")
+					.track
+						.handle
+				.item-text-wrap(ng-show="login")
+					p {{ username }}

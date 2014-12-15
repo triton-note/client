@@ -1,0 +1,37 @@
+.list(ng-controller='AddFishCtrl')
+	.bar.item.item-divider
+		p.title Catches
+		button.button.button-clear.icon.ion-plus-circled.button-positive(ng-click="addFish()")
+	ion-list(show-delete="true")
+		ion-item.item-button-right(ng-repeat="fish in report.fishes", ng-click="editFish($index)")
+			ion-delete-button.icon.ion-ios7-minus-outline(ng-click="deleteFish($index, false)")
+			p {{fish | fishFilter}}
+
+	script#edit-fish(type="text/ng-template")
+
+		ion-modal-view
+			ion-header-bar
+				button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="cancel()")
+				h1.title Catch
+				.buttons
+					button.button.button-clear.icon.ion-ios7-minus-outline.button-assertive(ng-show="fishIndex != null", ng-click="deleteFish($fishIndex)")
+					button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
+			ion-content
+				.item.item-input
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="tmpFish.name")
+					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="tmpFish.name")
+					input(type="text", ng-model="tmpFish.name", placeholder="Name", ng-required="true")
+				.item.item-input
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="tmpFish.count")
+					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="tmpFish.count")
+					input(type="number", ng-model="tmpFish.count", placeholder="Count", min="1", ng-required="true")
+				.item.item-input.item-select
+					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="tmpFish.length.value")
+					input(type="number", ng-model="tmpFish.length.value", placeholder="Length")
+					select(ng-model="tmpFish.length.unit")
+						option(ng-repeat="unit in units.length") {{ unit }}
+				.item.item-input.item-select
+					i.icon.placeholder-icon.ion-checkmark-round.calm(ng-show="tmpFish.weight.value")
+					input(type="number", ng-model="tmpFish.weight.value", placeholder="Weight")
+					select(ng-model="tmpFish.weight.unit")
+						option(ng-repeat="unit in units.weight") {{ unit }}

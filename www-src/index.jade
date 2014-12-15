@@ -10,6 +10,7 @@ html(ng-app="Fish")
 		script(src="lib/angular-animate/angular-animate.js")
 		script(src="lib/angular-sanitize/angular-sanitize.js")
 		script(src="lib/angular-ui-router/release/angular-ui-router.js")
+		script(src="lib/collide/collide.js")
 		script(src="lib/ionic/js/ionic-angular.js")
 		script(src="lib/ionic/js/ionic.js")
 		script(src="lib/prelude-ls/browser/prelude-browser.js")
@@ -19,32 +20,7 @@ html(ng-app="Fish")
 
 		// My Application sctipt
 		script(src="js/Fish.js")
+
 	body
-		ion-side-menus
-			ion-side-menu-content
-				ion-header-bar
-					.button.button-clear.icon.ion-navicon.button-dark(menu-toggle="left")
-					h1.title My Reports
-					.button.button-clear.icon.ion-plus-round.button-positive(ng-controller='AddReportCtrl', ng-click="open()")
-
-				ion-content(ng-controller='ShowReportsCtrl')
-					ion-refresher(on-refresh="refresh()")
-					ion-list
-						ion-item.item-thumbnail-left(ng-repeat="report in reports()")
-							img(src="{{ report.photo.thumbnail }}", ng-click="detail($index)")
-							h2 {{report.location.name}} {{report.dateAt | date: 'yyyy/MM/dd'}}
-							.list
-								.item(ng-repeat="fish in report.fishes")
-									p {{fish | fishFilter}}
-					ion-infinite-scroll(ng-if="hasMoreReports()", on-infinite="moreReports()")
-
-			ion-side-menu(side="left")
-				ion-header-bar
-					.button.button.button-clear.icon.ion-ios7-close-empty.button-dark(menu-close)
-					h1.title Menu
-				ion-content
-					.list
-						.item(ng-controller='DistributionMapCtrl', ng-click="open()")
-							p View on Map
-						.item(ng-controller='SettingsCtrl', ng-click="open()")
-							p Settings
+		ion-nav-bar.bar-stable(animation="nav-title-slide-ios7", no-tap-scroll="true")
+		ion-nav-view(animation="slide-left-right")

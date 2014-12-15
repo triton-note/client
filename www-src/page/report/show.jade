@@ -1,14 +1,13 @@
-ion-modal-view
-	ion-header-bar
+ion-view(title="Report Detail")
+	ion-nav-buttons(side="left")
 		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
-		h1.title Report Detail
-		.buttons
-			button.button.button-clear.icon.ion-ios7-minus-outline.button-assertive(ng-click="delete(index)")
-			button.button.button-clear.icon.ion-edit.button-balanced(ng-controller='EditReportCtrl', ng-click="edit()")
-	ion-content(ng-controller='DetailReportCtrl')
+	ion-nav-buttons(side="right")
+			button.button.button-clear.icon.ion-ios7-minus-outline.button-assertive(ng-click="delete()")
+			button.button.button-clear.icon.ion-edit.button-balanced(ui-sref="edit-report")
+	ion-content
 		.card
 			.item.item-image
-				img.full-image(src="{{ report.photo.mainview }}")
+				fathens-fit-img(src="report.photo.mainview", delegate-handle="scroll-img-show-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
 		.list
 			.row.item.item-input
 				.col-25.input-label
@@ -20,7 +19,7 @@ ion-modal-view
 					p Spot
 				.col
 					p {{report.location.name}}
-				.icon.ion-earth.positive(ng-click="showMap()")
+				.icon.ion-earth.positive(ui-sref="view-on-map")
 			.row.item.item-input.item-wrap-text
 				.col-25.input-label
 					p Comment
