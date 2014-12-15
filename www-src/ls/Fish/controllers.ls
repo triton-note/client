@@ -3,14 +3,14 @@
 		$ionicNavBarDelegate.back!
 	$scope.checkSocial = !->
 		$scope.changing = true
-		next = $scope.username == null
+		next = $scope.social.username == null
 		$log.debug "Changing social: #{next}"
-		on-error = (error-msg) !->
-			$scope.login = !next
+		on-error = (error) !->
+			$log.error "Erorr on Facebook: #{angular.toJson error}"
 			$ionicPopup.alert do
-				title: 'Error'
-				template: error-msg
-			$scope.done!
+				title: "Error"
+			.then !->
+				$scope.done $scope.social.username
 		if next
 			AccountFactory.connect $scope.done, on-error
 		else
@@ -18,13 +18,16 @@
 				$scope.$apply !-> $scope.done!
 			, on-error
 	$scope.done = (username = null) !->
-		$scope.username = username
-		$scope.login = username != null
+		$scope.social =
+			username: username
+			login: username != null
 		$scope.changing = false
-		$log.debug "Account connection: #{$scope.username}"
+		$log.debug "Account connection: #{angular.toJson $scope.social}"
 
-	AccountFactory.get-username $scope.done
-	, (error-msg) !-> $scope.done!
+	AccountFactory.get-username (username) !->
+		$scope.$apply !-> $scope.done username
+	, (error-msg) !->
+		$scope.$apply !-> $scope.done!
 
 .controller 'PreferencesCtrl', ($log, $scope, $ionicNavBarDelegate, $ionicPopup, UnitFactory) !->
 	$scope.close = !->

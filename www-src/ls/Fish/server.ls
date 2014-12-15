@@ -382,10 +382,12 @@
 	disconnect: (success-taker, error-taker) !->
 		disconnect success-taker, error-taker
 	get-username: (success-taker, error-taker) !->
-		if LocalStorageFactory.account.load!
-			success-taker that.name
-		else
-			error-taker "Not login"
+		SocialFactory.profile (profile) !->
+			LocalStorageFactory.account.save profile
+			success-taker profile.name
+		, (error) !->
+			$log.error "Failed to get user name: #{error}"
+			error-taker "Not Login"
 
 .factory 'SessionFactory', ($log, $http, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
