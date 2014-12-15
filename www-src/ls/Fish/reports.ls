@@ -69,11 +69,11 @@
 		past = now - item.timestamp
 		$log.debug "Report timestamp past: #{past}ms"
 		if expiration < past then
-			item.timestamp = now
 			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.read-report ticket, item.report.id
 			, (result) !->
 				$log.debug "Read report: #{angular.toJson result}"
+				item.timestamp = now
 				angular.copy result.report, item.report
 			, (error) !->
 				$log.error "Failed to read report(#{item.report.id}) from server: #{angular.toJson error}"
