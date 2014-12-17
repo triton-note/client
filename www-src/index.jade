@@ -6,20 +6,14 @@ html(ng-app="Fish")
 		link(href="css/ionic.app.css", rel="stylesheet")
 
 		// Libraries by bower
-		script(src="lib/angular/angular.js")
-		script(src="lib/angular-animate/angular-animate.js")
-		script(src="lib/angular-sanitize/angular-sanitize.js")
-		script(src="lib/angular-ui-router/release/angular-ui-router.js")
-		script(src="lib/collide/collide.js")
-		script(src="lib/ionic/js/ionic-angular.js")
-		script(src="lib/ionic/js/ionic.js")
-		script(src="lib/prelude-ls/browser/prelude-browser.js")
+		script(src="lib/ionic/js/ionic.bundle.min.js")
+		script(src="lib/prelude-ls/browser/prelude-browser-min.js")
 
 		// Needed for Cordova/PhoneGap (will be a 404 during development)
 		script(src="cordova.js")
 
 		// My Application sctipt
-		script(src="js/Fish.js")
+		script(src="js/App.js")
 
 	body
 		ion-nav-bar.bar-stable(animation="nav-title-slide-ios7", no-tap-scroll="true")

@@ -63,20 +63,6 @@ gulp.task "sass", ->
 		.pipe gp.if isRelease, gp.minify-css!
 		.pipe gulp.dest paths.sass.dst-dir
 
-gulp.task "bower", ->
-	jsFilter = gp.filter("**/*.js")
-	cssFilter = gp.filter("**/*.css")
-	gulp.src main-bower-files!, { base: 'bower_components' }
-		.pipe jsFilter
-		.pipe gp.uglify {
-			preserveComments: "some"
-		}
-		.pipe jsFilter.restore!
-		.pipe cssFilter
-		.pipe gp.minify-css!
-		.pipe cssFilter.restore!
-		.pipe gulp.dest paths.bower.dst-dir
-
 gulp.task "splash", ->
 	android = gulp.src "resources/android/splash/**/*.9.png"
 		.pipe gulp.dest "platforms/android/res"

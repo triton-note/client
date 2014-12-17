@@ -8,16 +8,15 @@ sudo npm install -g gulp
 # Prepare
 
 npm install
-bower install
-
-gulp bower
 
 ./reinstall_plugins.sh
 
 gulp splash
 
 # Build
+# gulp clean
 
+bower install
 gulp
 
 # Run
