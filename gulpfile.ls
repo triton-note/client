@@ -2,8 +2,8 @@ require! {
 	fs
 	gulp
 	'main-bower-files'
-	es: 'event-stream'
-	_: 'prelude-ls'
+	'event-stream': es
+	'prelude-ls': _
 }
 gp = require('gulp-load-plugins')!
 

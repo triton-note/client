@@ -1,8 +1,9 @@
 # Requirements
 
-npm install -g ionic
-npm install -g cordova
-npm install -g bower
+sudo npm install -g ionic
+sudo npm install -g cordova
+sudo npm install -g bower
+sudo npm install -g gulp
 
 # Prepare
 
