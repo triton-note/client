@@ -229,11 +229,12 @@
 			$scope.report.location.geoinfo = that
 		$ionicHistory.goBack!
 
-.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, GMapFactory, DistributionFactory, ReportFactory) !->
 	$scope.$on '$ionicView.beforeEnter', (event, state) !->
 		$log.debug "Before Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		GMapFactory.onDiv 'distribution-map', (gmap) !->
 			$scope.gmap = gmap
+			$scope.gmap.setMapTypeId $scope.view.gmap.type = plugin.google.maps.MapTypeId.HYBRID
 			$scope.$watch ->
 				!!$ionicSideMenuDelegate.isOpenLeft!
 			, (isOpen) !->
@@ -241,24 +242,34 @@
 				$scope.gmap.setClickable !isOpen
 				document.getElementsByClassName('menu-left')[0].style.display = if isOpen then 'block' else 'none'
 			map-distribution!
-
-	$scope.showOptions = !->
-		$scope.gmap.setClickable false
-		$ionicPopup.alert do
-			templateUrl: 'distribution-map-options',
+		$ionicPopover.fromTemplateUrl 'distribution-map-options',
 			scope: $scope
-			title: "Options"
-		.then (res) ->
+		.then (pop) ->
+			$scope.popover = pop
+		$scope.$on 'popover.hidden', !->
 			$scope.gmap.setClickable true
+			
+	$scope.showOptions = (event) !->
+		$scope.gmap.setClickable false
+		$scope.popover.show event
 	$scope.view =
 		others: false
 		name: null
+		gmap:
+			types:
+				"Roadmap": plugin.google.maps.MapTypeId.ROADMAP
+				"Satellite": plugin.google.maps.MapTypeId.SATELLITE
+				"Road + Satellite": plugin.google.maps.MapTypeId.HYBRID
+				"Terrain": plugin.google.maps.MapTypeId.TERRAIN
 	$scope.$watch 'view.others', (value) !->
 		$log.debug "Changing 'view.person': #{angular.toJson value}"
 		map-distribution!
 	$scope.$watch 'view.name', (value) !->
 		$log.debug "Changing 'view.fish': #{angular.toJson value}"
 		map-distribution!
+	$scope.$watch 'view.gmap.type', (value) !->
+		$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
+		$scope.gmap.setMapTypeId value
 
 	icons = [1 to 10] |> _.map (count) ->
 		size = 32
