@@ -1,7 +1,5 @@
 ion-view(view-title="Edit Report")
-	ion-nav-buttons(side="left")
-		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
-	ion-nav-buttons(side="right")
+	ion-nav-buttons(side="secondary")
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
 	ion-content
 		.card
@@ -18,7 +16,7 @@ ion-view(view-title="Edit Report")
 					p Spot
 				.col
 					input(type="text", ng-model="report.location.name")
-				.icon.ion-earth.positive(ui-sref="view-on-map({edit: true})")
+				.icon.ion-earth.positive(ng-click="openMap()", ui-sref="view-on-map({edit: true})")
 			.row.item.item-input
 				.col-25.input-label
 					p Comment

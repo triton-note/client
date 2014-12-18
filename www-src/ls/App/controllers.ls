@@ -1,6 +1,4 @@
-.controller 'SNSCtrl', ($log, $scope, $ionicPopup, $ionicNavBarDelegate, AccountFactory) !->
-	$scope.close = !->
-		$ionicNavBarDelegate.back!
+.controller 'SNSCtrl', ($log, $scope, $ionicPopup, AccountFactory) !->
 	$scope.checkSocial = !->
 		$scope.changing = true
 		next = $scope.social.username == null
@@ -32,12 +30,10 @@
 	, (error-msg) !->
 		$scope.$apply !-> $scope.done!
 
-.controller 'PreferencesCtrl', ($log, $scope, $ionicNavBarDelegate, $ionicPopup, UnitFactory) !->
-	$scope.close = !->
-		$ionicNavBarDelegate.back!
+.controller 'PreferencesCtrl', ($log, $scope, $ionicHistory, $ionicPopup, UnitFactory) !->
 	$scope.submit = !->
 		UnitFactory.save $scope.unit
-		$scope.close!
+		$ionicHistory.goBack!
 	$scope.units = UnitFactory.units!
 
 	UnitFactory.load (units) !->
@@ -53,22 +49,10 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-.controller 'ShowReportCtrl', ($log, $stateParams, $ionicNavBarDelegate, $ionicScrollDelegate, $scope, $ionicPopup, onBack, ReportFactory) !->
-	$scope.close = !->
-		onBack!
-		$ionicNavBarDelegate.back!
-	$scope.delete = !->
-		$ionicPopup.confirm do
-			title: "Delete Report"
-			template: "Are you sure to delete this report ?"
-		.then (res) !-> if res
-			ReportFactory.remove $scope.index, !->
-				$log.debug "Remove completed."
-			$scope.close!
-
-	$scope.$on '$viewContentLoaded', (event) !->
-		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
-		$log.debug "DetailReportCtrl: params=#{angular.toJson $stateParams}"
+.controller 'ShowReportCtrl', ($log, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopup, ReportFactory) !->
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$scope.should-clear = true
 		if $stateParams.index && ReportFactory.current!.index == null
 			$scope.report = ReportFactory.getReport($scope.index = Number($stateParams.index))
 		else
@@ -76,92 +60,100 @@
 			$scope.index = c.index
 			$scope.report = c.report
 		$log.debug "Show Report: #{angular.toJson $scope.report}"
+		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
 
-.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicNavBarDelegate, onBack, ReportFactory) !->
-	$scope.close = !->
-		onBack!
-		$ionicNavBarDelegate.back!
-	$scope.submit = !->
-		ReportFactory.updateByCurrent !->
-			$log.debug "Edit completed."
-			$scope.close!
+	$scope.$on '$ionicView.beforeLeave', (event, state) !->
+		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		ReportFactory.clear-current! if $scope.should-clear
 
-	$scope.$on '$viewContentLoaded', (event) !->
-		$log.debug "EditReportCtrl: params=#{angular.toJson $stateParams}"
+	$scope.openMap = !->
+		$log.debug "Click open map !!"
+		$scope.should-clear = false
+	$scope.delete = !->
+		$ionicPopup.confirm do
+			title: "Delete Report"
+			template: "Are you sure to delete this report ?"
+		.then (res) !-> if res
+			ReportFactory.remove $scope.index, !->
+				$log.debug "Remove completed."
+			$ionicHistory.goBack!
+
+.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicHistory, ReportFactory) !->
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter EditReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$scope.should-clear = true
 		$scope.report = ReportFactory.current!.report
 		$scope.report.dateAt = ReportFactory.format-date $scope.report.dateAt
 		$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
 
-.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicNavBarDelegate, GMapFactory, ReportFactory) !->
-	$scope.close = !->
-		$ionicNavBarDelegate.back!
+	$scope.$on '$ionicView.beforeLeave', (event, state) !->
+		$log.debug "Before Leave EditReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		ReportFactory.clear-current! if $scope.should-clear
+
+	$scope.openMap = !->
+		$log.debug "Click open map !!"
+		$scope.should-clear = false
 	$scope.submit = !->
-		if $scope.geoinfo
-			$scope.report.location.geoinfo = that
-		$scope.close!
+		ReportFactory.updateByCurrent !->
+			$log.debug "Edit completed."
+			$ionicHistory.goBack!
 
-	$scope.$on '$viewContentLoaded', (event) !->
-		$log.debug "ReportOnMapCtrl: params=#{angular.toJson $stateParams}"
-		$scope.report = ReportFactory.current!.report
-		GMapFactory.onDiv 'edit-map', (gmap) !->
-			if $stateParams.edit
-				$scope.geoinfo = $scope.report.location.geoinfo
-				GMapFactory.onTap (geoinfo) !->
-					$scope.geoinfo = geoinfo
-					GMapFactory.put-marker geoinfo
-		, $scope.report.location.geoinfo
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$scope.should-clear = true
+		if ReportFactory.current!.report
+			$scope.report = that
+			$log.debug "Getting current report: #{angular.toJson $scope.report}"
+			$scope.submission.enabled = !!$scope.report.photo.original
+		else
+			on-error = (title) -> (error-msg) !->
+				$ionicPopup.alert do
+					title: title
+					template: error-msg
+				.then $ionicHistory.goBack
+			PhotoFactory.select (photo) !->
+				uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
+				$log.debug "Selected photo: #{uri}"
+				$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
+				$scope.report = ReportFactory.newCurrent uri
+				upload = (geoinfo = null) !->
+					$scope.report.location.geoinfo = geoinfo
+					SessionFactory.start geoinfo, !->
+						SessionFactory.put-photo photo
+						, (result) !->
+							$log.debug "Get result of upload: #{angular.toJson result}"
+							$scope.report.photo <<< result.url
+							$scope.submission.enabled = true
+						, (inference) !->
+							$log.debug "Get inference: #{angular.toJson inference}"
+							if inference.location
+								$scope.report.location.name = that
+							if inference.fishes?.length > 0
+								$scope.report.fishes = inference.fishes
+						, on-error "Failed to upload"
+					, on-error "Error"
+				$log.warn "Getting current location..."
+				GMapFactory.getGeoinfo upload, (error) !->
+					$log.error "Geolocation Error: #{angular.toJson error}"
+					upload!
+			, on-error "Need one photo"
 
-.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicNavBarDelegate, $ionicPopup, $ionicScrollDelegate, onBack, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
-	init = !->
-		on-error = (title) -> (error-msg) !->
-			$ionicPopup.alert do
-				title: title
-				template: error-msg
-			.then $scope.close
-		PhotoFactory.select (photo) !->
-			uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
-			$log.debug "Selected photo: #{uri}"
-			$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
-			$scope.report = ReportFactory.newCurrent uri
-			upload = (geoinfo = null) !->
-				$scope.report.location.geoinfo = geoinfo
-				SessionFactory.start geoinfo, !->
-					SessionFactory.put-photo photo
-					, (result) !->
-						$log.debug "Get result of upload: #{angular.toJson result}"
-						$scope.report.photo <<< result.url
-						$scope.submission.enabled = true
-					, (inference) !->
-						$log.debug "Get inference: #{angular.toJson inference}"
-						if inference.location
-							$scope.report.location.name = that
-						if inference.fishes?.length > 0
-							$scope.report.fishes = inference.fishes
-					, on-error "Failed to upload"
-				, on-error "Error"
-			$log.warn "Getting current location..."
-			GMapFactory.getGeoinfo upload, (error) !->
-				$log.error "Geolocation Error: #{angular.toJson error}"
-				upload!
-		, on-error "Need one photo"
-	$scope.close = !->
-		onBack!
-		$ionicNavBarDelegate.back!
+	$scope.$on '$ionicView.beforeLeave', (event, state) !->
+		$log.debug "Before Leave AddReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		ReportFactory.clear-current! if $scope.should-clear
+
+	$scope.openMap = !->
+		$log.debug "Click open map !!"
+		$scope.should-clear = false
 	$scope.submit = !->
 		report = $scope.report
 		report.dateAt = new Date(report.dateAt).getTime!
 		SessionFactory.finish report, $scope.submission.publishing, !->
-			$scope.close!
+			$ionicHistory.goBack!
 	$scope.submission =
 		enabled: false
 		publishing: false
-
-	$log.debug "AddReportCtrl: params=#{angular.toJson $stateParams}"
-	if ReportFactory.current!.report
-		$scope.report = that
-		$log.debug "Getting current report: #{angular.toJson $scope.report}"
-		$scope.submission.enabled = !!$scope.report.photo.original
-	else init!
 
 .controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
 	# $scope.report.fishes
@@ -219,9 +211,24 @@
 				$scope.modal.hide!
 				del!
 
+.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, GMapFactory, ReportFactory) !->
+	$scope.submit = !->
+		if $scope.geoinfo
+			$scope.report.location.geoinfo = that
+		$ionicHistory.goBack!
+
+	$scope.$on '$viewContentLoaded', (event) !->
+		$log.debug "ReportOnMapCtrl: params=#{angular.toJson $stateParams}"
+		$scope.report = ReportFactory.current!.report
+		GMapFactory.onDiv 'edit-map', (gmap) !->
+			if $stateParams.edit
+				$scope.geoinfo = $scope.report.location.geoinfo
+				GMapFactory.onTap (geoinfo) !->
+					$scope.geoinfo = geoinfo
+					GMapFactory.put-marker geoinfo
+		, $scope.report.location.geoinfo
+
 .controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $ionicNavBarDelegate, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
-	$scope.close = !->
-		$ionicNavBarDelegate.back!
 	$scope.showOptions = !->
 		$scope.gmap.setClickable false
 		$ionicPopup.alert do
