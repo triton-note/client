@@ -1,4 +1,11 @@
-.controller 'SNSCtrl', ($log, $scope, $ionicPopup, AccountFactory) !->
+.controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicPopup, AccountFactory) !->
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter SNSCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		AccountFactory.get-username (username) !->
+			$scope.$apply !-> $scope.done username
+		, (error-msg) !->
+			$scope.$apply !-> $scope.done!
+
 	$scope.checkSocial = !->
 		$scope.changing = true
 		next = $scope.social.username == null
@@ -25,19 +32,16 @@
 		$scope.changing = false
 		$log.debug "Account connection: #{angular.toJson $scope.social}"
 
-	AccountFactory.get-username (username) !->
-		$scope.$apply !-> $scope.done username
-	, (error-msg) !->
-		$scope.$apply !-> $scope.done!
+.controller 'PreferencesCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicPopup, UnitFactory) !->
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter PreferencesCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		UnitFactory.load (units) !->
+			$scope.unit = units
 
-.controller 'PreferencesCtrl', ($log, $scope, $ionicHistory, $ionicPopup, UnitFactory) !->
 	$scope.submit = !->
 		UnitFactory.save $scope.unit
 		$ionicHistory.goBack!
 	$scope.units = UnitFactory.units!
-
-	UnitFactory.load (units) !->
-		$scope.unit = units
 
 .controller 'ListReportsCtrl', ($log, $scope, ReportFactory) !->
 	$scope.reports = ReportFactory.cachedList
@@ -212,13 +216,8 @@
 				del!
 
 .controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, GMapFactory, ReportFactory) !->
-	$scope.submit = !->
-		if $scope.geoinfo
-			$scope.report.location.geoinfo = that
-		$ionicHistory.goBack!
-
-	$scope.$on '$viewContentLoaded', (event) !->
-		$log.debug "ReportOnMapCtrl: params=#{angular.toJson $stateParams}"
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.report = ReportFactory.current!.report
 		GMapFactory.onDiv 'edit-map', (gmap) !->
 			if $stateParams.edit
@@ -228,7 +227,18 @@
 					GMapFactory.put-marker geoinfo
 		, $scope.report.location.geoinfo
 
-.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $ionicNavBarDelegate, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
+	$scope.submit = !->
+		if $scope.geoinfo
+			$scope.report.location.geoinfo = that
+		$ionicHistory.goBack!
+
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Before Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		GMapFactory.onDiv 'distribution-map', (gmap) !->
+			$scope.gmap = gmap
+			map-distribution!
+
 	$scope.showOptions = !->
 		$scope.gmap.setClickable false
 		$ionicPopup.alert do
@@ -309,8 +319,3 @@
 			if !others
 			then DistributionFactory.mine fish-name, map-mine
 			else DistributionFactory.others fish-name, map-others
-
-	$scope.$on '$viewContentLoaded', (event) !->
-		GMapFactory.onDiv 'distribution-map', (gmap) !->
-			$scope.gmap = gmap
-			map-distribution!
