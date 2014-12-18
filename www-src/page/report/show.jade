@@ -2,7 +2,7 @@ ion-view(view-title="Report Detail")
 	ion-nav-buttons(side="primary")
 		button.button.button-clear.icon.ion-ios7-minus-outline.button-assertive(ng-click="delete()")
 	ion-nav-buttons(side="secondary")
-		button.button.button-clear.icon.ion-edit.button-balanced(ui-sref="edit-report")
+		button.button.button-clear.icon.ion-edit.button-balanced(ng-click="useCurrent()", ui-sref="edit-report")
 	ion-content
 		.card
 			.item.item-image
@@ -18,7 +18,7 @@ ion-view(view-title="Report Detail")
 					p Spot
 				.col
 					p {{report.location.name}}
-				.icon.ion-earth.positive(ng-click="openMap()", ui-sref="view-on-map")
+				.icon.ion-earth.positive(ng-click="useCurrent()", ui-sref="view-on-map")
 			.row.item.item-input.item-wrap-text
 				.col-25.input-label
 					p Comment

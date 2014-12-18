@@ -70,8 +70,7 @@
 		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		ReportFactory.clear-current! if $scope.should-clear
 
-	$scope.openMap = !->
-		$log.debug "Click open map !!"
+	$scope.useCurrent = !->
 		$scope.should-clear = false
 	$scope.delete = !->
 		$ionicPopup.confirm do
@@ -94,8 +93,7 @@
 		$log.debug "Before Leave EditReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		ReportFactory.clear-current! if $scope.should-clear
 
-	$scope.openMap = !->
-		$log.debug "Click open map !!"
+	$scope.useCurrent = !->
 		$scope.should-clear = false
 	$scope.submit = !->
 		ReportFactory.updateByCurrent !->
@@ -147,8 +145,7 @@
 		$log.debug "Before Leave AddReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		ReportFactory.clear-current! if $scope.should-clear
 
-	$scope.openMap = !->
-		$log.debug "Click open map !!"
+	$scope.useCurrent = !->
 		$scope.should-clear = false
 	$scope.submit = !->
 		report = $scope.report
