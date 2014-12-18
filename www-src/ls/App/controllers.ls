@@ -232,11 +232,17 @@
 			$scope.report.location.geoinfo = that
 		$ionicHistory.goBack!
 
-.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
-	$scope.$on '$ionicView.enter', (event, state) !->
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopup, GMapFactory, DistributionFactory, ReportFactory) !->
+	$scope.$on '$ionicView.beforeEnter', (event, state) !->
 		$log.debug "Before Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		GMapFactory.onDiv 'distribution-map', (gmap) !->
 			$scope.gmap = gmap
+			$scope.$watch ->
+				!!$ionicSideMenuDelegate.isOpenLeft!
+			, (isOpen) !->
+				$log.debug "DistributionMapCtrl: side menu open: #{isOpen}"
+				$scope.gmap.setClickable !isOpen
+				document.getElementsByClassName('menu-left')[0].style.display = if isOpen then 'block' else 'none'
 			map-distribution!
 
 	$scope.showOptions = !->
