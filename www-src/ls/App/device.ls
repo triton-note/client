@@ -65,9 +65,10 @@
 .factory 'GMapFactory', ($log) ->
 	store =
 		gmap: null
+		map-type: plugin.google.maps.MapTypeId.HYBRID
 	ionic.Platform.ready !->
 		gmap = plugin.google.maps.Map.getMap do
-			mapType: plugin.google.maps.MapTypeId.HYBRID
+			mapType: store.map-type
 			controls:
 				myLocationButton: true
 				zoom: false
@@ -93,6 +94,14 @@
 	add-marker: marker false
 	put-marker: marker true
 	clear: clear
+	getMapTypes: ->
+		"Roadmap": plugin.google.maps.MapTypeId.ROADMAP
+		"Satellite": plugin.google.maps.MapTypeId.SATELLITE
+		"Road + Satellite": plugin.google.maps.MapTypeId.HYBRID
+		"Terrain": plugin.google.maps.MapTypeId.TERRAIN
+	getMapType: -> store.map-type
+	setMapType: (id) !-> onReady !->
+		store.gmap.setMapTypeId store.map-type = id
 	getGeoinfo: (onSuccess, onError) !-> onReady !->
 		store.gmap.getMyLocation (location) !->
 			$log.debug "Gotta GMap Location: #{angular.toJson location}"
@@ -119,6 +128,7 @@
 					, (error) !->
 						$log.error "GMap Location Error: #{angular.toJson error}"
 		document.getElementById name |> store.gmap.setDiv
+		store.gmap.setMapTypeId store.map-type
 		store.gmap.setClickable true
 		success store.gmap if success
 	onTap: (proc) !-> onReady !->

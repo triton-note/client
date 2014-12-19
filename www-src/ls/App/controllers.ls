@@ -234,7 +234,6 @@
 		$log.debug "Before Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		GMapFactory.onDiv 'distribution-map', (gmap) !->
 			$scope.gmap = gmap
-			$scope.gmap.setMapTypeId $scope.view.gmap.type = plugin.google.maps.MapTypeId.HYBRID
 			$scope.$watch ->
 				!!$ionicSideMenuDelegate.isOpenLeft!
 			, (isOpen) !->
@@ -256,11 +255,8 @@
 		others: false
 		name: null
 		gmap:
-			types:
-				"Roadmap": plugin.google.maps.MapTypeId.ROADMAP
-				"Satellite": plugin.google.maps.MapTypeId.SATELLITE
-				"Road + Satellite": plugin.google.maps.MapTypeId.HYBRID
-				"Terrain": plugin.google.maps.MapTypeId.TERRAIN
+			type: GMapFactory.getMapType!
+			types: GMapFactory.getMapTypes!
 	$scope.$watch 'view.others', (value) !->
 		$log.debug "Changing 'view.person': #{angular.toJson value}"
 		map-distribution!
@@ -269,7 +265,7 @@
 		map-distribution!
 	$scope.$watch 'view.gmap.type', (value) !->
 		$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
-		$scope.gmap.setMapTypeId value
+		GMapFactory.setMapType value
 
 	icons = [1 to 10] |> _.map (count) ->
 		size = 32
