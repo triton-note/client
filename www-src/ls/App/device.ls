@@ -65,10 +65,9 @@
 .factory 'GMapFactory', ($log) ->
 	store =
 		gmap: null
-		map-type: plugin.google.maps.MapTypeId.HYBRID
 	ionic.Platform.ready !->
 		gmap = plugin.google.maps.Map.getMap do
-			mapType: store.map-type
+			mapType: store.map-type = plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
 				zoom: false

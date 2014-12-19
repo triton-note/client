@@ -229,103 +229,106 @@
 			$scope.report.location.geoinfo = that
 		$ionicHistory.goBack!
 
-.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, GMapFactory, DistributionFactory, ReportFactory) !->
-	$scope.$on '$ionicView.beforeEnter', (event, state) !->
-		$log.debug "Before Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
-		GMapFactory.onDiv 'distribution-map', (gmap) !->
-			$scope.gmap = gmap
-			$scope.$watch ->
-				!!$ionicSideMenuDelegate.isOpenLeft!
-			, (isOpen) !->
-				$log.debug "DistributionMapCtrl: side menu open: #{isOpen}"
-				$scope.gmap.setClickable !isOpen
-				document.getElementsByClassName('menu-left')[0].style.display = if isOpen then 'block' else 'none'
-			map-distribution!
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, $ionicLoading, GMapFactory, DistributionFactory, ReportFactory) !->
+	$scope.$on '$ionicView.loaded', (event, state) !->
+		$log.debug "Loaded Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$ionicLoading.show!
+		$scope.view =
+			others: false
+			name: null
+			gmap:
+				type: GMapFactory.getMapType!
+				types: GMapFactory.getMapTypes!
+		$scope.$watch 'view.others', (value) !->
+			$log.debug "Changing 'view.person': #{angular.toJson value}"
+			$scope.map-distribution!
+		$scope.$watch 'view.name', (value) !->
+			$log.debug "Changing 'view.fish': #{angular.toJson value}"
+			$scope.map-distribution!
+		$scope.$watch 'view.gmap.type', (value) !->
+			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
+			GMapFactory.setMapType value
+		$scope.$watch ->
+			!!$ionicSideMenuDelegate.isOpenLeft!
+		, (isOpen) !->
+			$log.debug "DistributionMapCtrl: side menu open: #{isOpen}"
+			$scope.gmap?.setClickable !isOpen
+			document.getElementsByClassName('menu-left')[0]?.style.display = if isOpen then 'block' else 'none'
 		$ionicPopover.fromTemplateUrl 'distribution-map-options',
 			scope: $scope
 		.then (pop) ->
 			$scope.popover = pop
 		$scope.$on 'popover.hidden', !->
 			$scope.gmap.setClickable true
-			
-	$scope.showOptions = (event) !->
-		$scope.gmap.setClickable false
-		$scope.popover.show event
-	$scope.view =
-		others: false
-		name: null
-		gmap:
-			type: GMapFactory.getMapType!
-			types: GMapFactory.getMapTypes!
-	$scope.$watch 'view.others', (value) !->
-		$log.debug "Changing 'view.person': #{angular.toJson value}"
-		map-distribution!
-	$scope.$watch 'view.name', (value) !->
-		$log.debug "Changing 'view.fish': #{angular.toJson value}"
-		map-distribution!
-	$scope.$watch 'view.gmap.type', (value) !->
-		$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
-		GMapFactory.setMapType value
+		$scope.showOptions = (event) !->
+			$scope.gmap.setClickable false
+			$scope.popover.show event
 
-	icons = [1 to 10] |> _.map (count) ->
-		size = 32
-		center = size / 2
-		r = ->
-			min = 4
-			max = center - 1
-			v = min + (max - min) * count / 10
-			_.min max, v
-		canvas = document.createElement 'canvas'
-		canvas.width = size
-		canvas.height = size
-		context = canvas.getContext '2d'
-		context.beginPath!
-		context.strokeStyle = "rgb(80, 0, 0)"
-		context.fillStyle = "rgba(255, 40, 0, 0.7)"
-		context.arc center, center, r!, 0, _.pi * 2, true
-		context.stroke!
-		context.fill!
-		canvas.toDataURL!
-	map-distribution = !->
-		gmap = $scope.gmap
-		others = $scope.view.others
-		fish-name = $scope.view.name
-		map-mine = (list) !->
-			$log.debug "Mapping my distribution (filtered by '#{fish-name}'): #{list}"
-			gmap.clear!
-			detail = (fish) -> (marker) !->
-				marker.on plugin.google.maps.event.INFO_CLICK, !->
-					$log.debug "Detail for fish: #{angular.toJson fish}"
-					find-or = (fail) !->
-						index = ReportFactory.getIndex fish.report-id
-						if index >= 0 then
-							GMapFactory.clear!
-							$state.go 'show-report',
-								index: index
-						else fail!
-					find-or !->
-						ReportFactory.refresh !->
-							find-or !->
-								$log.error "Report not found by id: #{fish.report-id}"
-			for fish in list
-				gmap.addMarker do
-					title: "#{fish.name} x #{fish.count}"
-					snippet: ReportFactory.format-date fish.date
-					position:
-						lat: fish.geoinfo.latitude
-						lng: fish.geoinfo.longitude
-					, detail fish
-		map-others = (list) !->
-			$log.debug "Mapping other's distribution (filtered by '#{fish-name}'): #{list}"
-			gmap.clear!
-			for fish in list
-				gmap.addMarker do
-					title: "#{fish.name} x #{fish.count}"
-					icon: icons[(_.min fish.count, 10) - 1]
-					position:
-						lat: fish.geoinfo.latitude
-						lng: fish.geoinfo.longitude
-		if (gmap)
+		icons = [1 to 10] |> _.map (count) ->
+			size = 32
+			center = size / 2
+			r = ->
+				min = 4
+				max = center - 1
+				v = min + (max - min) * count / 10
+				_.min max, v
+			canvas = document.createElement 'canvas'
+			canvas.width = size
+			canvas.height = size
+			context = canvas.getContext '2d'
+			context.beginPath!
+			context.strokeStyle = "rgb(80, 0, 0)"
+			context.fillStyle = "rgba(255, 40, 0, 0.7)"
+			context.arc center, center, r!, 0, _.pi * 2, true
+			context.stroke!
+			context.fill!
+			canvas.toDataURL!
+		$scope.map-distribution = !-> if gmap = $scope.gmap
+			others = $scope.view.others
+			fish-name = $scope.view.name
+			map-mine = (list) !->
+				$log.debug "Mapping my distribution (filtered by '#{fish-name}'): #{list}"
+				gmap.clear!
+				detail = (fish) -> (marker) !->
+					marker.on plugin.google.maps.event.INFO_CLICK, !->
+						$log.debug "Detail for fish: #{angular.toJson fish}"
+						find-or = (fail) !->
+							index = ReportFactory.getIndex fish.report-id
+							if index >= 0 then
+								GMapFactory.clear!
+								$state.go 'show-report',
+									index: index
+							else fail!
+						find-or !->
+							ReportFactory.refresh !->
+								find-or !->
+									$log.error "Report not found by id: #{fish.report-id}"
+				for fish in list
+					gmap.addMarker do
+						title: "#{fish.name} x #{fish.count}"
+						snippet: ReportFactory.format-date fish.date
+						position:
+							lat: fish.geoinfo.latitude
+							lng: fish.geoinfo.longitude
+						, detail fish
+			map-others = (list) !->
+				$log.debug "Mapping other's distribution (filtered by '#{fish-name}'): #{list}"
+				gmap.clear!
+				for fish in list
+					gmap.addMarker do
+						title: "#{fish.name} x #{fish.count}"
+						icon: icons[(_.min fish.count, 10) - 1]
+						position:
+							lat: fish.geoinfo.latitude
+							lng: fish.geoinfo.longitude
 			if !others
 			then DistributionFactory.mine fish-name, map-mine
 			else DistributionFactory.others fish-name, map-others
+
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$ionicLoading.show!
+		GMapFactory.onDiv 'distribution-map', (gmap) !->
+			$scope.gmap = gmap
+			$scope.map-distribution!
+			$ionicLoading.hide!
