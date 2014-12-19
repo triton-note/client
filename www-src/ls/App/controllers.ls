@@ -216,7 +216,7 @@
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.report = ReportFactory.current!.report
-		GMapFactory.onDiv 'edit-map', (gmap) !->
+		GMapFactory.onDiv $scope, 'edit-map', (gmap) !->
 			if $stateParams.edit
 				$scope.geoinfo = $scope.report.location.geoinfo
 				GMapFactory.onTap (geoinfo) !->
@@ -248,12 +248,6 @@
 		$scope.$watch 'view.gmap.type', (value) !->
 			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
 			GMapFactory.setMapType value
-		$scope.$watch ->
-			!!$ionicSideMenuDelegate.isOpenLeft!
-		, (isOpen) !->
-			$log.debug "DistributionMapCtrl: side menu open: #{isOpen}"
-			$scope.gmap?.setClickable !isOpen
-			document.getElementsByClassName('menu-left')[0]?.style.display = if isOpen then 'block' else 'none'
 		$ionicPopover.fromTemplateUrl 'distribution-map-options',
 			scope: $scope
 		.then (pop) ->
@@ -328,7 +322,7 @@
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$ionicLoading.show!
-		GMapFactory.onDiv 'distribution-map', (gmap) !->
+		GMapFactory.onDiv $scope, 'distribution-map', (gmap) !->
 			$scope.gmap = gmap
 			$scope.map-distribution!
 			$ionicLoading.hide!

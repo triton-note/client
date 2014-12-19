@@ -62,7 +62,7 @@
 	*/
 	acceptance: make 'Acceptance'
 
-.factory 'GMapFactory', ($log) ->
+.factory 'GMapFactory', ($log, $ionicSideMenuDelegate, $timeout) ->
 	store =
 		gmap: null
 	ionic.Platform.ready !->
@@ -73,6 +73,11 @@
 				zoom: false
 		gmap.on plugin.google.maps.event.MAP_READY, !->
 			store.gmap = gmap
+	menuShown = (isOpen) !->
+		console.log "GMapFactory: side menu open: #{isOpen}"
+		document.getElementsByClassName('menu-left')[0]?.style.display = if isOpen then 'block' else 'none'
+		store.gmap.setClickable !isOpen
+		$timeout store.gmap.refreshLayout, 200 if !isOpen
 	marker = (clear-pre) -> (geoinfo, title, icon) !->
 		store.gmap.clear! if clear-pre
 		store.gmap.addMarker do
@@ -88,7 +93,7 @@
 		store.gmap.clear!
 		store.gmap.off!
 		store.gmap.setDiv null
-		store.gmap.setClickable false
+		menuShown true
 
 	add-marker: marker false
 	put-marker: marker true
@@ -110,7 +115,7 @@
 		, (error) !->
 			$log.error "GMap Location Error: #{angular.toJson error}"
 			onError error if onError
-	onDiv: (name, success, center) !-> onReady !->
+	onDiv: (scope, name, success, center) !-> onReady !->
 		clear!
 		if center
 			store.gmap.setZoom 10
@@ -126,9 +131,13 @@
 						store.gmap.setCenter location.latLng
 					, (error) !->
 						$log.error "GMap Location Error: #{angular.toJson error}"
-		document.getElementById name |> store.gmap.setDiv
+		div = document.getElementById name
+		store.gmap.setDiv div
 		store.gmap.setMapTypeId store.map-type
 		store.gmap.setClickable true
+		scope.$watch ->
+			!!$ionicSideMenuDelegate.isOpenLeft!
+		, menuShown
 		success store.gmap if success
 	onTap: (proc) !-> onReady !->
 		$log.debug "GMap onTap is changed: #{proc}"
