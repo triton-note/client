@@ -1,15 +1,14 @@
-ion-view(title="Social Connection")
-	ion-nav-buttons(side="left")
-		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
-	ion-content(header-shrink, scroll-event-interval="5")
+ion-view(view-title="Social Connection")
+	ion-content
 		.list
 			.item.item-divider
 				h2.title Connections
 			.item.item-toggle
-				.input-label Facebook
+				.input-label
+					p Facebook
 				label.toggle.toggle-balanced
-					input(type='checkbox', ng-model="login", ng-change="checkSocial()", ng-disabled="changing")
+					input(type='checkbox', ng-model="social.login", ng-change="checkSocial()")
 					.track
 						.handle
-				.item-text-wrap(ng-show="login")
-					p {{ username }}
+				.item-text-wrap(ng-show="social.login")
+					p {{ social.username }}

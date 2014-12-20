@@ -62,17 +62,22 @@
 	*/
 	acceptance: make 'Acceptance'
 
-.factory 'GMapFactory', ($log) ->
+.factory 'GMapFactory', ($log, $ionicSideMenuDelegate, $timeout) ->
 	store =
 		gmap: null
 	ionic.Platform.ready !->
 		gmap = plugin.google.maps.Map.getMap do
-			mapType: plugin.google.maps.MapTypeId.HYBRID
+			mapType: store.map-type = plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
 				zoom: false
 		gmap.on plugin.google.maps.event.MAP_READY, !->
 			store.gmap = gmap
+	menuShown = (isOpen) !->
+		console.log "GMapFactory: side menu open: #{isOpen}"
+		document.getElementsByClassName('menu-left')[0]?.style.display = if isOpen then 'block' else 'none'
+		store.gmap.setClickable !isOpen
+		$timeout store.gmap.refreshLayout, 200 if !isOpen
 	marker = (clear-pre) -> (geoinfo, title, icon) !->
 		store.gmap.clear! if clear-pre
 		store.gmap.addMarker do
@@ -88,11 +93,19 @@
 		store.gmap.clear!
 		store.gmap.off!
 		store.gmap.setDiv null
-		store.gmap.setClickable false
+		menuShown true
 
 	add-marker: marker false
 	put-marker: marker true
 	clear: clear
+	getMapTypes: ->
+		"Roadmap": plugin.google.maps.MapTypeId.ROADMAP
+		"Satellite": plugin.google.maps.MapTypeId.SATELLITE
+		"Road + Satellite": plugin.google.maps.MapTypeId.HYBRID
+		"Terrain": plugin.google.maps.MapTypeId.TERRAIN
+	getMapType: -> store.map-type
+	setMapType: (id) !-> onReady !->
+		store.gmap.setMapTypeId store.map-type = id
 	getGeoinfo: (onSuccess, onError) !-> onReady !->
 		store.gmap.getMyLocation (location) !->
 			$log.debug "Gotta GMap Location: #{angular.toJson location}"
@@ -102,7 +115,7 @@
 		, (error) !->
 			$log.error "GMap Location Error: #{angular.toJson error}"
 			onError error if onError
-	onDiv: (name, success, center) !-> onReady !->
+	onDiv: (scope, name, success, center) !-> onReady !->
 		clear!
 		if center
 			store.gmap.setZoom 10
@@ -118,8 +131,13 @@
 						store.gmap.setCenter location.latLng
 					, (error) !->
 						$log.error "GMap Location Error: #{angular.toJson error}"
-		document.getElementById name |> store.gmap.setDiv
+		div = document.getElementById name
+		store.gmap.setDiv div
+		store.gmap.setMapTypeId store.map-type
 		store.gmap.setClickable true
+		scope.$watch ->
+			!!$ionicSideMenuDelegate.isOpenLeft!
+		, menuShown
 		success store.gmap if success
 	onTap: (proc) !-> onReady !->
 		$log.debug "GMap onTap is changed: #{proc}"

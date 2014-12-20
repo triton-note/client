@@ -82,7 +82,7 @@
 	*/
 	disconnect: (ticket) -> (success-taker, error-taker) !->
 		way-name = 'facebook'
-		$log.debug "Disconnecting from #{way-name}"
+		$log.debug "Disconnecting server from #{way-name}"
 		http('POST', "account/disconnect/#{ticket}",
 			way: way-name
 		) success-taker, error-taker
@@ -234,7 +234,7 @@
 			store.taking = [success]
 			takeIt!
 
-.factory 'SocialFactory', ($log) ->
+.factory 'SocialFactory', ($log, LocalStorageFactory) ->
 	facebook-login = (...perm) -> (token-taker, error-taker) !-> ionic.Platform.ready !->
 		$log.info "Logging in to Facebook: #{perm}"
 		facebookConnectPlugin.login perm
@@ -262,56 +262,61 @@
 			, error-taker
 		, error-taker
 
-	login: facebook-login 'public_profile'
-	publish: facebook-login 'publish_actions'
+	login: (token-taker, error-taker) !-> ionic.Platform.ready !->
+		facebookConnectPlugin.getLoginStatus (res) !->
+			account = LocalStorageFactory.account.load!
+			$log.debug "Facebook Login Status for #{angular.toJson account}: #{angular.toJson res}"
+			if res.status == "connected" && (!account?.id || account.id == res.authResponse.userID)
+			then token-taker res.authResponse.accessToken
+			else facebook-login('public_profile') token-taker, error-taker
+		, (error) !->
+			$log.debug "Failed to get Login Status: #{angular.toJson error}"
+			facebook-login('public_profile') token-taker, error-taker
+	publish: (token-taker, error-taker) !-> ionic.Platform.ready !->
+		perm = 'publish_actions'
+		facebookConnectPlugin.api "me/permissions", []
+		, (res) !->
+			$log.debug "Facebook Access Permissions: #{angular.toJson res}"
+			pg = res.data |> _.find (.permission == perm)
+			if pg?.status == "granted"
+			then facebookConnectPlugin.getAccessToken token-taker, error-taker
+			else facebook-login(perm) token-taker, error-taker
+		, error-taker
 	profile: facebook-profile
 	disconnect: facebook-disconnect
 
-.factory 'AccountFactory', ($log, $rootScope, $ionicModal, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
+.factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
 		taking: null
 		ticket: null
 
-	scope = $rootScope.$new(true)
-	accept-account = (taker) !->
-		if LocalStorageFactory.account.load!?.id then taker!
-		else AcceptanceFactory.obtain !->
-			$log.warn "Taking Login Account ..."
-			scope.signin = !->
-				scope.modal.remove!
-				taker!
-			$ionicModal.fromTemplateUrl 'page/signin.html'
-			, (modal) !->
-				scope.modal = modal
-				modal.show!
-			,
-				scope: scope
-				animation: 'slide-in-up'
-
 	stack-login = (ticket-taker, error-taker) !->
 		if store.ticket then ticket-taker store.ticket
 		else
+			taker =
+				ticket: ticket-taker
+				error: error-taker
 			if store.taking
-				that.push ticket-taker
+				that.push taker
 				$log.debug "Pushed into queue: #{that}"
 			else
-				store.taking = [ticket-taker]
-				$log.debug "First listener in queue: #{store.taking}"
-				accept-account !->
+				broadcast = (proc) !-> if store.taking
+					$log.debug "Clear and invoking all listeners: #{store.taking.length}"
+					store.taking = null
+					that |> _.each proc
+				store.taking = [taker]
+				$log.debug "First listener in queue: #{taker}"
+				AcceptanceFactory.obtain !->
 					$log.debug "Get login"
 					connect (token) !->
 						ServerFactory.login token
 						, (ticket) !->
-							store.ticket = ticket
-							if store.taking
-								$log.debug "Clear and invoking all listeners: #{store.taking}"
-								store.taking = null
-								for t in that
-									t ticket
+							#store.ticket = ticket
+							broadcast (.ticket ticket)
 						, (error) !->
-							if error.type != ServerFactory.error-types.fatal
-								error-taker error.msg
-					, error-taker
+							broadcast (.error error.msg)
+					, (error) !->
+						broadcast (.error error)
 
 	with-ticket = (ticket-proc, success-taker, error-taker) !->
 		$log.debug "Getting ticket for: #{ticket-proc}, #{success-taker}"
@@ -364,37 +369,30 @@
 	disconnect: (success-taker, error-taker) !->
 		disconnect success-taker, error-taker
 	get-username: (success-taker, error-taker) !->
-		if LocalStorageFactory.account.load!
-			success-taker that.name
-		else
-			error-taker "Not login"
+		SocialFactory.profile (profile) !->
+			LocalStorageFactory.account.save profile
+			success-taker profile.name
+		, (error) !->
+			$log.error "Failed to get user name: #{error}"
+			error-taker "Not Login"
 
 .factory 'SessionFactory', ($log, $http, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
 		session: null
 		upload-info: null
-		publish-token: null
 
 	publish = (session) !->
-		doit = (on-error) -> (token) !->
+		SocialFactory.publish (token) !->
 			ServerFactory.publish-report(session, token) !->
-				store.publish-token = token
 				$log.info "Success to publish session: #{session}"
-			, on-error
-		renew = !->
-			server = doit (error) !->
+			, (error) !->
 				$ionicPopup.alert do
 					title: 'Error'
 					template: "Failed to publish"
-			SocialFactory.publish server, (error) !->
-				$ionicPopup.alert do
-					title: 'Rejected'
-					template: error
-		if store.publish-token
-			that |> doit (error) !->
-				$log.info "Failed to use cached access_token for facebook publish: #{error}"
-				renew!
-		else renew!
+		, (error) !->
+			$ionicPopup.alert do
+				title: 'Rejected'
+				template: error
 
 	submit = (session, report, success) !->
 		ServerFactory.submit-report(session, report) (report-id) !->

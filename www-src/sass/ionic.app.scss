@@ -19,7 +19,7 @@ $dark:                            #444 !default;
 $ionicons-font-path: "../lib/ionic/fonts" !default;
 
 // Include all of Ionic
-@import "../../bower_components/ionic/scss/ionic";
+@import "../../www/lib/ionic/scss/ionic";
 
 .button-facebook-signin {
   background-color: #3b5998;

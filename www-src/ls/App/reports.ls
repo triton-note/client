@@ -42,9 +42,10 @@
 		, (list) !->
 			taker save list
 		, (error) !->
+			$log.error "Failed to load from server: #{angular.toJson error}"
 			$ionicPopup.alert do
 				title: "Failed to load from server"
-				template: error.msg
+				template: ""
 			.then (res) !-> taker []
 
 	reload = (success) !->
@@ -69,11 +70,11 @@
 		past = now - item.timestamp
 		$log.debug "Report timestamp past: #{past}ms"
 		if expiration < past then
-			item.timestamp = now
 			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.read-report ticket, item.report.id
 			, (result) !->
 				$log.debug "Read report: #{angular.toJson result}"
+				item.timestamp = now
 				angular.copy result.report, item.report
 			, (error) !->
 				$log.error "Failed to read report(#{item.report.id}) from server: #{angular.toJson error}"
@@ -94,6 +95,9 @@
 		Refresh cache
 	*/
 	refresh: reload
+	clear-list: !->
+		store.reports = []
+		store.hasMore = true
 	/*
 		Load reports from server
 	*/
