@@ -1,4 +1,5 @@
-.controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicPopup, AccountFactory, ReportFactory) !->
+.controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AccountFactory, ReportFactory) !->
+	$ionicLoading.show!
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter SNSCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		AccountFactory.get-username (username) !->
@@ -7,7 +8,7 @@
 			$scope.$apply !-> $scope.done!
 
 	$scope.checkSocial = !->
-		$scope.changing = true
+		$ionicLoading.show!
 		next = $scope.social.username == null
 		$log.debug "Changing social: #{next}"
 		on-error = (error) !->
@@ -23,23 +24,26 @@
 				ReportFactory.clear-list!
 				$ionicHistory.clearCache!
 				$log.warn "SNSCtrl: Cache Cleared!"
+				$scope.done!
 				$ionicPopup.alert do
 					title: "No social connection"
 					template: "Please login to Facebook, if you want to continue this app."
-				.then !-> $scope.done!
 			, on-error
 	$scope.done = (username = null) !->
 		$scope.social =
 			username: username
 			login: username != null
-		$scope.changing = false
+		$ionicLoading.hide!
 		$log.debug "Account connection: #{angular.toJson $scope.social}"
 
-.controller 'PreferencesCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicPopup, UnitFactory) !->
+.controller 'PreferencesCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, UnitFactory) !->
+	$ionicLoading.show!
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter PreferencesCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$ionicLoading.show!
 		UnitFactory.load (units) !->
 			$scope.unit = units
+			$ionicLoading.hide!
 
 	$scope.submit = !->
 		UnitFactory.save $scope.unit
@@ -103,7 +107,7 @@
 			$log.debug "Edit completed."
 			$ionicHistory.goBack!
 
-.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
+.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.should-clear = true
@@ -118,6 +122,7 @@
 					template: error-msg
 				.then $ionicHistory.goBack
 			PhotoFactory.select (photo) !->
+				$ionicLoading.show!
 				uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
 				$log.debug "Selected photo: #{uri}"
 				$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
@@ -125,6 +130,7 @@
 				upload = (geoinfo = null) !->
 					$scope.report.location.geoinfo = geoinfo
 					SessionFactory.start geoinfo, !->
+						$ionicLoading.hide!
 						SessionFactory.put-photo photo
 						, (result) !->
 							$log.debug "Get result of upload: #{angular.toJson result}"
@@ -233,9 +239,9 @@
 		$ionicHistory.goBack!
 
 .controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, $ionicLoading, GMapFactory, DistributionFactory, ReportFactory) !->
+	$ionicLoading.show!
 	$scope.$on '$ionicView.loaded', (event, state) !->
 		$log.debug "Loaded DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
-		$ionicLoading.show!
 		$scope.view =
 			others: false
 			name: null

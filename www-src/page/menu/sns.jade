@@ -7,7 +7,7 @@ ion-view(view-title="Social Connection")
 				.input-label
 					p Facebook
 				label.toggle.toggle-balanced
-					input(type='checkbox', ng-model="social.login", ng-change="checkSocial()", ng-disabled="changing")
+					input(type='checkbox', ng-model="social.login", ng-change="checkSocial()")
 					.track
 						.handle
 				.item-text-wrap(ng-show="social.login")
