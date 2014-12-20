@@ -6,7 +6,7 @@
 	$stateProvider
 	.state 'home',
 		url: '/'
-		templateUrl: 'page/home.html'
+		templateUrl: 'page/list.html'
 		controller: 'ListReportsCtrl'
 
 	.state 'show-report',
@@ -45,6 +45,5 @@
 		url: '/sns'
 		templateUrl: 'page/menu/sns.html'
 		controller: 'SNSCtrl'
-		onExit: (ReportFactory) !-> ReportFactory.clear-list!
 
 	$urlRouterProvider.otherwise('/')

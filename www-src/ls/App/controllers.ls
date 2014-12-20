@@ -1,4 +1,4 @@
-.controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicPopup, AccountFactory) !->
+.controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicPopup, AccountFactory, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter SNSCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		AccountFactory.get-username (username) !->
@@ -20,6 +20,9 @@
 			AccountFactory.connect $scope.done, on-error
 		else
 			AccountFactory.disconnect !->
+				ReportFactory.clear-list!
+				$ionicHistory.clearCache!
+				$log.warn "SNSCtrl: Cache Cleared!"
 				$ionicPopup.alert do
 					title: "No social connection"
 					template: "Please login to Facebook, if you want to continue this app."
@@ -231,7 +234,7 @@
 
 .controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, $ionicLoading, GMapFactory, DistributionFactory, ReportFactory) !->
 	$scope.$on '$ionicView.loaded', (event, state) !->
-		$log.debug "Loaded Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Loaded DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$ionicLoading.show!
 		$scope.view =
 			others: false
