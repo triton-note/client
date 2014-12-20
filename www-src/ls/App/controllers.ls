@@ -13,10 +13,9 @@
 		$log.debug "Changing social: #{next}"
 		on-error = (error) !->
 			$log.error "Erorr on Facebook: #{angular.toJson error}"
+			$scope.done $scope.social.username
 			$ionicPopup.alert do
-				title: "Error"
-			.then !->
-				$scope.done $scope.social.username
+				title: "Rejected"
 		if next
 			AccountFactory.connect $scope.done, on-error
 		else
