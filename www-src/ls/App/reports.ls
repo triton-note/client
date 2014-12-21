@@ -62,6 +62,7 @@
 	save = (list) ->
 		now = new Date!.getTime!
 		list |> _.map (report) ->
+			report.dateAt = new Date(report.dateAt) if !(report.dateAt instanceof Date)
 			timestamp: now
 			report: report
 
@@ -80,8 +81,6 @@
 				$log.error "Failed to read report(#{item.report.id}) from server: #{angular.toJson error}"
 		item.report
 
-	format-date: (date) ->
-		$filter('date') new Date(date), 'yyyy-MM-dd'
 	cachedList: ->
 		store.reports |> _.map read
 	hasMore: ->
@@ -122,11 +121,11 @@
 		store.current =
 			index: null
 			report: null
-	newCurrent: (photo-uri = null, geoinfo = null) ->
+	newCurrent: (photo-uri, timestamp, geoinfo) ->
 		report =
 			photo:
 				mainview: photo-uri
-			dateAt: $filter('date') new Date!, 'yyyy-MM-dd'
+			dateAt: timestamp
 			location:
 				name: null
 				geoinfo: geoinfo
