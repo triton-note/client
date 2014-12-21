@@ -115,6 +115,7 @@
 			$scope.submission.enabled = !!$scope.report.photo.original
 		else
 			on-error = (title) -> (error-msg) !->
+				$ionicLoading.hide!
 				$ionicPopup.alert do
 					title: title
 					template: error-msg
@@ -122,11 +123,11 @@
 			$ionicLoading.show!
 			PhotoFactory.select (info, photo) !->
 				uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
-				$log.debug "Selected photo info: #{angular.toJson info}: #{uri}"
-				$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
+				console.log "Selected photo info: #{angular.toJson info}: #{uri}"
 				upload = (geoinfo = null) !->
-					$scope.report = ReportFactory.newCurrent uri, info.timestamp ? new Date!, geoinfo
+					$scope.report = ReportFactory.newCurrent uri, info?.timestamp ? new Date!, geoinfo
 					$log.debug "Created report: #{angular.toJson $scope.report}"
+					$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
 					SessionFactory.start geoinfo, !->
 						$ionicLoading.hide!
 						SessionFactory.put-photo photo
@@ -142,7 +143,7 @@
 								$scope.report.fishes = inference.fishes
 						, on-error "Failed to upload"
 					, on-error "Error"
-				if info.geoinfo
+				if info?.geoinfo
 					upload info.geoinfo
 				else
 					$log.warn "Getting current location..."
