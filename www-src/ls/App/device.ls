@@ -23,7 +23,6 @@
 	*/
 	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
 		try
-			isAndroid = ionic.Platform.isAndroid!
 			taker = (uri) !->
 				req = new XMLHttpRequest()
 				req.open("GET", uri, true)
@@ -31,10 +30,8 @@
 				req.onload = !->
 					array = req.response
 					readExif array, (info) !->
-						onSuccess info, if isAndroid
-						then new Blob [array],
+						onSuccess info, new Blob [array],
 							type: 'image/jpeg'
-						else uri
 				req.send!
 			navigator.camera.getPicture taker, onFailure,
 				correctOrientation: true

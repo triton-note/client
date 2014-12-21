@@ -122,7 +122,7 @@
 				.then $ionicHistory.goBack
 			$ionicLoading.show!
 			PhotoFactory.select (info, photo) !->
-				uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
+				uri = URL.createObjectURL photo
 				console.log "Selected photo info: #{angular.toJson info}: #{uri}"
 				upload = (geoinfo = null) !->
 					$scope.report = ReportFactory.newCurrent uri, info?.timestamp ? new Date!, geoinfo

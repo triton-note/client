@@ -411,38 +411,21 @@
 
 	upload = (photo, success, error) !->
 		filename = "user-photo"
-		byFT = (uri) !->
-			$log.info "Posting photo-image(#{uri}) by FileTransfer with #{angular.toJson store.upload-info}"
-			new FileTransfer().upload uri, store.upload-info.url
-			, (e) !->
-				$log.info "Success to upload(#{filename}): #{angular.toJson e}"
-				success filename
-			, (e) !->
-				$log.error "Failed to upload: #{angular.toJson e}"
-				error e
-			,
-				fileKey: 'file'
-				fileName: filename
-				mimeType: 'image/jpeg'
-				chunkedMode: false
-				params: angular.copy store.upload-info.params
-		byHttp = (blob) !->
-			$log.info "Posting photo-image(#{blob}) by $http with #{angular.toJson store.upload-info}"
-			data = new FormData()
-			for name, value of store.upload-info.params
-				data.append name, value
-			data.append 'file', blob, filename
-			$http.post store.upload-info.url, data,
-				transformRequest: angular.identity,
-				headers:
-					'Content-Type': undefined
-			.success (data, status, headers, config) !->
-				$log.debug "Success to upload: #{status}: #{data}, #{headers}, #{angular.toJson config}"
-				success filename
-			.error (data, status, headers, config) !->
-				$log.debug "Failed to upload: #{status}: #{data}, #{headers}, #{angular.toJson config}"
-				error status
-		photo |> if photo instanceof Blob then byHttp else byFT
+		$log.info "Posting photo-image(#{photo}) by $http with #{angular.toJson store.upload-info}"
+		data = new FormData()
+		for name, value of store.upload-info.params
+			data.append name, value
+		data.append 'file', photo, filename
+		$http.post store.upload-info.url, data,
+			transformRequest: angular.identity,
+			headers:
+				'Content-Type': undefined
+		.success (data, status, headers, config) !->
+			$log.debug "Success to upload: #{status}: #{data}, #{headers}, #{angular.toJson config}"
+			success filename
+		.error (data, status, headers, config) !->
+			$log.debug "Failed to upload: #{status}: #{data}, #{headers}, #{angular.toJson config}"
+			error status
 
 	start: (geoinfo, success, error-taker) !->
 		store.session = null
