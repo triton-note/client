@@ -92,7 +92,6 @@
 		$log.debug "Enter EditReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.should-clear = true
 		$scope.report = ReportFactory.current!.report
-		$scope.report.dateAt = ReportFactory.format-date $scope.report.dateAt
 		$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) !->
@@ -120,14 +119,14 @@
 					title: title
 					template: error-msg
 				.then $ionicHistory.goBack
-			PhotoFactory.select (photo) !->
-				$ionicLoading.show!
+			$ionicLoading.show!
+			PhotoFactory.select (info, photo) !->
 				uri = if photo instanceof Blob then URL.createObjectURL(photo) else photo
-				$log.debug "Selected photo: #{uri}"
+				$log.debug "Selected photo info: #{angular.toJson info}: #{uri}"
 				$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
-				$scope.report = ReportFactory.newCurrent uri
 				upload = (geoinfo = null) !->
-					$scope.report.location.geoinfo = geoinfo
+					$scope.report = ReportFactory.newCurrent uri, info.timestamp ? new Date!, geoinfo
+					$log.debug "Created report: #{angular.toJson $scope.report}"
 					SessionFactory.start geoinfo, !->
 						$ionicLoading.hide!
 						SessionFactory.put-photo photo
@@ -143,10 +142,13 @@
 								$scope.report.fishes = inference.fishes
 						, on-error "Failed to upload"
 					, on-error "Error"
-				$log.warn "Getting current location..."
-				GMapFactory.getGeoinfo upload, (error) !->
-					$log.error "Geolocation Error: #{angular.toJson error}"
-					upload!
+				if info.geoinfo
+					upload info.geoinfo
+				else
+					$log.warn "Getting current location..."
+					GMapFactory.getGeoinfo upload, (error) !->
+						$log.error "Geolocation Error: #{angular.toJson error}"
+						upload!
 			, on-error "Need one photo"
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) !->
@@ -156,9 +158,7 @@
 	$scope.useCurrent = !->
 		$scope.should-clear = false
 	$scope.submit = !->
-		report = $scope.report
-		report.dateAt = new Date(report.dateAt).getTime!
-		SessionFactory.finish report, $scope.submission.publishing, !->
+		SessionFactory.finish $scope.report, $scope.submission.publishing, !->
 			$ionicHistory.goBack!
 	$scope.submission =
 		enabled: false

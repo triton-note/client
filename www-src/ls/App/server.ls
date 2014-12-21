@@ -111,7 +111,9 @@
 	/*
 	Put given report to the session
 	*/
-	submit-report: (session, report) -> (success, error-taker) !->
+	submit-report: (session, given-report) -> (success, error-taker) !->
+		report = angular.copy given-report
+		report.dateAt = report.dateAt.getTime!
 		$log.debug "Submitting report with #{session}: #{angular.toJson report}"
 		http('POST', "report/submit/#{session}",
 			report: report
@@ -153,7 +155,9 @@
 	/*
 	Update report to server. ID has to be contain given report.
 	*/
-	update-report: (ticket, report) -> (success, error-taker) !->
+	update-report: (ticket, given-report) -> (success, error-taker) !->
+		report = angular.copy given-report
+		report.dateAt = report.dateAt.getTime!
 		$log.debug "Updating report: #{angular.toJson report}"
 		http('POST', "report/update/#{ticket}",
 			report: report

@@ -1,4 +1,17 @@
 .factory 'PhotoFactory', ($log) ->
+	readExif = (photo, info-taker) !->
+		$log.debug "Reading Exif in #{photo}"
+		reader = new ExifReader()
+		reader.load photo
+		toDate = (str) ->
+			a = str.split(' ') |> _.map (.split ':') |> _.flatten |> _.map Number
+			new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5])
+		g =
+			latitude: Number(reader.getTagDescription 'GPSLatitude')
+			longitude: Number(reader.getTagDescription 'GPSLongitude')
+		info-taker do
+			timestamp: toDate(reader.getTagDescription 'DateTimeOriginal')
+			geoinfo: if g.latitude && g.longitude then g else null
 	/*
 		Select a photo from storage.
 		onSuccess(photo[blob or uri])
@@ -6,24 +19,23 @@
 	*/
 	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
 		isAndroid = ionic.Platform.isAndroid!
-		taker = (ret) !->
-			toBlob = (src) ->
-				bytes = atob src
-				array = new Uint8Array(bytes.length)
-				for i from 0 to bytes.length - 1
-					array[i] = bytes.charCodeAt(i)
-				new Blob [array],
-					type: 'image/jpeg'
-			if isAndroid
-			then onSuccess toBlob(ret)
-			else onSuccess ret
+		taker = (uri) !->
+			req = new XMLHttpRequest()
+			req.open("GET", uri, true)
+			req.responseType = "arraybuffer"
+			req.onload = !->
+				array = req.response
+				readExif array, (info) !->
+					onSuccess info, if isAndroid
+					then new Blob [array],
+						type: 'image/jpeg'
+					else uri
+			req.send!
 		navigator.camera.getPicture taker, onFailure,
 			correctOrientation: true
 			encodingType: Camera.EncodingType.JPEG
 			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
-			destinationType: if isAndroid
-				then Camera.DestinationType.DATA_URL
-				else Camera.DestinationType.FILE_URI
+			destinationType: Camera.DestinationType.FILE_URI
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
