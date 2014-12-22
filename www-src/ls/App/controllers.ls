@@ -221,17 +221,33 @@
 				$scope.modal.hide!
 				del!
 
-.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, GMapFactory, ReportFactory) !->
+.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.report = ReportFactory.current!.report
 		GMapFactory.onDiv $scope, 'edit-map', (gmap) !->
+			$scope.$on 'popover.hidden', !->
+				gmap.setClickable true
+			$scope.showViewOptions = (event) !->
+				gmap.setClickable false
+				$scope.popover-view.show event
 			if $stateParams.edit
 				$scope.geoinfo = $scope.report.location.geoinfo
 				GMapFactory.onTap (geoinfo) !->
 					$scope.geoinfo = geoinfo
 					GMapFactory.put-marker geoinfo
 		, $scope.report.location.geoinfo
+		$scope.view =
+			gmap:
+				type: GMapFactory.getMapType!
+				types: GMapFactory.getMapTypes!
+		$scope.$watch 'view.gmap.type', (value) !->
+			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
+			GMapFactory.setMapType value
+		$ionicPopover.fromTemplateUrl 'view-map-view',
+			scope: $scope
+		.then (pop) ->
+			$scope.popover-view = pop
 
 	$scope.submit = !->
 		if $scope.geoinfo
@@ -260,12 +276,19 @@
 		$ionicPopover.fromTemplateUrl 'distribution-map-options',
 			scope: $scope
 		.then (pop) ->
-			$scope.popover = pop
-		$scope.$on 'popover.hidden', !->
-			$scope.gmap.setClickable true
+			$scope.popover-options = pop
 		$scope.showOptions = (event) !->
 			$scope.gmap.setClickable false
-			$scope.popover.show event
+			$scope.popover-options.show event
+		$ionicPopover.fromTemplateUrl 'distribution-map-view',
+			scope: $scope
+		.then (pop) ->
+			$scope.popover-view = pop
+		$scope.showViewOptions = (event) !->
+			$scope.gmap.setClickable false
+			$scope.popover-view.show event
+		$scope.$on 'popover.hidden', !->
+			$scope.gmap.setClickable true
 
 		icons = [1 to 10] |> _.map (count) ->
 			size = 32
