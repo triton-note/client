@@ -309,7 +309,7 @@
 				for fish in list
 					gmap.addMarker do
 						title: "#{fish.name} x #{fish.count}"
-						snippet: ReportFactory.format-date fish.date
+						snippet: fish.date.toLocaleDateString!
 						position:
 							lat: fish.geoinfo.latitude
 							lng: fish.geoinfo.longitude

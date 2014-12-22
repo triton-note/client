@@ -260,13 +260,16 @@
 		*/
 		names: null
 
+	convert = (fish) ->
+		fish.date = new Date(fish.date)
+		fish
 	refresh-mine = (success) !->
 		$log.debug "Refreshing distributions of mine ..."
 		suc = !->
 			success! if success
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-mine ticket
-		, (list) !->
+		, _.map(convert) >> (list) !->
 			store.catches.mine = list
 			suc!
 		, (error) !->
@@ -281,7 +284,7 @@
 			success! if success
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-others ticket
-		, (list) !->
+		, _.map(convert) >> (list) !->
 			store.catches.others = list
 			suc!
 		, (error) !->
