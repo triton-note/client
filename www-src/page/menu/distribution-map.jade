@@ -9,16 +9,18 @@ ion-view(view-title="Distributions")
 
 	script#distribution-map-options(type="text/ng-template")
 		ion-popover-view
-			.list
-				.item.item-divider
-					h2.title Filter
-				ion-toggle(ng-model="view.others") Include Others
-				.item.item-input
-					input(type="text", ng-model="view.name", placeholder="Fish Name Filter")
+			ion-header-bar
+				h2.title Filter
+			ion-content
+				.list
+					ion-toggle(ng-model="view.others") Include Others
+					.item.item-input
+						input(type="text", ng-model="view.name", placeholder="Fish Name Filter")
 
 	script#distribution-map-view(type="text/ng-template")
 		ion-popover-view
-			.list
-				.item.item-divider
-					h2.title Map View
-				ion-radio(ng-model="view.gmap.type", ng-repeat="(text, value) in view.gmap.types", ng-value="value") {{ text }}
+			ion-header-bar
+				h2.title Map View
+			ion-content
+				.list
+					ion-radio(ng-model="view.gmap.type", ng-repeat="(text, value) in view.gmap.types", ng-value="value") {{ text }}

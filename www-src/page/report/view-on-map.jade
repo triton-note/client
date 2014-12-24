@@ -9,7 +9,8 @@ ion-view(view-title="Spot")
 
 	script#view-map-view(type="text/ng-template")
 		ion-popover-view
-			.list
-				.item.item-divider
-					h2.title Map View
-				ion-radio(ng-model="view.gmap.type", ng-repeat="(text, value) in view.gmap.types", ng-value="value") {{ text }}
+			ion-header-bar
+				h2.title Map View
+			ion-content
+				.list
+					ion-radio(ng-model="view.gmap.type", ng-repeat="(text, value) in view.gmap.types", ng-value="value") {{ text }}
