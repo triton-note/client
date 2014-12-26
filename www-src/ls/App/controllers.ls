@@ -105,11 +105,51 @@
 			$log.debug "Edit completed."
 			$ionicHistory.goBack!
 
-.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
+.controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
+	$log.debug "Init AddReportCtrl"
+	$ionicLoading.show!
+	$scope.$on '$ionicView.loaded', (event, state) !->
+		$log.debug "Loaded AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+
+		$ionicPopover.fromTemplateUrl 'confirm-submit',
+			scope: $scope
+		.then (popover) !->
+			$scope.confirm-submit = popover
+		$ionicPopover.fromTemplateUrl 'choose-tide',
+			scope: $scope
+		.then (popover) !->
+			$scope.choose-tide = popover
+		$ionicPopover.fromTemplateUrl 'range-moon',
+			scope: $scope
+		.then (popover) !->
+			$scope.range-moon = popover
+
+		$scope.$watch 'report.tide', (new-value, old-value) !->
+			$timeout !->
+				$scope.choose-tide.hide!
+			, 500
+		$scope.$watch 'report.dateAt', (new-value, old-value) !->
+			ReportFactory.moon new-value, (moon) !->
+				$scope.report.moon = moon
+			ReportFactory.tide new-value, (tide) !->
+				$scope.report.tide = tide
+
+		$scope.tide-phases = ['Flood', 'High', 'Ebb', 'Low']
+		$scope.tide =
+			Flood: "http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/0.jpg"
+			High: "http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/3.jpg"
+			Ebb: "http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/6.jpg"
+			Low: "http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/9.jpg"
+		$scope.moon = [
+			"http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/9.jpg"
+		]
+
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.should-clear = true
+
 		if ReportFactory.current!.report
+			$ionicLoading.hide!
 			$scope.report = that
 			$log.debug "Getting current report: #{angular.toJson $scope.report}"
 			$scope.submission.enabled = !!$scope.report.photo.original
@@ -120,21 +160,22 @@
 					title: title
 					template: error-msg
 				.then $ionicHistory.goBack
-			$ionicLoading.show!
 			PhotoFactory.select (info, photo) !->
 				uri = URL.createObjectURL photo
 				console.log "Selected photo info: #{angular.toJson info}: #{uri}"
 				upload = (geoinfo = null) !->
 					$scope.report = ReportFactory.newCurrent uri, info?.timestamp ? new Date!, geoinfo
 					$log.debug "Created report: #{angular.toJson $scope.report}"
-					$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
 					SessionFactory.start geoinfo, !->
 						$ionicLoading.hide!
 						SessionFactory.put-photo photo
 						, (result) !->
 							$log.debug "Get result of upload: #{angular.toJson result}"
-							$scope.report.photo <<< result.url
 							$scope.submission.enabled = true
+							$timeout !->
+								$log.debug "Updating photo url: #{result.url}"
+								$scope.report.photo <<< result.url
+							, 1000
 						, (inference) !->
 							$log.debug "Get inference: #{angular.toJson inference}"
 							if inference.location
@@ -159,67 +200,51 @@
 	$scope.useCurrent = !->
 		$scope.should-clear = false
 	$scope.submit = !->
+		$ionicLoading.show!
 		SessionFactory.finish $scope.report, $scope.submission.publishing, !->
 			$ionicHistory.goBack!
+			$ionicLoading.hide!
 	$scope.submission =
 		enabled: false
 		publishing: false
 
-.controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
+.controller 'AddFishCtrl', ($log, $scope, $ionicPopover, UnitFactory) !->
 	# $scope.report.fishes
-	fish-template = (o = null) ->
-		r =
-			name: null
-			count: 1
-		r <<< o if o
-		r.length = {} unless r.length
-		r.weight = {} unless r.weight
-		UnitFactory.load (units) !->
-			r.length.unit = units.length
-			r.weight.unit = units.weight
-		r
-	$ionicModal.fromTemplateUrl 'edit-fish'
-		, (modal) !-> $scope.modal = modal
-		,
-			scope: $scope
-			animation: 'slide-in-up'
-
-	show = (func) !->
-		$scope.commit = func
-		$scope.modal.show!
-
-	$scope.cancel = !->
-		$scope.fishIndex = null
-		$scope.tmpFish = null
-		$scope.modal.hide!
-	$scope.submit = !->
-		fish = $scope.tmpFish
-		if fish.name?.length > 0 && fish.count > 0
-		then
-			fish.length = null unless fish.length.value
-			fish.weight = null unless fish.weight.value
-			$scope.commit fish
-			$scope.commit = null
-			$scope.fishIndex = null
-			$scope.tmpFish = null
-			$scope.modal.hide!
-
 	$scope.units = UnitFactory.units!
+	$scope.user-units =
+		length: 'cm'
+		weight: 'kg'
+	UnitFactory.load (units) !->
+		$scope.user-units <<< units
+
+	$ionicPopover.fromTemplateUrl 'edit-fish',
+		scope: $scope
+	.then (popover) !->
+		$scope.edit-pop = popover
+	$scope.adding =
+		name: null
 	$scope.addFish = !->
-		$scope.tmpFish = fish-template!
-		show (fish) !-> $scope.report.fishes.push fish
-	$scope.editFish = (index) !->
-		$scope.fishIndex = index
-		$scope.tmpFish = fish-template $scope.report.fishes[index]
-		show (fish) !-> $scope.report.fishes[index] <<< fish
-	$scope.deleteFish = (index, confirm = true) !->
-		del = !-> $scope.report.fishes.splice index, 1
-		if !confirm then del! else
-			$ionicPopup.confirm do
-				template: "Are you sure to delete this catch ?"
-			.then (res) !-> if res
-				$scope.modal.hide!
-				del!
+		$log.debug "Adding fish: #{$scope.adding.name}"
+		if !!$scope.adding.name
+			$scope.report.fishes.push do
+				name: $scope.adding.name
+				count: 1
+				length:
+					value: null
+					unit: $scope.user-units.length
+				weight:
+					value: null
+					unit: $scope.user-units.weight
+			$scope.adding.name = null
+	$scope.editFish = (event, index) !->
+		$log.debug "Editing fish: #{index}"
+		$scope.current = $scope.report.fishes[index]
+		$scope.tmpFish = angular.copy $scope.current
+		$scope.edit-pop.show event
+	$scope.$on 'popover.hidden', !->
+		$log.debug "Hide popover"
+		if $scope.tmpFish.name && $scope.tmpFish.count
+			$scope.current <<< $scope.tmpFish
 
 .controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
