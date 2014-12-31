@@ -45,7 +45,7 @@
 		$scope.elasticTextarea = !->
 			area = $element[0]
 			current = area.style.height
-			next = area.scroll-height + "px"
+			next = "#{area.scroll-height + 20}px"
 			if current != next
 				$log.debug "Elastic #{area}: #{current} => #{next}"
 				area.style.height = next

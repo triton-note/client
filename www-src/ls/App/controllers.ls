@@ -105,7 +105,7 @@
 			$log.debug "Edit completed."
 			$ionicHistory.goBack!
 
-.controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
+.controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) !->
 	$log.debug "Init AddReportCtrl"
 	$ionicLoading.show!
 	$scope.$on '$ionicView.loaded', (event, state) !->
@@ -124,25 +124,30 @@
 		.then (popover) !->
 			$scope.range-moon = popover
 
+		$scope.condition-modified = false
+		$scope.condition-modify = !->
+			$log.debug "Condition modified by user"
+			$scope.condition-modified = true
 		$scope.$watch 'report.tide', (new-value, old-value) !->
 			$timeout !->
 				$scope.choose-tide.hide!
 			, 500
-		$scope.$watch 'report.dateAt', (new-value, old-value) !->
-			ReportFactory.moon new-value, (moon) !->
-				$scope.report.moon = moon
-			ReportFactory.tide new-value, (tide) !->
-				$scope.report.tide = tide
+		$scope.$watch 'report.moon', (new-value, old-value) !->
+			$timeout.cancel $scope.moon-changed
+			$scope.moon-changed = $timeout !->
+				$scope.range-moon.hide!
+			, 500
+		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if !$scope.condition-modified
+			ConditionFactory.moon new-value, (moon) !->
+				$scope.report?.moon = moon
+			ConditionFactory.tide new-value, (tide) !->
+				$scope.report?.tide = tide
 
-		$scope.tide-phases = ['Flood', 'High', 'Ebb', 'Low']
-		$scope.tide =
-			Flood: "http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/0.jpg"
-			High: "http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/3.jpg"
-			Ebb: "http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/6.jpg"
-			Low: "http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/9.jpg"
-		$scope.moon = [
-			"http://farmersalmanac.com/wp-content/plugins/moon-phase-widget/moon-img/54/9.jpg"
-		]
+		$scope.moon = (n) -> ConditionFactory.moon-phases[n]
+		$scope.tide-phases = ConditionFactory.tide-phases
+		$scope.tide = (name) ->
+			$scope.tide-phases |> _.find (phase) ->
+				phase.name == name
 
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
@@ -208,7 +213,7 @@
 		enabled: false
 		publishing: false
 
-.controller 'AddFishCtrl', ($log, $scope, $ionicPopover, UnitFactory) !->
+.controller 'AddFishCtrl', ($log, $timeout, $scope, $ionicPopover, UnitFactory) !->
 	# $scope.report.fishes
 	$scope.units = UnitFactory.units!
 	$scope.user-units =
@@ -217,10 +222,6 @@
 	UnitFactory.load (units) !->
 		$scope.user-units <<< units
 
-	$ionicPopover.fromTemplateUrl 'edit-fish',
-		scope: $scope
-	.then (popover) !->
-		$scope.edit-pop = popover
 	$scope.adding =
 		name: null
 	$scope.addFish = !->
@@ -236,14 +237,23 @@
 					value: null
 					unit: $scope.user-units.weight
 			$scope.adding.name = null
+	$scope.editing = false
 	$scope.editFish = (event, index) !->
-		$log.debug "Editing fish: #{index}"
 		$scope.current = $scope.report.fishes[index]
 		$scope.tmpFish = angular.copy $scope.current
-		$scope.edit-pop.show event
-	$scope.$on 'popover.hidden', !->
+		$scope.editing = true
+		$log.debug "Editing fish(#{index}): #{angular.toJson $scope.tmpFish}"
+		$ionicPopover.fromTemplateUrl 'fish-edit',
+			scope: $scope
+		.then (popover) !->
+			$scope.fish-edit = popover
+			$scope.fish-edit.show event
+	$scope.$on 'popover.hidden', !-> if $scope.editing
+		$scope.editing = false
 		$log.debug "Hide popover"
-		if $scope.tmpFish.name && $scope.tmpFish.count
+		$scope.fish-edit.remove!
+		if $scope.tmpFish?.name && $scope.tmpFish?.count
+			$log.debug "Overrinding current fish"
 			$scope.current <<< $scope.tmpFish
 
 .controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->

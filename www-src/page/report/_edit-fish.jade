@@ -9,7 +9,7 @@
 		.icon.ion-ios7-minus-outline.assertive(ng-click="report.fishes.splice($index, 1)")
 		a(ng-click="editFish($event, $index)") {{ fish | fishFilter }}
 
-	script#edit-fish(type="text/ng-template")
+	script#fish-edit(type="text/ng-template")
 		ion-popover-view(style="height: 190px")
 			ion-content
 				.item.item-input

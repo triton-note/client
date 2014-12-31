@@ -18,10 +18,10 @@ ion-view(view-title="New Report")
 				.item.row
 					.col-50(ng-click="rangeMoon.show($event)")
 						p Moon: {{ report.moon }}
-						img(ng-src="{{ moon[report.moon] }}")
+						img(ng-src="{{ moon(report.moon) }}")
 					.col-50(ng-click="chooseTide.show($event)")
 						p Tide: {{ report.tide }}
-						img(ng-src="{{ tide[report.tide] }}")
+						img(ng-src="{{ tide(report.tide) }}")
 				.item.item-input
 					.input-label
 						p Time
@@ -43,13 +43,13 @@ ion-view(view-title="New Report")
 
 	script#choose-tide(type="text/ng-template")
 		ion-popover-view
-			ion-radio.item.item-avatar(ng-model="report.tide", ng-value="phase", ng-repeat="phase in tidePhases")
-				img(ng-src="{{ tide[phase] }}")
-				p {{ phase }} Tide
+			ion-radio.item.item-avatar(ng-model="report.tide", ng-value="phase.name", ng-repeat="phase in tidePhases", ng-click="conditionModify()")
+				img(ng-src="{{ phase.icon }}")
+				p {{ phase.name }} Tide
 
 	script#range-moon(type="text/ng-template")
 		ion-popover-view(style="height: 57px")
 			.item.item-input.range-energized.range
 				p 0
-				input(type="range", ng-model="report.moon", min="0", max="30")
+				input(type="range", ng-model="report.moon", min="0", max="29", ng-click="conditionModify()")
 				p 30

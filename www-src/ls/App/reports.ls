@@ -1,3 +1,20 @@
+.factory 'ConditionFactory', ($log, ServerFactory) ->
+	moon = (n) ->
+		v = "0#{n}" |> _.Str.reverse |> _.take 2 |> _.Str.reverse
+		"/img/moon/phase-#{v}.png"
+	tide = (name) ->
+		name: name
+		icon: "/img/tide/#{name.toLowerCase!}.png"
+
+	moon: (datetime, taker) !->
+		$log.debug "Taking moon phase at #{datetime}"
+		taker moon(0) # Dammy
+	tide: (datetime, taker) !->
+		$log.debug "Taking tide phase at #{datetime}"
+		taker tide('High') # Dammy
+	moon-phases: [0 til 30] |> _.map(moon)
+	tide-phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
+
 .factory 'ReportFactory', ($log, $filter, $interval, $ionicPopup, AccountFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	expiration = 50 * 60 * 1000 # 50 minutes
