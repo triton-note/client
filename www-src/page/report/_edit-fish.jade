@@ -14,7 +14,7 @@
 			ion-content
 				.item.item-input
 					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="tmpFish.name")
-					input(type="text", ng-model="tmpFish.name", placeholder="Name")
+					input#fish-name(type="text", ng-model="tmpFish.name", placeholder="Name")
 				.item.item-input
 					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="tmpFish.count")
 					input(type="number", ng-model="tmpFish.count", placeholder="Count", min="1")

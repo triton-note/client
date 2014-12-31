@@ -248,6 +248,13 @@
 		.then (popover) !->
 			$scope.fish-edit = popover
 			$scope.fish-edit.show event
+			.then !->
+				el = document.getElementById('fish-name')
+				$log.debug "Focusing to #{el} at #{angular.toJson el.getBoundingClientRect!}"
+				el.focus!
+				$timeout !->
+					window.scrollTo 0, el.getBoundingClientRect!.top - 20
+				, 100
 	$scope.$on 'popover.hidden', !-> if $scope.editing
 		$scope.editing = false
 		$log.debug "Hide popover"
