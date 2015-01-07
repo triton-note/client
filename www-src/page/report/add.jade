@@ -1,55 +1,16 @@
 ion-view(view-title="New Report")
 	ion-nav-buttons(side="secondary")
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="confirmSubmit.show($event)", ng-disabled="!submission.enabled")
+
+		script#confirm-submit(type="text/ng-template")
+			ion-popover-view(style="height: 120px")
+				ion-header-bar
+					h2.title Confirm
+					.buttons
+						button.button.button-positive(ng-click="cordova.plugins.Keyboard.close(); confirmSubmit.hide(); submit()") OK
+				ion-content
+					ion-checkbox(ng-model="submission.publishing")
+						p Post to Facebook
+
 	ion-content
-		.item.item-input
-			textarea-elastic(ng-model="report.comment", placeholder="Write something to note")
-		.item.item-input.item-icon-left
-			.icon.ion-earth.positive(ng-click="useCurrent()", ui-sref="view-on-map({edit: true})")
-			input(style="padding-left: 40px", type="text", ng-model="report.location.name", placeholder="Spot Name")
-
-		include _edit-fish.jade
-
-		.row
-			.col-50
-				.item.item-image
-					img(ng-src="{{report.photo.mainview}}")
-			.col-50
-				.item.row
-					.col-50(ng-click="rangeMoon.show($event)")
-						p Moon: {{ report.moon }}
-						img(ng-src="{{ moon(report.moon) }}")
-					.col-50(ng-click="chooseTide.show($event)")
-						p Tide: {{ report.tide }}
-						img(ng-src="{{ tide(report.tide) }}")
-				.item.item-input
-					.input-label
-						p Time
-					input(type="time", ng-model="report.dateAt")
-				.item.item-input
-					.input-label
-						p Date
-					input(type="date", ng-model="report.dateAt")
-
-	script#confirm-submit(type="text/ng-template")
-		ion-popover-view(style="height: 120px")
-			ion-header-bar
-				h2.title Confirm
-				.buttons
-					button.button.button-positive(ng-click="cordova.plugins.Keyboard.close(); confirmSubmit.hide(); submit()") OK
-			ion-content
-				ion-checkbox(ng-model="submission.publishing")
-					p Post to Facebook
-
-	script#choose-tide(type="text/ng-template")
-		ion-popover-view
-			ion-radio.item.item-avatar(ng-model="report.tide", ng-value="phase.name", ng-repeat="phase in tidePhases", ng-click="conditionModify()")
-				img(ng-src="{{ phase.icon }}")
-				p {{ phase.name }} Tide
-
-	script#range-moon(type="text/ng-template")
-		ion-popover-view(style="height: 57px")
-			.item.item-input.range-energized.range
-				p 0
-				input(type="range", ng-model="report.moon", min="0", max="29", ng-click="conditionModify()")
-				p 30
+		fathens-edit-report

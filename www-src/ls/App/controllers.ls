@@ -115,39 +115,6 @@
 			scope: $scope
 		.then (popover) !->
 			$scope.confirm-submit = popover
-		$ionicPopover.fromTemplateUrl 'choose-tide',
-			scope: $scope
-		.then (popover) !->
-			$scope.choose-tide = popover
-		$ionicPopover.fromTemplateUrl 'range-moon',
-			scope: $scope
-		.then (popover) !->
-			$scope.range-moon = popover
-
-		$scope.condition-modified = false
-		$scope.condition-modify = !->
-			$log.debug "Condition modified by user"
-			$scope.condition-modified = true
-		$scope.$watch 'report.tide', (new-value, old-value) !->
-			$timeout !->
-				$scope.choose-tide.hide!
-			, 500
-		$scope.$watch 'report.moon', (new-value, old-value) !->
-			$timeout.cancel $scope.moon-changed
-			$scope.moon-changed = $timeout !->
-				$scope.range-moon.hide!
-			, 500
-		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if !$scope.condition-modified
-			ConditionFactory.moon new-value, (moon) !->
-				$scope.report?.moon = moon
-			ConditionFactory.tide new-value, (tide) !->
-				$scope.report?.tide = tide
-
-		$scope.moon = (n) -> ConditionFactory.moon-phases[n]
-		$scope.tide-phases = ConditionFactory.tide-phases
-		$scope.tide = (name) ->
-			$scope.tide-phases |> _.find (phase) ->
-				phase.name == name
 
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
@@ -212,56 +179,6 @@
 	$scope.submission =
 		enabled: false
 		publishing: false
-
-.controller 'AddFishCtrl', ($log, $timeout, $scope, $ionicPopover, UnitFactory) !->
-	# $scope.report.fishes
-	$scope.units = UnitFactory.units!
-	$scope.user-units =
-		length: 'cm'
-		weight: 'kg'
-	UnitFactory.load (units) !->
-		$scope.user-units <<< units
-
-	$scope.adding =
-		name: null
-	$scope.addFish = !->
-		$log.debug "Adding fish: #{$scope.adding.name}"
-		if !!$scope.adding.name
-			$scope.report.fishes.push do
-				name: $scope.adding.name
-				count: 1
-				length:
-					value: null
-					unit: $scope.user-units.length
-				weight:
-					value: null
-					unit: $scope.user-units.weight
-			$scope.adding.name = null
-	$scope.editing = false
-	$scope.editFish = (event, index) !->
-		$scope.current = $scope.report.fishes[index]
-		$scope.tmpFish = angular.copy $scope.current
-		$scope.editing = true
-		$log.debug "Editing fish(#{index}): #{angular.toJson $scope.tmpFish}"
-		$ionicPopover.fromTemplateUrl 'fish-edit',
-			scope: $scope
-		.then (popover) !->
-			$scope.fish-edit = popover
-			$scope.fish-edit.show event
-			.then !->
-				el = document.getElementById('fish-name')
-				$log.debug "Focusing to #{el} at #{angular.toJson el.getBoundingClientRect!}"
-				el.focus!
-				$timeout !->
-					window.scrollTo 0, el.getBoundingClientRect!.top - 20
-				, 100
-	$scope.$on 'popover.hidden', !-> if $scope.editing
-		$scope.editing = false
-		$log.debug "Hide popover"
-		$scope.fish-edit.remove!
-		if $scope.tmpFish?.name && $scope.tmpFish?.count
-			$log.debug "Overrinding current fish"
-			$scope.current <<< $scope.tmpFish
 
 .controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
