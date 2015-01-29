@@ -108,6 +108,7 @@
 						disableDefaultUI: true
 				gmap.map.setCenter center
 				gmap.map.setZoom 8
+
 				if gmap.marker then
 					gmap.marker.setPosition center
 				else
@@ -118,7 +119,8 @@
 				gmap.marker.setAnimation google.maps.Animation.BOUNCE
 				$timeout !->
 					gmap.marker.setAnimation null
-				, 8000
+				, 700 * 8
+
 				google.maps.event.addDomListener div, 'click', !->
 					for ,p of $scope.popover
 						p.hide!
