@@ -1,9 +1,6 @@
 div
 	.item.item-input
 		textarea-elastic(ng-model="report.comment", placeholder="Write something to note")
-	.item.item-input.item-icon-left
-		.icon.ion-earth.positive(ng-click="useCurrent()", ui-sref="view-on-map({edit: true})")
-		input(style="padding-left: 40px", type="text", ng-model="report.location.name", placeholder="Spot Name")
 
 	fathens-edit-fishes
 
@@ -12,6 +9,25 @@ div
 			.item.item-image
 				img(ng-src="{{report.photo.mainview}}")
 		.col-50
+			.item.item-icon-left(ng-click="showMap($event)")
+				.icon.ion-earth.positive
+				p {{ report.location.name ? report.location.name : "Spot Name" }}
+
+				script#spot-location(type="text/ng-template")
+					ion-popover-view
+						.item.item-input-wrapper
+							input(type="text", ng-model="report.location.name", placeholder="Spot Name")
+						.item.item-positive#gmap(style="height: 220px")
+
+			.item.item-input
+				.input-label
+					p Time
+				input(type="time", ng-model="report.dateAt")
+			.item.item-input
+				.input-label
+					p Date
+				input(type="date", ng-model="report.dateAt")
+
 			.item.row
 				.col-50(ng-click="rangeMoon.show($event)")
 					p Moon: {{ report.moon }}
@@ -33,12 +49,3 @@ div
 							ion-radio.item.item-avatar(ng-model="report.tide", ng-value="phase.name", ng-repeat="phase in tidePhases", ng-click="conditionModify()")
 								img(ng-src="{{ phase.icon }}")
 								p {{ phase.name }} Tide
-
-			.item.item-input
-				.input-label
-					p Time
-				input(type="time", ng-model="report.dateAt")
-			.item.item-input
-				.input-label
-					p Date
-				input(type="date", ng-model="report.dateAt")

@@ -54,7 +54,12 @@
 	restrict: 'E'
 	templateUrl: 'page/report/editor-report.html'
 	replace: true
-	controller: ($scope, $element, $attrs, $timeout, $ionicPopover, ConditionFactory) ->
+	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory) ->
+		$ionicPopover.fromTemplateUrl 'spot-location',
+			scope: $scope
+		.then (popover) !->
+			$scope.spot-location = popover
+
 		$ionicPopover.fromTemplateUrl 'choose-tide',
 			scope: $scope
 		.then (popover) !->
@@ -88,6 +93,22 @@
 		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report.moon]
 
 		$scope.tide-phases = ConditionFactory.tide-phases
+
+		$scope.showMap = ($event) !->
+			$scope.spot-location.show $event
+			.then !->
+				geoinfo = $scope.report.location.geoinfo
+				div = document.getElementById "gmap"
+				new google.maps.Map div,
+					center: new google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
+					zoom: 8
+					mapTypeId: google.maps.MapTypeId.HYBRID
+					disableDefaultUI: true
+				google.maps.event.addDomListener div, 'click', !->
+					$scope.spot-location.hide!
+					$scope.use-current!
+					$state.go "view-on-map",
+						edit: true
 
 .directive 'fathensEditFishes', ($log) ->
 	restrict: 'E'
