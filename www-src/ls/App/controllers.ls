@@ -105,11 +105,23 @@
 			$log.debug "Edit completed."
 			$ionicHistory.goBack!
 
-.controller 'AddReportCtrl', ($log, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, $ionicScrollDelegate, PhotoFactory, SessionFactory, ReportFactory, GMapFactory) !->
+.controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) !->
+	$log.debug "Init AddReportCtrl"
+	$ionicLoading.show!
+	$scope.$on '$ionicView.loaded', (event, state) !->
+		$log.debug "Loaded AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+
+		$ionicPopover.fromTemplateUrl 'confirm-submit',
+			scope: $scope
+		.then (popover) !->
+			$scope.confirm-submit = popover
+
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.should-clear = true
+
 		if ReportFactory.current!.report
+			$ionicLoading.hide!
 			$scope.report = that
 			$log.debug "Getting current report: #{angular.toJson $scope.report}"
 			$scope.submission.enabled = !!$scope.report.photo.original
@@ -120,21 +132,22 @@
 					title: title
 					template: error-msg
 				.then $ionicHistory.goBack
-			$ionicLoading.show!
 			PhotoFactory.select (info, photo) !->
 				uri = URL.createObjectURL photo
 				console.log "Selected photo info: #{angular.toJson info}: #{uri}"
 				upload = (geoinfo = null) !->
 					$scope.report = ReportFactory.newCurrent uri, info?.timestamp ? new Date!, geoinfo
 					$log.debug "Created report: #{angular.toJson $scope.report}"
-					$ionicScrollDelegate.$getByHandle("scroll-img-add-report").zoomTo 1
 					SessionFactory.start geoinfo, !->
 						$ionicLoading.hide!
 						SessionFactory.put-photo photo
 						, (result) !->
 							$log.debug "Get result of upload: #{angular.toJson result}"
-							$scope.report.photo <<< result.url
 							$scope.submission.enabled = true
+							$timeout !->
+								$log.debug "Updating photo url: #{result.url}"
+								$scope.report.photo <<< result.url
+							, 1000
 						, (inference) !->
 							$log.debug "Get inference: #{angular.toJson inference}"
 							if inference.location
@@ -159,79 +172,41 @@
 	$scope.useCurrent = !->
 		$scope.should-clear = false
 	$scope.submit = !->
+		$ionicLoading.show!
 		SessionFactory.finish $scope.report, $scope.submission.publishing, !->
 			$ionicHistory.goBack!
+			$ionicLoading.hide!
 	$scope.submission =
 		enabled: false
 		publishing: false
 
-.controller 'AddFishCtrl', ($scope, $ionicModal, $ionicPopup, UnitFactory) !->
-	# $scope.report.fishes
-	fish-template = (o = null) ->
-		r =
-			name: null
-			count: 1
-		r <<< o if o
-		r.length = {} unless r.length
-		r.weight = {} unless r.weight
-		UnitFactory.load (units) !->
-			r.length.unit = units.length
-			r.weight.unit = units.weight
-		r
-	$ionicModal.fromTemplateUrl 'edit-fish'
-		, (modal) !-> $scope.modal = modal
-		,
-			scope: $scope
-			animation: 'slide-in-up'
-
-	show = (func) !->
-		$scope.commit = func
-		$scope.modal.show!
-
-	$scope.cancel = !->
-		$scope.fishIndex = null
-		$scope.tmpFish = null
-		$scope.modal.hide!
-	$scope.submit = !->
-		fish = $scope.tmpFish
-		if fish.name?.length > 0 && fish.count > 0
-		then
-			fish.length = null unless fish.length.value
-			fish.weight = null unless fish.weight.value
-			$scope.commit fish
-			$scope.commit = null
-			$scope.fishIndex = null
-			$scope.tmpFish = null
-			$scope.modal.hide!
-
-	$scope.units = UnitFactory.units!
-	$scope.addFish = !->
-		$scope.tmpFish = fish-template!
-		show (fish) !-> $scope.report.fishes.push fish
-	$scope.editFish = (index) !->
-		$scope.fishIndex = index
-		$scope.tmpFish = fish-template $scope.report.fishes[index]
-		show (fish) !-> $scope.report.fishes[index] <<< fish
-	$scope.deleteFish = (index, confirm = true) !->
-		del = !-> $scope.report.fishes.splice index, 1
-		if !confirm then del! else
-			$ionicPopup.confirm do
-				template: "Are you sure to delete this catch ?"
-			.then (res) !-> if res
-				$scope.modal.hide!
-				del!
-
-.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, GMapFactory, ReportFactory) !->
+.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.report = ReportFactory.current!.report
 		GMapFactory.onDiv $scope, 'edit-map', (gmap) !->
+			$scope.$on 'popover.hidden', !->
+				gmap.setClickable true
+			$scope.showViewOptions = (event) !->
+				gmap.setClickable false
+				$scope.popover-view.show event
 			if $stateParams.edit
 				$scope.geoinfo = $scope.report.location.geoinfo
 				GMapFactory.onTap (geoinfo) !->
 					$scope.geoinfo = geoinfo
 					GMapFactory.put-marker geoinfo
 		, $scope.report.location.geoinfo
+		$scope.view =
+			gmap:
+				type: GMapFactory.getMapType!
+				types: GMapFactory.getMapTypes!
+		$scope.$watch 'view.gmap.type', (value) !->
+			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
+			GMapFactory.setMapType value
+		$ionicPopover.fromTemplateUrl 'view-map-view',
+			scope: $scope
+		.then (pop) ->
+			$scope.popover-view = pop
 
 	$scope.submit = !->
 		if $scope.geoinfo
@@ -260,12 +235,19 @@
 		$ionicPopover.fromTemplateUrl 'distribution-map-options',
 			scope: $scope
 		.then (pop) ->
-			$scope.popover = pop
-		$scope.$on 'popover.hidden', !->
-			$scope.gmap.setClickable true
+			$scope.popover-options = pop
 		$scope.showOptions = (event) !->
 			$scope.gmap.setClickable false
-			$scope.popover.show event
+			$scope.popover-options.show event
+		$ionicPopover.fromTemplateUrl 'distribution-map-view',
+			scope: $scope
+		.then (pop) ->
+			$scope.popover-view = pop
+		$scope.showViewOptions = (event) !->
+			$scope.gmap.setClickable false
+			$scope.popover-view.show event
+		$scope.$on 'popover.hidden', !->
+			$scope.gmap.setClickable true
 
 		icons = [1 to 10] |> _.map (count) ->
 			size = 32
@@ -309,7 +291,7 @@
 				for fish in list
 					gmap.addMarker do
 						title: "#{fish.name} x #{fish.count}"
-						snippet: ReportFactory.format-date fish.date
+						snippet: fish.date.toLocaleDateString!
 						position:
 							lat: fish.geoinfo.latitude
 							lng: fish.geoinfo.longitude

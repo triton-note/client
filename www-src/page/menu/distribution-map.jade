@@ -1,18 +1,27 @@
 ion-view(view-title="Distributions")
+	ion-nav-buttons(side="right")
+		button.button.button-clear.icon.ion-eye.button-stable(ng-click="showViewOptions($event)")
 	ion-nav-buttons(side="secondary")
-		button.button.button-clear.icon.ion-more.button-stable(ng-click="showOptions($event)")
+		button.button.button-clear.icon.ion-funnel.button-stable(ng-click="showOptions($event)")
 
 	ion-content(scroll="false")
 		#distribution-map(style="height: 100%")
 
 	script#distribution-map-options(type="text/ng-template")
 		ion-popover-view
-			.list
-				.item.item-divider
-					p Filter
-				ion-toggle(ng-model="view.others") Include Others
-				.item.item-input
-					input(type="text", ng-model="view.name", placeholder="Fish Name Filter")
-				.item.item-divider
-					p Map View
-				ion-radio(ng-repeat="(text, value) in view.gmap.types", ng-model="view.gmap.type", ng-value="value") {{ text }}
+			ion-header-bar
+				h2.title Filter
+			ion-content
+				.list
+					ion-toggle(ng-model="view.others") Include Others
+					.item.item-input
+						i.icon.ion-search.placeholder-icon
+						input(type="text", ng-model="view.name", placeholder="Fish Name")
+
+	script#distribution-map-view(type="text/ng-template")
+		ion-popover-view
+			ion-header-bar
+				h2.title Map View
+			ion-content
+				.list
+					ion-radio(ng-model="view.gmap.type", ng-repeat="(text, value) in view.gmap.types", ng-value="value") {{ text }}

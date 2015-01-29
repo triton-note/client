@@ -1,3 +1,26 @@
+.factory 'ConditionFactory', ($log, ServerFactory, AccountFactory) ->
+	moon = (n) ->
+		v = "0#{n}" |> _.Str.reverse |> _.take 2 |> _.Str.reverse
+		"img/moon/phase-#{v}.png"
+	tide = (name) ->
+		name: name
+		icon: "img/tide/#{name.toLowerCase!}.png"
+
+	state: (datetime, geoinfo, taker) !->
+		$log.debug "Taking tide and moon phase at #{geoinfo} #{datetime}"
+		AccountFactory.with-ticket (ticket)->
+			ServerFactory.conditions ticket, datetime, geoinfo
+		, taker
+		, (error) !->
+			$log.error "Failed to get conditions from server: #{error}"
+			taker do
+				moon:
+					age: 0
+				tide:
+					state: 'High'
+	moon-phases: [0 til 30] |> _.map(moon)
+	tide-phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
+
 .factory 'ReportFactory', ($log, $filter, $interval, $ionicPopup, AccountFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	expiration = 50 * 60 * 1000 # 50 minutes
@@ -260,13 +283,16 @@
 		*/
 		names: null
 
+	convert = (fish) ->
+		fish.date = new Date(fish.date)
+		fish
 	refresh-mine = (success) !->
 		$log.debug "Refreshing distributions of mine ..."
 		suc = !->
 			success! if success
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-mine ticket
-		, (list) !->
+		, _.map(convert) >> (list) !->
 			store.catches.mine = list
 			suc!
 		, (error) !->
@@ -281,7 +307,7 @@
 			success! if success
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-others ticket
-		, (list) !->
+		, _.map(convert) >> (list) !->
 			store.catches.others = list
 			suc!
 		, (error) !->

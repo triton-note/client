@@ -35,3 +35,110 @@
 							top: margin (.height)
 						$ionicScrollDelegate.$getByHandle(delegate-name).scrollTo sc.left, sc.top
 						$log.debug "fathensFitImg: scroll=#{angular.toJson sc}, name=#{delegate-name}"
+
+.directive 'textareaElastic', ($log) ->
+	restrict: 'E'
+	template: '<textarea ng-keypress="elasticTextarea()"></textarea>'
+	replace: true
+	scope: true
+	controller: ($scope, $element, $attrs) ->
+		$scope.elasticTextarea = !->
+			area = $element[0]
+			current = area.style.height
+			next = "#{area.scroll-height + 20}px"
+			if current != next
+				$log.debug "Elastic #{area}: #{current} => #{next}"
+				area.style.height = next
+
+.directive 'fathensEditReport', ($log) ->
+	restrict: 'E'
+	templateUrl: 'page/report/editor-report.html'
+	replace: true
+	controller: ($scope, $element, $attrs, $timeout, $ionicPopover, ConditionFactory) ->
+		$ionicPopover.fromTemplateUrl 'choose-tide',
+			scope: $scope
+		.then (popover) !->
+			$scope.choose-tide = popover
+
+		$ionicPopover.fromTemplateUrl 'range-moon',
+			scope: $scope
+		.then (popover) !->
+			$scope.range-moon = popover
+
+		$scope.condition-modified = false
+		$scope.condition-modify = !->
+			$log.debug "Condition modified by user"
+			$scope.condition-modified = true
+		$scope.$watch 'report.tide', (new-value, old-value) !->
+			$timeout !->
+				$scope.choose-tide.hide!
+			, 500
+		$scope.$watch 'report.moon', (new-value, old-value) !->
+			$timeout.cancel $scope.moon-changed
+			$scope.moon-changed = $timeout !->
+				$scope.range-moon.hide!
+			, 500
+		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if !$scope.condition-modified
+			ConditionFactory.state new-value, $scope.report.location.geoinfo, (state) !->
+				$log.debug "Conditions result: #{angular.toJson state}"
+				$scope.report?.moon = state.moon.age
+				$scope.report?.tide = state.tide.state
+
+		$scope.tide-icon = -> $scope.tide-phases |> _.find (.name == $scope.report.tide) |> (.icon)
+		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report.moon]
+
+		$scope.tide-phases = ConditionFactory.tide-phases
+
+.directive 'fathensEditFishes', ($log) ->
+	restrict: 'E'
+	templateUrl: 'page/report/editor-fishes.html'
+	replace: true
+	scope: true
+	controller: ($scope, $element, $attrs, $timeout, $ionicPopover, UnitFactory) ->
+		$scope.units = UnitFactory.units!
+		$scope.user-units =
+			length: 'cm'
+			weight: 'kg'
+		UnitFactory.load (units) !->
+			$scope.user-units <<< units
+
+		$scope.adding =
+			name: null
+		$scope.addFish = !->
+			$log.debug "Adding fish: #{$scope.adding.name}"
+			if !!$scope.adding.name
+				$scope.report.fishes.push do
+					name: $scope.adding.name
+					count: 1
+					length:
+						value: null
+						unit: $scope.user-units.length
+					weight:
+						value: null
+						unit: $scope.user-units.weight
+				$scope.adding.name = null
+		$scope.editing = false
+		$scope.editFish = (event, index) !->
+			$scope.current = $scope.report.fishes[index]
+			$scope.tmpFish = angular.copy $scope.current
+			$scope.editing = true
+			$log.debug "Editing fish(#{index}): #{angular.toJson $scope.tmpFish}"
+			$ionicPopover.fromTemplateUrl 'fish-edit',
+				scope: $scope
+			.then (popover) !->
+				$scope.fish-edit = popover
+				$scope.fish-edit.show event
+				.then !->
+					el = document.getElementById('fish-name')
+					$log.debug "Focusing to #{el} at #{angular.toJson el.getBoundingClientRect!}"
+					el.focus!
+					$timeout !->
+						window.scrollTo 0, el.getBoundingClientRect!.top - 20
+					, 100
+		$scope.$on 'popover.hidden', !-> if $scope.editing
+			$scope.editing = false
+			$log.debug "Hide popover"
+			$scope.fish-edit.remove!
+			if $scope.tmpFish?.name && $scope.tmpFish?.count
+				$log.debug "Overrinding current fish"
+				$scope.current <<< $scope.tmpFish

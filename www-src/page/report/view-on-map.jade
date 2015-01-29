@@ -1,5 +1,16 @@
 ion-view(view-title="Spot")
+	ion-nav-buttons(side="right")
+		button.button.button-clear.icon.ion-eye.button-stable(ng-click="showViewOptions($event)")
 	ion-nav-buttons(side="secondary")
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()", ng-hide="!geoinfo")
+
 	ion-content(scroll="false")
 		#edit-map(style="height: 100%")
+
+	script#view-map-view(type="text/ng-template")
+		ion-popover-view
+			ion-header-bar
+				h2.title Map View
+			ion-content
+				.list
+					ion-radio(ng-model="view.gmap.type", ng-repeat="(text, value) in view.gmap.types", ng-value="value") {{ text }}

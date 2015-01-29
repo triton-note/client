@@ -194,6 +194,16 @@
 	catches-names: (ticket) -> (success, error-taker) !->
 		$log.debug "Retrieving names of catches"
 		http('GET', "distribution/names/#{ticket}") success, error-taker
+	/*
+	Obtain tide and moon phases
+	*/
+	conditions: (ticket, timestamp, geoinfo) -> (success, error-taker) !->
+		$log.debug "Retrieving conditions: #{timestamp}, #{angular.toJson geoinfo}"
+		http('POST', "conditions/get/#{ticket}",
+			date: timestamp
+			geoinfo: geoinfo
+		) success, error-taker
+		
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	store =
