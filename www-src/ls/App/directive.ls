@@ -54,16 +54,18 @@
 	restrict: 'E'
 	templateUrl: 'page/report/editor-report.html'
 	replace: true
-	controller: ($scope, $element, $attrs, $timeout, $ionicPopover, ConditionFactory) ->
-		$ionicPopover.fromTemplateUrl 'choose-tide',
-			scope: $scope
-		.then (popover) !->
-			$scope.choose-tide = popover
+	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory) ->
+		$scope.popover = {}
+		['spot-location', 'choose-tide', 'range-moon'] |> _.each (name) !->
+			$ionicPopover.fromTemplateUrl name,
+				scope: $scope
+			.then (popover) !->
+				$scope.popover[_.camelize name] = popover
 
-		$ionicPopover.fromTemplateUrl 'range-moon',
-			scope: $scope
-		.then (popover) !->
-			$scope.range-moon = popover
+		$scope.$on '$destroy', (event) !->
+			$log.info "Leaving 'fathens-edit-report': #{event}"
+			for ,p of $scope.popover
+				p.remove!
 
 		$scope.condition-modified = false
 		$scope.condition-modify = !->
@@ -71,23 +73,60 @@
 			$scope.condition-modified = true
 		$scope.$watch 'report.tide', (new-value, old-value) !->
 			$timeout !->
-				$scope.choose-tide.hide!
+				$scope.popover.choose-tide.hide!
 			, 500
 		$scope.$watch 'report.moon', (new-value, old-value) !->
 			$timeout.cancel $scope.moon-changed
 			$scope.moon-changed = $timeout !->
-				$scope.range-moon.hide!
+				$scope.popover.range-moon.hide!
 			, 500
 		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if !$scope.condition-modified
-			ConditionFactory.state new-value, $scope.report.location.geoinfo, (state) !->
-				$log.debug "Conditions result: #{angular.toJson state}"
-				$scope.report?.moon = state.moon.age
-				$scope.report?.tide = state.tide.state
+			if $scope.report?.location?.geoinfo
+				ConditionFactory.state new-value, that, (state) !->
+					$log.debug "Conditions result: #{angular.toJson state}"
+					$scope.report.moon = state.moon.age
+					$scope.report.tide = state.tide.state
 
-		$scope.tide-icon = -> $scope.tide-phases |> _.find (.name == $scope.report.tide) |> (.icon)
-		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report.moon]
+		$scope.tide-icon = -> $scope.tide-phases |> _.find (.name == $scope.report?.tide) |> (?.icon)
+		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report?.moon]
 
 		$scope.tide-phases = ConditionFactory.tide-phases
+
+		$scope.spot-location-gmap =
+			map: null
+			marker: null
+		$scope.showMap = ($event) !->
+			gmap = $scope.spot-location-gmap
+			geoinfo = $scope.report.location.geoinfo
+			center = new google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
+			$scope.popover.spot-location.show $event
+			.then !->
+				div = document.getElementById "gmap"
+				unless gmap.map
+					gmap.map = new google.maps.Map div,
+						mapTypeId: google.maps.MapTypeId.HYBRID
+						disableDefaultUI: true
+				gmap.map.setCenter center
+				gmap.map.setZoom 8
+
+				if gmap.marker then
+					gmap.marker.setPosition center
+				else
+					gmap.marker = new google.maps.Marker do
+						map: gmap.map
+						position: center
+				gmap.marker.setTitle $scope.report.location.name
+				gmap.marker.setAnimation google.maps.Animation.BOUNCE
+				$timeout !->
+					gmap.marker.setAnimation null
+				, 700 * 8
+
+				google.maps.event.addDomListener div, 'click', !->
+					for ,p of $scope.popover
+						p.hide!
+					$scope.use-current!
+					$state.go "view-on-map",
+						edit: true
 
 .directive 'fathensEditFishes', ($log) ->
 	restrict: 'E'

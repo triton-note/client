@@ -60,8 +60,9 @@
 		hasMore: true
 
 	loadServer = (last-id = null, taker) !->
+		count = if last-id then limit else 10
 		AccountFactory.with-ticket (ticket) ->
-			ServerFactory.load-reports ticket, limit, last-id
+			ServerFactory.load-reports ticket, count, last-id
 		, (list) !->
 			taker save list
 		, (error) !->
