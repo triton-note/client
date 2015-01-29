@@ -55,20 +55,12 @@
 	templateUrl: 'page/report/editor-report.html'
 	replace: true
 	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory) ->
-		$ionicPopover.fromTemplateUrl 'spot-location',
-			scope: $scope
-		.then (popover) !->
-			$scope.spot-location = popover
-
-		$ionicPopover.fromTemplateUrl 'choose-tide',
-			scope: $scope
-		.then (popover) !->
-			$scope.choose-tide = popover
-
-		$ionicPopover.fromTemplateUrl 'range-moon',
-			scope: $scope
-		.then (popover) !->
-			$scope.range-moon = popover
+		$scope.popover = {}
+		['spot-location', 'choose-tide', 'range-moon'] |> _.each (name) !->
+			$ionicPopover.fromTemplateUrl name,
+				scope: $scope
+			.then (popover) !->
+				$scope.popover[_.camelize name] = popover
 
 		$scope.condition-modified = false
 		$scope.condition-modify = !->
@@ -76,12 +68,12 @@
 			$scope.condition-modified = true
 		$scope.$watch 'report.tide', (new-value, old-value) !->
 			$timeout !->
-				$scope.choose-tide.hide!
+				$scope.popover.choose-tide.hide!
 			, 500
 		$scope.$watch 'report.moon', (new-value, old-value) !->
 			$timeout.cancel $scope.moon-changed
 			$scope.moon-changed = $timeout !->
-				$scope.range-moon.hide!
+				$scope.popover.range-moon.hide!
 			, 500
 		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if !$scope.condition-modified
 			if $scope.report?.location?.geoinfo
@@ -102,7 +94,7 @@
 			gmap = $scope.spot-location-gmap
 			geoinfo = $scope.report.location.geoinfo
 			center = new google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
-			$scope.spot-location.show $event
+			$scope.popover.spot-location.show $event
 			.then !->
 				div = document.getElementById "gmap"
 				unless gmap.map
@@ -123,9 +115,8 @@
 					gmap.marker.setAnimation null
 				, 8000
 				google.maps.event.addDomListener div, 'click', !->
-					$scope.spot-location.hide!
-					$scope.choose-tide.hide!
-					$scope.range-moon.hide!
+					for ,p of $scope.popover
+						p.hide!
 					$scope.use-current!
 					$state.go "view-on-map",
 						edit: true

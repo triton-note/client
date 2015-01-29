@@ -29,7 +29,7 @@ div
 				input(type="date", ng-model="report.dateAt")
 
 			.item.row
-				.col-50(ng-click="rangeMoon.show($event)")
+				.col-50(ng-click="popover.rangeMoon.show($event)")
 					p Moon: {{ report.moon }}
 					img(ng-src="{{ moonIcon() }}", width="80%")
 
@@ -40,7 +40,7 @@ div
 								input(type="range", ng-model="report.moon", min="0", max="29", ng-click="conditionModify()")
 								p 30
 
-				.col-50(ng-click="chooseTide.show($event)")
+				.col-50(ng-click="popover.chooseTide.show($event)")
 					p Tide: {{ report.tide }}
 					img(ng-src="{{ tideIcon() }}", width="80%")
 
