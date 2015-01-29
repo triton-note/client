@@ -79,16 +79,15 @@
 				$scope.range-moon.hide!
 			, 500
 		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if !$scope.condition-modified
-			ConditionFactory.moon new-value, (moon) !->
-				$scope.report?.moon = moon
-			ConditionFactory.tide new-value, (tide) !->
-				$scope.report?.tide = tide
+			ConditionFactory.state new-value, $scope.report.location.geoinfo, (state) !->
+				$log.debug "Conditions result: #{angular.toJson state}"
+				$scope.report?.moon = state.moon.age
+				$scope.report?.tide = state.tide.state
 
-		$scope.moon = (n) -> ConditionFactory.moon-phases[n]
+		$scope.tide-icon = -> $scope.tide-phases |> _.find (.name == $scope.report.tide) |> (.icon)
+		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report.moon]
+
 		$scope.tide-phases = ConditionFactory.tide-phases
-		$scope.tide = (name) ->
-			$scope.tide-phases |> _.find (phase) ->
-				phase.name == name
 
 .directive 'fathensEditFishes', ($log) ->
 	restrict: 'E'

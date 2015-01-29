@@ -15,7 +15,7 @@ div
 			.item.row
 				.col-50(ng-click="rangeMoon.show($event)")
 					p Moon: {{ report.moon }}
-					img(ng-src="{{ moon(report.moon) }}")
+					img(ng-src="{{ moonIcon() }}", width="80%")
 
 					script#range-moon(type="text/ng-template")
 						ion-popover-view(style="height: 57px")
@@ -26,7 +26,7 @@ div
 
 				.col-50(ng-click="chooseTide.show($event)")
 					p Tide: {{ report.tide }}
-					img(ng-src="{{ tide(report.tide) }}")
+					img(ng-src="{{ tideIcon() }}", width="80%")
 
 					script#choose-tide(type="text/ng-template")
 						ion-popover-view
