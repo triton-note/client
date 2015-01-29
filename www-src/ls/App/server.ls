@@ -200,7 +200,7 @@
 	conditions: (ticket, timestamp, geoinfo) -> (success, error-taker) !->
 		$log.debug "Retrieving conditions: #{timestamp}, #{angular.toJson geoinfo}"
 		http('POST', "conditions/get/#{ticket}",
-			date: timestamp
+			date: timestamp.getTime!
 			geoinfo: geoinfo
 		) success, error-taker
 		
