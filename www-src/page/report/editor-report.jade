@@ -14,10 +14,10 @@ div
 				p {{ report.location.name ? report.location.name : "Spot Name" }}
 
 				script#spot-location(type="text/ng-template")
-					ion-popover-view
+					ion-popover-view(style="height: 200px")
 						.item.item-input-wrapper
-							input(type="text", ng-model="report.location.name", placeholder="Spot Name")
-						.item.item-positive#gmap(style="height: 220px")
+							input#spot-name-input(type="text", ng-model="report.location.name", placeholder="Spot Name")
+						.item.item-positive#gmap(style="height: 100%")
 
 			.item.item-input
 				.input-label
