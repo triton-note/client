@@ -94,18 +94,40 @@
 
 		$scope.tide-phases = ConditionFactory.tide-phases
 
+		$scope.spot-location-gmap =
+			map: null
+			marker: null
 		$scope.showMap = ($event) !->
+			gmap = $scope.spot-location-gmap
+			geoinfo = $scope.report.location.geoinfo
+			center = new google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
 			$scope.spot-location.show $event
 			.then !->
-				geoinfo = $scope.report.location.geoinfo
 				div = document.getElementById "gmap"
-				new google.maps.Map div,
-					center: new google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
-					zoom: 8
-					mapTypeId: google.maps.MapTypeId.HYBRID
-					disableDefaultUI: true
+				if gmap.map then
+					gmap.map.setCenter center
+					gmap.map.setZoom 8
+				else
+					gmap.map = new google.maps.Map div,
+						center: center
+						zoom: 8
+						mapTypeId: google.maps.MapTypeId.HYBRID
+						disableDefaultUI: true
+				if gmap.marker then
+					gmap.marker.setPosition center
+				else
+					gmap.marker = new google.maps.Marker do
+						map: gmap.map
+						position: center
+				gmap.marker.setTitle $scope.report.location.name
+				gmap.marker.setAnimation google.maps.Animation.BOUNCE
+				$timeout !->
+					gmap.marker.setAnimation null
+				, 8000
 				google.maps.event.addDomListener div, 'click', !->
 					$scope.spot-location.hide!
+					$scope.choose-tide.hide!
+					$scope.range-moon.hide!
 					$scope.use-current!
 					$state.go "view-on-map",
 						edit: true
