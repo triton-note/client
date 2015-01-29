@@ -62,6 +62,11 @@
 			.then (popover) !->
 				$scope.popover[_.camelize name] = popover
 
+		$scope.$on '$destroy', (event) !->
+			$log.info "Leaving 'fathens-edit-report': #{event}"
+			for ,p of $scope.popover
+				p.remove!
+
 		$scope.condition-modified = false
 		$scope.condition-modify = !->
 			$log.debug "Condition modified by user"
