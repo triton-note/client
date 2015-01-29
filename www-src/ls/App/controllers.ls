@@ -180,7 +180,7 @@
 		enabled: false
 		publishing: false
 
-.controller 'ReportOnMapCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->
+.controller 'ReportOnMapCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.report = ReportFactory.current!.report
