@@ -105,15 +105,12 @@
 			$scope.spot-location.show $event
 			.then !->
 				div = document.getElementById "gmap"
-				if gmap.map then
-					gmap.map.setCenter center
-					gmap.map.setZoom 8
-				else
+				unless gmap.map
 					gmap.map = new google.maps.Map div,
-						center: center
-						zoom: 8
 						mapTypeId: google.maps.MapTypeId.HYBRID
 						disableDefaultUI: true
+				gmap.map.setCenter center
+				gmap.map.setZoom 8
 				if gmap.marker then
 					gmap.marker.setPosition center
 				else
