@@ -1,4 +1,4 @@
-box: sawatani/sbt_java8@0.1.2
+box: wercker/android@1.0.9
 build:
     steps:
         - script:
