@@ -14,14 +14,7 @@ build:
             code: |-
                 ./reinstall_plugins.sh
         - script:
-            name: gulp
+            name: build
             code: |-
                 gulp splash default
-        - script:
-            name: iOS
-            code: |-
-                cordova compile ios
-        - script:
-            name: Android
-            code: |-
                 cordova compile android
