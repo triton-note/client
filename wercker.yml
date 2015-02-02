@@ -6,7 +6,7 @@ build:
             code: |-
                 sudo npm install -g cordova
                 sudo npm install -g bower
-                npm install
+                sudo npm install
                 bower install
         - script:
             name: plugins
