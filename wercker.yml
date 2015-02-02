@@ -1,6 +1,9 @@
-box: wercker/nodejs@1.4.0
+box: sawatani/sbt_java8@0.1.2
 build:
     steps:
+        - script:
+            name: check env
+            code: env | sort
         - script:
             name: prepare
             code: |-
