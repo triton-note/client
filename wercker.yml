@@ -6,7 +6,6 @@ build:
             code: |-
                 sudo npm install -g cordova
                 sudo npm install -g bower
-                sudo npm install -g gulp
                 npm install
                 bower install
         - script:
