@@ -10,8 +10,6 @@ cordova plugin add org.apache.cordova.console
 cordova plugin add org.apache.cordova.camera
 cordova plugin add org.apache.cordova.splashscreen
 
-cordova plugin add com.ionic.keyboard
-
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="751407064903894" --variable APP_NAME="TritonNote"
 # Google Maps
