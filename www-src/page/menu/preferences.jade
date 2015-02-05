@@ -15,3 +15,8 @@ ion-view(view-title="Preferences")
 					p Weight
 				select(ng-model="unit.weight")
 					option(ng-repeat="unit in units.weight") {{ unit }}
+			.item.item-input.item-select
+				.input-label
+					p Temperature
+				select(ng-model="unit.temperature")
+					option(ng-repeat="unit in units.temperature") {{ unit }}

@@ -1,4 +1,4 @@
-.factory 'ConditionFactory', ($log, ServerFactory, AccountFactory) ->
+.factory 'ConditionFactory', ($log, ServerFactory, AccountFactory, UnitFactory) ->
 	moon = (n) ->
 		v = "0#{n}" |> _.Str.reverse |> _.take 2 |> _.Str.reverse
 		"img/moon/phase-#{v}.png"
@@ -10,7 +10,9 @@
 		$log.debug "Taking tide and moon phase at #{geoinfo} #{datetime}"
 		AccountFactory.with-ticket (ticket)->
 			ServerFactory.conditions ticket, datetime, geoinfo
-		, taker
+		, (condition) !->
+			condition.temperature = UnitFactory.temperature condition.temperature
+			taker condition
 		, (error) !->
 			$log.error "Failed to get conditions from server: #{error}"
 			taker do
@@ -19,7 +21,9 @@
 				weather:
 					name: '?'
 					icon-url: null
-					temperature: 20
+					temperature: UnitFactory.temperature do
+						value: 20
+						unit: 'Cels'
 	moon-phases: [0 til 30] |> _.map(moon)
 	tide-phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
 	weather-states:
@@ -62,7 +66,9 @@
 					weather:
 						name: String
 						icon-url: String (URL)
-						temperature: Double
+						temperature:
+							value: Double
+							unit: 'Cels'|'Fahr'
 			*/
 			report: null
 		/*
@@ -218,6 +224,7 @@
 	default-units =
 		length: 'cm'
 		weight: 'kg'
+		temperature: 'Cels'
 
 	store =
 		unit: null
@@ -251,6 +258,7 @@
 	units: -> angular.copy do
 		length: ['cm', 'inch']
 		weight: ['kg', 'pond']
+		temperature: ['Cels', 'Fahr']
 	load: load-current
 	save: save-current
 	length: (src) ->
@@ -274,6 +282,17 @@
 		{
 			value: convert!
 			unit: dstUnit
+		}
+	temperature: (src) ->
+		init!
+		dst-unit = load-local!.temperature
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'Cels'   => src.value * 9 / 5 + 32
+		| 'Fahr'   => (src.value - 32) * 5 / 9
+		{
+			value: convert!
+			unit: dst-unit
 		}
 
 .factory 'DistributionFactory', ($log, $interval, $ionicPopup, AccountFactory, ServerFactory) ->
