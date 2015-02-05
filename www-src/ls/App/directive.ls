@@ -69,19 +69,22 @@
 
 		$scope.tide-modified = false
 		$scope.tide-modify = !->
-			$log.debug "Condition tide modified by user"
+			$log.debug "Condition tide modified by user: #{$scope.report.condition.tide}"
 			$scope.tide-modified = true
 		$scope.weather-modified = false
 		$scope.weather-modify = !->
-			$log.debug "Condition weather modified by user"
+			$log.debug "Condition weather modified by user: #{$scope.report.condition.weather.name}"
 			$scope.weather-modified = true
+			$timeout !->
+				$log.debug "Using weather icon by Name: #{$scope.report.condition.weather.name}"
+				$scope.report?.condition?.weather.icon-url = $scope.weather-icon($scope.report.condition.weather.name)
+			, 200
 
 		$scope.$watch 'report.condition.tide', (new-value, old-value) !->
 			$scope.popover.choose-tide.hide!
 		$scope.$watch 'report.condition.weather.temperature.value', (new-value, old-value) !->
 			$scope.report?.condition?.weather.temperature.value = Math.round(new-value * 10) / 10
 		$scope.$watch 'report.condition.weather.name', (new-value, old-value) !->
-			$scope.report?.condition?.weather.icon-url = $scope.weather-icon(new-value)
 			$scope.popover.choose-weather.hide!
 
 		$scope.$watch 'report.dateAt', (new-value, old-value) !-> change-condition(new-value, $scope.report?.location?.geoinfo)
