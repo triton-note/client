@@ -1,0 +1,19 @@
+box: sawatani/Cordova@0.0.2
+build:
+    steps:
+        - script:
+            name: prepare
+            code: |-
+                sudo npm install -g bower
+                sudo npm install
+                sudo npm install -g gulp
+                bower install
+        - script:
+            name: plugins
+            code: |-
+                ./reinstall_plugins.sh
+        - script:
+            name: build
+            code: |-
+                gulp splash default
+                cordova compile android

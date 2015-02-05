@@ -14,12 +14,19 @@
 		, (error) !->
 			$log.error "Failed to get conditions from server: #{error}"
 			taker do
-				moon:
-					age: 0
-				tide:
-					state: 'High'
+				moon: 0
+				tide: 'High'
+				weather:
+					name: '?'
+					icon-url: null
+					temperature: 20
 	moon-phases: [0 til 30] |> _.map(moon)
 	tide-phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
+	weather-states:
+		Clear: '01d'
+		Clouds: '04d'
+		Rain: '09d'
+		Snow: '13d'
 
 .factory 'ReportFactory', ($log, $filter, $interval, $ionicPopup, AccountFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
@@ -49,6 +56,13 @@
 					weight:
 						value: Double
 						unit: 'pond'|'kg'
+				conditions:
+					moon: Int
+					tide: String
+					weather:
+						name: String
+						icon-url: String (URL)
+						temperature: Double
 			*/
 			report: null
 		/*

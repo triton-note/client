@@ -56,7 +56,7 @@
 	replace: true
 	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory) ->
 		$scope.popover = {}
-		['spot-location', 'choose-tide', 'range-moon'] |> _.each (name) !->
+		['spot-location', 'choose-tide', 'choose-weather'] |> _.each (name) !->
 			$ionicPopover.fromTemplateUrl name,
 				scope: $scope
 			.then (popover) !->
@@ -67,30 +67,46 @@
 			for ,p of $scope.popover
 				p.remove!
 
-		$scope.condition-modified = false
-		$scope.condition-modify = !->
-			$log.debug "Condition modified by user"
-			$scope.condition-modified = true
-		$scope.$watch 'report.tide', (new-value, old-value) !->
+		$scope.tide-modified = false
+		$scope.tide-modify = !->
+			$log.debug "Condition tide modified by user: #{$scope.report.condition.tide}"
+			$scope.tide-modified = true
+		$scope.weather-modified = false
+		$scope.weather-modify = !->
+			$log.debug "Condition weather modified by user: #{$scope.report.condition.weather.name}"
+			$scope.weather-modified = true
 			$timeout !->
-				$scope.popover.choose-tide.hide!
-			, 500
-		$scope.$watch 'report.moon', (new-value, old-value) !->
-			$timeout.cancel $scope.moon-changed
-			$scope.moon-changed = $timeout !->
-				$scope.popover.range-moon.hide!
-			, 500
-		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if !$scope.condition-modified
-			if $scope.report?.location?.geoinfo
-				ConditionFactory.state new-value, that, (state) !->
-					$log.debug "Conditions result: #{angular.toJson state}"
-					$scope.report.moon = state.moon.age
-					$scope.report.tide = state.tide.state
+				$log.debug "Using weather icon by Name: #{$scope.report.condition.weather.name}"
+				$scope.report?.condition?.weather.icon-url = $scope.weather-icon($scope.report.condition.weather.name)
+			, 200
 
-		$scope.tide-icon = -> $scope.tide-phases |> _.find (.name == $scope.report?.tide) |> (?.icon)
-		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report?.moon]
+		$scope.$watch 'report.condition.tide', (new-value, old-value) !->
+			$scope.popover.choose-tide.hide!
+		$scope.$watch 'report.condition.weather.temperature.value', (new-value, old-value) !->
+			$scope.report?.condition?.weather.temperature.value = Math.round(new-value * 10) / 10
+		$scope.$watch 'report.condition.weather.name', (new-value, old-value) !->
+			$scope.popover.choose-weather.hide!
+
+		$scope.$watch 'report.dateAt', (new-value, old-value) !-> change-condition(new-value, $scope.report?.location?.geoinfo)
+		$scope.$watch 'report.location.geoinfo', (new-value, old-value) !-> change-condition($scope.report?.dateAt, new-value)
+		change-condition = (datetime, geoinfo) !-> if datetime && geoinfo
+			ConditionFactory.state datetime, geoinfo, (state) !->
+				$log.debug "Conditions result: #{angular.toJson state}"
+				$scope.report.condition.moon = state.moon
+				if !$scope.tide-modified
+					$scope.report.condition.tide = state.tide
+				if state.weather
+					if !$scope.weather-modified
+						$scope.report.condition.weather = state.weather
+					else
+						$scope.report.condition.weather.temperature = state.weather.temperature
+
+		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report?.condition?.moon]
+		$scope.tide-icon = -> $scope.tide-phases |> _.find (.name == $scope.report?.condition?.tide) |> (?.icon)
+		$scope.weather-icon = (name) -> "http://openweathermap.org/img/w/#{$scope.weather-states[name]}.png"
 
 		$scope.tide-phases = ConditionFactory.tide-phases
+		$scope.weather-states = ConditionFactory.weather-states
 
 		$scope.spot-location-gmap =
 			map: null
