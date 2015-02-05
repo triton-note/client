@@ -75,6 +75,7 @@
 		$scope.weather-modify = !->
 			$log.debug "Condition weather modified by user"
 			$scope.weather-modified = true
+
 		$scope.$watch 'report.condition.tide', (new-value, old-value) !->
 			$scope.popover.choose-tide.hide!
 		$scope.$watch 'report.condition.weather.temperature.value', (new-value, old-value) !->
@@ -82,15 +83,20 @@
 		$scope.$watch 'report.condition.weather.name', (new-value, old-value) !->
 			$scope.report?.condition?.weather.icon-url = $scope.weather-icon(new-value)
 			$scope.popover.choose-weather.hide!
-		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if !$scope.tide-modified || !$scope.weather-modified
-			if $scope.report?.location?.geoinfo
-				ConditionFactory.state new-value, that, (state) !->
-					$log.debug "Conditions result: #{angular.toJson state}"
-					$scope.report.condition.moon = state.moon
-					if !$scope.tide-modified
-						$scope.report.condition.tide = state.tide
+
+		$scope.$watch 'report.dateAt', (new-value, old-value) !-> change-condition(new-value, $scope.report?.location?.geoinfo)
+		$scope.$watch 'report.location.geoinfo', (new-value, old-value) !-> change-condition($scope.report?.dateAt, new-value)
+		change-condition = (datetime, geoinfo) !-> if datetime && geoinfo
+			ConditionFactory.state datetime, geoinfo, (state) !->
+				$log.debug "Conditions result: #{angular.toJson state}"
+				$scope.report.condition.moon = state.moon
+				if !$scope.tide-modified
+					$scope.report.condition.tide = state.tide
+				if state.weather
 					if !$scope.weather-modified
 						$scope.report.condition.weather = state.weather
+					else
+						$scope.report.condition.weather.temperature = state.weather.temperature
 
 		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report?.condition?.moon]
 		$scope.tide-icon = -> $scope.tide-phases |> _.find (.name == $scope.report?.condition?.tide) |> (?.icon)
