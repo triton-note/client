@@ -35,7 +35,7 @@
 		$ionicLoading.hide!
 		$log.debug "Account connection: #{angular.toJson $scope.social}"
 
-.controller 'PreferencesCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, UnitFactory) !->
+.controller 'PreferencesCtrl', ($log, $scope, $stateParams, $ionicSideMenuDelegate, $ionicLoading, $ionicPopup, UnitFactory) !->
 	$ionicLoading.show!
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter PreferencesCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
@@ -46,7 +46,7 @@
 
 	$scope.submit = !->
 		UnitFactory.save $scope.unit
-		$ionicHistory.goBack!
+		$ionicSideMenuDelegate.toggle-left true
 	$scope.units = UnitFactory.units!
 
 .controller 'ListReportsCtrl', ($log, $scope, ReportFactory) !->
