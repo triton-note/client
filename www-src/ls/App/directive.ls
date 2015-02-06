@@ -176,6 +176,14 @@
 		$scope.editFish = (event, index) !->
 			$scope.current = $scope.report.fishes[index]
 			$scope.tmpFish = angular.copy $scope.current
+			if !$scope.tmpFish.length?.value
+				$scope.tmpFish.length =
+					value: null
+					unit: $scope.user-units.length
+			if !$scope.tmpFish.weight?.value
+				$scope.tmpFish.weight =
+					value: null
+					unit: $scope.user-units.weight
 			$scope.editing = true
 			$log.debug "Editing fish(#{index}): #{angular.toJson $scope.tmpFish}"
 			$ionicPopover.fromTemplateUrl 'fish-edit',
@@ -195,5 +203,9 @@
 			$log.debug "Hide popover"
 			$scope.fish-edit.remove!
 			if $scope.tmpFish?.name && $scope.tmpFish?.count
+				if !$scope.tmpFish.length?.value
+					$scope.tmpFish.length = undefined
+				if !$scope.tmpFish.weight?.value
+					$scope.tmpFish.weight = undefined
 				$log.debug "Overrinding current fish"
 				$scope.current <<< $scope.tmpFish
