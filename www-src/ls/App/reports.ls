@@ -204,7 +204,7 @@
 	/*
 		Update report
 	*/
-	updateByCurrent: (success) !->
+	updateByCurrent: (success, on-finally) !->
 		if store.current.report?.id
 			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.update-report ticket, store.current.report
@@ -213,10 +213,12 @@
 				store.reports[store.current.index] = save([store.current.report])[0]
 				DistributionFactory.report.update store.current.report
 				success!
+				on-finally!
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to update to server"
 					template: error.msg
+				on-finally!
 
 .factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54

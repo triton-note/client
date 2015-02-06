@@ -87,7 +87,7 @@
 				$log.debug "Remove completed."
 			$ionicHistory.goBack!
 
-.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicHistory, ReportFactory) !->
+.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicHistory, $ionicLoading, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter EditReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.should-clear = true
@@ -101,9 +101,11 @@
 	$scope.useCurrent = !->
 		$scope.should-clear = false
 	$scope.submit = !->
+		$ionicLoading.show!
 		ReportFactory.updateByCurrent !->
 			$log.debug "Edit completed."
 			$ionicHistory.goBack!
+		, $ionicLoading.hide
 
 .controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) !->
 	$log.debug "Init AddReportCtrl"
@@ -175,7 +177,7 @@
 		$ionicLoading.show!
 		SessionFactory.finish $scope.report, $scope.submission.publishing, !->
 			$ionicHistory.goBack!
-			$ionicLoading.hide!
+		, $ionicLoading.hide
 	$scope.submission =
 		enabled: false
 		publishing: false
