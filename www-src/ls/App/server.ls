@@ -174,7 +174,7 @@
 	change-units: (ticket, unit) -> (success, error-taker) !->
 		$log.debug "Changing unit: #{angular.toJson unit}"
 		http('POST', "account/unit/change/#{ticket}",
-			unit: unit
+			unit
 		) success, error-taker
 	/*
 	Load distributions of own catches
