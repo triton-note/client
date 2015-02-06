@@ -53,9 +53,11 @@
 	$scope.reports = ReportFactory.cachedList
 	$scope.hasMoreReports = ReportFactory.hasMore
 	$scope.refresh = !->
+		$log.debug "Refresh Reports List ..."
 		ReportFactory.refresh !->
 			$scope.$broadcast 'scroll.refreshComplete'
-	$scope.moreReports = !->
+	$scope.moreReports = !-> if ReportFactory.hasMore!
+		$log.debug "Get More Reports List ..."
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 

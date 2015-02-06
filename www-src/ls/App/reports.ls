@@ -79,24 +79,28 @@
 		reports: []
 		hasMore: true
 
-	loadServer = (last-id = null, taker) !->
+	loadServer = (success) !->
+		last-id = store.reports[store.reports.length - 1]?.report?.id ? null
 		count = if last-id then limit else 10
+		$log.info "Loading from server: #{count} from #{last-id}: cached list: #{angular.toJson store.reports}"
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.load-reports ticket, count, last-id
 		, (list) !->
-			taker save list
+			more = save list
+			store.reports = store.reports ++ more
+			store.hasMore = count <= more.length
+			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
+			success?!
 		, (error) !->
 			$log.error "Failed to load from server: #{angular.toJson error}"
 			$ionicPopup.alert do
 				title: "Failed to load from server"
 				template: ""
-			.then (res) !-> taker []
+			success?!
 
 	reload = (success) !->
-		loadServer null, (more) !->
-			store.reports = more
-			store.hasMore = limit <= more.length
-			success! if success
+		store.reports = []
+		loadServer success
 
 	# reload every 6 hours
 	$interval !->
@@ -144,13 +148,7 @@
 	/*
 		Load reports from server
 	*/
-	load: (success) !->
-		last-id = store.reports[store.reports.length - 1]?.id ? null
-		loadServer last-id, (more) !->
-			store.reports = store.reports ++ more
-			store.hasMore = limit <= more.length
-			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
-			success! if success
+	load: loadServer
 	/*
 		Get a report by index of cached list
 	*/
