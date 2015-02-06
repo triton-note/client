@@ -11,7 +11,7 @@
 		AccountFactory.with-ticket (ticket)->
 			ServerFactory.conditions ticket, datetime, geoinfo
 		, (condition) !->
-			condition.temperature = UnitFactory.temperature condition.temperature
+			condition.weather.temperature = UnitFactory.temperature condition.weather.temperature
 			taker condition
 		, (error) !->
 			$log.error "Failed to get conditions from server: #{error}"
