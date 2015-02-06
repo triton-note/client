@@ -54,7 +54,7 @@
 	restrict: 'E'
 	templateUrl: 'page/report/editor-report.html'
 	replace: true
-	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory) ->
+	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory, UnitFactory) ->
 		$scope.popover = {}
 		['spot-location', 'choose-tide', 'choose-weather'] |> _.each (name) !->
 			$ionicPopover.fromTemplateUrl name,
@@ -82,14 +82,19 @@
 
 		$scope.$watch 'report.condition.tide', (new-value, old-value) !->
 			$scope.popover.choose-tide.hide!
+		$scope.$watch 'report.condition.weather.temperature.unit', (new-value, old-value) !->
+			$scope.report?.condition?.weather.temperature = UnitFactory.temperature $scope.report.condition.weather.temperature
 		$scope.$watch 'report.condition.weather.temperature.value', (new-value, old-value) !->
 			$scope.report?.condition?.weather.temperature.value = Math.round(new-value * 10) / 10
 		$scope.$watch 'report.condition.weather.name', (new-value, old-value) !->
 			$scope.popover.choose-weather.hide!
 
-		$scope.$watch 'report.dateAt', (new-value, old-value) !-> change-condition(new-value, $scope.report?.location?.geoinfo)
-		$scope.$watch 'report.location.geoinfo', (new-value, old-value) !-> change-condition($scope.report?.dateAt, new-value)
+		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if old-value || !$scope.report?.condition
+			change-condition(new-value, $scope.report?.location?.geoinfo)
+		$scope.$watch 'report.location.geoinfo', (new-value, old-value) !-> if old-value || !$scope.report?.condition
+			change-condition($scope.report?.dateAt, new-value)
 		change-condition = (datetime, geoinfo) !-> if datetime && geoinfo
+			$scope.report.condition = {} if !$scope.report.condition
 			ConditionFactory.state datetime, geoinfo, (state) !->
 				$log.debug "Conditions result: #{angular.toJson state}"
 				$scope.report.condition.moon = state.moon
