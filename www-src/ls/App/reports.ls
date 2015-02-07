@@ -1,4 +1,4 @@
-.factory 'ConditionFactory', ($log, ServerFactory, AccountFactory) ->
+.factory 'ConditionFactory', ($log, ServerFactory, AccountFactory, UnitFactory) ->
 	moon = (n) ->
 		v = "0#{n}" |> _.Str.reverse |> _.take 2 |> _.Str.reverse
 		"img/moon/phase-#{v}.png"
@@ -10,7 +10,9 @@
 		$log.debug "Taking tide and moon phase at #{geoinfo} #{datetime}"
 		AccountFactory.with-ticket (ticket)->
 			ServerFactory.conditions ticket, datetime, geoinfo
-		, taker
+		, (condition) !->
+			condition.weather.temperature = UnitFactory.temperature condition.weather.temperature
+			taker condition
 		, (error) !->
 			$log.error "Failed to get conditions from server: #{error}"
 			taker do
@@ -19,7 +21,9 @@
 				weather:
 					name: '?'
 					icon-url: null
-					temperature: 20
+					temperature: UnitFactory.temperature do
+						value: 20
+						unit: 'Cels'
 	moon-phases: [0 til 30] |> _.map(moon)
 	tide-phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
 	weather-states:
@@ -62,7 +66,9 @@
 					weather:
 						name: String
 						icon-url: String (URL)
-						temperature: Double
+						temperature:
+							value: Double
+							unit: 'Cels'|'Fahr'
 			*/
 			report: null
 		/*
@@ -73,24 +79,28 @@
 		reports: []
 		hasMore: true
 
-	loadServer = (last-id = null, taker) !->
+	loadServer = (success) !->
+		last-id = store.reports[store.reports.length - 1]?.report?.id ? null
 		count = if last-id then limit else 10
+		$log.info "Loading from server: #{count} from #{last-id}: cached list: #{angular.toJson store.reports}"
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.load-reports ticket, count, last-id
 		, (list) !->
-			taker save list
+			more = save list
+			store.reports = store.reports ++ more
+			store.hasMore = count <= more.length
+			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
+			success?!
 		, (error) !->
 			$log.error "Failed to load from server: #{angular.toJson error}"
 			$ionicPopup.alert do
 				title: "Failed to load from server"
 				template: ""
-			.then (res) !-> taker []
+			success?!
 
 	reload = (success) !->
-		loadServer null, (more) !->
-			store.reports = more
-			store.hasMore = limit <= more.length
-			success! if success
+		store.reports = []
+		loadServer success
 
 	# reload every 6 hours
 	$interval !->
@@ -138,13 +148,7 @@
 	/*
 		Load reports from server
 	*/
-	load: (success) !->
-		last-id = store.reports[store.reports.length - 1]?.id ? null
-		loadServer last-id, (more) !->
-			store.reports = store.reports ++ more
-			store.hasMore = limit <= more.length
-			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
-			success! if success
+	load: loadServer
 	/*
 		Get a report by index of cached list
 	*/
@@ -198,7 +202,7 @@
 	/*
 		Update report
 	*/
-	updateByCurrent: (success) !->
+	updateByCurrent: (success, on-finally) !->
 		if store.current.report?.id
 			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.update-report ticket, store.current.report
@@ -207,10 +211,12 @@
 				store.reports[store.current.index] = save([store.current.report])[0]
 				DistributionFactory.report.update store.current.report
 				success!
+				on-finally!
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to update to server"
 					template: error.msg
+				on-finally!
 
 .factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
@@ -218,6 +224,7 @@
 	default-units =
 		length: 'cm'
 		weight: 'kg'
+		temperature: 'Cels'
 
 	store =
 		unit: null
@@ -251,6 +258,7 @@
 	units: -> angular.copy do
 		length: ['cm', 'inch']
 		weight: ['kg', 'pond']
+		temperature: ['Cels', 'Fahr']
 	load: load-current
 	save: save-current
 	length: (src) ->
@@ -274,6 +282,17 @@
 		{
 			value: convert!
 			unit: dstUnit
+		}
+	temperature: (src) ->
+		init!
+		dst-unit = load-local!.temperature
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'Cels'   => src.value * 9 / 5 + 32
+		| 'Fahr'   => (src.value - 32) * 5 / 9
+		{
+			value: convert!
+			unit: dst-unit
 		}
 
 .factory 'DistributionFactory', ($log, $interval, $ionicPopup, AccountFactory, ServerFactory) ->

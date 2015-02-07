@@ -54,7 +54,7 @@
 	restrict: 'E'
 	templateUrl: 'page/report/editor-report.html'
 	replace: true
-	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory) ->
+	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory, UnitFactory) ->
 		$scope.popover = {}
 		['spot-location', 'choose-tide', 'choose-weather'] |> _.each (name) !->
 			$ionicPopover.fromTemplateUrl name,
@@ -82,14 +82,19 @@
 
 		$scope.$watch 'report.condition.tide', (new-value, old-value) !->
 			$scope.popover.choose-tide.hide!
+		$scope.$watch 'report.condition.weather.temperature.unit', (new-value, old-value) !->
+			$scope.report?.condition?.weather.temperature = UnitFactory.temperature $scope.report.condition.weather.temperature
 		$scope.$watch 'report.condition.weather.temperature.value', (new-value, old-value) !->
 			$scope.report?.condition?.weather.temperature.value = Math.round(new-value * 10) / 10
 		$scope.$watch 'report.condition.weather.name', (new-value, old-value) !->
 			$scope.popover.choose-weather.hide!
 
-		$scope.$watch 'report.dateAt', (new-value, old-value) !-> change-condition(new-value, $scope.report?.location?.geoinfo)
-		$scope.$watch 'report.location.geoinfo', (new-value, old-value) !-> change-condition($scope.report?.dateAt, new-value)
+		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if old-value || !$scope.report?.condition
+			change-condition(new-value, $scope.report?.location?.geoinfo)
+		$scope.$watch 'report.location.geoinfo', (new-value, old-value) !-> if old-value || !$scope.report?.condition
+			change-condition($scope.report?.dateAt, new-value)
 		change-condition = (datetime, geoinfo) !-> if datetime && geoinfo
+			$scope.report.condition = {} if !$scope.report.condition
 			ConditionFactory.state datetime, geoinfo, (state) !->
 				$log.debug "Conditions result: #{angular.toJson state}"
 				$scope.report.condition.moon = state.moon
@@ -176,6 +181,14 @@
 		$scope.editFish = (event, index) !->
 			$scope.current = $scope.report.fishes[index]
 			$scope.tmpFish = angular.copy $scope.current
+			if !$scope.tmpFish.length?.value
+				$scope.tmpFish.length =
+					value: null
+					unit: $scope.user-units.length
+			if !$scope.tmpFish.weight?.value
+				$scope.tmpFish.weight =
+					value: null
+					unit: $scope.user-units.weight
 			$scope.editing = true
 			$log.debug "Editing fish(#{index}): #{angular.toJson $scope.tmpFish}"
 			$ionicPopover.fromTemplateUrl 'fish-edit',
@@ -195,5 +208,9 @@
 			$log.debug "Hide popover"
 			$scope.fish-edit.remove!
 			if $scope.tmpFish?.name && $scope.tmpFish?.count
+				if !$scope.tmpFish.length?.value
+					$scope.tmpFish.length = undefined
+				if !$scope.tmpFish.weight?.value
+					$scope.tmpFish.weight = undefined
 				$log.debug "Overrinding current fish"
 				$scope.current <<< $scope.tmpFish

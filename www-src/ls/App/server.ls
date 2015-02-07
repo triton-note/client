@@ -174,7 +174,7 @@
 	change-units: (ticket, unit) -> (success, error-taker) !->
 		$log.debug "Changing unit: #{angular.toJson unit}"
 		http('POST', "account/unit/change/#{ticket}",
-			unit: unit
+			unit
 		) success, error-taker
 	/*
 	Load distributions of own catches
@@ -408,7 +408,7 @@
 				title: 'Rejected'
 				template: error
 
-	submit = (session, report, success) !->
+	submit = (session, report, success, error-taker) !->
 		ServerFactory.submit-report(session, report) (report-id) !->
 			report.id = report-id
 			ReportFactory.add report
@@ -418,6 +418,7 @@
 			$ionicPopup.alert do
 				title: 'Error'
 				template: error.msg
+			error-taker error
 
 	upload = (photo, success, error) !->
 		filename = "user-photo"
@@ -460,13 +461,16 @@
 			, (error) !->
 				error-taker "Failed to upload"
 		else error-taker "No session started"
-	finish: (report, is-publish, success) !->
+	finish: (report, is-publish, success, on-finally) !->
 		if (session = store.session)
 			store.session = null
 			submit session, report, !->
 				publish(session) if is-publish
 				success!
+				on-finally!
+			, on-finally
 		else 
 			$ionicPopup.alert do
 				title: 'Error'
 				template: "No session started"
+			on-finally!
