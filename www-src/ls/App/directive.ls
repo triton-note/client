@@ -170,12 +170,6 @@
 				$scope.report.fishes.push do
 					name: $scope.adding.name
 					count: 1
-					length:
-						value: null
-						unit: $scope.user-units.length
-					weight:
-						value: null
-						unit: $scope.user-units.weight
 				$scope.adding.name = null
 		$scope.editing = false
 		$scope.editFish = (event, index) !->
