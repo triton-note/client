@@ -65,7 +65,7 @@
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.popover = {}
-		['spot-location', 'option-buttons'] |> _.each (name) !->
+		['show-location', 'option-buttons'] |> _.each (name) !->
 			$ionicPopover.fromTemplateUrl name,
 				scope: $scope
 			.then (popover) !->
@@ -100,17 +100,17 @@
 		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		ReportFactory.clear-current! if $scope.should-clear
 
-	$scope.showMap = ($event) !->
-		$scope.popover.spot-location.show $event
+	$scope.preview-map = ($event) !->
+		$scope.popover.show-location.show $event
 		.then !->
-			div = document.getElementById "gmap"
+			div = document.getElementById "show-gmap"
 			google.maps.event.addDomListener div, 'click', !->
-				$scope.popover.spot-location.remove!
+				$scope.popover.show-location.remove!
 				$scope.gmap.map = null
 				$scope.gmap.marker = null
+				$log.info "Go view-on-map: {edit: false}"
 				$scope.use-current!
-				$state.go "view-on-map",
-					edit: false
+				$state.go "view-on-map"
 			unless $scope.gmap.map
 				$scope.gmap.map = new google.maps.Map div,
 					mapTypeId: google.maps.MapTypeId.HYBRID

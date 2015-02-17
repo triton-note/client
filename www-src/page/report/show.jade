@@ -10,10 +10,10 @@ ion-view(view-title="Report Detail")
 	ion-content
 		.item.item-divider 
 			p {{ report.dateAt | date: 'yyyy/MM/dd HH:mm' }}
-			p(ng-click="showMap($event)") at &nbsp; {{ report.location.name }}
-			script#spot-location(type="text/ng-template")
+			p(ng-click="previewMap($event)") at &nbsp; {{ report.location.name }}
+			script#show-location(type="text/ng-template")
 				ion-popover-view(style="height: 220px")
-					div#gmap(style="height: 220px")
+					div#show-gmap(style="height: 220px")
 
 		.item(style="border: none; padding-bottom: 0px")
 			p {{ report.comment }}
