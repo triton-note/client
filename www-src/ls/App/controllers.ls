@@ -61,7 +61,7 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-.controller 'ShowReportCtrl', ($log, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopup, ReportFactory) !->
+.controller 'ShowReportCtrl', ($log, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopup, ReportFactory, ConditionFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		$scope.should-clear = true
@@ -71,6 +71,9 @@
 			c = ReportFactory.current!
 			$scope.index = c.index
 			$scope.report = c.report
+		$scope.tide-icon = ConditionFactory.tide-phases |> _.find (.name == $scope.report.condition?.tide) |> (?.icon)
+		$scope.moon-icon = ConditionFactory.moon-phases[$scope.report.condition?.moon]
+		
 		$log.debug "Show Report: #{angular.toJson $scope.report}"
 		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
 
