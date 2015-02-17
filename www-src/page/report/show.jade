@@ -34,7 +34,7 @@ ion-view(view-title="Report Detail")
 				p Conditions
 			.item.row
 				.col-33
-					p Temp: {{ report.condition.weather.temperature.value | number:1 }}
+					p Temp: {{ report.condition.weather.temperature | temperatureFilter }}
 					.item-image(style="width: 50%")
 						img(ng-src="{{ report.condition.weather.iconUrl }}")
 				.col-33
