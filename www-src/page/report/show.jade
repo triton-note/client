@@ -4,7 +4,7 @@ ion-view(view-title="Report Detail")
 		script#option-buttons(type="text/ng-template")
 			ion-popover-view(style="height: 140px; width: 140px")
 				ion-content
-					button.button.button-small.button-block.button-balanced.icon-left.ion-edit(ng-click="useCurrent()", ui-sref="edit-report") Edit
+					button.button.button-small.button-block.button-balanced.icon-left.ion-edit(ng-click="popoverHide(); useCurrent()", ui-sref="edit-report") Edit
 					button.button.button-small.button-block.button-positive.icon-left.ion-share(ng-click="publish()") Publish
 					button.button.button-small.button-block.button-assertive.icon-left.ion-trash-a(ng-click="delete()") Delete
 	ion-content

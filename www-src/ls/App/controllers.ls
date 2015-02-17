@@ -61,9 +61,23 @@
 		ReportFactory.load !->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-.controller 'ShowReportCtrl', ($log, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopup, ReportFactory, ConditionFactory) !->
+.controller 'ShowReportCtrl', ($log, $timeout, $state, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopover, $ionicPopup, ReportFactory, ConditionFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
 		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$scope.popover = {}
+		['spot-location', 'option-buttons'] |> _.each (name) !->
+			$ionicPopover.fromTemplateUrl name,
+				scope: $scope
+			.then (popover) !->
+				$scope.popover[_.camelize name] = popover
+		$scope.popover-hide = !->
+			for ,p of $scope.popover
+				p.hide!
+		$scope.$on '$destroy', (event) !->
+			$log.info "Destroy 'ShowReportCtrl': #{event}"
+			for ,p of $scope.popover
+				p.remove!
+
 		$scope.should-clear = true
 		if $stateParams.index && ReportFactory.current!.index == null
 			$scope.report = ReportFactory.getReport($scope.index = Number($stateParams.index))
@@ -74,6 +88,11 @@
 		$scope.tide-icon = ConditionFactory.tide-phases |> _.find (.name == $scope.report.condition?.tide) |> (?.icon)
 		$scope.moon-icon = ConditionFactory.moon-phases[$scope.report.condition?.moon]
 		
+		$scope.gmap =
+			center: new google.maps.LatLng($scope.report.location.geoinfo.latitude, $scope.report.location.geoinfo.longitude)
+			map: null
+			marker: null
+		
 		$log.debug "Show Report: #{angular.toJson $scope.report}"
 		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
 
@@ -81,9 +100,37 @@
 		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		ReportFactory.clear-current! if $scope.should-clear
 
+	$scope.showMap = ($event) !->
+		$scope.popover.spot-location.show $event
+		.then !->
+			div = document.getElementById "gmap"
+			google.maps.event.addDomListener div, 'click', !->
+				$scope.popover.spot-location.remove!
+				$scope.gmap.map = null
+				$scope.gmap.marker = null
+				$scope.use-current!
+				$state.go "view-on-map",
+					edit: false
+			unless $scope.gmap.map
+				$scope.gmap.map = new google.maps.Map div,
+					mapTypeId: google.maps.MapTypeId.HYBRID
+					disableDefaultUI: true
+					center: $scope.gmap.center
+					zoom: 8
+			unless $scope.gmap.marker
+				$scope.gmap.marker = new google.maps.Marker do
+					title: $scope.report.location.name
+					map: $scope.gmap.map
+					position: $scope.gmap.center
+			$scope.gmap.marker.setAnimation google.maps.Animation.BOUNCE
+			$timeout !->
+				$scope.gmap.marker.setAnimation null
+			, 700 * 8
+
 	$scope.useCurrent = !->
 		$scope.should-clear = false
 	$scope.delete = !->
+		$scope.popover-hide!
 		$ionicPopup.confirm do
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"
