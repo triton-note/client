@@ -5,28 +5,33 @@
 	tide = (name) ->
 		name: name
 		icon: "img/tide/#{name.toLowerCase!}.png"
+	weather = (id) ->
+		"http://openweathermap.org/img/w/#{id}.png"
+	default-condition =
+		moon: 0
+		tide: 'High'
+		weather:
+			name: 'Clear'
+			icon-url: weather('01d')
+			temperature:
+				value: 20
+				unit: 'Cels'
 
 	state: (datetime, geoinfo, taker) !->
-		$log.debug "Taking tide and moon phase at #{geoinfo} #{datetime}"
+		$log.debug "Taking tide and moon phase at #{angular.toJson geoinfo} #{datetime}"
 		AccountFactory.with-ticket (ticket)->
 			ServerFactory.conditions ticket, datetime, geoinfo
 		, (condition) !->
-			condition.weather.temperature = UnitFactory.temperature condition.weather.temperature
+			$log.debug "Get condition: #{angular.toJson condition}"
+			if !condition.weather
+				condition.weather = angular.copy(default-condition.weather)
 			taker condition
 		, (error) !->
 			$log.error "Failed to get conditions from server: #{error}"
-			taker do
-				moon: 0
-				tide: 'High'
-				weather:
-					name: '?'
-					icon-url: null
-					temperature: UnitFactory.temperature do
-						value: 20
-						unit: 'Cels'
+			taker angulr.copy(default-condition)
 	moon-phases: [0 til 30] |> _.map(moon)
 	tide-phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
-	weather-states:
+	weather-states: _.Obj.map weather,
 		Clear: '01d'
 		Clouds: '04d'
 		Rain: '09d'

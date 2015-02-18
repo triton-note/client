@@ -110,7 +110,7 @@
 
 		$scope.moon-icon = -> ConditionFactory.moon-phases[$scope.report?.condition?.moon]
 		$scope.tide-icon = -> $scope.tide-phases |> _.find (.name == $scope.report?.condition?.tide) |> (?.icon)
-		$scope.weather-icon = (name) -> "http://openweathermap.org/img/w/#{$scope.weather-states[name]}.png"
+		$scope.weather-icon = (name) -> $scope.weather-states[name]
 
 		$scope.tide-phases = ConditionFactory.tide-phases
 		$scope.weather-states = ConditionFactory.weather-states
