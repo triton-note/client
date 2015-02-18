@@ -26,3 +26,8 @@
 			| sizes => "(#{sizes})"
 			| _    => ""
 		"#{fish.name}#{volume} x #{fish.count}"
+
+.filter 'temperatureFilter', ($log, $filter, UnitFactory) ->
+	(src) -> if !src then "" else
+		dst = UnitFactory.temperature(src)
+		"#{$filter('number')(dst.value, 1)} °#{dst.unit[0]}"
