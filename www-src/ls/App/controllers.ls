@@ -73,10 +73,6 @@
 		$scope.popover-hide = !->
 			for ,p of $scope.popover
 				p.hide!
-		$scope.$on '$destroy', (event) !->
-			$log.info "Destroy 'ShowReportCtrl': #{event}"
-			for ,p of $scope.popover
-				p.remove!
 
 		$scope.should-clear = true
 		if $stateParams.index && ReportFactory.current!.index == null
@@ -99,16 +95,16 @@
 	$scope.$on '$ionicView.beforeLeave', (event, state) !->
 		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
 		ReportFactory.clear-current! if $scope.should-clear
+		for ,p of $scope.popover
+			p?.remove!
+		$scope.gmap.map = null
+		$scope.gmap.marker = null
 
 	$scope.preview-map = ($event) !->
 		$scope.popover.show-location.show $event
 		.then !->
 			div = document.getElementById "show-gmap"
 			google.maps.event.addDomListener div, 'click', !->
-				$scope.popover.show-location.remove!
-				$scope.gmap.map = null
-				$scope.gmap.marker = null
-				$log.info "Go view-on-map: {edit: false}"
 				$scope.use-current!
 				$state.go "view-on-map"
 			unless $scope.gmap.map
