@@ -400,7 +400,7 @@
 			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.publish-report ticket, report-id, token
 			, !->
-				$log.info "Success to publish session: #{session}"
+				$log.info "Success to publish report: #{report-id}"
 			, (error) !->
 				$ionicPopup.alert do
 					title: 'Error'
