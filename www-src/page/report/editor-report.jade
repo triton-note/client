@@ -30,14 +30,15 @@ div
 					input(type="date", ng-model="report.dateAt")
 
 			.item.row
-				.col-50.item-image(style="width: 50%", ng-click="popover.chooseWeather.show($event)")
-					img(ng-src="{{ report.condition.weather.iconUrl }}")
+				.col-50
+					.item-image(style="width: 80%", ng-click="popover.chooseWeather.show($event)")
+						img(style="width: 80%", ng-src="{{ report.condition.weather.iconUrl }}")
 
-					script#choose-weather(type="text/ng-template")
-						ion-popover-view
-							ion-radio.item.item-avatar(ng-model="report.condition.weather.name", ng-value="name", ng-repeat="(name, id) in weatherStates", ng-click="weatherModify()")
-								img(ng-src="{{ weatherIcon(name) }}")
-								p {{ name }}
+						script#choose-weather(type="text/ng-template")
+							ion-popover-view
+								ion-radio.item.item-avatar(ng-model="report.condition.weather.name", ng-value="name", ng-repeat="(name, id) in weatherStates", ng-click="weatherModify()")
+									img(ng-src="{{ weatherIcon(name) }}")
+									p {{ name }}
 
 				.col-50
 					.row
