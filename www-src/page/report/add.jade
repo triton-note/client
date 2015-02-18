@@ -3,14 +3,16 @@ ion-view(view-title="New Report")
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="confirmSubmit.show($event)", ng-disabled="!submission.enabled")
 
 		script#confirm-submit(type="text/ng-template")
-			ion-popover-view(style="height: 120px")
+			ion-popover-view(style="height: 140px")
 				ion-header-bar
 					h2.title Confirm
 					.buttons
 						button.button.button-positive(ng-click="cordova.plugins.Keyboard.close(); confirmSubmit.hide(); submit()") OK
 				ion-content
-					ion-checkbox(ng-model="submission.publishing")
-						p Post to Facebook
+					.item
+						p Option
+						ion-checkbox(ng-model="submission.publishing")
+							p Post to Facebook
 
 	ion-content
 		fathens-edit-report
