@@ -134,6 +134,20 @@
 			ReportFactory.remove $scope.index, !->
 				$log.debug "Remove completed."
 			$ionicHistory.goBack!
+	$scope.publish = !->
+		$scope.popover-hide!
+		$ionicPopup.confirm do
+			title: "Publish Report"
+			template: "Are you sure to post this report to Facebook ?"
+		.then (res) !-> if res
+			ReportFactory.publish $scope.report.id, !->
+				$log.debug "Publish completed."
+				$ionicPopup.alert do
+					title: 'Completed to post'
+			, (error) !->
+				$ionicPopup.alert do
+					title: 'Error'
+					template: "Failed to post"
 
 .controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicHistory, $ionicLoading, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->

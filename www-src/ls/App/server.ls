@@ -121,12 +121,12 @@
 	/*
 	Put given report to the session
 	*/
-	publish-report: (session, token) -> (success, error-taker) !->
-		$log.debug "Publishing report with #{session}: #{token}"
-		http('POST', "report/publish/#{session}",
-			publishing:
-				way: 'facebook'
-				token: token
+	publish-report: (ticket, report-id, token) -> (success, error-taker) !->
+		$log.debug "Publishing report(#{report-id}) with #{ticket}: #{token}"
+		http('POST', "report/publish/#{ticket}",
+			id: report-id
+			way: 'facebook'
+			token: token
 		) success, error-taker
 	/*
 	Load report from server, then pass to taker
@@ -395,26 +395,20 @@
 		session: null
 		upload-info: null
 
-	publish = (session) !->
-		SocialFactory.publish (token) !->
-			ServerFactory.publish-report(session, token) !->
-				$log.info "Success to publish session: #{session}"
-			, (error) !->
-				$ionicPopup.alert do
-					title: 'Error'
-					template: "Failed to publish"
+	publish = (report-id) !->
+		ReportFactory.publish report-id, !->
+			$log.debug "Published session: #{store.session}"
 		, (error) !->
 			$ionicPopup.alert do
-				title: 'Rejected'
-				template: error
+				title: 'Error'
+				template: "Failed to post"
 
 	submit = (session, report, success, error-taker) !->
 		ServerFactory.submit-report(session, report) (report-id) !->
 			report.id = report-id
 			ReportFactory.add report
-			success!
+			success report-id
 		, (error) !->
-			store.session = null
 			$ionicPopup.alert do
 				title: 'Error'
 				template: error.msg
@@ -463,9 +457,10 @@
 		else error-taker "No session started"
 	finish: (report, is-publish, success, on-finally) !->
 		if (session = store.session)
-			store.session = null
-			submit session, report, !->
-				publish(session) if is-publish
+			submit session, report, (report-id) !->
+				store.session = null
+				$log.info "Session cleared"
+				publish(report-id) if is-publish
 				success!
 				on-finally!
 			, on-finally
