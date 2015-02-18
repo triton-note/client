@@ -465,8 +465,9 @@
 	finish: (report, is-publish, success, on-finally) !->
 		if (session = store.session)
 			submit session, report, (report-id) !->
-				publish(report-id) if is-publish
 				store.session = null
+				$log.info "Session cleared"
+				publish(report-id) if is-publish
 				success!
 				on-finally!
 			, on-finally
