@@ -61,11 +61,13 @@
 				scope: $scope
 			.then (popover) !->
 				$scope.popover[_.camelize name] = popover
-
+		$scope.popover-hide = !->
+			for ,p of $scope.popover
+				p?.hide!
 		$scope.$on '$destroy', (event) !->
 			$log.info "Leaving 'fathens-edit-report': #{event}"
 			for ,p of $scope.popover
-				p.remove!
+				p?.remove!
 
 		$scope.tide-modified = false
 		$scope.tide-modify = !->
@@ -143,8 +145,7 @@
 				, 700 * 8
 
 				google.maps.event.addDomListener div, 'click', !->
-					for ,p of $scope.popover
-						p.hide!
+					$scope.popover-hide!
 					$scope.use-current!
 					$state.go "view-on-map",
 						edit: true
@@ -155,6 +156,13 @@
 	replace: true
 	scope: true
 	controller: ($scope, $element, $attrs, $timeout, $ionicPopover, UnitFactory) ->
+		$ionicPopover.fromTemplateUrl 'fish-edit',
+			scope: $scope
+		.then (popover) !->
+			$scope.fish-edit = popover
+		$scope.$on '$destroy', (event) !->
+			$log.info "Leaving 'fathens-edit-fishes': #{event}"
+			$scope.fish-edit?.remove!
 		$scope.units = UnitFactory.units!
 		$scope.user-units =
 			length: 'cm'
@@ -185,22 +193,10 @@
 					unit: $scope.user-units.weight
 			$scope.editing = true
 			$log.debug "Editing fish(#{index}): #{angular.toJson $scope.tmpFish}"
-			$ionicPopover.fromTemplateUrl 'fish-edit',
-				scope: $scope
-			.then (popover) !->
-				$scope.fish-edit = popover
-				$scope.fish-edit.show event
-				.then !->
-					el = document.getElementById('fish-name')
-					$log.debug "Focusing to #{el} at #{angular.toJson el.getBoundingClientRect!}"
-					el.focus!
-					$timeout !->
-						window.scrollTo 0, el.getBoundingClientRect!.top - 20
-					, 100
+			$scope.fish-edit.show event
 		$scope.$on 'popover.hidden', !-> if $scope.editing
 			$scope.editing = false
 			$log.debug "Hide popover"
-			$scope.fish-edit.remove!
 			if $scope.tmpFish?.name && $scope.tmpFish?.count
 				if !$scope.tmpFish.length?.value
 					$scope.tmpFish.length = undefined

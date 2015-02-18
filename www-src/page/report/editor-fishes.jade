@@ -10,8 +10,10 @@
 		a(ng-click="editFish($event, $index)") {{ fish | fishFilter }}
 
 	script#fish-edit(type="text/ng-template")
-		ion-popover-view(style="height: 190px")
-			ion-content
+		ion-popover-view(style="height: 200px")
+			.list
+				.item.item-divider(style="padding: 0px; height: 10px")
+					button.button.button-small.button-clear.icon.ion-checkmark.button-positive(style="float: right", ng-click="fishEdit.hide()", ng-disabled="!(tmpFish.name && tmpFish.count)") 
 				.item.item-input
 					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="tmpFish.name")
 					input#fish-name(type="text", ng-model="tmpFish.name", placeholder="Name")
