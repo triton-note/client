@@ -396,19 +396,12 @@
 		upload-info: null
 
 	publish = (report-id) !->
-		SocialFactory.publish (token) !->
-			AccountFactory.with-ticket (ticket) ->
-				ServerFactory.publish-report ticket, report-id, token
-			, !->
-				$log.info "Success to publish report: #{report-id}"
-			, (error) !->
-				$ionicPopup.alert do
-					title: 'Error'
-					template: "Failed to publish"
+		ReportFactory.publish report-id, !->
+			$log.debug "Published session: #{store.session}"
 		, (error) !->
 			$ionicPopup.alert do
-				title: 'Rejected'
-				template: error
+				title: 'Error'
+				template: "Failed to post"
 
 	submit = (session, report, success, error-taker) !->
 		ServerFactory.submit-report(session, report) (report-id) !->

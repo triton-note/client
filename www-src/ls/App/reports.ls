@@ -32,7 +32,7 @@
 		Rain: '09d'
 		Snow: '13d'
 
-.factory 'ReportFactory', ($log, $filter, $interval, $ionicPopup, AccountFactory, ServerFactory, DistributionFactory) ->
+.factory 'ReportFactory', ($log, $filter, $interval, $ionicPopup, SocialFactory, AccountFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	expiration = 50 * 60 * 1000 # 50 minutes
 	store =
@@ -217,6 +217,24 @@
 					title: "Failed to update to server"
 					template: error.msg
 				on-finally!
+	/*
+		Publish to Facebook
+	*/
+	publish: (report-id, on-success, on-error) !->
+		SocialFactory.publish (token) !->
+			AccountFactory.with-ticket (ticket) ->
+				ServerFactory.publish-report ticket, report-id, token
+			, !->
+				$log.info "Success to publish report: #{report-id}"
+				on-success!
+			, on-error
+		, (error) !->
+			$ionicPopup.alert do
+				title: 'Rejected'
+				template: error
+			.then (res) !->
+				on-error "Rejected by user"
+
 
 .factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
