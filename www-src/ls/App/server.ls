@@ -416,7 +416,6 @@
 			ReportFactory.add report
 			success report-id
 		, (error) !->
-			store.session = null
 			$ionicPopup.alert do
 				title: 'Error'
 				template: error.msg
@@ -465,9 +464,9 @@
 		else error-taker "No session started"
 	finish: (report, is-publish, success, on-finally) !->
 		if (session = store.session)
-			store.session = null
 			submit session, report, (report-id) !->
 				publish(report-id) if is-publish
+				store.session = null
 				success!
 				on-finally!
 			, on-finally
