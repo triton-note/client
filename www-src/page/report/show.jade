@@ -1,6 +1,6 @@
 ion-view(view-title="Report Detail")
 	ion-nav-buttons(side="secondary")
-		button.button.button-clear.icon.ion-navicon.button-dark(ng-click="popover.optionButtons.show($event)")
+		button.button.button-clear.icon.ion-more.button-dark(ng-click="popover.optionButtons.show($event)")
 		script#option-buttons(type="text/ng-template")
 			ion-popover-view(style="height: 140px; width: 140px")
 				ion-content
@@ -9,8 +9,10 @@ ion-view(view-title="Report Detail")
 					button.button.button-small.button-block.button-assertive.icon-left.ion-trash-a(ng-click="delete()") Delete
 	ion-content
 		.item.item-divider 
-			p {{ report.dateAt | date: 'yyyy/MM/dd HH:mm' }}
-			p(ng-click="previewMap($event)") at &nbsp; {{ report.location.name }}
+			p(style="display:inline; border: none; padding: 0px") {{ report.dateAt | date: 'yyyy/MM/dd HH:mm' }}
+			a.item.item-stable.item-icon-left.item-note(style="display:inline; border: none", ng-click="previewMap($event)") {{ report.location.name }}
+				i.icon.ion-earth.positive
+
 			script#show-location(type="text/ng-template")
 				ion-popover-view(style="height: 220px")
 					div#show-gmap(style="height: 220px")
