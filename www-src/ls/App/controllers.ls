@@ -142,6 +142,8 @@
 		.then (res) !-> if res
 			ReportFactory.publish $scope.report.id, !->
 				$log.debug "Publish completed."
+				$ionicPopup.alert do
+					title: 'Completed to post'
 			, (error) !->
 				$ionicPopup.alert do
 					title: 'Error'
