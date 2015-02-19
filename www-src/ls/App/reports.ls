@@ -7,7 +7,7 @@
 		icon: "img/tide/#{name.toLowerCase!}.png"
 	weather = (id) ->
 		"http://openweathermap.org/img/w/#{id}.png"
-	default-condition =
+	default-condition = -> angular.copy do
 		moon: 0
 		tide: 'High'
 		weather:
@@ -24,11 +24,11 @@
 		, (condition) !->
 			$log.debug "Get condition: #{angular.toJson condition}"
 			if !condition.weather
-				condition.weather = angular.copy(default-condition.weather)
+				condition.weather = default-condition!.weather
 			taker condition
 		, (error) !->
 			$log.error "Failed to get conditions from server: #{error}"
-			taker angulr.copy(default-condition)
+			taker default-condition!
 	moon-phases: [0 til 30] |> _.map(moon)
 	tide-phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
 	weather-states: _.Obj.map weather,
