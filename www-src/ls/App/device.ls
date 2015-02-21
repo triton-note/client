@@ -15,6 +15,7 @@
 				geoinfo: if g.latitude && g.longitude then g else null
 		catch
 			console.log "Failed to read Exif: #{e}"
+			plugin.acra.handleSilentException(angular.toJson e)
 			info-taker null
 	/*
 		Select a photo from storage.
@@ -41,6 +42,7 @@
 				destinationType: Camera.DestinationType.NATIVE_URI
 		catch
 			console.log "Failed to select photo: #{e}"
+			plugin.acra.handleSilentException(angular.toJson e)
 			onFailure e
 
 .factory 'LocalStorageFactory', ($log) ->
