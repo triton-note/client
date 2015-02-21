@@ -22,6 +22,6 @@ SUPPORT_V4=platforms/android/libs/android-support-v4.jar
 # Aid for bug of Http
 cordova plugin add https://github.com/sawatani/Cordova-plugin-okhttp.git
 # Crash Report
-cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable MAIL_TO="devel+$ACRA_APP_NAME-crash@fathens.org" --variable TOAST_TEXT='Crash Report Sent'
+cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable TOAST_TEXT='Crash Report Sent' --variable URL="$ACRA_URL" --variable USERNAME="$ACRA_USERNAME" --variable PASSWORD="$ACRA_PASSWORD"
 ANDROID_XML=platforms/android/AndroidManifest.xml
 cat $ANDROID_XML | awk '/<application/ { sub(">", " android:name=\"org.fathens.cordova.acra.AcraApplication\">"); print $0} !/<application/ { print $0 }' > $ANDROID_XML.tmp && mv -vf $ANDROID_XML.tmp $ANDROID_XML
