@@ -1,0 +1,13 @@
+ion-view(view-title="My Reports")
+	ion-nav-buttons(side="secondary")
+		button.button.button-clear.icon.ion-plus-round.button-positive(ui-sref="add-report")
+	ion-content(header-shrink, scroll-event-interval="5")
+		ion-refresher(on-refresh="refresh()")
+		ion-list
+			ion-item.item-thumbnail-left(ng-repeat="report in reports()", ui-sref="show-report({index: $index})")
+				.item.item-image
+					fathens-fit-img(src="report.photo.thumbnail", delegate-handle="scroll-thumbnail-{{ $index }}")
+				h2 {{report.location.name}} {{report.dateAt | date: 'yyyy/MM/dd'}}
+				div(ng-repeat="fish in report.fishes")
+					p {{fish | fishFilter}}
+		ion-infinite-scroll(ng-if="hasMoreReports()", on-infinite="moreReports()")

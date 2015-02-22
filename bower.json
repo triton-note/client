@@ -1,6 +1,6 @@
 {
   "name": "TritonNote",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "authors": [
     "Kunio SAWATANI <devel@fathens.org>"
   ],
@@ -16,15 +16,9 @@
     "tests"
   ],
   "dependencies": {
-    "ionic": "driftyco/ionic-bower#1.0.0-beta.13",
-    "prelude-ls": "~1.1.1"
+    "ionic": "driftyco/ionic-bower#1.0.0-beta.14",
+    "prelude-ls": "~1.1.1",
+	"exifreader": ""
   },
-  "devDependencies": {},
-  "overrides": {
-    "prelude-ls": {
-      "main": [
-        "browser/prelude-browser.js"
-      ]
-    }
-  }
+  "devDependencies": {}
 }

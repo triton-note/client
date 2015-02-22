@@ -1,28 +1,5 @@
-ion-view(title="Edit Report")
-	ion-nav-buttons(side="left")
-		button.button.button-clear.icon.ion-arrow-left-c.button-stable(ng-click="close()")
-	ion-nav-buttons(side="right")
+ion-view(view-title="Edit Report")
+	ion-nav-buttons(side="secondary")
 		button.button.button-clear.icon.ion-checkmark.button-positive(ng-click="submit()")
 	ion-content
-		.card
-			.item.item-image
-				fathens-fit-img(src="report.photo.mainview", delegate-handle="scroll-img-edit-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
-		.list
-			.row.item.item-input
-				.col-25.input-label
-					p Date
-				.col
-					input(type="date", ng-model="report.dateAt")
-			.row.item.item-input.item-icon-right
-				.col-25.input-label
-					p Spot
-				.col
-					input(type="text", ng-model="report.location.name")
-				.icon.ion-earth.positive(ui-sref="view-on-map({edit: true})")
-			.row.item.item-input
-				.col-25.input-label
-					p Comment
-				.col
-					textarea(ng-model="report.comment", placeholder="Comments")
-
-		include _edit-fish.jade
+		fathens-edit-report

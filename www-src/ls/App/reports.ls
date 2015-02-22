@@ -1,4 +1,43 @@
-.factory 'ReportFactory', ($log, $filter, $interval, $ionicPopup, AccountFactory, ServerFactory, DistributionFactory) ->
+.factory 'ConditionFactory', ($log, ServerFactory, AccountFactory, UnitFactory) ->
+	moon = (n) ->
+		v = "0#{n}" |> _.Str.reverse |> _.take 2 |> _.Str.reverse
+		"img/moon/phase-#{v}.png"
+	tide = (name) ->
+		name: name
+		icon: "img/tide/#{name.toLowerCase!}.png"
+	weather = (id) ->
+		"http://openweathermap.org/img/w/#{id}.png"
+	default-condition = -> angular.copy do
+		moon: 0
+		tide: 'High'
+		weather:
+			name: 'Clear'
+			icon-url: weather('01d')
+			temperature:
+				value: 20
+				unit: 'Cels'
+
+	state: (datetime, geoinfo, taker) !->
+		$log.debug "Taking tide and moon phase at #{angular.toJson geoinfo} #{datetime}"
+		AccountFactory.with-ticket (ticket)->
+			ServerFactory.conditions ticket, datetime, geoinfo
+		, (condition) !->
+			$log.debug "Get condition: #{angular.toJson condition}"
+			if !condition.weather
+				condition.weather = default-condition!.weather
+			taker condition
+		, (error) !->
+			$log.error "Failed to get conditions from server: #{error}"
+			taker default-condition!
+	moon-phases: [0 til 30] |> _.map(moon)
+	tide-phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
+	weather-states: _.Obj.map weather,
+		Clear: '01d'
+		Clouds: '04d'
+		Rain: '09d'
+		Snow: '13d'
+
+.factory 'ReportFactory', ($log, $filter, $interval, $ionicPopup, SocialFactory, AccountFactory, ServerFactory, DistributionFactory) ->
 	limit = 30
 	expiration = 50 * 60 * 1000 # 50 minutes
 	store =
@@ -26,6 +65,15 @@
 					weight:
 						value: Double
 						unit: 'pond'|'kg'
+				conditions:
+					moon: Int
+					tide: String
+					weather:
+						name: String
+						icon-url: String (URL)
+						temperature:
+							value: Double
+							unit: 'Cels'|'Fahr'
 			*/
 			report: null
 		/*
@@ -36,22 +84,28 @@
 		reports: []
 		hasMore: true
 
-	loadServer = (last-id = null, taker) !->
+	loadServer = (success) !->
+		last-id = store.reports[store.reports.length - 1]?.report?.id ? null
+		count = if last-id then limit else 10
+		$log.info "Loading from server: #{count} from #{last-id}: cached list: #{angular.toJson store.reports}"
 		AccountFactory.with-ticket (ticket) ->
-			ServerFactory.load-reports ticket, limit, last-id
+			ServerFactory.load-reports ticket, count, last-id
 		, (list) !->
-			taker save list
+			more = save list
+			store.reports = store.reports ++ more
+			store.hasMore = count <= more.length
+			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
+			success?!
 		, (error) !->
+			$log.error "Failed to load from server: #{angular.toJson error}"
 			$ionicPopup.alert do
 				title: "Failed to load from server"
-				template: error.msg
-			.then (res) !-> taker []
+				template: ""
+			success?!
 
 	reload = (success) !->
-		loadServer null, (more) !->
-			store.reports = more
-			store.hasMore = limit <= more.length
-			success! if success
+		store.reports = []
+		loadServer success
 
 	# reload every 6 hours
 	$interval !->
@@ -61,6 +115,7 @@
 	save = (list) ->
 		now = new Date!.getTime!
 		list |> _.map (report) ->
+			report.dateAt = new Date(report.dateAt) if !(report.dateAt instanceof Date)
 			timestamp: now
 			report: report
 
@@ -69,18 +124,16 @@
 		past = now - item.timestamp
 		$log.debug "Report timestamp past: #{past}ms"
 		if expiration < past then
-			item.timestamp = now
 			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.read-report ticket, item.report.id
 			, (result) !->
 				$log.debug "Read report: #{angular.toJson result}"
+				item.timestamp = now
 				angular.copy result.report, item.report
 			, (error) !->
 				$log.error "Failed to read report(#{item.report.id}) from server: #{angular.toJson error}"
 		item.report
 
-	format-date: (date) ->
-		$filter('date') new Date(date), 'yyyy-MM-dd'
 	cachedList: ->
 		store.reports |> _.map read
 	hasMore: ->
@@ -94,16 +147,13 @@
 		Refresh cache
 	*/
 	refresh: reload
+	clear-list: !->
+		store.reports = []
+		store.hasMore = true
 	/*
 		Load reports from server
 	*/
-	load: (success) !->
-		last-id = store.reports[store.reports.length - 1]?.id ? null
-		loadServer last-id, (more) !->
-			store.reports = store.reports ++ more
-			store.hasMore = limit <= more.length
-			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
-			success! if success
+	load: loadServer
 	/*
 		Get a report by index of cached list
 	*/
@@ -118,11 +168,11 @@
 		store.current =
 			index: null
 			report: null
-	newCurrent: (photo-uri = null, geoinfo = null) ->
+	newCurrent: (photo-uri, timestamp, geoinfo) ->
 		report =
 			photo:
 				mainview: photo-uri
-			dateAt: $filter('date') new Date!, 'yyyy-MM-dd'
+			dateAt: timestamp
 			location:
 				name: null
 				geoinfo: geoinfo
@@ -157,7 +207,7 @@
 	/*
 		Update report
 	*/
-	updateByCurrent: (success) !->
+	updateByCurrent: (success, on-finally) !->
 		if store.current.report?.id
 			AccountFactory.with-ticket (ticket) ->
 				ServerFactory.update-report ticket, store.current.report
@@ -166,10 +216,30 @@
 				store.reports[store.current.index] = save([store.current.report])[0]
 				DistributionFactory.report.update store.current.report
 				success!
+				on-finally!
 			, (error) !->
 				$ionicPopup.alert do
 					title: "Failed to update to server"
 					template: error.msg
+				on-finally!
+	/*
+		Publish to Facebook
+	*/
+	publish: (report-id, on-success, on-error) !->
+		SocialFactory.publish (token) !->
+			AccountFactory.with-ticket (ticket) ->
+				ServerFactory.publish-report ticket, report-id, token
+			, !->
+				$log.info "Success to publish report: #{report-id}"
+				on-success!
+			, on-error
+		, (error) !->
+			$ionicPopup.alert do
+				title: 'Rejected'
+				template: error
+			.then (res) !->
+				on-error "Rejected by user"
+
 
 .factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
@@ -177,6 +247,7 @@
 	default-units =
 		length: 'cm'
 		weight: 'kg'
+		temperature: 'Cels'
 
 	store =
 		unit: null
@@ -210,6 +281,7 @@
 	units: -> angular.copy do
 		length: ['cm', 'inch']
 		weight: ['kg', 'pond']
+		temperature: ['Cels', 'Fahr']
 	load: load-current
 	save: save-current
 	length: (src) ->
@@ -234,6 +306,17 @@
 			value: convert!
 			unit: dstUnit
 		}
+	temperature: (src) ->
+		init!
+		dst-unit = load-local!.temperature
+		convert = -> switch src.unit
+		| dst-unit => src.value
+		| 'Cels'   => src.value * 9 / 5 + 32
+		| 'Fahr'   => (src.value - 32) * 5 / 9
+		{
+			value: convert!
+			unit: dst-unit
+		}
 
 .factory 'DistributionFactory', ($log, $interval, $ionicPopup, AccountFactory, ServerFactory) ->
 	store =
@@ -257,13 +340,16 @@
 		*/
 		names: null
 
+	convert = (fish) ->
+		fish.date = new Date(fish.date)
+		fish
 	refresh-mine = (success) !->
 		$log.debug "Refreshing distributions of mine ..."
 		suc = !->
 			success! if success
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-mine ticket
-		, (list) !->
+		, _.map(convert) >> (list) !->
 			store.catches.mine = list
 			suc!
 		, (error) !->
@@ -278,7 +364,7 @@
 			success! if success
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.catches-others ticket
-		, (list) !->
+		, _.map(convert) >> (list) !->
 			store.catches.others = list
 			suc!
 		, (error) !->

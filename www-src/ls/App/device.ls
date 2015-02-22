@@ -1,29 +1,49 @@
 .factory 'PhotoFactory', ($log) ->
+	readExif = (photo, info-taker) !->
+		try
+			console.log "Reading Exif in #{photo}"
+			reader = new ExifReader()
+			reader.load photo
+			toDate = (str) ->
+				a = str.split(' ') |> _.map (.split ':') |> _.flatten |> _.map Number
+				new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5])
+			g =
+				latitude: Number(reader.getTagDescription 'GPSLatitude')
+				longitude: Number(reader.getTagDescription 'GPSLongitude')
+			info-taker do
+				timestamp: toDate(reader.getTagDescription 'DateTimeOriginal')
+				geoinfo: if g.latitude && g.longitude then g else null
+		catch
+			console.log "Failed to read Exif: #{e}"
+			plugin.acra.handleSilentException(angular.toJson e)
+			info-taker null
 	/*
 		Select a photo from storage.
 		onSuccess(photo[blob or uri])
 		onFailure(error-message)
 	*/
 	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
-		isAndroid = ionic.Platform.isAndroid!
-		taker = (ret) !->
-			toBlob = (src) ->
-				bytes = atob src
-				array = new Uint8Array(bytes.length)
-				for i from 0 to bytes.length - 1
-					array[i] = bytes.charCodeAt(i)
-				new Blob [array],
-					type: 'image/jpeg'
-			if isAndroid
-			then onSuccess toBlob(ret)
-			else onSuccess ret
-		navigator.camera.getPicture taker, onFailure,
-			correctOrientation: true
-			encodingType: Camera.EncodingType.JPEG
-			sourceType: Camera.PictureSourceType.PHOTOLIBRARY
-			destinationType: if isAndroid
-				then Camera.DestinationType.DATA_URL
-				else Camera.DestinationType.FILE_URI
+		try
+			taker = (uri) !->
+				req = new XMLHttpRequest()
+				req.open("GET", uri, true)
+				req.responseType = "arraybuffer"
+				req.onload = !->
+					array = req.response
+					readExif array, (info) !->
+						onSuccess info, new Blob [array],
+							type: 'image/jpeg'
+				req.send!
+			navigator.camera.getPicture taker, onFailure,
+				correctOrientation: true
+				mediaType: navigator.camera.MediaType.PICTURE
+				encodingType: Camera.EncodingType.JPEG
+				sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM
+				destinationType: Camera.DestinationType.NATIVE_URI
+		catch
+			console.log "Failed to select photo: #{e}"
+			plugin.acra.handleSilentException(angular.toJson e)
+			onFailure e
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -62,17 +82,22 @@
 	*/
 	acceptance: make 'Acceptance'
 
-.factory 'GMapFactory', ($log) ->
+.factory 'GMapFactory', ($log, $ionicSideMenuDelegate, $timeout) ->
 	store =
 		gmap: null
 	ionic.Platform.ready !->
 		gmap = plugin.google.maps.Map.getMap do
-			mapType: plugin.google.maps.MapTypeId.HYBRID
+			mapType: store.map-type = plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
 				zoom: false
 		gmap.on plugin.google.maps.event.MAP_READY, !->
 			store.gmap = gmap
+	menuShown = (isOpen) !->
+		console.log "GMapFactory: side menu open: #{isOpen}"
+		document.getElementsByClassName('menu-left')[0]?.style.display = if isOpen then 'block' else 'none'
+		store.gmap.setClickable !isOpen
+		$timeout store.gmap.refreshLayout, 200 if !isOpen
 	marker = (clear-pre) -> (geoinfo, title, icon) !->
 		store.gmap.clear! if clear-pre
 		store.gmap.addMarker do
@@ -88,11 +113,19 @@
 		store.gmap.clear!
 		store.gmap.off!
 		store.gmap.setDiv null
-		store.gmap.setClickable false
+		menuShown true
 
 	add-marker: marker false
 	put-marker: marker true
 	clear: clear
+	getMapTypes: ->
+		"Roadmap": plugin.google.maps.MapTypeId.ROADMAP
+		"Satellite": plugin.google.maps.MapTypeId.SATELLITE
+		"Road + Satellite": plugin.google.maps.MapTypeId.HYBRID
+		"Terrain": plugin.google.maps.MapTypeId.TERRAIN
+	getMapType: -> store.map-type
+	setMapType: (id) !-> onReady !->
+		store.gmap.setMapTypeId store.map-type = id
 	getGeoinfo: (onSuccess, onError) !-> onReady !->
 		store.gmap.getMyLocation (location) !->
 			$log.debug "Gotta GMap Location: #{angular.toJson location}"
@@ -102,7 +135,7 @@
 		, (error) !->
 			$log.error "GMap Location Error: #{angular.toJson error}"
 			onError error if onError
-	onDiv: (name, success, center) !-> onReady !->
+	onDiv: (scope, name, success, center) !-> onReady !->
 		clear!
 		if center
 			store.gmap.setZoom 10
@@ -118,8 +151,13 @@
 						store.gmap.setCenter location.latLng
 					, (error) !->
 						$log.error "GMap Location Error: #{angular.toJson error}"
-		document.getElementById name |> store.gmap.setDiv
+		div = document.getElementById name
+		store.gmap.setDiv div
+		store.gmap.setMapTypeId store.map-type
 		store.gmap.setClickable true
+		scope.$watch ->
+			!!$ionicSideMenuDelegate.isOpenLeft!
+		, menuShown
 		success store.gmap if success
 	onTap: (proc) !-> onReady !->
 		$log.debug "GMap onTap is changed: #{proc}"

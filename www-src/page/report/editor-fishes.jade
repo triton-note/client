@@ -1,0 +1,30 @@
+.list
+	.item.item-stable.item-input-inset.item-button-right
+		.input-label
+			p Catches
+		label.item-input-wrapper.positive
+			input(type="text", ng-model="adding.name", placeholder="Fish Name")
+		button.button.button-clear.icon.ion-plus-round.button-positive(ng-click="addFish()", ng-disabled="!adding.name")
+	.item.item-icon-left(ng-repeat="fish in report.fishes")
+		.icon.ion-ios7-minus-outline.assertive(ng-click="report.fishes.splice($index, 1)")
+		a(ng-click="editFish($event, $index)") {{ fish | fishFilter }}
+
+	script#fish-edit(type="text/ng-template")
+		ion-popover-view(style="height: 200px")
+			.list
+				.item.item-divider(style="padding: 0px; height: 10px")
+					button.button.button-small.button-clear.icon.ion-checkmark.button-positive(style="float: right", ng-click="fishEdit.hide()", ng-disabled="!(tmpFish.name && tmpFish.count)") 
+				.item.item-input
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="tmpFish.name")
+					input#fish-name(type="text", ng-model="tmpFish.name", placeholder="Name")
+				.item.item-input
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="tmpFish.count")
+					input(type="number", ng-model="tmpFish.count", placeholder="Count", min="1")
+				.item.item-input.item-select
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-show="tmpFish.length.value < 0")
+					input(type="number", ng-model="tmpFish.length.value", placeholder="Length")
+					select(ng-model="tmpFish.length.unit", ng-options="unit for unit in units.length")
+				.item.item-input.item-select
+					i.icon.placeholder-icon.ion-alert-circled.assertive(ng-show="tmpFish.weight.value < 0")
+					input(type="number", ng-model="tmpFish.weight.value", placeholder="Weight")
+					select(ng-model="tmpFish.weight.unit", ng-options="unit for unit in units.weight")
