@@ -61,37 +61,38 @@
 	/*
 	Login to Server
 	*/
-	login: (token, ticket-taker, error-taker) !->
+	login: (accessKey, ticket-taker, error-taker) !->
 		way = 'facebook'
-		$log.debug "Login to server with #{way} by #{token}"
+		$log.debug "Login to server with #{way} by #{accessKey}"
 		http('POST', "login/#{way}",
-			token: token
+			accessKey: accessKey
 		) ticket-taker, error-taker
 	/*
 	Connect account to social service
 	*/
-	connect: (ticket, token) -> (success-taker, error-taker) !->
-		way-name = 'facebook'
-		$log.debug "Connecting to #{way-name} by token:#{token}"
-		http('POST', "account/connect/#{ticket}",
-			way: way-name
-			token: token
+	connect: (ticket, accessKey) -> (success-taker, error-taker) !->
+		way = 'facebook'
+		$log.debug "Connecting to #{way} by token:#{accessKey}"
+		http('POST', "account/connect/#{way}",
+			ticket: ticket
+			accessKey: accessKey
 		) success-taker, error-taker
 	/*
 	Disconnect account to social service
 	*/
 	disconnect: (ticket) -> (success-taker, error-taker) !->
-		way-name = 'facebook'
-		$log.debug "Disconnecting server from #{way-name}"
-		http('POST', "account/disconnect/#{ticket}",
-			way: way-name
+		way = 'facebook'
+		$log.debug "Disconnecting server from #{way}"
+		http('POST', "account/disconnect/#{way}",
+			ticket: ticket
 		) success-taker, error-taker
 	/*
 	Get start session by server, then pass to taker
 	*/
 	start-session: (ticket, geoinfo) -> (session-taker, error-taker) !->
 		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
-		http('POST', "report/new-session/#{ticket}",
+		http('POST', "report/new-session",
+			ticket: ticket
 			geoinfo: geoinfo
 		) session-taker, error-taker
 	/*
@@ -99,7 +100,8 @@
 	*/
 	put-photo: (session, ...photos) -> (success-taker, error-taker) !->
 		$log.debug "Putting a photo with #{session}: #{photos}"
-		http('POST', "report/photo/#{session}",
+		http('POST', "report/photo",
+			session: session
 			names: photos
 		) success-taker, error-taker
 	/*
@@ -107,7 +109,9 @@
 	*/
 	infer-photo: (session) -> (success-taker, error-taker) !->
 		$log.debug "Inferring a photo with #{session}"
-		http('GET', "report/infer/#{session}") success-taker, error-taker
+		http('POST', "report/infer",
+			session: session
+		) success-taker, error-taker
 	/*
 	Put given report to the session
 	*/
@@ -115,25 +119,27 @@
 		report = angular.copy given-report
 		report.dateAt = report.dateAt.getTime!
 		$log.debug "Submitting report with #{session}: #{angular.toJson report}"
-		http('POST', "report/submit/#{session}",
+		http('POST', "report/submit",
+			session: session
 			report: report
 		) success, error-taker
 	/*
 	Put given report to the session
 	*/
-	publish-report: (ticket, report-id, token) -> (success, error-taker) !->
-		$log.debug "Publishing report(#{report-id}) with #{ticket}: #{token}"
-		http('POST', "report/publish/#{ticket}",
+	publish-report: (ticket, report-id, accessKey) -> (success, error-taker) !->
+		$log.debug "Publishing report(#{report-id}) with #{ticket}: #{accessKey}"
+		http('POST', "report/publish/facebook",
+			ticket: ticket
 			id: report-id
-			way: 'facebook'
-			token: token
+			accessKey: accessKey
 		) success, error-taker
 	/*
 	Load report from server, then pass to taker
 	*/
 	load-reports: (ticket, count, last-id) -> (taker, error-taker) !->
 		$log.debug "Loading #{count} reports from #{last-id}"
-		http('POST', "report/load/#{ticket}",
+		http('POST', "report/load",
+			ticket: ticket
 			count: count
 			last: last-id
 		) taker, error-taker
@@ -141,17 +147,10 @@
 	*/
 	read-report: (ticket, id) -> (taker, error-taker) !->
 		$log.debug "Reading report(id:#{id})"
-		http('POST', "report/read/#{ticket}",
+		http('POST', "report/read",
+			ticket: ticket
 			id: id
 		) taker, error-taker
-	/*
-	Remove report from server
-	*/
-	remove-report: (ticket, id) -> (success, error-taker) !->
-		$log.debug "Removing report(#{id})"
-		http('POST', "report/remove/#{ticket}",
-			id: id
-		) success, error-taker
 	/*
 	Update report to server. ID has to be contain given report.
 	*/
@@ -159,51 +158,70 @@
 		report = angular.copy given-report
 		report.dateAt = report.dateAt.getTime!
 		$log.debug "Updating report: #{angular.toJson report}"
-		http('POST', "report/update/#{ticket}",
+		http('POST', "report/update",
+			ticket: ticket
 			report: report
 		) success, error-taker
 	/*
-	Load units in account settings
+	Remove report from server
 	*/
-	load-units: (ticket) -> (success, error-taker) !->
-		$log.debug "Loading unit"
-		http('GET', "account/unit/load/#{ticket}") success, error-taker
+	remove-report: (ticket, id) -> (success, error-taker) !->
+		$log.debug "Removing report(#{id})"
+		http('POST', "report/remove",
+			ticket: ticket
+			id: id
+		) success, error-taker
 	/*
-	Update units in account settings
+	Load measures in account settings
 	*/
-	change-units: (ticket, unit) -> (success, error-taker) !->
-		$log.debug "Changing unit: #{angular.toJson unit}"
-		http('POST', "account/unit/change/#{ticket}",
-			unit
+	load-measures: (ticket) -> (success, error-taker) !->
+		$log.debug "Loading measures"
+		http('POST', "account/measures/load",
+			ticket: ticket
+		) success, error-taker
+	/*
+	Update measures in account settings
+	*/
+	update-measures: (ticket, measures) -> (success, error-taker) !->
+		$log.debug "Changing measures: #{angular.toJson measures}"
+		http('POST', "account/measures/update",
+			ticket: ticket
+			measures: measures
 		) success, error-taker
 	/*
 	Load distributions of own catches
 	*/
 	catches-mine: (ticket) -> (success, error-taker) !->
 		$log.debug "Retrieving my cathces distributions"
-		http('GET', "distribution/mine/#{ticket}") success, error-taker
+		http('POST', "distribution/mine",
+			ticket: ticket
+		) success, error-taker
 	/*
 	Load distributions of all catches that includes others
 	*/
 	catches-others: (ticket) -> (success, error-taker) !->
 		$log.debug "Retrieving others cathces distributions"
-		http('GET', "distribution/others/#{ticket}") success, error-taker
+		http('POST', "distribution/others",
+			ticket: ticket
+		) success, error-taker
 	/*
 	Load names of catches with it's count
 	*/
 	catches-names: (ticket) -> (success, error-taker) !->
 		$log.debug "Retrieving names of catches"
-		http('GET', "distribution/names/#{ticket}") success, error-taker
+		http('POST', "distribution/names",
+			ticket: ticket
+		) success, error-taker
 	/*
 	Obtain tide and moon phases
 	*/
 	conditions: (ticket, timestamp, geoinfo) -> (success, error-taker) !->
 		$log.debug "Retrieving conditions: #{timestamp}, #{angular.toJson geoinfo}"
-		http('POST', "conditions/get/#{ticket}",
+		http('POST', "conditions/get",
+			ticket: ticket
 			date: timestamp.getTime!
 			geoinfo: geoinfo
 		) success, error-taker
-		
 
 .factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
 	store =

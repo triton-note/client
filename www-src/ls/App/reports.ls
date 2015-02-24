@@ -256,13 +256,13 @@
 	save-current = (units) !->
 		store.unit = angular.copy units
 		AccountFactory.with-ticket (ticket) ->
-			ServerFactory.change-units ticket, units
+			ServerFactory.update-measures ticket, units
 		, !-> $log.debug "Success to change units"
 		, (error) !-> $log.debug "Failed to change units: #{angular.toJson error}"
 	load-local = -> store.unit ? default-units
 	load-server = (taker) !->
 		AccountFactory.with-ticket (ticket) ->
-			ServerFactory.load-units ticket
+			ServerFactory.load-measures ticket
 		, (units) !->
 			$log.debug "Loaded account units: #{units}"
 			store.unit = angular.copy units
