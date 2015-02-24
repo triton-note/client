@@ -171,7 +171,8 @@
 	newCurrent: (photo-uri, timestamp, geoinfo) ->
 		report =
 			photo:
-				mainview: photo-uri
+				mainview:
+					volatile-url: photo-uri
 			dateAt: timestamp
 			location:
 				name: null
