@@ -422,6 +422,8 @@
 				template: "Failed to post"
 
 	submit = (session, report, success, error-taker) !->
+		report.id = ""
+		report.user-id = ""
 		ServerFactory.submit-report(session, report) (report-id) !->
 			report.id = report-id
 			ReportFactory.add report

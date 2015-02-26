@@ -44,7 +44,8 @@
 		current:
 			index: null
 			/*
-				id: String
+				id: String (Can be Empty, but not NULL)
+				user-id: String (Can be Empty, but not NULL)
 				photo:
 					original: String (URL)
 					mainview: String (URL)
@@ -65,7 +66,7 @@
 					weight:
 						value: Double
 						unit: 'pond'|'kg'
-				conditions:
+				condition:
 					moon: Int
 					tide: String
 					weather:
