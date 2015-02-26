@@ -132,17 +132,12 @@
 				gmap.map.setCenter center
 				gmap.map.setZoom 8
 
-				if gmap.marker then
-					gmap.marker.setPosition center
-				else
-					gmap.marker = new google.maps.Marker do
-						map: gmap.map
-						position: center
-				gmap.marker.setTitle $scope.report.location.name
-				gmap.marker.setAnimation google.maps.Animation.BOUNCE
-				$timeout !->
-					gmap.marker.setAnimation null
-				, 700 * 8
+				gmap.marker?.setMap null
+				gmap.marker = new google.maps.Marker do
+					title: $scope.report.location.name
+					map: gmap.map
+					position: center
+					animation: google.maps.Animation.DROP
 
 				google.maps.event.addDomListener div, 'click', !->
 					$scope.popover-hide!
