@@ -199,3 +199,46 @@
 					$scope.tmpFish.weight = undefined
 				$log.debug "Overrinding current fish"
 				$scope.current <<< $scope.tmpFish
+
+.directive 'gist', ($log, $ionicLoading) ->
+	restrict: 'E',
+	replace: true,
+	template: '<div></div>',
+	link: ($scope, $element, $attrs) !->
+		$ionicLoading.show!
+		gist-id = $attrs.id
+
+		iframe = document.createElement 'iframe'
+		iframe.setAttribute 'width', '100%'
+		iframe.setAttribute 'height', '100%'
+		iframe.setAttribute 'marginheight', 0
+		iframe.setAttribute 'marginwidth', 0
+		iframe.setAttribute 'frameborder', '0'
+		iframe.id = "gist-#{gist-id}"
+		$element[0].appendChild(iframe)
+
+		iframeHtml = """
+		<html>
+		<head>
+			<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gist-embed/2.1/gist-embed.min.js"></script>
+		</head>
+		<body>
+			<code data-gist-id="#{gist-id}" data-gist-hide-footer="true" data-gist-show-loading="false"></code>
+		</body>
+		</html>
+		"""
+
+		doc = 
+			if iframe.contentDocument
+				iframe.contentDocument
+			else
+				if iframe.contentWindow
+					iframe.contentWindow.document 
+				else
+					iframe.document
+
+		doc.open!
+		doc.writeln iframeHtml
+		doc.close!
+		$ionicLoading.hide!

@@ -46,4 +46,8 @@
 		templateUrl: 'page/menu/sns.html'
 		controller: 'SNSCtrl'
 
+	.state 'privacy',
+		url: '/privacy'
+		templateUrl: 'page/privacy.html'
+
 	$urlRouterProvider.otherwise('/')
