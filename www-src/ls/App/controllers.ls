@@ -1,3 +1,20 @@
+.controller 'AcceptanceCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AcceptanceFactory) !->
+	$ionicLoading.show!
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter AcceptanceCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$scope.accept = !->
+			$log.info "Acceptance obtained"
+			AcceptanceFactory.success!
+			$ionicHistory.clearCache!
+			$state.go '/list'
+		$scope.reject = !->
+			$ionicPopup.alert do
+				title: "Good Bye !"
+				ok-text: "Exit"
+				ok-type: "button-stable"
+			.then (res) !->
+				ionic.Platform.exitApp!
+
 .controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AccountFactory, ReportFactory) !->
 	$ionicLoading.show!
 	$scope.$on '$ionicView.enter', (event, state) !->

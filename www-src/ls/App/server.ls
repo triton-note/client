@@ -46,18 +46,6 @@
 			type: @types.error
 			msg: "Error"
 
-	error-types: http-error.types
-	/*
-	Load the 'terms of use and disclaimer' from server
-	*/
-	terms-of-use: (taker) !->
-		http('GET', "assets/terms-of-use.txt") taker, (error) !->
-			$ionicPopup.alert do
-				title: 'Server Error'
-				template: error.msg
-				ok-text: "Exit"
-				ok-type: "button-stable"
-			.then (res) !-> ionic.Platform.exitApp!
 	/*
 	Login to Server
 	*/
@@ -223,48 +211,22 @@
 			geoinfo: geoinfo
 		) success, error-taker
 
-.factory 'AcceptanceFactory', ($log, $rootScope, $ionicModal, $ionicPopup, LocalStorageFactory, ServerFactory) ->
+.factory 'AcceptanceFactory', ($log, LocalStorageFactory) ->
 	store =
-		taking: null
-
-	scope = $rootScope.$new(true)
-	scope.accept = !->
-		$log.info "Acceptance obtained"
-		LocalStorageFactory.acceptance.save true
-		scope.modal.remove!
-		successIt!
-	scope.reject = !->
-		$ionicPopup.alert do
-			title: "Good Bye !"
-			ok-text: "Exit"
-			ok-type: "button-stable"
-		.then (res) !->
-			ionic.Platform.exitApp!
+		taking: []
 
 	successIt = !->
+		LocalStorageFactory.acceptance.save true
 		if store.taking
 			store.taking = null
 			for suc in that
 				suc!
-	takeIt = !->
-		if LocalStorageFactory.acceptance.load!
-		then successIt!
-		else ServerFactory.terms-of-use (text) !->
-			scope.terms-of-use = text
-			$log.warn "Taking Acceptance ..."
-			$ionicModal.fromTemplateUrl 'page/terms-of-use.html'
-			, (modal) !->
-				scope.modal = modal
-				modal.show!
-			,
-				scope: scope
-				animation: 'slide-in-up'
+
+	isReady: LocalStorageFactory.acceptance.load
 	obtain: (success) !->
-		if store.taking
-			taking.push success
-		else
-			store.taking = [success]
-			takeIt!
+		if @isReady! then success!
+		else store.taking.push success
+	success: successIt
 
 .factory 'SocialFactory', ($log, LocalStorageFactory) ->
 	facebook-login = (...perm) -> (token-taker, error-taker) !-> ionic.Platform.ready !->

@@ -217,28 +217,25 @@
 		iframe.id = "gist-#{gist-id}"
 		$element[0].appendChild(iframe)
 
-		iframeHtml = """
-		<html>
-		<head>
-			<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-			<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gist-embed/2.1/gist-embed.min.js"></script>
-		</head>
-		<body>
-			<code data-gist-id="#{gist-id}" data-gist-hide-footer="true" data-gist-show-loading="false"></code>
-		</body>
-		</html>
-		"""
-
 		doc = 
 			if iframe.contentDocument
 				iframe.contentDocument
 			else
-				if iframe.contentWindow
+				if iframe.contentWindow?.document
 					iframe.contentWindow.document 
 				else
 					iframe.document
-
 		doc.open!
-		doc.writeln iframeHtml
+		doc.writeln """
+			<html>
+			<head>
+				<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+				<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gist-embed/2.1/gist-embed.min.js"></script>
+			</head>
+			<body>
+				<code data-gist-id="#{gist-id}" data-gist-hide-footer="true" data-gist-show-loading="false"></code>
+			</body>
+			</html>
+		"""
 		doc.close!
 		$ionicLoading.hide!

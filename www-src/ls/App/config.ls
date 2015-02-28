@@ -1,11 +1,11 @@
-.constant 'serverURL', 'https://triton-note.fathens.org'
+.constant 'serverURL', 'https://triton-note.herokuapp.com'
 .constant '$ionicLoadingConfig',
 	template: 'Loading...'
 
 .config ($stateProvider, $urlRouterProvider) !->
 	$stateProvider
 	.state 'home',
-		url: '/'
+		url: '/list'
 		templateUrl: 'page/list.html'
 		controller: 'ListReportsCtrl'
 
@@ -50,4 +50,17 @@
 		url: '/privacy'
 		templateUrl: 'page/privacy.html'
 
-	$urlRouterProvider.otherwise('/')
+	.state 'acceptance',
+		url: '/acceptance'
+		templateUrl: 'page/acceptance.html'
+		controller: 'AcceptanceCtrl'
+
+	$urlRouterProvider
+	.when '/list', [ ->
+		console.log "Acceptance Checking..."
+		v = LocalStorageFactory.acceptance.load!
+		$log.warn "Acceptance = #{v}"
+		if v then true
+		else 'acceptance'
+	]
+	.otherwise '/list'
