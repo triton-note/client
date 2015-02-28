@@ -1,4 +1,4 @@
-.constant 'serverURL', 'https://triton-note.herokuapp.com'
+.constant 'serverURL', 'https://triton-note.fathens.org'
 .constant '$ionicLoadingConfig',
 	template: 'Loading...'
 
