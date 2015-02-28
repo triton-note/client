@@ -6,7 +6,7 @@
 			$log.info "Acceptance obtained"
 			AcceptanceFactory.success!
 			$ionicHistory.clearCache!
-			$state.go '/list'
+			$state.go 'home'
 		$scope.reject = !->
 			$ionicPopup.alert do
 				title: "Good Bye !"

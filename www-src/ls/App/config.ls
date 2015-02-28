@@ -56,11 +56,9 @@
 		controller: 'AcceptanceCtrl'
 
 	$urlRouterProvider
-	.when '/list', [ ->
-		console.log "Acceptance Checking..."
-		v = LocalStorageFactory.acceptance.load!
-		$log.warn "Acceptance = #{v}"
-		if v then true
-		else 'acceptance'
-	]
-	.otherwise '/list'
+	.when '', ($state, AcceptanceFactory) !->
+		console.log "Acceptance Checking on #{angular.toJson $state.current}"
+		v = AcceptanceFactory.isReady!
+		console.log "Acceptance = #{v}"
+		if v then $state.transitionTo 'home'
+		else '/acceptance'
