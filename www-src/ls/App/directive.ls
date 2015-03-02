@@ -132,17 +132,12 @@
 				gmap.map.setCenter center
 				gmap.map.setZoom 8
 
-				if gmap.marker then
-					gmap.marker.setPosition center
-				else
-					gmap.marker = new google.maps.Marker do
-						map: gmap.map
-						position: center
-				gmap.marker.setTitle $scope.report.location.name
-				gmap.marker.setAnimation google.maps.Animation.BOUNCE
-				$timeout !->
-					gmap.marker.setAnimation null
-				, 700 * 8
+				gmap.marker?.setMap null
+				gmap.marker = new google.maps.Marker do
+					title: $scope.report.location.name
+					map: gmap.map
+					position: center
+					animation: google.maps.Animation.DROP
 
 				google.maps.event.addDomListener div, 'click', !->
 					$scope.popover-hide!
@@ -204,3 +199,43 @@
 					$scope.tmpFish.weight = undefined
 				$log.debug "Overrinding current fish"
 				$scope.current <<< $scope.tmpFish
+
+.directive 'gist', ($log, $ionicLoading) ->
+	restrict: 'E',
+	replace: true,
+	template: '<div></div>',
+	link: ($scope, $element, $attrs) !->
+		$ionicLoading.show!
+		gist-id = $attrs.id
+
+		iframe = document.createElement 'iframe'
+		iframe.setAttribute 'width', '100%'
+		iframe.setAttribute 'height', '100%'
+		iframe.setAttribute 'marginheight', 0
+		iframe.setAttribute 'marginwidth', 0
+		iframe.setAttribute 'frameborder', '0'
+		iframe.id = "gist-#{gist-id}"
+		$element[0].appendChild(iframe)
+
+		doc = 
+			if iframe.contentDocument
+				iframe.contentDocument
+			else
+				if iframe.contentWindow?.document
+					iframe.contentWindow.document 
+				else
+					iframe.document
+		doc.open!
+		doc.write """
+			<html>
+			<head>
+				<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+				<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gist-embed/2.1/gist-embed.min.js"></script>
+			</head>
+			<body>
+				<code data-gist-id="#{gist-id}" data-gist-hide-footer="true" data-gist-show-loading="false"></code>
+			</body>
+			</html>
+		"""
+		doc.close!
+		$ionicLoading.hide!

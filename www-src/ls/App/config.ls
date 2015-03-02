@@ -5,7 +5,7 @@
 .config ($stateProvider, $urlRouterProvider) !->
 	$stateProvider
 	.state 'home',
-		url: '/'
+		url: '/list'
 		templateUrl: 'page/list.html'
 		controller: 'ListReportsCtrl'
 
@@ -46,4 +46,18 @@
 		templateUrl: 'page/menu/sns.html'
 		controller: 'SNSCtrl'
 
-	$urlRouterProvider.otherwise('/')
+	.state 'privacy',
+		url: '/privacy'
+		templateUrl: 'page/privacy.html'
+
+	.state 'acceptance',
+		url: '/acceptance'
+		templateUrl: 'page/acceptance.html'
+		controller: 'AcceptanceCtrl'
+
+	$urlRouterProvider
+	.when '', ($state, AcceptanceFactory) ->
+		console.log "Acceptance Checking on #{angular.toJson $state.current}"
+		v = AcceptanceFactory.isReady!
+		console.log "Acceptance = #{v}"
+		if v then '/list' else '/acceptance'
