@@ -121,7 +121,7 @@
 				gmap.map = new google.maps.Map div,
 					mapTypeId: google.maps.MapTypeId.HYBRID
 					disableDefaultUI: true
-					center: gmap.center
+			gmap.map.setCenter gmap.center
 			gmap.map.setZoom 8
 
 			gmap.marker?.setMap null
