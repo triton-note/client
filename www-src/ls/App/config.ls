@@ -56,9 +56,8 @@
 		controller: 'AcceptanceCtrl'
 
 	$urlRouterProvider
-	.when '', ($state, AcceptanceFactory) !->
+	.when '', ($state, AcceptanceFactory) ->
 		console.log "Acceptance Checking on #{angular.toJson $state.current}"
 		v = AcceptanceFactory.isReady!
 		console.log "Acceptance = #{v}"
-		if v then $state.transitionTo 'home'
-		else '/acceptance'
+		if v then '/list' else '/acceptance'

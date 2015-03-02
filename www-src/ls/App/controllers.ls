@@ -5,15 +5,10 @@
 		$scope.accept = !->
 			$log.info "Acceptance obtained"
 			AcceptanceFactory.success!
-			$ionicHistory.clearCache!
+			$ionicHistory.nextViewOptions do
+				disableAnimate: true
+				disableBack: true
 			$state.go 'home'
-		$scope.reject = !->
-			$ionicPopup.alert do
-				title: "Good Bye !"
-				ok-text: "Exit"
-				ok-type: "button-stable"
-			.then (res) !->
-				ionic.Platform.exitApp!
 
 .controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AccountFactory, ReportFactory) !->
 	$ionicLoading.show!
