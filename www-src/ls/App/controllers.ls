@@ -1,3 +1,15 @@
+.controller 'AcceptanceCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AcceptanceFactory) !->
+	$ionicLoading.show!
+	$scope.$on '$ionicView.enter', (event, state) !->
+		$log.debug "Enter AcceptanceCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$scope.accept = !->
+			$log.info "Acceptance obtained"
+			AcceptanceFactory.success!
+			$ionicHistory.nextViewOptions do
+				disableAnimate: true
+				disableBack: true
+			$state.go 'home'
+
 .controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AccountFactory, ReportFactory) !->
 	$ionicLoading.show!
 	$scope.$on '$ionicView.enter', (event, state) !->
