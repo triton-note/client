@@ -307,7 +307,7 @@
 					connect (token) !->
 						ServerFactory.login token
 						, (ticket) !->
-							#store.ticket = ticket
+							store.ticket = ticket
 							broadcast (.ticket ticket)
 						, (error) !->
 							broadcast (.error error.msg)
