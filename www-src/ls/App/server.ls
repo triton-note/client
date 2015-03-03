@@ -46,6 +46,8 @@
 			type: @types.error
 			msg: "Error"
 
+	error-types: angular.copy http-error.types
+
 	/*
 	Login to Server
 	*/
@@ -305,7 +307,7 @@
 					connect (token) !->
 						ServerFactory.login token
 						, (ticket) !->
-							#store.ticket = ticket
+							store.ticket = ticket
 							broadcast (.ticket ticket)
 						, (error) !->
 							broadcast (.error error.msg)
