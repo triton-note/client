@@ -46,6 +46,8 @@
 			type: @types.error
 			msg: "Error"
 
+	error-types: angular.copy http-error.types
+
 	/*
 	Login to Server
 	*/
