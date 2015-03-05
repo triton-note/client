@@ -180,6 +180,8 @@
 			$log.debug "Edit completed."
 			$ionicHistory.goBack!
 		, $ionicLoading.hide
+	$scope.submission-enabled = ->
+		!!$scope.report.location.name
 
 .controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) !->
 	$log.debug "Init AddReportCtrl"
@@ -249,6 +251,8 @@
 		$scope.should-clear = false
 	$scope.submit = !->
 		$ionicLoading.show!
+		if !$scope.report.location.name
+			$scope.report.location.name = "MySpot"
 		SessionFactory.finish $scope.report, $scope.submission.publishing, !->
 			$ionicHistory.goBack!
 		, $ionicLoading.hide

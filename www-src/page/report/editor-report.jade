@@ -16,6 +16,7 @@ div
 				script#spot-location(type="text/ng-template")
 					ion-popover-view(style="height: 200px")
 						.item.item-input-wrapper
+							i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="report.location.name")
 							input#spot-name-input(type="text", ng-model="report.location.name", placeholder="Spot Name")
 							button.button.button-small.button-clear.icon.ion-checkmark.button-positive(ng-click="popoverHide()")
 						.item.item-positive#gmap(style="height: 100%")
