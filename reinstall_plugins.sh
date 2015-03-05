@@ -2,7 +2,8 @@ rm -rf platforms/
 rm -rf plugins/
 mkdir -vp plugins
 
-cordova platform add android ios
+cordova platform add android
+[ -n "$(uname | grep 'Darwin')" ] && cordova platform add ios
 
 # Default plugins
 cordova plugin add org.apache.cordova.device
