@@ -1,6 +1,6 @@
 {
   "name": "TritonNote",
-  "version": "0.8.4-SNAPSHOT",
+  "version": "0.8.4",
   "description": "Triton Note Client",
   "dependencies": {},
   "devDependencies": {
