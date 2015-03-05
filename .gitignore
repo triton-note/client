@@ -5,3 +5,4 @@ plugins/
 bower_components/
 *.log
 hooks
+resources/*/
