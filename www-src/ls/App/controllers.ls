@@ -214,7 +214,9 @@
 				uri = URL.createObjectURL photo
 				console.log "Selected photo info: #{angular.toJson info}: #{uri}"
 				upload = (geoinfo = null) !->
-					$scope.report = ReportFactory.newCurrent uri, info?.timestamp ? new Date!, geoinfo
+					$scope.report = ReportFactory.newCurrent uri
+						, new Date(Math.round((info?.timestamp ? new Date!).getTime! / 1000) * 1000)
+						, geoinfo
 					$log.debug "Created report: #{angular.toJson $scope.report}"
 					SessionFactory.start geoinfo, !->
 						$ionicLoading.hide!
