@@ -2,13 +2,15 @@ rm -rf platforms/
 rm -rf plugins/
 mkdir -vp plugins
 
-cordova platform add android ios
+cordova platform add android
+[ -n "$(uname | grep 'Darwin')" ] && cordova platform add ios
 
 # Default plugins
 cordova plugin add org.apache.cordova.device
 cordova plugin add org.apache.cordova.console
 cordova plugin add org.apache.cordova.camera
 cordova plugin add org.apache.cordova.splashscreen
+cordova plugin add org.apache.cordova.statusbar
 
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
@@ -25,3 +27,6 @@ cordova plugin add https://github.com/sawatani/Cordova-plugin-okhttp.git
 cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable TOAST_TEXT='Crash Report Sent' --variable URL="$ACRA_URL" --variable USERNAME="$ACRA_USERNAME" --variable PASSWORD="$ACRA_PASSWORD"
 ANDROID_XML=platforms/android/AndroidManifest.xml
 cat $ANDROID_XML | awk '/<application/ { sub(">", " android:name=\"org.fathens.cordova.acra.AcraApplication\">"); print $0} !/<application/ { print $0 }' > $ANDROID_XML.tmp && mv -vf $ANDROID_XML.tmp $ANDROID_XML
+
+# Create Icons and Splash Screens
+ionic resources

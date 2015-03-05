@@ -63,14 +63,6 @@ gulp.task "sass", ->
 		.pipe gp.if isRelease, gp.minify-css!
 		.pipe gulp.dest paths.sass.dst-dir
 
-gulp.task "splash", ->
-	android = gulp.src "resources/android/splash/**/*.9.png"
-		.pipe gulp.dest "platforms/android/res"
-	ios = gulp.src "resources/ios/splash/**/*.png"
-		.pipe gulp.dest "platforms/ios/#{project-name}/Resources/splash"
-	es.concat.apply null,
-		[android, ios]
-
 gulp.task "watch", !->
 	gulp.watch paths.jade, ["jade"]
 	gulp.watch paths.image, ["image"]
