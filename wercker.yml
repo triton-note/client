@@ -4,6 +4,7 @@ build:
         - script:
             name: prepare
             code: |-
+                sudo npm install -g ionic
                 sudo npm install -g bower
                 sudo npm install
                 sudo npm install -g gulp
@@ -15,5 +16,5 @@ build:
         - script:
             name: build
             code: |-
-                gulp splash default
+                gulp
                 cordova compile android

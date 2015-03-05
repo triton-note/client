@@ -25,3 +25,6 @@ cordova plugin add https://github.com/sawatani/Cordova-plugin-okhttp.git
 cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable TOAST_TEXT='Crash Report Sent' --variable URL="$ACRA_URL" --variable USERNAME="$ACRA_USERNAME" --variable PASSWORD="$ACRA_PASSWORD"
 ANDROID_XML=platforms/android/AndroidManifest.xml
 cat $ANDROID_XML | awk '/<application/ { sub(">", " android:name=\"org.fathens.cordova.acra.AcraApplication\">"); print $0} !/<application/ { print $0 }' > $ANDROID_XML.tmp && mv -vf $ANDROID_XML.tmp $ANDROID_XML
+
+# Create Icons and Splash Screens
+ionic resources
