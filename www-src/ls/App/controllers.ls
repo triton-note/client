@@ -181,7 +181,7 @@
 			$ionicHistory.goBack!
 		, $ionicLoading.hide
 	$scope.submission-enabled = ->
-		!!$scope.report.location.name
+		!!$scope.report?.location?.name
 
 .controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) !->
 	$log.debug "Init AddReportCtrl"
