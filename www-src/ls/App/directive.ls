@@ -36,20 +36,6 @@
 						$ionicScrollDelegate.$getByHandle(delegate-name).scrollTo sc.left, sc.top
 						$log.debug "fathensFitImg: scroll=#{angular.toJson sc}, name=#{delegate-name}"
 
-.directive 'textareaElastic', ($log) ->
-	restrict: 'E'
-	template: '<textarea ng-keypress="elasticTextarea()"></textarea>'
-	replace: true
-	scope: true
-	controller: ($scope, $element, $attrs) ->
-		$scope.elasticTextarea = !->
-			area = $element[0]
-			current = area.style.height
-			next = "#{area.scroll-height + 20}px"
-			if current != next
-				$log.debug "Elastic #{area}: #{current} => #{next}"
-				area.style.height = next
-
 .directive 'fathensEditReport', ($log) ->
 	restrict: 'E'
 	templateUrl: 'page/report/editor-report.html'
