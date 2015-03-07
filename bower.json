@@ -18,7 +18,8 @@
   "dependencies": {
     "ionic": "driftyco/ionic-bower#1.0.0-beta.14",
     "prelude-ls": "~1.1.1",
-	"exifreader": ""
+    "angular-elastic": "~2.4.2",
+    "exifreader": ""
   },
   "devDependencies": {}
 }
