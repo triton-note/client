@@ -1,27 +1,18 @@
-<?xml version='1.0' encoding='utf-8'?>
-<widget id="org.fathens.triton-note" version="0.8.6-SNAPSHOT"
-		xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>TritonNote</name>
-    <description>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<widget id="org.fathens.triton-note" version="0.8.6-SNAPSHOT" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <name>TritonNote</name>
+  <description>
         Triton Note Client
     </description>
-    <author email="admin+triton_note@fathens.org" href="http://www.fathens.org/">
+  <author email="admin+triton_note@fathens.org" href="http://www.fathens.org/">
 		Office fathens
     </author>
-    <content src="index.html" />
-    <access origin="*" />
-    <preference name="fullscreen" value="true" />
-    <preference name="Orientation" value="portrait" />
-    <preference name="webviewbounce" value="false" />
-    <preference name="UIWebViewBounce" value="false" />
-    <preference name="DisallowOverscroll" value="false" />
-
-    <!-- Don't store local date in an iCloud backup. Turn this to "cloud" to enable storage 
-         to be sent to iCloud. Note: enabling this could result in Apple rejecting your app.
-    -->
-    <preference name="BackupWebStorage" value="none" />
-
-    <feature name="StatusBar">
-      <param name="ios-package" value="CDVStatusBar" onload="true" />
-    </feature>
+  <content src="index.html"/>
+  <access origin="*"/>
+  <preference name="fullscreen" value="true"/>
+  <preference name="Orientation" value="portrait"/>
+  <preference name="webviewbounce" value="false"/>
+  <preference name="UIWebViewBounce" value="false"/>
+  <preference name="DisallowOverscroll" value="false"/>
+  <preference name="BackupWebStorage" value="none"/>
 </widget>
