@@ -14,7 +14,15 @@ build:
             code: |-
                 ./reinstall_plugins.sh
         - script:
+            name: keystore
+            code: |-
+                echo "${ANDROID_KEYSTORE_BASE64}" | base64 -d > platforms/android/keystore
+                echo 'key.store=keystore'                                     > platforms/android/ant.properties
+                echo "key.alias=${ANDROID_KEYSTORE_ALIAS}"                   >> platforms/android/ant.properties
+                echo "key.store.password=${ANDROID_KEYSTORE_PASSWORD}"       >> platforms/android/ant.properties
+                echo "key.alias.password=${ANDROID_KEYSTORE_ALIAS_PASSWORD}" >> platforms/android/ant.properties
+        - script:
             name: build
             code: |-
                 gulp
-                cordova compile android
+                cordova build android --release
