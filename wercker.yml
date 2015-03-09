@@ -1,4 +1,4 @@
-box: sawatani/Cordova@0.0.2
+box: sawatani/Cordova
 build:
     steps:
         - script:
