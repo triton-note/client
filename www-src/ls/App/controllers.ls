@@ -1,7 +1,7 @@
 .controller 'AcceptanceCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AcceptanceFactory) !->
 	$ionicLoading.show!
 	$scope.$on '$ionicView.enter', (event, state) !->
-		$log.debug "Enter AcceptanceCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Enter AcceptanceCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.accept = !->
 			$log.info "Acceptance obtained"
 			AcceptanceFactory.success!
@@ -13,7 +13,7 @@
 .controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AccountFactory, ReportFactory) !->
 	$ionicLoading.show!
 	$scope.$on '$ionicView.enter', (event, state) !->
-		$log.debug "Enter SNSCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Enter SNSCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		AccountFactory.get-username (username) !->
 			$scope.$apply !-> $scope.done username
 		, (error-msg) !->
@@ -50,7 +50,7 @@
 .controller 'PreferencesCtrl', ($log, $scope, $stateParams, $ionicSideMenuDelegate, $ionicLoading, $ionicPopup, UnitFactory) !->
 	$ionicLoading.show!
 	$scope.$on '$ionicView.enter', (event, state) !->
-		$log.debug "Enter PreferencesCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Enter PreferencesCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$ionicLoading.show!
 		UnitFactory.load (units) !->
 			$scope.unit = units
@@ -75,7 +75,7 @@
 
 .controller 'ShowReportCtrl', ($log, $timeout, $state, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopover, $ionicPopup, ReportFactory, ConditionFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
-		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.popover = {}
 		['show-location', 'option-buttons'] |> _.each (name) !->
 			$ionicPopover.fromTemplateUrl name,
@@ -105,7 +105,7 @@
 		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) !->
-		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}"
 		ReportFactory.clear-current! if $scope.should-clear
 		for ,p of $scope.popover
 			p?.remove!
@@ -163,13 +163,13 @@
 
 .controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicHistory, $ionicLoading, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
-		$log.debug "Enter EditReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Enter EditReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.should-clear = true
 		$scope.report = ReportFactory.current!.report
 		$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) !->
-		$log.debug "Before Leave EditReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Before Leave EditReportCtrl: event=#{angular.toJson event}"
 		ReportFactory.clear-current! if $scope.should-clear
 
 	$scope.useCurrent = !->
@@ -187,7 +187,7 @@
 	$log.debug "Init AddReportCtrl"
 	$ionicLoading.show!
 	$scope.$on '$ionicView.loaded', (event, state) !->
-		$log.debug "Loaded AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Loaded AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 
 		$ionicPopover.fromTemplateUrl 'confirm-submit',
 			scope: $scope
@@ -195,7 +195,7 @@
 			$scope.confirm-submit = popover
 
 	$scope.$on '$ionicView.enter', (event, state) !->
-		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.should-clear = true
 
 		if ReportFactory.current!.report
@@ -246,7 +246,7 @@
 			, on-error "Need one photo"
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) !->
-		$log.debug "Before Leave AddReportCtrl: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Before Leave AddReportCtrl: event=#{angular.toJson event}"
 		ReportFactory.clear-current! if $scope.should-clear
 
 	$scope.useCurrent = !->
@@ -264,7 +264,7 @@
 
 .controller 'ReportOnMapCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->
 	$scope.$on '$ionicView.enter', (event, state) !->
-		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.report = ReportFactory.current!.report
 		GMapFactory.onDiv $scope, 'edit-map', (gmap) !->
 			$scope.$on 'popover.hidden', !->
@@ -298,7 +298,7 @@
 .controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, $ionicLoading, GMapFactory, DistributionFactory, ReportFactory) !->
 	$ionicLoading.show!
 	$scope.$on '$ionicView.loaded', (event, state) !->
-		$log.debug "Loaded DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Loaded DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.view =
 			others: false
 			name: null
@@ -393,7 +393,7 @@
 			else DistributionFactory.others fish-name, map-others
 
 	$scope.$on '$ionicView.enter', (event, state) !->
-		$log.debug "Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}: state=#{angular.toJson state}"
+		$log.debug "Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$ionicLoading.show!
 		GMapFactory.onDiv $scope, 'distribution-map', (gmap) !->
 			$scope.gmap = gmap

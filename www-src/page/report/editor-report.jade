@@ -24,18 +24,14 @@ div
 
 			.item(style="padding: 0px")
 				.item-input(style="padding-bottom: 0px")
-					.input-label
-						p Time
 					input(type="time", ng-model="report.dateAt")
 				.item-input(style="padding-top: 0px")
-					.input-label
-						p Date
 					input(type="date", ng-model="report.dateAt")
 
 			.item.row
-				.col-50
-					.item-image(style="width: 80%", ng-click="popover.chooseWeather.show($event)")
-						img(style="width: 80%", ng-src="{{ report.condition.weather.iconUrl }}")
+				.col-33
+					.item-image(ng-click="popover.chooseWeather.show($event)")
+						img(ng-src="{{ report.condition.weather.iconUrl }}")
 
 						script#choose-weather(type="text/ng-template")
 							ion-popover-view
@@ -43,13 +39,13 @@ div
 									img(ng-src="{{ weatherIcon(name) }}")
 									p {{ name }}
 
-				.col-50
+				.col-67
 					.row
 						p {{ report.condition.weather.name }}
 					.row
-						.col-50.item-input(style="padding: 0px")
+						.col-75.item-input(style="padding: 0px")
 							input(type="number", ng-model="report.condition.weather.temperature.value")
-						.col-50.item-input(style="padding: 0px")
+						.col-25.item-input(style="padding: 0px")
 							p °{{report.condition.weather.temperature.unit[0]}}
 
 			.item.row
