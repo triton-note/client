@@ -28,7 +28,7 @@ build:
                 cordova build android --release
 deploy:
     steps:
-        - sawatani/Android-GooglePlay
+        - sawatani/Android-GooglePlay:
             track_name: $TRACK_NAME
             application_name: TritonNote
             package_name: org.fathens.triton_note
