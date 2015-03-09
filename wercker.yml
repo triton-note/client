@@ -26,3 +26,12 @@ build:
             code: |-
                 gulp
                 cordova build android --release
+deploy:
+    steps:
+        - sawatani/Android-GooglePlay
+            track_name: $TRACK_NAME
+            application_name: TritonNote
+            package_name: org.fathens.triton_note
+            service_account_email: $ACCOUNT_EMAIL
+            service_account_key_base64: $ACCOUNT_KEY
+            apk_file_path: platforms/android/ant-build/CordovaApp-release.apk
