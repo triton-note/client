@@ -29,7 +29,6 @@ build:
         - script:
             name: store
             code: |-
-                gulp
                 cp -vf platforms/android/ant-build/CordovaApp-release.apk "$WERCKER_OUTPUT_DIR"/
 deploy:
     steps:
