@@ -1,4 +1,4 @@
-box: sawatani/Cordova@0.0.2
+box: sawatani/Cordova
 build:
     steps:
         - script:
@@ -14,7 +14,24 @@ build:
             code: |-
                 ./reinstall_plugins.sh
         - script:
+            name: keystore
+            code: |-
+                echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > platforms/android/keystore
+                echo 'key.store=keystore'                                   > platforms/android/ant.properties
+                echo "key.alias=$ANDROID_KEYSTORE_ALIAS"                   >> platforms/android/ant.properties
+                echo "key.store.password=$ANDROID_KEYSTORE_PASSWORD"       >> platforms/android/ant.properties
+                echo "key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD" >> platforms/android/ant.properties
+        - script:
             name: build
             code: |-
                 gulp
-                cordova compile android
+                cordova build android --release
+deploy:
+    steps:
+        - sawatani/Android-GooglePlay:
+            track_name: $TRACK_NAME
+            application_name: TritonNote
+            package_name: org.fathens.triton_note
+            service_account_email: $ACCOUNT_EMAIL
+            service_account_key_base64: $ACCOUNT_KEY
+            apk_file_path: platforms/android/ant-build/CordovaApp-release.apk
