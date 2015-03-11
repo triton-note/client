@@ -26,6 +26,11 @@ build:
             code: |-
                 gulp
                 cordova build android --release
+        - script:
+            name: store
+            code: |-
+                gulp
+                cp -vf platforms/android/ant-build/CordovaApp-release.apk "$WERCKER_OUTPUT_DIR"/
 deploy:
     steps:
         - sawatani/Android-GooglePlay:
@@ -34,4 +39,4 @@ deploy:
             package_name: org.fathens.triton_note
             service_account_email: $ACCOUNT_EMAIL
             service_account_key_base64: $ACCOUNT_KEY
-            apk_file_path: platforms/android/ant-build/CordovaApp-release.apk
+            apk_file_path: CordovaApp-release.apk
