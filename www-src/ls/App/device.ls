@@ -19,7 +19,7 @@
 			info-taker null
 	/*
 		Select a photo from storage.
-		onSuccess(photo[blob or uri])
+		onSuccess(exif-info, photo[blob])
 		onFailure(error-message)
 	*/
 	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
