@@ -22,8 +22,8 @@
 		onFailure(error-message)
 	*/
 	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
-		try
-			taker = (uri) !->
+		taker = (uri) !->
+			try
 				req = new XMLHttpRequest()
 				req.open("GET", uri, true)
 				req.responseType = "arraybuffer"
@@ -33,6 +33,12 @@
 						onSuccess info, new Blob [array],
 							type: 'image/jpeg'
 				req.send!
+			catch
+				msg = "Failed to load photo(#{uri}): #{e.message}"
+				console.log(msg)
+				plugin.acra.handleSilentException(msg)
+				onFailure msg
+		try
 			navigator.camera.getPicture taker, onFailure,
 				correctOrientation: true
 				mediaType: navigator.camera.MediaType.PICTURE
@@ -43,7 +49,7 @@
 			msg = "Failed to select photo: #{e.message}"
 			console.log(msg)
 			plugin.acra.handleSilentException(msg)
-			onFailure e
+			onFailure msg
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
