@@ -14,9 +14,7 @@
 				timestamp: toDate(reader.getTagDescription 'DateTimeOriginal')
 				geoinfo: if g.latitude && g.longitude then g else null
 		catch
-			msg = "Failed to read Exif: #{angular.toJson e}"
-			console.log(msg)
-			plugin.acra.handleSilentException(msg)
+			console.log "Failed to read Exif: #{e.message}"
 			info-taker null
 	/*
 		Select a photo from storage.
@@ -42,7 +40,7 @@
 				sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM
 				destinationType: Camera.DestinationType.NATIVE_URI
 		catch
-			msg = "Failed to select photo: #{angular.toJson e}"
+			msg = "Failed to select photo: #{e.message}"
 			console.log(msg)
 			plugin.acra.handleSilentException(msg)
 			onFailure e
