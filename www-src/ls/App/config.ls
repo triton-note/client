@@ -1,6 +1,4 @@
 .constant 'serverURL', 'https://triton-note.fathens.org'
-.constant '$ionicLoadingConfig',
-	template: 'Loading...'
 
 .config ($stateProvider, $urlRouterProvider) !->
 	$stateProvider
