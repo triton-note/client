@@ -2,16 +2,12 @@ box: sawatani/Cordova
 build:
     steps:
         - script:
-            name: prepare
+            name: pre-build
             code: |-
-                sudo npm install -g ionic
-                sudo npm install -g bower
                 sudo npm install
                 sudo npm install -g gulp
-                bower install
-        - script:
-            name: plugins
-            code: |-
+                sudo npm install -g ionic
+                gulp
                 ./reinstall_plugins.sh
         - script:
             name: keystore
@@ -24,11 +20,7 @@ build:
         - script:
             name: build
             code: |-
-                gulp
                 cordova build android --release
-        - script:
-            name: store
-            code: |-
                 cp -vf platforms/android/ant-build/CordovaApp-release.apk "$WERCKER_OUTPUT_DIR"/
 deploy:
     steps:

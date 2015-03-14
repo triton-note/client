@@ -69,8 +69,15 @@ gulp.task "watch", !->
 	gulp.watch paths.sass, ["sass"]
 	gulp.watch paths.ls, ["livescript"]
 
-gulp.task "clean", !->
+gulp.task "clean", ->
 	gulp.src app-dst, read: false
 		.pipe gp.clean!
 
-gulp.task "default", ["jade", "image", "sass", "livescript"]
+gulp.task "bower", ->
+	gp.bower 'www/lib'
+
+gulp.task "build", ["bower"], ->
+	gulp.start "jade", "image", "sass", "livescript"
+
+gulp.task "default", ["clean"], ->
+	gulp.start "build"
