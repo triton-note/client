@@ -34,10 +34,8 @@
 							type: 'image/jpeg'
 				req.send!
 			catch
-				msg = "Failed to load photo(#{uri}): #{e.message}"
-				console.log(msg)
-				plugin.acra.handleSilentException(msg)
-				onFailure msg
+				plugin.acra.handleSilentException "Failed to get photo(#{uri}): #{e.message}"
+				onFailure "Failed to get photo"
 		try
 			navigator.camera.getPicture taker, onFailure,
 				correctOrientation: true
@@ -46,10 +44,8 @@
 				sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM
 				destinationType: Camera.DestinationType.NATIVE_URI
 		catch
-			msg = "Failed to select photo: #{e.message}"
-			console.log(msg)
-			plugin.acra.handleSilentException(msg)
-			onFailure msg
+			plugin.acra.handleSilentException "Failed to select photo: #{e.message}"
+			onFailure "Failed to select photo"
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
