@@ -27,7 +27,6 @@
 				console.log "Loading photo: #{uri}"
 				resolveLocalFileSystemURL uri
 				, (entry) !->
-					console.log "Loading photo entry: #{typeof entry}"
 					entry.file (file) !->
 						reader = new FileReader
 						reader.onloadend = (evt) !->
@@ -39,8 +38,10 @@
 						reader.readAsArrayBuffer file
 					, (error) !->
 						console.log "Failed to get file: #{uri}"
+						onFailure "Failed to get photo"
 				, (error) !->
 					console.log "Failed to parse photo uri: #{uri}"
+					onFailure "Failed to get photo"
 			catch
 				plugin.acra.handleSilentException "Failed to get photo(#{uri}): #{e.message}"
 				onFailure "Failed to get photo"
