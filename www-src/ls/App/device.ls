@@ -25,15 +25,22 @@
 		taker = (uri) !->
 			try
 				console.log "Loading photo: #{uri}"
-				req = new XMLHttpRequest()
-				req.open("GET", uri, true)
-				req.responseType = "arraybuffer"
-				req.onload = !->
-					array = req.response
-					readExif array, (info) !->
-						onSuccess info, new Blob [array],
-							type: 'image/jpeg'
-				req.send!
+				resolveLocalFileSystemURL uri
+				, (entry) !->
+					console.log "Loading photo entry: #{typeof entry}"
+					entry.file (file) !->
+						reader = new FileReader
+						reader.onloadend = (evt) !->
+							array = evt.target.result
+							console.log "Read photo success: #{array}"
+							readExif array, (info) !->
+								onSuccess info, new Blob [array],
+									type: 'image/jpeg'
+						reader.readAsArrayBuffer file
+					, (error) !->
+						console.log "Failed to get file: #{uri}"
+				, (error) !->
+					console.log "Failed to parse photo uri: #{uri}"
 			catch
 				plugin.acra.handleSilentException "Failed to get photo(#{uri}): #{e.message}"
 				onFailure "Failed to get photo"
