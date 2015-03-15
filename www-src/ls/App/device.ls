@@ -4,7 +4,7 @@
 			console.log "Reading Exif in #{photo}"
 			reader = new ExifReader()
 			reader.load photo
-			toDate = (str) ->
+			toDate = (str) -> if !str then null else
 				a = str.split(' ') |> _.map (.split ':') |> _.flatten |> _.map Number
 				new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5])
 			g =
