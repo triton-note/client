@@ -22,8 +22,6 @@ SUPPORT_V4_FB=platforms/android/com.phonegap.plugins.facebookconnect/*FacebookLi
 SUPPORT_V4=platforms/android/libs/android-support-v4.jar
 [ -n "$(diff $SUPPORT_V4 $SUPPORT_V4_FB 2>/dev/null)" ] && cp -vf $SUPPORT_V4_FB $SUPPORT_V4
 
-# Aid for bug of Http
-cordova plugin add https://github.com/sawatani/Cordova-plugin-okhttp.git
 # Crash Report
 cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable TOAST_TEXT='Crash Report Sent' --variable URL="$ACRA_URL" --variable USERNAME="$ACRA_USERNAME" --variable PASSWORD="$ACRA_PASSWORD"
 
