@@ -24,6 +24,7 @@
 	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
 		taker = (uri) !->
 			try
+				console.log "Loading photo: #{uri}"
 				req = new XMLHttpRequest()
 				req.open("GET", uri, true)
 				req.responseType = "arraybuffer"
