@@ -35,13 +35,15 @@
 							readExif array, (info) !->
 								onSuccess info, new Blob [array],
 									type: 'image/jpeg'
+						reader.onerror = (evt) !->
+							onFailure "Failed to read photo file: #{uri}"
 						reader.readAsArrayBuffer file
 					, (error) !->
-						console.log "Failed to get file: #{uri}"
-						onFailure "Failed to get photo"
+						console.log "Failed to get photo file: #{uri}"
+						onFailure "Failed to get photo file"
 				, (error) !->
 					console.log "Failed to parse photo uri: #{uri}"
-					onFailure "Failed to get photo"
+					onFailure "Failed to parse photo uri"
 			catch
 				plugin.acra.handleSilentException "Failed to get photo(#{uri}): #{e.message}"
 				onFailure "Failed to get photo"
