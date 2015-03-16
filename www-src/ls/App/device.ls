@@ -50,8 +50,8 @@
 				correctOrientation: true
 				mediaType: navigator.camera.MediaType.PICTURE
 				encodingType: Camera.EncodingType.JPEG
-				sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM
-				destinationType: Camera.DestinationType.NATIVE_URI
+				sourceType: Camera.PictureSourceType.PHOTOLIBRARY
+				destinationType: Camera.DestinationType.FILE_URI
 		catch
 			plugin.acra.handleSilentException "Failed to select photo: #{e.message}"
 			onFailure "Failed to select photo"
