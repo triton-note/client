@@ -1,6 +1,7 @@
 require! {
 	fs
 	gulp
+	del
 	'main-bower-files'
 	'event-stream': es
 	'prelude-ls': _
@@ -69,8 +70,14 @@ gulp.task "watch", !->
 	gulp.watch paths.sass, ["sass"]
 	gulp.watch paths.ls, ["livescript"]
 
-gulp.task "clean", !->
-	gulp.src app-dst, read: false
-		.pipe gp.clean!
+gulp.task "clean", (cb) ->
+	del [app-dst], cb
 
-gulp.task "default", ["jade", "image", "sass", "livescript"]
+gulp.task "bower", ->
+	gp.bower 'www/lib'
+
+gulp.task "build", ["bower"], ->
+	gulp.start "jade", "image", "sass", "livescript"
+
+gulp.task "default", ["clean"], ->
+	gulp.start "build"

@@ -21,12 +21,19 @@ SUPPORT_V4_FB=platforms/android/com.phonegap.plugins.facebookconnect/*FacebookLi
 SUPPORT_V4=platforms/android/libs/android-support-v4.jar
 [ -n "$(diff $SUPPORT_V4 $SUPPORT_V4_FB 2>/dev/null)" ] && cp -vf $SUPPORT_V4_FB $SUPPORT_V4
 
-# Aid for bug of Http
-cordova plugin add https://github.com/sawatani/Cordova-plugin-okhttp.git
+# Customized org.apache.cordova.file for GOOGLE_PHOTOS
+cordova plugin add https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos
 # Crash Report
 cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable TOAST_TEXT='Crash Report Sent' --variable URL="$ACRA_URL" --variable USERNAME="$ACRA_USERNAME" --variable PASSWORD="$ACRA_PASSWORD"
-ANDROID_XML=platforms/android/AndroidManifest.xml
-cat $ANDROID_XML | awk '/<application/ { sub(">", " android:name=\"org.fathens.cordova.acra.AcraApplication\">"); print $0} !/<application/ { print $0 }' > $ANDROID_XML.tmp && mv -vf $ANDROID_XML.tmp $ANDROID_XML
+
+mod_ANDROID_XML() {
+	file=platforms/android/AndroidManifest.xml
+	cat $file | awk "$1" > $file.tmp && (
+		diff $file $file.tmp
+		mv -vf $file.tmp $file
+	)
+}
+mod_ANDROID_XML '/<application/ { sub(">", " android:name=\"org.fathens.cordova.acra.AcraApplication\">") } { print $0 }'
 
 # Create Icons and Splash Screens
 ionic resources

@@ -5,7 +5,7 @@ ion-view(view-title="My Reports")
 		ion-refresher(on-refresh="refresh()")
 		ion-list
 			ion-item.item-thumbnail-left(ng-repeat="report in reports()", ui-sref="show-report({index: $index})")
-				.item.item-image
+				.item.item-image(style="border: none")
 					fathens-fit-img(src="report.photo.thumbnail.volatileUrl", delegate-handle="scroll-thumbnail-{{ $index }}")
 				h2 {{report.location.name}} {{report.dateAt | date: 'yyyy/MM/dd'}}
 				div(ng-repeat="fish in report.fishes")
