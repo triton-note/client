@@ -23,30 +23,34 @@
 	*/
 	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
 		taker = (uri) !->
-			try
-				console.log "Loading photo: #{uri}"
-				resolveLocalFileSystemURL uri
-				, (entry) !->
-					entry.file (file) !->
+			console.log "Loading photo: #{uri}"
+			resolveLocalFileSystemURL uri
+			, (entry) !->
+				entry.file (file) !->
+					try
 						reader = new FileReader
 						reader.onloadend = (evt) !->
-							array = evt.target.result
-							console.log "Read photo success: #{array}"
-							readExif array, (info) !->
-								onSuccess info, new Blob [array],
-									type: 'image/jpeg'
+							try
+								array = evt.target.result
+								console.log "Read photo success: #{array}"
+								readExif array, (info) !->
+									onSuccess info, new Blob [array],
+										type: 'image/jpeg'
+							catch
+								plugin.acra.handleSilentException "Failed to read photo(#{uri}): #{e.message}: #{e.stack}"
+								onFailure "Failed to get photo"
 						reader.onerror = (evt) !->
-							onFailure "Failed to read photo file: #{uri}"
+							onFailure "Failed to read photo file"
 						reader.readAsArrayBuffer file
-					, (error) !->
-						console.log "Failed to get photo file: #{uri}"
-						onFailure "Failed to get photo file"
+					catch
+						plugin.acra.handleSilentException "Failed to get photo(#{uri}): #{e.message}: #{e.stack}"
+						onFailure "Failed to get photo"
 				, (error) !->
-					console.log "Failed to parse photo uri: #{uri}"
-					onFailure "Failed to parse photo uri"
-			catch
-				plugin.acra.handleSilentException "Failed to get photo(#{uri}): #{e.message}"
-				onFailure "Failed to get photo"
+					console.log "Failed to get photo file: #{uri}"
+					onFailure "Failed to get photo file"
+			, (error) !->
+				console.log "Failed to parse photo uri: #{uri}"
+				onFailure "Failed to parse photo uri"
 		try
 			navigator.camera.getPicture taker, onFailure,
 				correctOrientation: true
@@ -55,7 +59,7 @@
 				sourceType: Camera.PictureSourceType.PHOTOLIBRARY
 				destinationType: Camera.DestinationType.FILE_URI
 		catch
-			plugin.acra.handleSilentException "Failed to select photo: #{e.message}"
+			plugin.acra.handleSilentException "Failed to select photo: #{e.message}: #{e.stack}"
 			onFailure "Failed to select photo"
 
 .factory 'LocalStorageFactory', ($log) ->
