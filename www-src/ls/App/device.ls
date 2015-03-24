@@ -144,14 +144,18 @@
 	setMapType: (id) !-> onReady !->
 		store.gmap.setMapTypeId store.map-type = id
 	getGeoinfo: (onSuccess, onError) !-> onReady !->
-		store.gmap.getMyLocation (location) !->
-			$log.debug "Gotta GMap Location: #{angular.toJson location}"
+		navigator.geolocation.getCurrentPosition (position) !->
+			$log.debug "Gotta GMap Location: #{angular.toJson position}"
 			onSuccess do
-				latitude: location.latLng.lat
-				longitude: location.latLng.lng
+				latitude: position.coords.latitude
+				longitude: position.coords.longitude
 		, (error) !->
 			$log.error "GMap Location Error: #{angular.toJson error}"
-			onError error if onError
+			onError error.message if onError
+		,
+			maximumAge: 3000
+			timeout: 5000
+			enableHighAccuracy: true
 	onDiv: (scope, name, success, center) !-> onReady !->
 		clear!
 		if center

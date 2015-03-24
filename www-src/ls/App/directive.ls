@@ -77,9 +77,9 @@
 		$scope.$watch 'report.condition.weather.name', (new-value, old-value) !->
 			$scope.popover.choose-weather.hide!
 
-		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if old-value || !$scope.report?.condition
+		$scope.$watch 'report.dateAt', (new-value, old-value) !-> if old-value
 			change-condition(new-value, $scope.report?.location?.geoinfo)
-		$scope.$watch 'report.location.geoinfo', (new-value, old-value) !-> if old-value || !$scope.report?.condition
+		$scope.$watch 'report.location.geoinfo', (new-value, old-value) !-> if old-value
 			change-condition($scope.report?.dateAt, new-value)
 		change-condition = (datetime, geoinfo) !-> if datetime && geoinfo
 			$scope.report.condition = {} if !$scope.report.condition
