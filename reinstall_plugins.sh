@@ -11,6 +11,7 @@ cordova plugin add org.apache.cordova.console
 cordova plugin add org.apache.cordova.camera
 cordova plugin add org.apache.cordova.splashscreen
 cordova plugin add org.apache.cordova.statusbar
+cordova plugin add org.apache.cordova.geolocation
 
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
