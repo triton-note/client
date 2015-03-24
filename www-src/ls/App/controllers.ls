@@ -242,7 +242,9 @@
 					$log.warn "Getting current location..."
 					GMapFactory.getGeoinfo upload, (error) !->
 						$log.error "Geolocation Error: #{angular.toJson error}"
-						upload!
+						upload do
+							latitude: 0
+							longitude: 0
 			, on-error "Need one photo"
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) !->
