@@ -1,4 +1,4 @@
-.factory 'PhotoFactory', ($log) ->
+.factory 'PhotoFactory', ($log, $timeout) ->
 	readExif = (photo, info-taker) !->
 		try
 			console.log "Reading Exif in #{photo}"
@@ -18,10 +18,11 @@
 			info-taker null
 	/*
 		Select a photo from storage.
-		onSuccess(exif-info, photo[blob])
+		photo-taker(photo[blob])
+		info-taker(exif-info)
 		onFailure(error-message)
 	*/
-	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
+	select: (photo-taker, info-taker, onFailure) !-> ionic.Platform.ready !->
 		taker = (uri) !->
 			console.log "Loading photo: #{uri}"
 			resolveLocalFileSystemURL uri
@@ -33,9 +34,11 @@
 							try
 								array = evt.target.result
 								console.log "Read photo success: #{array}"
-								readExif array, (info) !->
-									onSuccess info, new Blob [array],
-										type: 'image/jpeg'
+								$timeout !->
+									readExif array, info-taker
+								, 100
+								photo-taker new Blob [array],
+									type: 'image/jpeg'
 							catch
 								plugin.acra.handleSilentException "Failed to read photo(#{uri}): #{e.message}: #{e.stack}"
 								onFailure "Failed to get photo"
