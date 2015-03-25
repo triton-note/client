@@ -12,6 +12,7 @@
 		div = $element.children!.children![0]
 		img = $element.children!.children!.children!
 		photo = $attrs['src']
+		whole = !!$attrs['whole']
 		if photo && photo.length > 0
 			chain = photo.split('.')
 			$scope.$watch chain[0], !->
@@ -23,18 +24,25 @@
 						rect =
 							width: img[0].clientWidth
 							height: img[0].clientHeight
+						# Fit width
 						max = if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width else rect.height
 						div.style.width = "#{_.min max, rect.width}px"
 						div.style.height = "#{_.min max, rect.height}px"
 						$log.debug "fathensFitImg: #{angular.toJson rect} ==> #{max}"
 						# Scroll to center
-						margin = (f) -> if max < f(rect) then (f(rect) - max)/2 else 0
-						delegate-name = $attrs['delegateHandle']
-						sc =
-							left: margin (.width)
-							top: margin (.height)
-						$ionicScrollDelegate.$getByHandle(delegate-name).scrollTo sc.left, sc.top
-						$log.debug "fathensFitImg: scroll=#{angular.toJson sc}, name=#{delegate-name}"
+						delegate = $ionicScrollDelegate.$getByHandle $attrs['delegateHandle']
+						if delegate
+							margin = (f) -> if max < f(rect) then (f(rect) - max)/2 else 0
+							sc =
+								left: margin (.width)
+								top: margin (.height)
+							delegate.scrollTo sc.left, sc.top
+							$log.debug "fathensFitImg: scroll=#{angular.toJson sc}"
+							min-zoom = _.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight
+								then rect.width / rect.height
+								else rect.height / rect.width
+							if whole && min-zoom < 1
+								delegate.zoomTo min-zoom, true
 
 .directive 'fathensEditReport', ($log) ->
 	restrict: 'E'
