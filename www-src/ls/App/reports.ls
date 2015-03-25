@@ -262,10 +262,11 @@
 		, (error) !-> $log.debug "Failed to change units: #{angular.toJson error}"
 	load-local = -> store.unit ? default-units
 	load-server = (taker) !->
+		$log.debug "Loading account units"
 		AccountFactory.with-ticket (ticket) ->
 			ServerFactory.load-measures ticket
 		, (units) !->
-			$log.debug "Loaded account units: #{units}"
+			$log.debug "Loaded account units: #{angular.toJson units}"
 			store.unit = angular.copy units
 			taker units
 		, (error) !->
@@ -276,9 +277,10 @@
 		then taker(angular.copy that)
 		else load-server taker
 	init = !->
-		if ! store.unit
-		then load-server (units) !->
-			$log.debug "Refresh units: #{angular.toJson units}"
+		unless store.unit
+			load-server (units) !->
+				$log.debug "Refresh units: #{angular.toJson units}"
+	ionic.Platform.ready init
 
 	units: -> angular.copy do
 		length: ['cm', 'inch']

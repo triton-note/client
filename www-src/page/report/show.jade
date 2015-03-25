@@ -20,9 +20,10 @@ ion-view(view-title="Report Detail")
 		.item(style="border: none; padding-bottom: 0px")
 			pre {{ report.comment }}
 
-		.card
-			.item.item-image
-				fathens-fit-img(src="report.photo.mainview.volatileUrl", delegate-handle="scroll-img-show-report", direction="xy", zooming="true", min-zoom="0.5", max-zoom="4")
+		.item(style="border: none; padding: 10px")
+			.card
+				.item.item-image
+					fathens-fit-img(src="report.photo.mainview.volatileUrl", delegate-handle="scroll-img-show-report", whole="true", direction="xy", zooming="true")
 
 		.list
 			.item.item-divider
@@ -47,3 +48,5 @@ ion-view(view-title="Report Detail")
 					p Moon: {{ report.condition.moon }}
 					.item-image(style="width: 50%")
 						img(ng-src="{{ moonIcon }}")
+
+		.item(style="border: none")

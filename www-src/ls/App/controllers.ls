@@ -210,24 +210,29 @@
 					title: title
 					template: error-msg
 				.then $ionicHistory.goBack
-			PhotoFactory.select (info, photo) !->
+			store =
+				photo: null
+			PhotoFactory.select (photo) !->
 				uri = URL.createObjectURL photo
-				console.log "Selected photo info: #{angular.toJson info}: #{uri}"
-				upload = (geoinfo = null) !->
-					$scope.report = ReportFactory.newCurrent uri
-						, new Date(Math.round((info?.timestamp ? new Date!).getTime! / 1000) * 1000)
-						, geoinfo
+				console.log "Selected photo info: #{uri}"
+				$scope.report = ReportFactory.newCurrent uri
+				$ionicLoading.hide!
+				store.photo = photo
+			, (info) !->
+				console.log "Exif info: #{angular.toJson info}"
+				upload = (geoinfo) !->
+					$scope.report.dateAt = new Date(Math.round((info?.timestamp ? new Date!).getTime! / 1000) * 1000)
+					$scope.report.location.geoinfo = geoinfo
 					$log.debug "Created report: #{angular.toJson $scope.report}"
 					SessionFactory.start geoinfo, !->
-						$ionicLoading.hide!
-						SessionFactory.put-photo photo
+						SessionFactory.put-photo store.photo
 						, (result) !->
 							$log.debug "Get result of upload: #{angular.toJson result}"
 							$scope.submission.enabled = true
 							$timeout !->
-								$log.debug "Updating photo url: #{result.url}"
+								$log.debug "Updating photo url: #{angular.toJson result.url}"
 								$scope.report.photo <<< result.url
-							, 1000
+							, 100
 						, (inference) !->
 							$log.debug "Get inference: #{angular.toJson inference}"
 							if inference.location
@@ -242,7 +247,9 @@
 					$log.warn "Getting current location..."
 					GMapFactory.getGeoinfo upload, (error) !->
 						$log.error "Geolocation Error: #{angular.toJson error}"
-						upload!
+						upload do
+							latitude: 0
+							longitude: 0
 			, on-error "Need one photo"
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) !->

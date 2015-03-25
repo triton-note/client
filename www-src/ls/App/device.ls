@@ -1,10 +1,10 @@
-.factory 'PhotoFactory', ($log) ->
+.factory 'PhotoFactory', ($log, $timeout) ->
 	readExif = (photo, info-taker) !->
 		try
 			console.log "Reading Exif in #{photo}"
 			reader = new ExifReader()
 			reader.load photo
-			toDate = (str) ->
+			toDate = (str) -> if !str then null else
 				a = str.split(' ') |> _.map (.split ':') |> _.flatten |> _.map Number
 				new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5])
 			g =
@@ -14,36 +14,56 @@
 				timestamp: toDate(reader.getTagDescription 'DateTimeOriginal')
 				geoinfo: if g.latitude && g.longitude then g else null
 		catch
-			console.log "Failed to read Exif: #{e}"
-			plugin.acra.handleSilentException(angular.toJson e)
+			console.log "Failed to read Exif: #{e.message}"
 			info-taker null
 	/*
 		Select a photo from storage.
-		onSuccess(photo[blob or uri])
+		photo-taker(photo[blob])
+		info-taker(exif-info)
 		onFailure(error-message)
 	*/
-	select: (onSuccess, onFailure) !-> ionic.Platform.ready !->
+	select: (photo-taker, info-taker, onFailure) !-> ionic.Platform.ready !->
+		taker = (uri) !->
+			console.log "Loading photo: #{uri}"
+			resolveLocalFileSystemURL uri
+			, (entry) !->
+				entry.file (file) !->
+					try
+						reader = new FileReader
+						reader.onloadend = (evt) !->
+							try
+								array = evt.target.result
+								console.log "Read photo success: #{array}"
+								$timeout !->
+									readExif array, info-taker
+								, 100
+								photo-taker new Blob [array],
+									type: 'image/jpeg'
+							catch
+								plugin.acra.handleSilentException "Failed to read photo(#{uri}): #{e.message}: #{e.stack}"
+								onFailure "Failed to get photo"
+						reader.onerror = (evt) !->
+							onFailure "Failed to read photo file"
+						reader.readAsArrayBuffer file
+					catch
+						plugin.acra.handleSilentException "Failed to get photo(#{uri}): #{e.message}: #{e.stack}"
+						onFailure "Failed to get photo"
+				, (error) !->
+					console.log "Failed to get photo file: #{uri}"
+					onFailure "Failed to get photo file"
+			, (error) !->
+				console.log "Failed to parse photo uri: #{uri}"
+				onFailure "Failed to parse photo uri"
 		try
-			taker = (uri) !->
-				req = new XMLHttpRequest()
-				req.open("GET", uri, true)
-				req.responseType = "arraybuffer"
-				req.onload = !->
-					array = req.response
-					readExif array, (info) !->
-						onSuccess info, new Blob [array],
-							type: 'image/jpeg'
-				req.send!
 			navigator.camera.getPicture taker, onFailure,
 				correctOrientation: true
 				mediaType: navigator.camera.MediaType.PICTURE
 				encodingType: Camera.EncodingType.JPEG
-				sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM
-				destinationType: Camera.DestinationType.NATIVE_URI
+				sourceType: Camera.PictureSourceType.PHOTOLIBRARY
+				destinationType: Camera.DestinationType.FILE_URI
 		catch
-			console.log "Failed to select photo: #{e}"
-			plugin.acra.handleSilentException(angular.toJson e)
-			onFailure e
+			plugin.acra.handleSilentException "Failed to select photo: #{e.message}: #{e.stack}"
+			onFailure "Failed to select photo"
 
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
@@ -127,14 +147,18 @@
 	setMapType: (id) !-> onReady !->
 		store.gmap.setMapTypeId store.map-type = id
 	getGeoinfo: (onSuccess, onError) !-> onReady !->
-		store.gmap.getMyLocation (location) !->
-			$log.debug "Gotta GMap Location: #{angular.toJson location}"
+		navigator.geolocation.getCurrentPosition (position) !->
+			$log.debug "Gotta GMap Location: #{angular.toJson position}"
 			onSuccess do
-				latitude: location.latLng.lat
-				longitude: location.latLng.lng
+				latitude: position.coords.latitude
+				longitude: position.coords.longitude
 		, (error) !->
 			$log.error "GMap Location Error: #{angular.toJson error}"
-			onError error if onError
+			onError error.message if onError
+		,
+			maximumAge: 3000
+			timeout: 5000
+			enableHighAccuracy: true
 	onDiv: (scope, name, success, center) !-> onReady !->
 		clear!
 		if center
