@@ -210,17 +210,21 @@
 					title: title
 					template: error-msg
 				.then $ionicHistory.goBack
-			PhotoFactory.select (info, photo) !->
+			store =
+				photo: null
+			PhotoFactory.select (photo) !->
 				uri = URL.createObjectURL photo
 				console.log "Selected photo info: #{angular.toJson info}: #{uri}"
-				upload = (geoinfo = null) !->
-					$scope.report = ReportFactory.newCurrent uri
-						, new Date(Math.round((info?.timestamp ? new Date!).getTime! / 1000) * 1000)
-						, geoinfo
+				$scope.report = ReportFactory.newCurrent uri
+				$ionicLoading.hide!
+				store.photo = photo
+			, (info) !->
+				upload = (geoinfo) !->
+					$scope.report.dateAt = new Date(Math.round((info?.timestamp ? new Date!).getTime! / 1000) * 1000)
+					$scope.report.location.geoinfo = geoinfo
 					$log.debug "Created report: #{angular.toJson $scope.report}"
 					SessionFactory.start geoinfo, !->
-						$ionicLoading.hide!
-						SessionFactory.put-photo photo
+						SessionFactory.put-photo store.photo
 						, (result) !->
 							$log.debug "Get result of upload: #{angular.toJson result}"
 							$scope.submission.enabled = true
