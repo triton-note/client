@@ -7,7 +7,7 @@ build:
                 sudo npm install
                 sudo npm install -g gulp
                 sudo npm install -g ionic
-                gulp
+                gulp --release
                 ./reinstall_plugins.sh
         - script:
             name: keystore
