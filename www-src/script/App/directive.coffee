@@ -25,8 +25,8 @@ angular.module('triton_note.directive', [])
 							height: img[0].clientHeight
 						# Fit width
 						max = if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width else rect.height
-						div.style.width = "#{_.min max, rect.width}px"
-						div.style.height = "#{_.min max, rect.height}px"
+						div.style.width = "#{Math.min max, rect.width}px"
+						div.style.height = "#{Math.min max, rect.height}px"
 						$log.debug "fathensFitImg: #{angular.toJson rect} is> #{max}"
 						# Scroll to center
 						delegate = $ionicScrollDelegate.$getByHandle $attrs['delegateHandle']
@@ -37,7 +37,7 @@ angular.module('triton_note.directive', [])
 								top: margin (v) -> v.height
 							delegate.scrollTo sc.left, sc.top
 							$log.debug "fathensFitImg: scroll=#{angular.toJson sc}"
-							min_zoom = _.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width / rect.height else rect.height / rect.width
+							min_zoom = Math.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width / rect.height else rect.height / rect.width
 							if whole and min_zoom < 1
 								delegate.zoomTo min_zoom, true
 
@@ -51,8 +51,8 @@ angular.module('triton_note.directive', [])
 			$ionicPopover.fromTemplateUrl name,
 				scope: $scope
 			.then (popover) ->
-				$scope.popover[_.camelize name] = popover
-		$scope.popover_hide = ->
+				$scope.popover[name] = popover
+		$scope.popoverHide = ->
 			for _, p of $scope.popover
 				p?.hide()
 		$scope.$on '$destroy', (event) ->

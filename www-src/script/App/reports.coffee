@@ -8,6 +8,10 @@ angular.module('triton_note.reports', [])
 		icon: "img/tide/#{name.toLowerCase()}.png"
 	weather = (id) ->
 		"http://openweathermap.org/img/w/#{id}.png"
+	objMap = (f, obj) ->
+		tmp = {}
+		Object.keys(obj).forEach (key) ->
+			tmp[key] = f(obj[key])
 	default_condition = -> angular.copy
 		moon: 0
 		tide: 'High'
@@ -32,7 +36,7 @@ angular.module('triton_note.reports', [])
 			taker default_condition()
 	moon_phases: [0..30].map moon
 	tide_phases: ['Flood', 'High', 'Ebb', 'Low'].map tide
-	weather_states: _.Obj.map weather,
+	weather_states: objMap weather,
 		Clear: '01d'
 		Clouds: '04d'
 		Rain: '09d'
@@ -354,8 +358,8 @@ angular.module('triton_note.reports', [])
 			success() if success
 		AccountFactory.with_ticket (ticket) ->
 			ServerFactory.catches_mine ticket
-		, _.map(convert) >> (list) ->
-			store.catches.mine = list
+		, (list) ->
+			store.catches.mine = list.map(convert)
 			suc()
 		, (error) ->
 			$ionicPopup.alert
@@ -369,8 +373,8 @@ angular.module('triton_note.reports', [])
 			success() if success
 		AccountFactory.with_ticket (ticket) ->
 			ServerFactory.catches_others ticket
-		, _.map(convert) >> (list) ->
-			store.catches.others = list
+		, (list) ->
+			store.catches.others = list.map(convert)
 			suc()
 		, (error) ->
 			$ionicPopup.alert

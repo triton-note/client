@@ -346,7 +346,7 @@ angular.module('triton_note.controllers', [])
 				min = 4
 				max = center - 1
 				v = min + (max - min) * count / 10
-				_.min max, v
+				Math.min max, v
 			canvas = document.createElement 'canvas'
 			canvas.width = size
 			canvas.height = size
@@ -354,7 +354,7 @@ angular.module('triton_note.controllers', [])
 			context.beginPath()
 			context.strokeStyle = "rgb(80, 0, 0)"
 			context.fillStyle = "rgba(255, 40, 0, 0.7)"
-			context.arc center, center, r(), 0, _.pi * 2, true
+			context.arc center, center, r(), 0, Math.pi * 2, true
 			context.stroke()
 			context.fill()
 			canvas.toDataURL()
@@ -392,7 +392,7 @@ angular.module('triton_note.controllers', [])
 				for fish in list
 					gmap.addMarker
 						title: "#{fish.name} x #{fish.count}"
-						icon: icons[(_.min fish.count, 10) - 1]
+						icon: icons[(Math.min fish.count, 10) - 1]
 						position:
 							lat: fish.geoinfo.latitude
 							lng: fish.geoinfo.longitude
