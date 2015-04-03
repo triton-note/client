@@ -1,4 +1,4 @@
-angular.module('triton_note.device', ['ionic'])
+angular.module('triton_note.device', [])
 .factory 'PhotoFactory', ($log, $timeout) ->
 	readExif = (photo, info_taker) ->
 		try

@@ -1,4 +1,4 @@
-angular.module('triton_note.reports', ['ionic'])
+angular.module('triton_note.reports', [])
 .factory 'ConditionFactory', ($log, ServerFactory, AccountFactory, UnitFactory) ->
 	moon = (n) ->
 		v = "0#{n}".split('').reverse()[..1].reverse().join('')

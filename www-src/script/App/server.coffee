@@ -1,4 +1,4 @@
-angular.module('triton_note.server', ['ionic'])
+angular.module('triton_note.server', [])
 .factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
 	retryable = (retry, config, res_taker, error_taker) -> ionic.Platform.ready ->

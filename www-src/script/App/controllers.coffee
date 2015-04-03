@@ -1,4 +1,4 @@
-angular.module('triton_note.controllers', ['ionic'])
+angular.module('triton_note.controllers', [])
 .controller 'AcceptanceCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AcceptanceFactory) ->
 	$ionicLoading.show()
 	$scope.$on '$ionicView.enter', (event, state) ->

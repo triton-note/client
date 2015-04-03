@@ -1,4 +1,4 @@
-angular.module('triton_note.filter', ['ionic'])
+angular.module('triton_note.filter', [])
 .filter 'fishFilter', ($log, $filter, UnitFactory) ->
 	###
 		fish {

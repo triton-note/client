@@ -1,4 +1,4 @@
-angular.module('triton_note.directive', ['ionic'])
+angular.module('triton_note.directive', [])
 .directive 'fathensFitImg', ($log, $ionicScrollDelegate) ->
 	getProp = (obj, [h, left...]) ->
 		next = obj[h]
