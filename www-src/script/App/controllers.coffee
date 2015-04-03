@@ -134,7 +134,7 @@ angular.module('triton_note.controllers', [])
 
 			google.maps.event.addDomListener div, 'click', ->
 				$scope.use_current()
-				$state.go "view_on_map"
+				$state.go "view-on-map"
 
 	$scope.useCurrent = ->
 		$scope.should_clear = false
@@ -371,7 +371,7 @@ angular.module('triton_note.controllers', [])
 							index = ReportFactory.getIndex fish.report_id
 							if index >= 0
 								GMapFactory.clear()
-								$state.go 'show_report',
+								$state.go 'show-report',
 									index: index
 							else fail()
 						find_or ->

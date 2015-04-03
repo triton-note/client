@@ -133,7 +133,7 @@ angular.module('triton_note.directive', [])
 				google.maps.event.addDomListener div, 'click', ->
 					$scope.popover_hide()
 					$scope.use_current()
-					$state.go "view_on_map",
+					$state.go "view-on-map",
 						edit: true
 
 .directive 'fathensEditFishes', ($log) ->

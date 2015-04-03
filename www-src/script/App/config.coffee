@@ -8,30 +8,30 @@ angular.module('triton_note.config', [])
 		templateUrl: 'page/list.html'
 		controller: 'ListReportsCtrl'
 
-	.state 'show_report',
-		url: '/show_report?index'
+	.state 'show-report',
+		url: '/show-report?index'
 		templateUrl: 'page/report/show.html'
 		controller: 'ShowReportCtrl'
 
-	.state 'edit_report',
-		url: '/edit_report'
+	.state 'edit-report',
+		url: '/edit-report'
 		templateUrl: 'page/report/edit.html'
 		controller: 'EditReportCtrl'
 
-	.state 'add_report',
-		url: '/add_report'
+	.state 'add-report',
+		url: '/add-report'
 		templateUrl: 'page/report/add.html'
 		controller: 'AddReportCtrl'
 
-	.state 'view_on_map',
-		url: '/view_on_map?edit'
-		templateUrl: 'page/report/view_on_map.html'
+	.state 'view-on-map',
+		url: '/view-on-map?edit'
+		templateUrl: 'page/report/view-on-map.html'
 		controller: 'ReportOnMapCtrl'
 		onExit: (GMapFactory) -> GMapFactory.clear()
 
-	.state 'distribution_map',
-		url: '/distribution_map'
-		templateUrl: 'page/menu/distribution_map.html'
+	.state 'distribution-map',
+		url: '/distribution-map'
+		templateUrl: 'page/menu/distribution-map.html'
 		controller: 'DistributionMapCtrl'
 		onExit: (GMapFactory) -> GMapFactory.clear()
 
