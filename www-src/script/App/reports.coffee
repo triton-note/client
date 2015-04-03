@@ -274,8 +274,8 @@ angular.module('triton_note.reports', [])
 			$log.error "Failed to load account units: #{angular.toJson error}"
 			taker(angular.copy default_units)
 	load_current = (taker) ->
-		if store.unit
-		then taker(angular.copy that)
+		if (unit = store.unit)
+		then taker(angular.copy unit)
 		else load_server taker
 	init = ->
 		unless store.unit
@@ -401,14 +401,14 @@ angular.module('triton_note.reports', [])
 		if (list = store.catches.mine)
 			store.catches.mine = list.filter (v) -> v.report_id isnt report_id
 	add_mine = (report) ->
-		if store.catches.mine
+		if (mine = store.catches.mine)
 			list = report.fishes.map (fish) ->
 				report_id: report.id
 				name: fish.name
 				count: fish.count
 				date: report.dateAt
 				geoinfo: report.location.geoinfo
-			store.catches.mine = that ++ list
+			store.catches.mine = mine ++ list
 			$log.debug "Added distribution of catches:#{angular.toJson list}"
 
 	startsWith = (word, pre) ->
@@ -422,8 +422,7 @@ angular.module('triton_note.reports', [])
 			add_mine report
 	name_suggestion: (pre_name, success) ->
 		check_or = (fail) ->
-			if store.names
-				src = that
+			if (src = store.names)
 				pre = pre_name?.toUpperCase()
 				list = if pre then src.filter ((a) -> startsWith(a, pre)) else []
 				success list.sort((a, b) -> a.count - b.count).reverse().map((v) -> v.name)
@@ -434,8 +433,7 @@ angular.module('triton_note.reports', [])
 					success []
 	mine: (pre_name, success) ->
 		check_or = (fail) ->
-			if store.catches.mine
-				src = that
+			if (src = store.catches.mine)
 				pre = pre_name?.toUpperCase()
 				list = if pre then src.filter ((a) -> startsWith(a.name, pre))	else src
 				success list.sort((a, b) -> a.count - b.count).reverse()
@@ -446,8 +444,7 @@ angular.module('triton_note.reports', [])
 					success []
 	others: (pre_name, success) ->
 		check_or = (fail) ->
-			if store.catches.others
-				src = that
+			if (src = store.catches.others)
 				pre = pre_name?.toUpperCase()
 				list = if pre then	src.filter ((a) -> startsWith(a.name, pre)) else src
 				success list.sort((a, b) -> a.count - b.count).reverse()

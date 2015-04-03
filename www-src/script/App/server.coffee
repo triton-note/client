@@ -225,9 +225,9 @@ angular.module('triton_note.server', [])
 
 	successIt = ->
 		LocalStorageFactory.acceptance.save true
-		if store.taking
+		if (list = store.taking)
 			store.taking = null
-			for suc in that
+			for suc in list
 				suc()
 
 	isReady: LocalStorageFactory.acceptance.load
@@ -302,9 +302,9 @@ angular.module('triton_note.server', [])
 			taker =
 				ticket: ticket_taker
 				error: error_taker
-			if store.taking
-				that.push taker
-				$log.debug "Pushed into queue: #{that}"
+			if (list = store.taking)
+				list.push taker
+				$log.debug "Pushed into queue: #{list}"
 			else
 				broadcast = (proc) -> if (list = store.taking)
 					store.taking = null
@@ -435,10 +435,10 @@ angular.module('triton_note.server', [])
 			success()
 		, error_taker
 	put_photo: (photo, success, inference_taker, error_taker) ->
-		if store.session
+		if (ses = store.session)
 			upload photo, (filename) ->
-				ServerFactory.put_photo(that, filename) (urls) ->
-					ServerFactory.infer_photo(that) inference_taker, (error) ->
+				ServerFactory.put_photo(ses, filename) (urls) ->
+					ServerFactory.infer_photo(ses) inference_taker, (error) ->
 						store.session = null
 						error_taker error.msg
 					success urls

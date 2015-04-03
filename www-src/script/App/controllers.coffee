@@ -199,9 +199,9 @@ angular.module('triton_note.controllers', [])
 		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.should_clear = true
 
-		if ReportFactory.current().report
+		if (cur = ReportFactory.current().report)
 			$ionicLoading.hide()
-			$scope.report = that
+			$scope.report = cur
 			$log.debug "Getting current report: #{angular.toJson $scope.report}"
 			$scope.submission.enabled = !!$scope.report.photo.original
 		else
@@ -236,8 +236,8 @@ angular.module('triton_note.controllers', [])
 							, 100
 						, (inference) ->
 							$log.debug "Get inference: #{angular.toJson inference}"
-							if inference.location
-								$scope.report.location.name = that
+							if (loc = inference.location)
+								$scope.report.location.name = loc
 							if inference.fishes?.length > 0
 								$scope.report.fishes = inference.fishes
 						, on_error "Failed to upload"
@@ -299,8 +299,8 @@ angular.module('triton_note.controllers', [])
 			$scope.popover_view = pop
 
 	$scope.submit = ->
-		if $scope.geoinfo
-			$scope.report.location.geoinfo = that
+		if (geoinfo = $scope.geoinfo)
+			$scope.report.location.geoinfo = geoinfo
 		$ionicHistory.goBack()
 
 .controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, $ionicLoading, GMapFactory, DistributionFactory, ReportFactory) ->
