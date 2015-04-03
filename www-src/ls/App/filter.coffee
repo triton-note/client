@@ -1,5 +1,5 @@
 .filter 'fishFilter', ($log, $filter, UnitFactory) ->
-	/*
+	###
 		fish {
 			name: String
 			count: Int
@@ -12,7 +12,7 @@
 				unit: 'pond'|'kg'
 			}
 		}
-	*/
+	###
 	(fish) ->
 		size = (u) ->
 			src = eval "fish.#{u}"

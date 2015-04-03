@@ -1,122 +1,122 @@
-.controller 'AcceptanceCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AcceptanceFactory) !->
-	$ionicLoading.show!
-	$scope.$on '$ionicView.enter', (event, state) !->
+.controller 'AcceptanceCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AcceptanceFactory) ->
+	$ionicLoading.show()
+	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter AcceptanceCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		$scope.accept = !->
+		$scope.accept = ->
 			$log.info "Acceptance obtained"
-			AcceptanceFactory.success!
+			AcceptanceFactory.success()
 			$ionicHistory.nextViewOptions do
 				disableAnimate: true
 				disableBack: true
 			$state.go 'home'
 
-.controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AccountFactory, ReportFactory) !->
-	$ionicLoading.show!
-	$scope.$on '$ionicView.enter', (event, state) !->
+.controller 'SNSCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AccountFactory, ReportFactory) ->
+	$ionicLoading.show()
+	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter SNSCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		AccountFactory.get-username (username) !->
-			$scope.$apply !-> $scope.done username
-		, (error-msg) !->
-			$scope.$apply !-> $scope.done!
+		AccountFactory.get_username (username) ->
+			$scope.$apply -> $scope.done username
+		, (error_msg) ->
+			$scope.$apply -> $scope.done()
 
-	$scope.checkSocial = !->
-		$ionicLoading.show!
+	$scope.checkSocial = ->
+		$ionicLoading.show()
 		next = $scope.social.username == null
 		$log.debug "Changing social: #{next}"
-		on-error = (error) !->
+		on_error = (error) ->
 			$log.error "Erorr on Facebook: #{angular.toJson error}"
 			$scope.done $scope.social.username
 			$ionicPopup.alert do
 				title: "Rejected"
 		if next
-			AccountFactory.connect $scope.done, on-error
+			AccountFactory.connect $scope.done, on_error
 		else
-			AccountFactory.disconnect !->
-				ReportFactory.clear-list!
-				$ionicHistory.clearCache!
-				$log.warn "SNSCtrl: Cache Cleared!"
-				$scope.done!
+			AccountFactory.disconnect ->
+				ReportFactory.clear_list()
+				$ionicHistory.clearCache()
+				$log.warn "SNSCtrl: Cache Cleared()"
+				$scope.done()
 				$ionicPopup.alert do
 					title: "No social connection"
 					template: "Please login to Facebook, if you want to continue this app."
-			, on-error
-	$scope.done = (username = null) !->
+			, on_error
+	$scope.done = (username = null) ->
 		$scope.social =
 			username: username
-			login: username != null
-		$ionicLoading.hide!
+			login: username ()= null
+		$ionicLoading.hide()
 		$log.debug "Account connection: #{angular.toJson $scope.social}"
 
-.controller 'PreferencesCtrl', ($log, $scope, $stateParams, $ionicSideMenuDelegate, $ionicLoading, $ionicPopup, UnitFactory) !->
-	$ionicLoading.show!
-	$scope.$on '$ionicView.enter', (event, state) !->
+.controller 'PreferencesCtrl', ($log, $scope, $stateParams, $ionicSideMenuDelegate, $ionicLoading, $ionicPopup, UnitFactory) ->
+	$ionicLoading.show()
+	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter PreferencesCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		$ionicLoading.show!
-		UnitFactory.load (units) !->
+		$ionicLoading.show()
+		UnitFactory.load (units) ->
 			$scope.unit = units
-			$ionicLoading.hide!
+			$ionicLoading.hide()
 
-	$scope.submit = !->
+	$scope.submit = ->
 		UnitFactory.save $scope.unit
-		$ionicSideMenuDelegate.toggle-left true
-	$scope.units = UnitFactory.units!
+		$ionicSideMenuDelegate.toggle_left true
+	$scope.units = UnitFactory.units()
 
-.controller 'ListReportsCtrl', ($log, $scope, ReportFactory) !->
+.controller 'ListReportsCtrl', ($log, $scope, ReportFactory) ->
 	$scope.reports = ReportFactory.cachedList
 	$scope.hasMoreReports = ReportFactory.hasMore
-	$scope.refresh = !->
+	$scope.refresh = ->
 		$log.debug "Refresh Reports List ..."
-		ReportFactory.refresh !->
+		ReportFactory.refresh ->
 			$scope.$broadcast 'scroll.refreshComplete'
-	$scope.moreReports = !-> if ReportFactory.hasMore!
+	$scope.moreReports = -> if ReportFactory.hasMore()
 		$log.debug "Get More Reports List ..."
-		ReportFactory.load !->
+		ReportFactory.load ->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-.controller 'ShowReportCtrl', ($log, $timeout, $state, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopover, $ionicPopup, ReportFactory, ConditionFactory) !->
-	$scope.$on '$ionicView.enter', (event, state) !->
+.controller 'ShowReportCtrl', ($log, $timeout, $state, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopover, $ionicPopup, ReportFactory, ConditionFactory) ->
+	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.popover = {}
-		['show-location', 'option-buttons'] |> _.each (name) !->
+		['show_location', 'option_buttons'] |> _.each (name) ->
 			$ionicPopover.fromTemplateUrl name,
 				scope: $scope
-			.then (popover) !->
+			.then (popover) ->
 				$scope.popover[_.camelize name] = popover
-		$scope.popover-hide = !->
+		$scope.popover_hide = ->
 			for ,p of $scope.popover
-				p.hide!
+				p.hide()
 
-		$scope.should-clear = true
-		if $stateParams.index && ReportFactory.current!.index == null
+		$scope.should_clear = true
+		if $stateParams.index && ReportFactory.current().index == null
 			$scope.report = ReportFactory.getReport($scope.index = Number($stateParams.index))
 		else
-			c = ReportFactory.current!
+			c = ReportFactory.current()
 			$scope.index = c.index
 			$scope.report = c.report
-		$scope.tide-icon = ConditionFactory.tide-phases |> _.find (.name == $scope.report.condition?.tide) |> (?.icon)
-		$scope.moon-icon = ConditionFactory.moon-phases[$scope.report.condition?.moon]
+		$scope.tide_icon = ConditionFactory.tide_phases |> _.find (.name == $scope.report.condition?.tide) |> (?.icon)
+		$scope.moon_icon = ConditionFactory.moon_phases[$scope.report.condition?.moon]
 		
-		$scope.show-location-gmap =
+		$scope.show_location_gmap =
 			center: new google.maps.LatLng($scope.report.location.geoinfo.latitude, $scope.report.location.geoinfo.longitude)
 			map: null
 			marker: null
 		
 		$log.debug "Show Report: #{angular.toJson $scope.report}"
-		$ionicScrollDelegate.$getByHandle("scroll-img-show-report").zoomTo 1
+		$ionicScrollDelegate.$getByHandle("scroll_img_show_report").zoomTo 1
 
-	$scope.$on '$ionicView.beforeLeave', (event, state) !->
+	$scope.$on '$ionicView.beforeLeave', (event, state) ->
 		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}"
-		ReportFactory.clear-current! if $scope.should-clear
+		ReportFactory.clear_current() if $scope.should_clear
 		for ,p of $scope.popover
-			p?.remove!
-		$scope.show-location-gmap.map = null
-		$scope.show-location-gmap.marker = null
+			p?.remove()
+		$scope.show_location_gmap.map = null
+		$scope.show_location_gmap.marker = null
 
-	$scope.preview-map = ($event) !->
-		gmap = $scope.show-location-gmap
-		$scope.popover.show-location.show $event
-		.then !->
-			div = document.getElementById "show-gmap"
+	$scope.preview_map = ($event) ->
+		gmap = $scope.show_location_gmap
+		$scope.popover.show_location.show $event
+		.then ->
+			div = document.getElementById "show_gmap"
 			unless gmap.map
 				gmap.map = new google.maps.Map div,
 					mapTypeId: google.maps.MapTypeId.HYBRID
@@ -131,211 +131,211 @@
 				position: gmap.center
 				animation: google.maps.Animation.DROP
 
-			google.maps.event.addDomListener div, 'click', !->
-				$scope.use-current!
-				$state.go "view-on-map"
+			google.maps.event.addDomListener div, 'click', ->
+				$scope.use_current()
+				$state.go "view_on_map"
 
-	$scope.useCurrent = !->
-		$scope.should-clear = false
-	$scope.delete = !->
-		$scope.popover-hide!
+	$scope.useCurrent = ->
+		$scope.should_clear = false
+	$scope.delete = ->
+		$scope.popover_hide()
 		$ionicPopup.confirm do
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"
-		.then (res) !-> if res
-			ReportFactory.remove $scope.index, !->
+		.then (res) -> if res
+			ReportFactory.remove $scope.index, ->
 				$log.debug "Remove completed."
-			$ionicHistory.goBack!
-	$scope.publish = !->
-		$scope.popover-hide!
+			$ionicHistory.goBack()
+	$scope.publish = ->
+		$scope.popover_hide()
 		$ionicPopup.confirm do
 			title: "Publish Report"
 			template: "Are you sure to post this report to Facebook ?"
-		.then (res) !-> if res
-			ReportFactory.publish $scope.report.id, !->
+		.then (res) -> if res
+			ReportFactory.publish $scope.report.id, ->
 				$log.debug "Publish completed."
 				$ionicPopup.alert do
 					title: 'Completed to post'
-			, (error) !->
+			, (error) ->
 				$ionicPopup.alert do
 					title: 'Error'
 					template: "Failed to post"
 
-.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicHistory, $ionicLoading, ReportFactory) !->
-	$scope.$on '$ionicView.enter', (event, state) !->
+.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicHistory, $ionicLoading, ReportFactory) ->
+	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter EditReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		$scope.should-clear = true
-		$scope.report = ReportFactory.current!.report
-		$ionicScrollDelegate.$getByHandle("scroll-img-edit-report").zoomTo 1
+		$scope.should_clear = true
+		$scope.report = ReportFactory.current().report
+		$ionicScrollDelegate.$getByHandle("scroll_img_edit_report").zoomTo 1
 
-	$scope.$on '$ionicView.beforeLeave', (event, state) !->
+	$scope.$on '$ionicView.beforeLeave', (event, state) ->
 		$log.debug "Before Leave EditReportCtrl: event=#{angular.toJson event}"
-		ReportFactory.clear-current! if $scope.should-clear
+		ReportFactory.clear_current() if $scope.should_clear
 
-	$scope.useCurrent = !->
-		$scope.should-clear = false
-	$scope.submit = !->
-		$ionicLoading.show!
-		ReportFactory.updateByCurrent !->
+	$scope.useCurrent = ->
+		$scope.should_clear = false
+	$scope.submit = ->
+		$ionicLoading.show()
+		ReportFactory.updateByCurrent ->
 			$log.debug "Edit completed."
-			$ionicHistory.goBack!
+			$ionicHistory.goBack()
 		, $ionicLoading.hide
-	$scope.submission-enabled = ->
-		!!$scope.report?.location?.name
+	$scope.submission_enabled = ->
+		()!$scope.report?.location?.name
 
-.controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) !->
+.controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) ->
 	$log.debug "Init AddReportCtrl"
-	$ionicLoading.show!
-	$scope.$on '$ionicView.loaded', (event, state) !->
+	$ionicLoading.show()
+	$scope.$on '$ionicView.loaded', (event, state) ->
 		$log.debug "Loaded AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 
-		$ionicPopover.fromTemplateUrl 'confirm-submit',
+		$ionicPopover.fromTemplateUrl 'confirm_submit',
 			scope: $scope
-		.then (popover) !->
-			$scope.confirm-submit = popover
+		.then (popover) ->
+			$scope.confirm_submit = popover
 
-	$scope.$on '$ionicView.enter', (event, state) !->
+	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		$scope.should-clear = true
+		$scope.should_clear = true
 
-		if ReportFactory.current!.report
-			$ionicLoading.hide!
+		if ReportFactory.current().report
+			$ionicLoading.hide()
 			$scope.report = that
 			$log.debug "Getting current report: #{angular.toJson $scope.report}"
-			$scope.submission.enabled = !!$scope.report.photo.original
+			$scope.submission.enabled = ()!$scope.report.photo.original
 		else
-			on-error = (title) -> (error-msg) !->
-				$ionicLoading.hide!
+			on_error = (title) -> (error_msg) ->
+				$ionicLoading.hide()
 				$ionicPopup.alert do
 					title: title
-					template: error-msg
+					template: error_msg
 				.then $ionicHistory.goBack
 			store =
 				photo: null
-			PhotoFactory.select (photo) !->
+			PhotoFactory.select (photo) ->
 				uri = URL.createObjectURL photo
 				console.log "Selected photo info: #{uri}"
 				$scope.report = ReportFactory.newCurrent uri
-				$ionicLoading.hide!
+				$ionicLoading.hide()
 				store.photo = photo
-			, (info) !->
+			, (info) ->
 				console.log "Exif info: #{angular.toJson info}"
-				upload = (geoinfo) !->
-					$scope.report.dateAt = new Date(Math.round((info?.timestamp ? new Date!).getTime! / 1000) * 1000)
+				upload = (geoinfo) ->
+					$scope.report.dateAt = new Date(Math.round((info?.timestamp ? new Date()).getTime() / 1000) * 1000)
 					$scope.report.location.geoinfo = geoinfo
 					$log.debug "Created report: #{angular.toJson $scope.report}"
-					SessionFactory.start geoinfo, !->
-						SessionFactory.put-photo store.photo
-						, (result) !->
+					SessionFactory.start geoinfo, ->
+						SessionFactory.put_photo store.photo
+						, (result) ->
 							$log.debug "Get result of upload: #{angular.toJson result}"
 							$scope.submission.enabled = true
-							$timeout !->
+							$timeout ->
 								$log.debug "Updating photo url: #{angular.toJson result.url}"
 								$scope.report.photo <<< result.url
 							, 100
-						, (inference) !->
+						, (inference) ->
 							$log.debug "Get inference: #{angular.toJson inference}"
 							if inference.location
 								$scope.report.location.name = that
 							if inference.fishes?.length > 0
 								$scope.report.fishes = inference.fishes
-						, on-error "Failed to upload"
-					, on-error "Error"
+						, on_error "Failed to upload"
+					, on_error "Error"
 				if info?.geoinfo
 					upload info.geoinfo
 				else
 					$log.warn "Getting current location..."
-					GMapFactory.getGeoinfo upload, (error) !->
+					GMapFactory.getGeoinfo upload, (error) ->
 						$log.error "Geolocation Error: #{angular.toJson error}"
 						upload do
 							latitude: 0
 							longitude: 0
-			, on-error "Need one photo"
+			, on_error "Need one photo"
 
-	$scope.$on '$ionicView.beforeLeave', (event, state) !->
+	$scope.$on '$ionicView.beforeLeave', (event, state) ->
 		$log.debug "Before Leave AddReportCtrl: event=#{angular.toJson event}"
-		ReportFactory.clear-current! if $scope.should-clear
+		ReportFactory.clear_current() if $scope.should_clear
 
-	$scope.useCurrent = !->
-		$scope.should-clear = false
-	$scope.submit = !->
-		$ionicLoading.show!
+	$scope.useCurrent = ->
+		$scope.should_clear = false
+	$scope.submit = ->
+		$ionicLoading.show()
 		if !$scope.report.location.name
 			$scope.report.location.name = "MySpot"
-		SessionFactory.finish $scope.report, $scope.submission.publishing, !->
-			$ionicHistory.goBack!
+		SessionFactory.finish $scope.report, $scope.submission.publishing, ->
+			$ionicHistory.goBack()
 		, $ionicLoading.hide
 	$scope.submission =
 		enabled: false
 		publishing: false
 
-.controller 'ReportOnMapCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) !->
-	$scope.$on '$ionicView.enter', (event, state) !->
+.controller 'ReportOnMapCtrl', ($log, $scope, $stateParams, $ionicHistory, $ionicPopover, GMapFactory, ReportFactory) ->
+	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		$scope.report = ReportFactory.current!.report
-		GMapFactory.onDiv $scope, 'edit-map', (gmap) !->
-			$scope.$on 'popover.hidden', !->
+		$scope.report = ReportFactory.current().report
+		GMapFactory.onDiv $scope, 'edit_map', (gmap) ->
+			$scope.$on 'popover.hidden', ->
 				gmap.setClickable true
-			$scope.showViewOptions = (event) !->
+			$scope.showViewOptions = (event) ->
 				gmap.setClickable false
-				$scope.popover-view.show event
+				$scope.popover_view.show event
 			if $stateParams.edit
 				$scope.geoinfo = $scope.report.location.geoinfo
-				GMapFactory.onTap (geoinfo) !->
+				GMapFactory.onTap (geoinfo) ->
 					$scope.geoinfo = geoinfo
-					GMapFactory.put-marker geoinfo
+					GMapFactory.put_marker geoinfo
 		, $scope.report.location.geoinfo
 		$scope.view =
 			gmap:
-				type: GMapFactory.getMapType!
-				types: GMapFactory.getMapTypes!
-		$scope.$watch 'view.gmap.type', (value) !->
+				type: GMapFactory.getMapType()
+				types: GMapFactory.getMapTypes()
+		$scope.$watch 'view.gmap.type', (value) ->
 			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
 			GMapFactory.setMapType value
-		$ionicPopover.fromTemplateUrl 'view-map-view',
+		$ionicPopover.fromTemplateUrl 'view_map_view',
 			scope: $scope
 		.then (pop) ->
-			$scope.popover-view = pop
+			$scope.popover_view = pop
 
-	$scope.submit = !->
+	$scope.submit = ->
 		if $scope.geoinfo
 			$scope.report.location.geoinfo = that
-		$ionicHistory.goBack!
+		$ionicHistory.goBack()
 
-.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, $ionicLoading, GMapFactory, DistributionFactory, ReportFactory) !->
-	$ionicLoading.show!
-	$scope.$on '$ionicView.loaded', (event, state) !->
+.controller 'DistributionMapCtrl', ($log, $ionicPlatform, $scope, $state, $stateParams, $ionicSideMenuDelegate, $ionicPopover, $ionicLoading, GMapFactory, DistributionFactory, ReportFactory) ->
+	$ionicLoading.show()
+	$scope.$on '$ionicView.loaded', (event, state) ->
 		$log.debug "Loaded DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.view =
 			others: false
 			name: null
 			gmap:
-				type: GMapFactory.getMapType!
-				types: GMapFactory.getMapTypes!
-		$scope.$watch 'view.others', (value) !->
+				type: GMapFactory.getMapType()
+				types: GMapFactory.getMapTypes()
+		$scope.$watch 'view.others', (value) ->
 			$log.debug "Changing 'view.person': #{angular.toJson value}"
-			$scope.map-distribution!
-		$scope.$watch 'view.name', (value) !->
+			$scope.map_distribution()
+		$scope.$watch 'view.name', (value) ->
 			$log.debug "Changing 'view.fish': #{angular.toJson value}"
-			$scope.map-distribution!
-		$scope.$watch 'view.gmap.type', (value) !->
+			$scope.map_distribution()
+		$scope.$watch 'view.gmap.type', (value) ->
 			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
 			GMapFactory.setMapType value
-		$ionicPopover.fromTemplateUrl 'distribution-map-options',
+		$ionicPopover.fromTemplateUrl 'distribution_map_options',
 			scope: $scope
 		.then (pop) ->
-			$scope.popover-options = pop
-		$scope.showOptions = (event) !->
+			$scope.popover_options = pop
+		$scope.showOptions = (event) ->
 			$scope.gmap.setClickable false
-			$scope.popover-options.show event
-		$ionicPopover.fromTemplateUrl 'distribution-map-view',
+			$scope.popover_options.show event
+		$ionicPopover.fromTemplateUrl 'distribution_map_view',
 			scope: $scope
 		.then (pop) ->
-			$scope.popover-view = pop
-		$scope.showViewOptions = (event) !->
+			$scope.popover_view = pop
+		$scope.showViewOptions = (event) ->
 			$scope.gmap.setClickable false
-			$scope.popover-view.show event
-		$scope.$on 'popover.hidden', !->
+			$scope.popover_view.show event
+		$scope.$on 'popover.hidden', ->
 			$scope.gmap.setClickable true
 
 		icons = [1 to 10] |> _.map (count) ->
@@ -350,44 +350,44 @@
 			canvas.width = size
 			canvas.height = size
 			context = canvas.getContext '2d'
-			context.beginPath!
+			context.beginPath()
 			context.strokeStyle = "rgb(80, 0, 0)"
 			context.fillStyle = "rgba(255, 40, 0, 0.7)"
-			context.arc center, center, r!, 0, _.pi * 2, true
-			context.stroke!
-			context.fill!
-			canvas.toDataURL!
-		$scope.map-distribution = !-> if gmap = $scope.gmap
+			context.arc center, center, r(), 0, _.pi * 2, true
+			context.stroke()
+			context.fill()
+			canvas.toDataURL()
+		$scope.map_distribution = -> if gmap = $scope.gmap
 			others = $scope.view.others
-			fish-name = $scope.view.name
-			map-mine = (list) !->
-				$log.debug "Mapping my distribution (filtered by '#{fish-name}'): #{list}"
-				gmap.clear!
-				detail = (fish) -> (marker) !->
-					marker.on plugin.google.maps.event.INFO_CLICK, !->
+			fish_name = $scope.view.name
+			map_mine = (list) ->
+				$log.debug "Mapping my distribution (filtered by '#{fish_name}'): #{list}"
+				gmap.clear()
+				detail = (fish) -> (marker) ->
+					marker.on plugin.google.maps.event.INFO_CLICK, ->
 						$log.debug "Detail for fish: #{angular.toJson fish}"
-						find-or = (fail) !->
-							index = ReportFactory.getIndex fish.report-id
+						find_or = (fail) ->
+							index = ReportFactory.getIndex fish.report_id
 							if index >= 0 then
-								GMapFactory.clear!
-								$state.go 'show-report',
+								GMapFactory.clear()
+								$state.go 'show_report',
 									index: index
-							else fail!
-						find-or !->
-							ReportFactory.refresh !->
-								find-or !->
-									$log.error "Report not found by id: #{fish.report-id}"
+							else fail()
+						find_or ->
+							ReportFactory.refresh ->
+								find_or ->
+									$log.error "Report not found by id: #{fish.report_id}"
 				for fish in list
 					gmap.addMarker do
 						title: "#{fish.name} x #{fish.count}"
-						snippet: fish.date.toLocaleDateString!
+						snippet: fish.date.toLocaleDateString()
 						position:
 							lat: fish.geoinfo.latitude
 							lng: fish.geoinfo.longitude
 						, detail fish
-			map-others = (list) !->
-				$log.debug "Mapping other's distribution (filtered by '#{fish-name}'): #{list}"
-				gmap.clear!
+			map_others = (list) ->
+				$log.debug "Mapping other's distribution (filtered by '#{fish_name}'): #{list}"
+				gmap.clear()
 				for fish in list
 					gmap.addMarker do
 						title: "#{fish.name} x #{fish.count}"
@@ -396,13 +396,13 @@
 							lat: fish.geoinfo.latitude
 							lng: fish.geoinfo.longitude
 			if !others
-			then DistributionFactory.mine fish-name, map-mine
-			else DistributionFactory.others fish-name, map-others
+			then DistributionFactory.mine fish_name, map_mine
+			else DistributionFactory.others fish_name, map_others
 
-	$scope.$on '$ionicView.enter', (event, state) !->
+	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		$ionicLoading.show!
-		GMapFactory.onDiv $scope, 'distribution-map', (gmap) !->
+		$ionicLoading.show()
+		GMapFactory.onDiv $scope, 'distribution_map', (gmap) ->
 			$scope.gmap = gmap
-			$scope.map-distribution!
-			$ionicLoading.hide!
+			$scope.map_distribution()
+			$ionicLoading.hide()

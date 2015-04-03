@@ -1,26 +1,26 @@
 .factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
-	retryable = (retry, config, res-taker, error-taker) !-> ionic.Platform.ready !->
+	retryable = (retry, config, res_taker, error_taker) -> ionic.Platform.ready ->
 		$http config
-		.success (data, status, headers, config) !-> res-taker data
-		.error (data, status, headers, config) !->
+		.success (data, status, headers, config) -> res_taker data
+		.error (data, status, headers, config) ->
 			$log.error "Error on request:#{angular.toJson config} => (#{status})#{data}"
-			error = http-error.gen status, data
-			if error.type == http-error.types.error && retry > 0
-			then retryable retry - 1, config, res-taker, error-taker
-			else error-taker error
-	http = (method, path, data = null, content-type = "text/json") -> (res-taker, error-taker, retry = 3) !->
+			error = http_error.gen status, data
+			if error.type == http_error.types.error && retry > 0
+			then retryable retry - 1, config, res_taker, error_taker
+			else error_taker error
+	http = (method, path, data = null, content_type = "text/json") -> (res_taker, error_taker, retry = 3) ->
 		retryable retry,
 			method: method
 			url: url(path)
 			data: data
 			headers:
 				if data
-				then 'Content-Type': content-type
+				then 'Content-Type': content_type
 				else {}
-		, res-taker, error-taker
+		, res_taker, error_taker
 
-	http-error =
+	http_error =
 		types:
 			fatal: 'Fatal'
 			error: 'Error'
@@ -46,410 +46,410 @@
 			type: @types.error
 			msg: "Error"
 
-	error-types: angular.copy http-error.types
+	error_types: angular.copy http_error.types
 
-	/*
+	###
 	Login to Server
-	*/
-	login: (accessKey, ticket-taker, error-taker) !->
+	###
+	login: (accessKey, ticket_taker, error_taker) ->
 		way = 'facebook'
 		$log.debug "Login to server with #{way} by #{accessKey}"
 		http('POST', "login/#{way}",
 			accessKey: accessKey
-		) ticket-taker, error-taker
-	/*
+		) ticket_taker, error_taker
+	###
 	Connect account to social service
-	*/
-	connect: (ticket, accessKey) -> (success-taker, error-taker) !->
+	###
+	connect: (ticket, accessKey) -> (success_taker, error_taker) ->
 		way = 'facebook'
 		$log.debug "Connecting to #{way} by token:#{accessKey}"
 		http('POST', "account/connect/#{way}",
 			ticket: ticket
 			accessKey: accessKey
-		) success-taker, error-taker
-	/*
+		) success_taker, error_taker
+	###
 	Disconnect account to social service
-	*/
-	disconnect: (ticket) -> (success-taker, error-taker) !->
+	###
+	disconnect: (ticket) -> (success_taker, error_taker) ->
 		way = 'facebook'
 		$log.debug "Disconnecting server from #{way}"
 		http('POST', "account/disconnect/#{way}",
 			ticket: ticket
-		) success-taker, error-taker
-	/*
+		) success_taker, error_taker
+	###
 	Get start session by server, then pass to taker
-	*/
-	start-session: (ticket, geoinfo) -> (session-taker, error-taker) !->
+	###
+	start_session: (ticket, geoinfo) -> (session_taker, error_taker) ->
 		$log.debug "Starting session by #{ticket} on #{angular.toJson geoinfo}"
-		http('POST', "report/new-session",
+		http('POST', "report/new_session",
 			ticket: ticket
 			geoinfo: geoinfo
-		) session-taker, error-taker
-	/*
+		) session_taker, error_taker
+	###
 	Put a photo which is encoded by base64 to session
-	*/
-	put-photo: (session, ...photos) -> (success-taker, error-taker) !->
+	###
+	put_photo: (session, ...photos) -> (success_taker, error_taker) ->
 		$log.debug "Putting a photo with #{session}: #{photos}"
 		http('POST', "report/photo",
 			session: session
 			names: photos
-		) success-taker, error-taker
-	/*
+		) success_taker, error_taker
+	###
 	Put a photo which is encoded by base64 to session
-	*/
-	infer-photo: (session) -> (success-taker, error-taker) !->
+	###
+	infer_photo: (session) -> (success_taker, error_taker) ->
 		$log.debug "Inferring a photo with #{session}"
 		http('POST', "report/infer",
 			session: session
-		) success-taker, error-taker
-	/*
+		) success_taker, error_taker
+	###
 	Put given report to the session
-	*/
-	submit-report: (session, given-report) -> (success, error-taker) !->
-		report = angular.copy given-report
-		report.dateAt = report.dateAt.getTime!
+	###
+	submit_report: (session, given_report) -> (success, error_taker) ->
+		report = angular.copy given_report
+		report.dateAt = report.dateAt.getTime()
 		$log.debug "Submitting report with #{session}: #{angular.toJson report}"
 		http('POST', "report/submit",
 			session: session
 			report: report
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Put given report to the session
-	*/
-	publish-report: (ticket, report-id, accessKey) -> (success, error-taker) !->
-		$log.debug "Publishing report(#{report-id}) with #{ticket}: #{accessKey}"
+	###
+	publish_report: (ticket, report_id, accessKey) -> (success, error_taker) ->
+		$log.debug "Publishing report(#{report_id}) with #{ticket}: #{accessKey}"
 		http('POST', "report/publish/facebook",
 			ticket: ticket
-			id: report-id
+			id: report_id
 			accessKey: accessKey
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Load report from server, then pass to taker
-	*/
-	load-reports: (ticket, count, last-id) -> (taker, error-taker) !->
-		$log.debug "Loading #{count} reports from #{last-id}"
+	###
+	load_reports: (ticket, count, last_id) -> (taker, error_taker) ->
+		$log.debug "Loading #{count} reports from #{last_id}"
 		http('POST', "report/load",
 			ticket: ticket
 			count: count
-			last: last-id
-		) taker, error-taker
-	/*
-	*/
-	read-report: (ticket, id) -> (taker, error-taker) !->
+			last: last_id
+		) taker, error_taker
+	###
+	###
+	read_report: (ticket, id) -> (taker, error_taker) ->
 		$log.debug "Reading report(id:#{id})"
 		http('POST', "report/read",
 			ticket: ticket
 			id: id
-		) taker, error-taker
-	/*
+		) taker, error_taker
+	###
 	Update report to server. ID has to be contain given report.
-	*/
-	update-report: (ticket, given-report) -> (success, error-taker) !->
-		report = angular.copy given-report
-		report.dateAt = report.dateAt.getTime!
+	###
+	update_report: (ticket, given_report) -> (success, error_taker) ->
+		report = angular.copy given_report
+		report.dateAt = report.dateAt.getTime()
 		$log.debug "Updating report: #{angular.toJson report}"
 		http('POST', "report/update",
 			ticket: ticket
 			report: report
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Remove report from server
-	*/
-	remove-report: (ticket, id) -> (success, error-taker) !->
+	###
+	remove_report: (ticket, id) -> (success, error_taker) ->
 		$log.debug "Removing report(#{id})"
 		http('POST', "report/remove",
 			ticket: ticket
 			id: id
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Load measures in account settings
-	*/
-	load-measures: (ticket) -> (success, error-taker) !->
+	###
+	load_measures: (ticket) -> (success, error_taker) ->
 		$log.debug "Loading measures"
 		http('POST', "account/measures/load",
 			ticket: ticket
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Update measures in account settings
-	*/
-	update-measures: (ticket, measures) -> (success, error-taker) !->
+	###
+	update_measures: (ticket, measures) -> (success, error_taker) ->
 		$log.debug "Changing measures: #{angular.toJson measures}"
 		http('POST', "account/measures/update",
 			ticket: ticket
 			measures: measures
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Load distributions of own catches
-	*/
-	catches-mine: (ticket) -> (success, error-taker) !->
+	###
+	catches_mine: (ticket) -> (success, error_taker) ->
 		$log.debug "Retrieving my cathces distributions"
 		http('POST', "distribution/mine",
 			ticket: ticket
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Load distributions of all catches that includes others
-	*/
-	catches-others: (ticket) -> (success, error-taker) !->
+	###
+	catches_others: (ticket) -> (success, error_taker) ->
 		$log.debug "Retrieving others cathces distributions"
 		http('POST', "distribution/others",
 			ticket: ticket
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Load names of catches with it's count
-	*/
-	catches-names: (ticket) -> (success, error-taker) !->
+	###
+	catches_names: (ticket) -> (success, error_taker) ->
 		$log.debug "Retrieving names of catches"
 		http('POST', "distribution/names",
 			ticket: ticket
-		) success, error-taker
-	/*
+		) success, error_taker
+	###
 	Obtain tide and moon phases
-	*/
-	conditions: (ticket, timestamp, geoinfo) -> (success, error-taker) !->
+	###
+	conditions: (ticket, timestamp, geoinfo) -> (success, error_taker) ->
 		$log.debug "Retrieving conditions: #{timestamp}, #{angular.toJson geoinfo}"
 		http('POST', "conditions/get",
 			ticket: ticket
-			date: timestamp.getTime!
+			date: timestamp.getTime()
 			geoinfo: geoinfo
-		) success, error-taker
+		) success, error_taker
 
 .factory 'AcceptanceFactory', ($log, LocalStorageFactory) ->
 	store =
 		taking: []
 
-	successIt = !->
+	successIt = ->
 		LocalStorageFactory.acceptance.save true
 		if store.taking
 			store.taking = null
 			for suc in that
-				suc!
+				suc()
 
 	isReady: LocalStorageFactory.acceptance.load
-	obtain: (success) !->
-		if @isReady! then success!
+	obtain: (success) ->
+		if @isReady() then success()
 		else store.taking.push success
 	success: successIt
 
 .factory 'SocialFactory', ($log, LocalStorageFactory) ->
-	facebook-login = (...perm) -> (token-taker, error-taker) !-> ionic.Platform.ready !->
+	facebook_login = (...perm) -> (token_taker, error_taker) -> ionic.Platform.ready ->
 		$log.info "Logging in to Facebook: #{perm}"
 		facebookConnectPlugin.login perm
-		, (result) !->
+		, (result) ->
 			$log.debug "Get access: #{angular.toJson result}"
-			token-taker result.authResponse.accessToken
-		, error-taker
-	facebook-profile = (profile-taker, error-taker) !-> ionic.Platform.ready !->
+			token_taker result.authResponse.accessToken
+		, error_taker
+	facebook_profile = (profile_taker, error_taker) -> ionic.Platform.ready ->
 		$log.info "Getting profile of Facebook"
 		facebookConnectPlugin.api "me?fields=name", ['public_profile']
-		, (info) !->
+		, (info) ->
 			$log.debug "Get profile: #{angular.toJson info}"
-			profile-taker do
+			profile_taker do
 				id: info.id
 				name: info.name
-		, error-taker
-	facebook-disconnect = (on-success, error-taker) !-> ionic.Platform.ready !->
+		, error_taker
+	facebook_disconnect = (on_success, error_taker) -> ionic.Platform.ready ->
 		$log.info "Disconnecting from facebook"
 		facebookConnectPlugin.api "me/permissions?method=delete", []
-		, (info) !->
+		, (info) ->
 			$log.debug "Revoked: #{angular.toJson info}"
-			facebookConnectPlugin.logout (out) !->
+			facebookConnectPlugin.logout (out) ->
 				$log.debug "Logout: #{angular.toJson out}"
-				on-success!
-			, error-taker
-		, error-taker
+				on_success()
+			, error_taker
+		, error_taker
 
-	login: (token-taker, error-taker) !-> ionic.Platform.ready !->
-		facebookConnectPlugin.getLoginStatus (res) !->
-			account = LocalStorageFactory.account.load!
+	login: (token_taker, error_taker) -> ionic.Platform.ready ->
+		facebookConnectPlugin.getLoginStatus (res) ->
+			account = LocalStorageFactory.account.load()
 			$log.debug "Facebook Login Status for #{angular.toJson account}: #{angular.toJson res}"
 			if res.status == "connected" && (!account?.id || account.id == res.authResponse.userID)
-			then token-taker res.authResponse.accessToken
-			else facebook-login('public_profile') token-taker, error-taker
-		, (error) !->
+			then token_taker res.authResponse.accessToken
+			else facebook_login('public_profile') token_taker, error_taker
+		, (error) ->
 			$log.debug "Failed to get Login Status: #{angular.toJson error}"
-			facebook-login('public_profile') token-taker, error-taker
-	publish: (token-taker, error-taker) !-> ionic.Platform.ready !->
+			facebook_login('public_profile') token_taker, error_taker
+	publish: (token_taker, error_taker) -> ionic.Platform.ready ->
 		perm = 'publish_actions'
 		facebookConnectPlugin.api "me/permissions", []
-		, (res) !->
+		, (res) ->
 			$log.debug "Facebook Access Permissions: #{angular.toJson res}"
 			pg = res.data |> _.find (.permission == perm)
 			if pg?.status == "granted"
-			then facebookConnectPlugin.getAccessToken token-taker, error-taker
-			else facebook-login(perm) token-taker, error-taker
-		, error-taker
-	profile: facebook-profile
-	disconnect: facebook-disconnect
+			then facebookConnectPlugin.getAccessToken token_taker, error_taker
+			else facebook_login(perm) token_taker, error_taker
+		, error_taker
+	profile: facebook_profile
+	disconnect: facebook_disconnect
 
 .factory 'AccountFactory', ($log, $ionicPopup, AcceptanceFactory, LocalStorageFactory, ServerFactory, SocialFactory) ->
 	store =
 		taking: null
 		ticket: null
 
-	stack-login = (ticket-taker, error-taker) !->
-		if store.ticket then ticket-taker store.ticket
+	stack_login = (ticket_taker, error_taker) ->
+		if store.ticket then ticket_taker store.ticket
 		else
 			taker =
-				ticket: ticket-taker
-				error: error-taker
+				ticket: ticket_taker
+				error: error_taker
 			if store.taking
 				that.push taker
 				$log.debug "Pushed into queue: #{that}"
 			else
-				broadcast = (proc) !-> if store.taking
+				broadcast = (proc) -> if store.taking
 					$log.debug "Clear and invoking all listeners: #{store.taking.length}"
 					store.taking = null
 					that |> _.each proc
 				store.taking = [taker]
 				$log.debug "First listener in queue: #{taker}"
-				AcceptanceFactory.obtain !->
+				AcceptanceFactory.obtain ->
 					$log.debug "Get login"
-					connect (token) !->
+					connect (token) ->
 						ServerFactory.login token
-						, (ticket) !->
+						, (ticket) ->
 							store.ticket = ticket
 							broadcast (.ticket ticket)
-						, (error) !->
+						, (error) ->
 							broadcast (.error error.msg)
-					, (error) !->
+					, (error) ->
 						broadcast (.error error)
 
-	with-ticket = (ticket-proc, success-taker, error-taker) !->
-		$log.debug "Getting ticket for: #{ticket-proc}, #{success-taker}"
-		auth = !->
-			stack-login (ticket) ->
-				ticket-proc(ticket) success-taker, (error) !->
-					if error.type == ServerFactory.error-types.expired
+	with_ticket = (ticket_proc, success_taker, error_taker) ->
+		$log.debug "Getting ticket for: #{ticket_proc}, #{success_taker}"
+		auth = ->
+			stack_login (ticket) ->
+				ticket_proc(ticket) success_taker, (error) ->
+					if error.type == ServerFactory.error_types.expired
 					then
 						store.ticket = null
-						auth!
-					else error-taker error.msg
-			, error-taker
-		auth!
+						auth()
+					else error_taker error.msg
+			, error_taker
+		auth()
 
-	connect = (token-taker, error-taker) !->
-		SocialFactory.login (token) !->
-			SocialFactory.profile (profile) !->
+	connect = (token_taker, error_taker) ->
+		SocialFactory.login (token) ->
+			SocialFactory.profile (profile) ->
 				LocalStorageFactory.account.save profile
 				$log.info "Social connected."
-				token-taker token
-			, error-taker
-		, error-taker
+				token_taker token
+			, error_taker
+		, error_taker
 
-	disconnect = (success-taker, error-taker) !->
-		account = LocalStorageFactory.account.load!
+	disconnect = (success_taker, error_taker) ->
+		account = LocalStorageFactory.account.load()
 		if account?.id
 			$log.warn "Social Disconnecting..."
-			with-ticket (ticket) ->
+			with_ticket (ticket) ->
 				ServerFactory.disconnect ticket
-			, (result) !->
-				SocialFactory.disconnect !->
-					LocalStorageFactory.account.remove!
+			, (result) ->
+				SocialFactory.disconnect ->
+					LocalStorageFactory.account.remove()
 					$log.info "Social disconnected."
-					success-taker!
-				, error-taker
-			, error-taker
+					success_taker()
+				, error_taker
+			, error_taker
 		else
-			error-taker "Not connected"
+			error_taker "Not connected"
 
-	with-ticket: with-ticket
-	connect: (success-taker, error-taker) !->
-		connect (token) !->
-			with-ticket (ticket) ->
+	with_ticket: with_ticket
+	connect: (success_taker, error_taker) ->
+		connect (token) ->
+			with_ticket (ticket) ->
 				ServerFactory.connect ticket, token
-			, (result) !->
-				username = LocalStorageFactory.account.load!?.name
-				success-taker username
-			, error-taker
-		, error-taker
-	disconnect: (success-taker, error-taker) !->
-		disconnect success-taker, error-taker
-	get-username: (success-taker, error-taker) !->
-		SocialFactory.profile (profile) !->
+			, (result) ->
+				username = LocalStorageFactory.account.load()?.name
+				success_taker username
+			, error_taker
+		, error_taker
+	disconnect: (success_taker, error_taker) ->
+		disconnect success_taker, error_taker
+	get_username: (success_taker, error_taker) ->
+		SocialFactory.profile (profile) ->
 			LocalStorageFactory.account.save profile
-			success-taker profile.name
-		, (error) !->
+			success_taker profile.name
+		, (error) ->
 			$log.error "Failed to get user name: #{error}"
-			error-taker "Not Login"
+			error_taker "Not Login"
 
 .factory 'SessionFactory', ($log, $http, $ionicPopup, ServerFactory, SocialFactory, ReportFactory, AccountFactory) ->
 	store =
 		session: null
-		upload-info: null
+		upload_info: null
 
-	publish = (report-id) !->
-		ReportFactory.publish report-id, !->
+	publish = (report_id) ->
+		ReportFactory.publish report_id, ->
 			$log.debug "Published session: #{store.session}"
-		, (error) !->
+		, (error) ->
 			$ionicPopup.alert do
 				title: 'Error'
 				template: "Failed to post"
 
-	submit = (session, report, success, error-taker) !->
+	submit = (session, report, success, error_taker) ->
 		report.id = ""
-		report.user-id = ""
-		ServerFactory.submit-report(session, report) (report-id) !->
-			report.id = report-id
+		report.user_id = ""
+		ServerFactory.submit_report(session, report) (report_id) ->
+			report.id = report_id
 			ReportFactory.add report
-			success report-id
-		, (error) !->
+			success report_id
+		, (error) ->
 			$ionicPopup.alert do
 				title: 'Error'
 				template: error.msg
-			error-taker error
+			error_taker error
 
-	upload = (photo, success, error) !->
-		filename = "user-photo"
-		$log.info "Posting photo-image(#{photo}) by $http with #{angular.toJson store.upload-info}"
+	upload = (photo, success, error) ->
+		filename = "user_photo"
+		$log.info "Posting photo_image(#{photo}) by $http with #{angular.toJson store.upload_info}"
 		data = new FormData()
-		for name, value of store.upload-info.params
+		for name, value of store.upload_info.params
 			data.append name, value
 		data.append 'file', photo, filename
-		$http.post store.upload-info.url, data,
+		$http.post store.upload_info.url, data,
 			transformRequest: angular.identity,
 			headers:
 				'Content-Type': undefined
-		.success (data, status, headers, config) !->
+		.success (data, status, headers, config) ->
 			$log.debug "Success to upload: #{status}: #{data}, #{headers}, #{angular.toJson config}"
 			success filename
-		.error (data, status, headers, config) !->
+		.error (data, status, headers, config) ->
 			$log.debug "Failed to upload: #{status}: #{data}, #{headers}, #{angular.toJson config}"
 			error status
 
-	start: (geoinfo, success, error-taker) !->
+	start: (geoinfo, success, error_taker) ->
 		store.session = null
-		AccountFactory.with-ticket (ticket) ->
-			ServerFactory.start-session ticket, geoinfo
-		, (result) !->
+		AccountFactory.with_ticket (ticket) ->
+			ServerFactory.start_session ticket, geoinfo
+		, (result) ->
 			store.session = result.session
-			store.upload-info = result.upload
-			success!
-		, error-taker
-	put-photo: (photo, success, inference-taker, error-taker) !->
+			store.upload_info = result.upload
+			success()
+		, error_taker
+	put_photo: (photo, success, inference_taker, error_taker) ->
 		if store.session
-			upload photo, (filename) !->
-				ServerFactory.put-photo(that, filename) (urls) !->
-					ServerFactory.infer-photo(that) inference-taker, (error) !->
+			upload photo, (filename) ->
+				ServerFactory.put_photo(that, filename) (urls) ->
+					ServerFactory.infer_photo(that) inference_taker, (error) ->
 						store.session = null
-						error-taker error.msg
+						error_taker error.msg
 					success urls
-				, (error) !->
+				, (error) ->
 					store.session = null
-					error-taker error.msg
-			, (error) !->
-				error-taker "Failed to upload"
-		else error-taker "No session started"
-	finish: (report, is-publish, success, on-finally) !->
+					error_taker error.msg
+			, (error) ->
+				error_taker "Failed to upload"
+		else error_taker "No session started"
+	finish: (report, is_publish, success, on_finally) ->
 		if (session = store.session)
-			submit session, report, (report-id) !->
+			submit session, report, (report_id) ->
 				store.session = null
 				$log.info "Session cleared"
-				publish(report-id) if is-publish
-				success!
-				on-finally!
-			, on-finally
+				publish(report_id) if is_publish
+				success()
+				on_finally()
+			, on_finally
 		else 
 			$ionicPopup.alert do
 				title: 'Error'
 				template: "No session started"
-			on-finally!
+			on_finally()
