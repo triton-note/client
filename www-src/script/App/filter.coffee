@@ -21,8 +21,8 @@ angular.module('triton_note.filter', [])
 				converter = eval "UnitFactory.#{u}"
 				converted = converter(src)
 				"#{$filter('number')(converted.value, 0)} #{converted.unit}"
-			else []
-		sizes = (_.flatten _.map(size) ["length", "weight"]).join ', '
+			else null
+		sizes = ["length", "weight"].map(size).filter((v) -> !!v).join ', '
 		volume = if sizes then "(#{sizes})" else ""
 		"#{fish.name}#{volume} x #{fish.count}"
 

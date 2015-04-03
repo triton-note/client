@@ -94,7 +94,7 @@ angular.module('triton_note.reports', [])
 			ServerFactory.load_reports ticket, count, last_id
 		, (list) ->
 			more = save list
-			store.reports = store.reports ++ more
+			store.reports = store.reports.concat more
 			store.hasMore = count <= more.length
 			$log.info "Loaded #{more.length} reports, Set hasMore = #{store.hasMore}"
 			success?()
@@ -189,7 +189,7 @@ angular.module('triton_note.reports', [])
 		Add report
 	###
 	add: (report) ->
-		store.reports = save([report]) ++ store.reports
+		store.reports = save([report]).concat store.reports
 		DistributionFactory.report.add report
 	###
 		Remove report specified by index
@@ -408,7 +408,7 @@ angular.module('triton_note.reports', [])
 				count: fish.count
 				date: report.dateAt
 				geoinfo: report.location.geoinfo
-			store.catches.mine = mine ++ list
+			store.catches.mine = mine.concat list
 			$log.debug "Added distribution of catches:#{angular.toJson list}"
 
 	startsWith = (word, pre) ->
