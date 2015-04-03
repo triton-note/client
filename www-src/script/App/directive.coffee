@@ -221,10 +221,10 @@ angular.module('triton_note.directive', [])
 			<html>
 			<head>
 				<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-				<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gist_embed/2.1/gist_embed.min.js"></script>
+				<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gist-embed/2.1/gist-embed.min.js"></script>
 			</head>
 			<body>
-				<code data_gist_id="#{gist_id}" data_gist_hide_footer="true" data_gist_show_loading="false"></code>
+				<code data-gist-id="#{gist_id}" data-gist-hide-footer="true" data-gist-show-loading="false"></code>
 			</body>
 			</html>
 		"""
