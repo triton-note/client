@@ -1,3 +1,4 @@
+angular.module('triton_note.controllers', ['ionic'])
 .controller 'AcceptanceCtrl', ($log, $scope, $state, $stateParams, $ionicHistory, $ionicLoading, $ionicPopup, AcceptanceFactory) ->
 	$ionicLoading.show()
 	$scope.$on '$ionicView.enter', (event, state) ->
@@ -21,7 +22,7 @@
 
 	$scope.checkSocial = ->
 		$ionicLoading.show()
-		next = $scope.social.username == null
+		next = $scope.social.username is null
 		$log.debug "Changing social: #{next}"
 		on_error = (error) ->
 			$log.error "Erorr on Facebook: #{angular.toJson error}"
@@ -43,7 +44,7 @@
 	$scope.done = (username = null) ->
 		$scope.social =
 			username: username
-			login: username ()= null
+			login: username isnt null
 		$ionicLoading.hide()
 		$log.debug "Account connection: #{angular.toJson $scope.social}"
 
@@ -77,23 +78,23 @@
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.popover = {}
-		['show_location', 'option_buttons'] |> _.each (name) ->
+		['show_location', 'option_buttons'].forEach (name) ->
 			$ionicPopover.fromTemplateUrl name,
 				scope: $scope
 			.then (popover) ->
 				$scope.popover[_.camelize name] = popover
 		$scope.popover_hide = ->
-			for ,p of $scope.popover
+			for _, p of $scope.popover
 				p.hide()
 
 		$scope.should_clear = true
-		if $stateParams.index && ReportFactory.current().index == null
+		if $stateParams.index and ReportFactory.current().index is null
 			$scope.report = ReportFactory.getReport($scope.index = Number($stateParams.index))
 		else
 			c = ReportFactory.current()
 			$scope.index = c.index
 			$scope.report = c.report
-		$scope.tide_icon = ConditionFactory.tide_phases |> _.find (.name == $scope.report.condition?.tide) |> (?.icon)
+		$scope.tide_icon = ConditionFactory.tide_phases.filter((v) -> v.name is $scope.report.condition?.tide).map((v) -> v.icon)[0]
 		$scope.moon_icon = ConditionFactory.moon_phases[$scope.report.condition?.moon]
 		
 		$scope.show_location_gmap =
@@ -107,7 +108,7 @@
 	$scope.$on '$ionicView.beforeLeave', (event, state) ->
 		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}"
 		ReportFactory.clear_current() if $scope.should_clear
-		for ,p of $scope.popover
+		for _, p of $scope.popover
 			p?.remove()
 		$scope.show_location_gmap.map = null
 		$scope.show_location_gmap.marker = null
@@ -231,7 +232,7 @@
 							$scope.submission.enabled = true
 							$timeout ->
 								$log.debug "Updating photo url: #{angular.toJson result.url}"
-								$scope.report.photo <<< result.url
+								angular.copy result.url, $scope.report.photo
 							, 100
 						, (inference) ->
 							$log.debug "Get inference: #{angular.toJson inference}"
@@ -338,7 +339,7 @@
 		$scope.$on 'popover.hidden', ->
 			$scope.gmap.setClickable true
 
-		icons = [1 to 10] |> _.map (count) ->
+		icons = [1..9].map (count) ->
 			size = 32
 			center = size / 2
 			r = ->
@@ -368,7 +369,7 @@
 						$log.debug "Detail for fish: #{angular.toJson fish}"
 						find_or = (fail) ->
 							index = ReportFactory.getIndex fish.report_id
-							if index >= 0 then
+							if index >= 0
 								GMapFactory.clear()
 								$state.go 'show_report',
 									index: index
@@ -395,9 +396,10 @@
 						position:
 							lat: fish.geoinfo.latitude
 							lng: fish.geoinfo.longitude
-			if !others
-			then DistributionFactory.mine fish_name, map_mine
-			else DistributionFactory.others fish_name, map_others
+			if others
+				DistributionFactory.others fish_name, map_others
+			else
+				DistributionFactory.mine fish_name, map_mine
 
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"

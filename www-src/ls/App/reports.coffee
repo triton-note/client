@@ -1,6 +1,7 @@
+angular.module('triton_note.reports', ['ionic'])
 .factory 'ConditionFactory', ($log, ServerFactory, AccountFactory, UnitFactory) ->
 	moon = (n) ->
-		v = "0#{n}" |> _.Str.reverse |> _.take 2 |> _.Str.reverse
+		v = "0#{n}".split('').reverse()[..1].reverse().join('')
 		"img/moon/phase-#{v}.png"
 	tide = (name) ->
 		name: name
@@ -29,8 +30,8 @@
 		, (error) ->
 			$log.error "Failed to get conditions from server: #{error}"
 			taker default_condition()
-	moon_phases: [0 til 30] |> _.map(moon)
-	tide_phases: ['Flood', 'High', 'Ebb', 'Low'] |> _.map(tide)
+	moon_phases: [0..30].map moon
+	tide_phases: ['Flood', 'High', 'Ebb', 'Low'].map tide
 	weather_states: _.Obj.map weather,
 		Clear: '01d'
 		Clouds: '04d'
@@ -115,8 +116,8 @@
 
 	save = (list) ->
 		now = new Date().getTime()
-		list |> _.map (report) ->
-			report.dateAt = new Date(report.dateAt) if ()(report.dateAt instanceof Date)
+		list.map (report) ->
+			report.dateAt = new Date(report.dateAt) if not (report.dateAt instanceof Date)
 			timestamp: now
 			report: report
 
@@ -124,7 +125,7 @@
 		now = new Date().getTime()
 		past = now - item.timestamp
 		$log.debug "Report timestamp past: #{past}ms"
-		if expiration < past then
+		if expiration < past
 			AccountFactory.with_ticket (ticket) ->
 				ServerFactory.read_report ticket, item.report.id
 			, (result) ->
@@ -136,14 +137,14 @@
 		item.report
 
 	cachedList: ->
-		store.reports |> _.map read
+		store.reports.map read
 	hasMore: ->
 		store.hasMore
 	###
 		Get index of list by report id
 	###
 	getIndex: (id) ->
-		store.reports |> _.find_index (.report.id == id)
+		store.reports.map((v) -> v.report.id is id).indexOf true
 	###
 		Refresh cache
 	###
@@ -292,9 +293,9 @@
 		init()
 		dst_unit = load_local().length
 		convert = -> switch src.unit
-		| dst_unit => src.value
-		| 'inch'   => src.value * inchToCm
-		| 'cm'     => src.value / inchToCm
+			when dst_unit then src.value
+			when 'inch'   then src.value * inchToCm
+			when 'cm'     then src.value / inchToCm
 		{
 			value: convert()
 			unit: dstUnit
@@ -303,9 +304,9 @@
 		init()
 		dst_unit = load_local().weight
 		convert = -> switch src.unit
-		| dst_unit => src.value
-		| 'pond'   => src.value * pondToKg
-		| 'kg'     => src.value / pondToKg
+			when dst_unit then src.value
+			when 'pond'   then src.value * pondToKg
+			when 'kg'     then src.value / pondToKg
 		{
 			value: convert()
 			unit: dstUnit
@@ -314,9 +315,9 @@
 		init()
 		dst_unit = load_local().temperature
 		convert = -> switch src.unit
-		| dst_unit => src.value
-		| 'Cels'   => src.value * 9 / 5 + 32
-		| 'Fahr'   => (src.value - 32) * 5 / 9
+			when dst_unit then src.value
+			when 'Cels'   then src.value * 9 / 5 + 32
+			when 'Fahr'   then (src.value - 32) * 5 / 9
 		{
 			value: convert()
 			unit: dst_unit
@@ -397,11 +398,11 @@
 
 	remove_mine = (report_id) ->
 		$log.debug "Removing distribution of report id:#{report_id}"
-		if store.catches.mine then
-			store.catches.mine = _.filter (.report_id ()= report_id), that
+		if (list = store.catches.mine)
+			store.catches.mine = list.filter (v) -> v.report_id isnt report_id
 	add_mine = (report) ->
-		if store.catches.mine then
-			list = report.fishes |> _.map (fish) ->
+		if store.catches.mine
+			list = report.fishes.map (fish) ->
 				report_id: report.id
 				name: fish.name
 				count: fish.count
@@ -411,7 +412,7 @@
 			$log.debug "Added distribution of catches:#{angular.toJson list}"
 
 	startsWith = (word, pre) ->
-		word.toUpperCase().indexOf(pre) == 0
+		word.toUpperCase().indexOf(pre) is 0
 
 	report:
 		add: add_mine
@@ -421,13 +422,11 @@
 			add_mine report
 	name_suggestion: (pre_name, success) ->
 		check_or = (fail) ->
-			if store.names then
+			if store.names
 				src = that
 				pre = pre_name?.toUpperCase()
-				list = if pre
-					then _.filter ((a) -> startsWith(a, pre)), src
-					else []
-				list |> _.sort_by (.count) |> _.reverse |> _.map (.name) |> success 
+				list = if pre then src.filter ((a) -> startsWith(a, pre)) else []
+				success list.sort((a, b) -> a.count - b.count).reverse().map((v) -> v.name)
 			else fail()
 		check_or ->
 			refresh_names ->
@@ -435,13 +434,11 @@
 					success []
 	mine: (pre_name, success) ->
 		check_or = (fail) ->
-			if store.catches.mine then
+			if store.catches.mine
 				src = that
 				pre = pre_name?.toUpperCase()
-				list = if pre
-					then _.filter ((a) -> startsWith(a.name, pre)), src
-					else src
-				success _.reverse _.sort_by (.count), list
+				list = if pre then src.filter ((a) -> startsWith(a.name, pre))	else src
+				success list.sort((a, b) -> a.count - b.count).reverse()
 			else fail()
 		check_or ->
 			refresh_mine ->
@@ -449,13 +446,11 @@
 					success []
 	others: (pre_name, success) ->
 		check_or = (fail) ->
-			if store.catches.others then
+			if store.catches.others
 				src = that
 				pre = pre_name?.toUpperCase()
-				list = if pre
-					then _.filter ((a) -> startsWith(a.name, pre)), src
-					else src
-				success _.reverse _.sort_by (.count), list
+				list = if pre then	src.filter ((a) -> startsWith(a.name, pre)) else src
+				success list.sort((a, b) -> a.count - b.count).reverse()
 			else fail()
 		check_or ->
 			refresh_others ->

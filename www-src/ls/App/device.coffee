@@ -1,3 +1,4 @@
+angular.module('triton_note.device', ['ionic'])
 .factory 'PhotoFactory', ($log, $timeout) ->
 	readExif = (photo, info_taker) ->
 		try
@@ -5,14 +6,14 @@
 			reader = new ExifReader()
 			reader.load photo
 			toDate = (str) -> if !str then null else
-				a = str.split(' ') |> _.map (.split ':') |> _.flatten |> _.map Number
+				a = str.split(/[ :]/).map Number
 				new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5])
 			g =
 				latitude: Number(reader.getTagDescription 'GPSLatitude')
 				longitude: Number(reader.getTagDescription 'GPSLongitude')
 			info_taker do
 				timestamp: toDate(reader.getTagDescription 'DateTimeOriginal')
-				geoinfo: if g.latitude && g.longitude then g else null
+				geoinfo: if g.latitude and g.longitude then g else null
 		catch
 			console.log "Failed to read Exif: #{e.message}"
 			info_taker null
@@ -68,12 +69,8 @@
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
 	make = (name, isJson = false) ->
-		loader = switch isJson
-		| true => (v) -> angular.fromJson v
-		| _    => (v) -> v
-		saver = switch isJson
-		| true => (v) -> angular.toJson v
-		| _    => (v) -> v
+		loader = (v) -> if isJson then angular.fromJson(v) else v
+		saver = (v) -> if isJson then angular.toJson(v) else v
 
 		names.push name
 
@@ -126,8 +123,9 @@
 			icon: icon
 	onReady = (proc) ->
 		if store.gmap
-		then proc()
-		else plugin.google.maps.Map.getMap().on plugin.google.maps.event.MAP_READY, proc
+		  proc()
+		else
+			plugin.google.maps.Map.getMap().on plugin.google.maps.event.MAP_READY, proc
 	clear = ->
 		$log.info "Clear GMap"
 		store.gmap.clear()
@@ -168,7 +166,7 @@
 		else
 			store.gmap.getCameraPosition (camera) ->
 				$log.debug "Camera Position: #{angular.toJson camera}"
-				if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
+				if camera.zoom is 2 and camera.target.lat is 0 and camera.target.lng is 0
 					store.gmap.setZoom 10
 					store.gmap.getMyLocation (location) ->
 						$log.debug "Gotta GMap Location: #{angular.toJson location}"

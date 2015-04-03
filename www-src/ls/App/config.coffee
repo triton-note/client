@@ -1,3 +1,4 @@
+angular.module('triton_note.config', ['ionic'])
 .constant 'serverURL', 'https://triton_note.fathens.org'
 
 .config ($stateProvider, $urlRouterProvider) ->

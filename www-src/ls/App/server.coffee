@@ -1,3 +1,4 @@
+angular.module('triton_note.server', ['ionic'])
 .factory 'ServerFactory', ($log, $http, $ionicPopup, serverURL) ->
 	url = (path) -> "#{serverURL}/#{path}"
 	retryable = (retry, config, res_taker, error_taker) -> ionic.Platform.ready ->
@@ -6,9 +7,10 @@
 		.error (data, status, headers, config) ->
 			$log.error "Error on request:#{angular.toJson config} => (#{status})#{data}"
 			error = http_error.gen status, data
-			if error.type == http_error.types.error && retry > 0
-			then retryable retry - 1, config, res_taker, error_taker
-			else error_taker error
+			if error.type is http_error.types.error and retry > 0
+			  retryable retry - 1, config, res_taker, error_taker
+			else
+				error_taker error
 	http = (method, path, data = null, content_type = "text/json") -> (res_taker, error_taker, retry = 3) ->
 		retryable retry,
 			method: method
@@ -26,25 +28,29 @@
 			error: 'Error'
 			expired: 'Expired'
 		gen: (status, data) -> switch status
-		| 400 =>
-			if data.indexOf('Expired') > -1 then
-				type: @types.expired
-				msg: "Token Expired"
+			when 400 then (
+				if data.indexOf('Expired') > -1
+					type: @types.expired
+					msg: "Token Expired"
+				else
+					type: @types.error
+					msg: "Application Error"
+			)
+			when 404 then {
+				type: @types.fatal
+				msg: "Not Found"
+			}
+			when 501 then {
+				type: @types.fatal
+				msg: "Not Implemented"
+			}
+			when 503 then {
+				type: @types.fatal
+				msg: "Service Unavailable"
+			}
 			else
-				type: @types.Error
-				msg: "Application Error"
-		| 404 =>
-			type: @types.fatal
-			msg: "Not Found"
-		| 501 =>
-			type: @types.fatal
-			msg: "Not Implemented"
-		| 503 =>
-			type: @types.fatal
-			msg: "Service Unavailable"
-		| _   =>
-			type: @types.error
-			msg: "Error"
+				type: @types.error
+				msg: "Error"
 
 	error_types: angular.copy http_error.types
 
@@ -226,8 +232,10 @@
 
 	isReady: LocalStorageFactory.acceptance.load
 	obtain: (success) ->
-		if @isReady() then success()
-		else store.taking.push success
+		if @isReady()
+			success()
+		else
+			store.taking.push success
 	success: successIt
 
 .factory 'SocialFactory', ($log, LocalStorageFactory) ->
@@ -262,9 +270,10 @@
 		facebookConnectPlugin.getLoginStatus (res) ->
 			account = LocalStorageFactory.account.load()
 			$log.debug "Facebook Login Status for #{angular.toJson account}: #{angular.toJson res}"
-			if res.status == "connected" && (!account?.id || account.id == res.authResponse.userID)
-			then token_taker res.authResponse.accessToken
-			else facebook_login('public_profile') token_taker, error_taker
+			if res.status is "connected" and (account.id is res.authResponse.userID or not account?.id)
+			  token_taker res.authResponse.accessToken
+			else
+				facebook_login('public_profile') token_taker, error_taker
 		, (error) ->
 			$log.debug "Failed to get Login Status: #{angular.toJson error}"
 			facebook_login('public_profile') token_taker, error_taker
@@ -273,10 +282,11 @@
 		facebookConnectPlugin.api "me/permissions", []
 		, (res) ->
 			$log.debug "Facebook Access Permissions: #{angular.toJson res}"
-			pg = res.data |> _.find (.permission == perm)
-			if pg?.status == "granted"
-			then facebookConnectPlugin.getAccessToken token_taker, error_taker
-			else facebook_login(perm) token_taker, error_taker
+			pg = res.data.filter (v) -> v.permission is perm and v.status is "granted"
+			if (pg.length > 0)
+			  facebookConnectPlugin.getAccessToken token_taker, error_taker
+			else
+			  facebook_login(perm) token_taker, error_taker
 		, error_taker
 	profile: facebook_profile
 	disconnect: facebook_disconnect
@@ -296,10 +306,10 @@
 				that.push taker
 				$log.debug "Pushed into queue: #{that}"
 			else
-				broadcast = (proc) -> if store.taking
-					$log.debug "Clear and invoking all listeners: #{store.taking.length}"
+				broadcast = (proc) -> if (list = store.taking)
 					store.taking = null
-					that |> _.each proc
+					$log.debug "Clear and invoking all listeners: #{list.length}"
+					list.forEach proc
 				store.taking = [taker]
 				$log.debug "First listener in queue: #{taker}"
 				AcceptanceFactory.obtain ->
@@ -308,19 +318,18 @@
 						ServerFactory.login token
 						, (ticket) ->
 							store.ticket = ticket
-							broadcast (.ticket ticket)
+							broadcast (v) -> v.ticket ticket
 						, (error) ->
-							broadcast (.error error.msg)
+							broadcast (v) -> v.error error.msg
 					, (error) ->
-						broadcast (.error error)
+						broadcast (v) -> v.error error
 
 	with_ticket = (ticket_proc, success_taker, error_taker) ->
 		$log.debug "Getting ticket for: #{ticket_proc}, #{success_taker}"
 		auth = ->
 			stack_login (ticket) ->
 				ticket_proc(ticket) success_taker, (error) ->
-					if error.type == ServerFactory.error_types.expired
-					then
+					if error.type is ServerFactory.error_types.expired
 						store.ticket = null
 						auth()
 					else error_taker error.msg

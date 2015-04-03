@@ -1,9 +1,8 @@
+angular.module('triton_note.directive', ['ionic'])
 .directive 'fathensFitImg', ($log, $ionicScrollDelegate) ->
-	getProp = (obj, [h, ...left]:list) ->
+	getProp = (obj, [h, left...]) ->
 		next = obj[h]
-		if next && left.length > 0
-		then getProp(next, left)
-		else next
+		if (next and left.length > 0) then getProp(next, left) else next
 
 	restrict: 'E'
 	template: '<ion_scroll><div><img/></div></ion_scroll>'
@@ -13,7 +12,7 @@
 		img = $element.children().children().children()
 		photo = $attrs['src']
 		whole = ()!$attrs['whole']
-		if photo && photo.length > 0
+		if photo and photo.length > 0
 			chain = photo.split('.')
 			$scope.$watch chain[0], ->
 				photo_url = getProp $scope, chain
@@ -28,20 +27,18 @@
 						max = if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width else rect.height
 						div.style.width = "#{_.min max, rect.width}px"
 						div.style.height = "#{_.min max, rect.height}px"
-						$log.debug "fathensFitImg: #{angular.toJson rect} ==> #{max}"
+						$log.debug "fathensFitImg: #{angular.toJson rect} is> #{max}"
 						# Scroll to center
 						delegate = $ionicScrollDelegate.$getByHandle $attrs['delegateHandle']
 						if delegate
 							margin = (f) -> if max < f(rect) then (f(rect) - max)/2 else 0
 							sc =
-								left: margin (.width)
-								top: margin (.height)
+								left: margin (v) -> v.width
+								top: margin (v) -> v.height
 							delegate.scrollTo sc.left, sc.top
 							$log.debug "fathensFitImg: scroll=#{angular.toJson sc}"
-							min_zoom = _.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight
-								then rect.width / rect.height
-								else rect.height / rect.width
-							if whole && min_zoom < 1
+							min_zoom = _.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight rect.width / rect.height else rect.height / rect.width
+							if whole and min_zoom < 1
 								delegate.zoomTo min_zoom, true
 
 .directive 'fathensEditReport', ($log) ->
@@ -50,17 +47,17 @@
 	replace: true
 	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory, UnitFactory) ->
 		$scope.popover = {}
-		['spot_location', 'choose_tide', 'choose_weather'] |> _.each (name) ->
+		['spot_location', 'choose_tide', 'choose_weather'].forEach (name) ->
 			$ionicPopover.fromTemplateUrl name,
 				scope: $scope
 			.then (popover) ->
 				$scope.popover[_.camelize name] = popover
 		$scope.popover_hide = ->
-			for ,p of $scope.popover
+			for _, p of $scope.popover
 				p?.hide()
 		$scope.$on '$destroy', (event) ->
 			$log.info "Leaving 'fathens_edit_report': #{event}"
-			for ,p of $scope.popover
+			for _, p of $scope.popover
 				p?.remove()
 
 		$scope.tide_modified = false
@@ -85,11 +82,11 @@
 		$scope.$watch 'report.condition.weather.name', (new_value, old_value) ->
 			$scope.popover.choose_weather.hide()
 
-		$scope.$watch 'report.dateAt', (new_value, old_value) -> if old_value || !$scope.report?.condition
+		$scope.$watch 'report.dateAt', (new_value, old_value) -> if old_value or !$scope.report?.condition
 			change_condition(new_value, $scope.report?.location?.geoinfo)
-		$scope.$watch 'report.location.geoinfo', (new_value, old_value) -> if old_value || !$scope.report?.condition
+		$scope.$watch 'report.location.geoinfo', (new_value, old_value) -> if old_value or !$scope.report?.condition
 			change_condition($scope.report?.dateAt, new_value)
-		change_condition = (datetime, geoinfo) -> if datetime && geoinfo
+		change_condition = (datetime, geoinfo) -> if datetime and geoinfo
 			$scope.report.condition = {} if !$scope.report.condition
 			ConditionFactory.state datetime, geoinfo, (state) ->
 				$log.debug "Conditions result: #{angular.toJson state}"
@@ -103,7 +100,7 @@
 						$scope.report.condition.weather.temperature = state.weather.temperature
 
 		$scope.moon_icon = -> ConditionFactory.moon_phases[$scope.report?.condition?.moon]
-		$scope.tide_icon = -> $scope.tide_phases |> _.find (.name == $scope.report?.condition?.tide) |> (?.icon)
+		$scope.tide_icon = -> $scope.tide_phases.filter((v) -> v.name is $scope.report?.condition?.tide).map((v) -> v.icon)
 		$scope.weather_icon = (name) -> $scope.weather_states[name]
 
 		$scope.tide_phases = ConditionFactory.tide_phases
@@ -157,13 +154,13 @@
 			length: 'cm'
 			weight: 'kg'
 		UnitFactory.load (units) ->
-			$scope.user_units <<< units
+			angular.copy units, $scope.user_units
 
 		$scope.adding =
 			name: null
 		$scope.addFish = ->
 			$log.debug "Adding fish: #{$scope.adding.name}"
-			if ()!$scope.adding.name
+			if !!$scope.adding.name
 				$scope.report.fishes.push do
 					name: $scope.adding.name
 					count: 1
@@ -186,13 +183,13 @@
 		$scope.$on 'popover.hidden', -> if $scope.editing
 			$scope.editing = false
 			$log.debug "Hide popover"
-			if $scope.tmpFish?.name && $scope.tmpFish?.count
+			if $scope.tmpFish?.name and $scope.tmpFish?.count
 				if !$scope.tmpFish.length?.value
 					$scope.tmpFish.length = undefined
 				if !$scope.tmpFish.weight?.value
 					$scope.tmpFish.weight = undefined
 				$log.debug "Overrinding current fish"
-				$scope.current <<< $scope.tmpFish
+				angular.copy $scope.tmpFish, $scope.current
 
 .directive 'gist', ($log, $ionicLoading) ->
 	restrict: 'E',
