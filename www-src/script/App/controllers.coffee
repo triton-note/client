@@ -6,7 +6,7 @@ angular.module('triton_note.controllers', ['ionic'])
 		$scope.accept = ->
 			$log.info "Acceptance obtained"
 			AcceptanceFactory.success()
-			$ionicHistory.nextViewOptions do
+			$ionicHistory.nextViewOptions
 				disableAnimate: true
 				disableBack: true
 			$state.go 'home'
@@ -27,7 +27,7 @@ angular.module('triton_note.controllers', ['ionic'])
 		on_error = (error) ->
 			$log.error "Erorr on Facebook: #{angular.toJson error}"
 			$scope.done $scope.social.username
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: "Rejected"
 		if next
 			AccountFactory.connect $scope.done, on_error
@@ -37,7 +37,7 @@ angular.module('triton_note.controllers', ['ionic'])
 				$ionicHistory.clearCache()
 				$log.warn "SNSCtrl: Cache Cleared()"
 				$scope.done()
-				$ionicPopup.alert do
+				$ionicPopup.alert
 					title: "No social connection"
 					template: "Please login to Facebook, if you want to continue this app."
 			, on_error
@@ -126,7 +126,7 @@ angular.module('triton_note.controllers', ['ionic'])
 			gmap.map.setZoom 8
 
 			gmap.marker?.setMap null
-			gmap.marker = new google.maps.Marker do
+			gmap.marker = new google.maps.Marker
 				title: $scope.report.location.name
 				map: gmap.map
 				position: gmap.center
@@ -140,7 +140,7 @@ angular.module('triton_note.controllers', ['ionic'])
 		$scope.should_clear = false
 	$scope.delete = ->
 		$scope.popover_hide()
-		$ionicPopup.confirm do
+		$ionicPopup.confirm
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"
 		.then (res) -> if res
@@ -149,16 +149,16 @@ angular.module('triton_note.controllers', ['ionic'])
 			$ionicHistory.goBack()
 	$scope.publish = ->
 		$scope.popover_hide()
-		$ionicPopup.confirm do
+		$ionicPopup.confirm
 			title: "Publish Report"
 			template: "Are you sure to post this report to Facebook ?"
 		.then (res) -> if res
 			ReportFactory.publish $scope.report.id, ->
 				$log.debug "Publish completed."
-				$ionicPopup.alert do
+				$ionicPopup.alert
 					title: 'Completed to post'
 			, (error) ->
-				$ionicPopup.alert do
+				$ionicPopup.alert
 					title: 'Error'
 					template: "Failed to post"
 
@@ -182,7 +182,7 @@ angular.module('triton_note.controllers', ['ionic'])
 			$ionicHistory.goBack()
 		, $ionicLoading.hide
 	$scope.submission_enabled = ->
-		()!$scope.report?.location?.name
+		!!$scope.report?.location?.name
 
 .controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) ->
 	$log.debug "Init AddReportCtrl"
@@ -203,11 +203,11 @@ angular.module('triton_note.controllers', ['ionic'])
 			$ionicLoading.hide()
 			$scope.report = that
 			$log.debug "Getting current report: #{angular.toJson $scope.report}"
-			$scope.submission.enabled = ()!$scope.report.photo.original
+			$scope.submission.enabled = !!$scope.report.photo.original
 		else
 			on_error = (title) -> (error_msg) ->
 				$ionicLoading.hide()
-				$ionicPopup.alert do
+				$ionicPopup.alert
 					title: title
 					template: error_msg
 				.then $ionicHistory.goBack
@@ -248,7 +248,7 @@ angular.module('triton_note.controllers', ['ionic'])
 					$log.warn "Getting current location..."
 					GMapFactory.getGeoinfo upload, (error) ->
 						$log.error "Geolocation Error: #{angular.toJson error}"
-						upload do
+						upload
 							latitude: 0
 							longitude: 0
 			, on_error "Need one photo"
@@ -379,7 +379,7 @@ angular.module('triton_note.controllers', ['ionic'])
 								find_or ->
 									$log.error "Report not found by id: #{fish.report_id}"
 				for fish in list
-					gmap.addMarker do
+					gmap.addMarker
 						title: "#{fish.name} x #{fish.count}"
 						snippet: fish.date.toLocaleDateString()
 						position:
@@ -390,7 +390,7 @@ angular.module('triton_note.controllers', ['ionic'])
 				$log.debug "Mapping other's distribution (filtered by '#{fish_name}'): #{list}"
 				gmap.clear()
 				for fish in list
-					gmap.addMarker do
+					gmap.addMarker
 						title: "#{fish.name} x #{fish.count}"
 						icon: icons[(_.min fish.count, 10) - 1]
 						position:

@@ -11,7 +11,7 @@ angular.module('triton_note.directive', ['ionic'])
 		div = $element.children().children()[0]
 		img = $element.children().children().children()
 		photo = $attrs['src']
-		whole = ()!$attrs['whole']
+		whole = !!$attrs['whole']
 		if photo and photo.length > 0
 			chain = photo.split('.')
 			$scope.$watch chain[0], ->
@@ -37,7 +37,7 @@ angular.module('triton_note.directive', ['ionic'])
 								top: margin (v) -> v.height
 							delegate.scrollTo sc.left, sc.top
 							$log.debug "fathensFitImg: scroll=#{angular.toJson sc}"
-							min_zoom = _.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight rect.width / rect.height else rect.height / rect.width
+							min_zoom = _.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width / rect.height else rect.height / rect.width
 							if whole and min_zoom < 1
 								delegate.zoomTo min_zoom, true
 
@@ -124,7 +124,7 @@ angular.module('triton_note.directive', ['ionic'])
 				gmap.map.setZoom 8
 
 				gmap.marker?.setMap null
-				gmap.marker = new google.maps.Marker do
+				gmap.marker = new google.maps.Marker
 					title: $scope.report.location.name
 					map: gmap.map
 					position: center
@@ -161,7 +161,7 @@ angular.module('triton_note.directive', ['ionic'])
 		$scope.addFish = ->
 			$log.debug "Adding fish: #{$scope.adding.name}"
 			if !!$scope.adding.name
-				$scope.report.fishes.push do
+				$scope.report.fishes.push
 					name: $scope.adding.name
 					count: 1
 				$scope.adding.name = null

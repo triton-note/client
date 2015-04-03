@@ -1,2 +1,2 @@
-require('LiveScript');
-require('./gulpfile.ls');
+require('coffee-script/register');
+require('./gulpfile.coffee');

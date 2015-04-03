@@ -23,10 +23,10 @@ angular.module('triton_note.filter', ['ionic'])
 				"#{$filter('number')(converted.value, 0)} #{converted.unit}"
 			else []
 		sizes = (_.flatten _.map(size) ["length", "weight"]).join ', '
-		volume = if (sizes) "(#{sizes})" else ""
+		volume = if sizes then "(#{sizes})" else ""
 		"#{fish.name}#{volume} x #{fish.count}"
 
 .filter 'temperatureFilter', ($log, $filter, UnitFactory) ->
-	(src) -> if (!src) "" else
+	(src) -> if !src then "" else
 		dst = UnitFactory.temperature(src)
 		"#{$filter('number')(dst.value, 1)} °#{dst.unit[0]}"

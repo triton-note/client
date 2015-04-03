@@ -94,7 +94,7 @@ angular.module('triton_note.server', ['ionic'])
 	###
 	Put a photo which is encoded by base64 to session
 	###
-	put_photo: (session, ...photos) -> (success_taker, error_taker) ->
+	put_photo: (session, photos...) -> (success_taker, error_taker) ->
 		$log.debug "Putting a photo with #{session}: #{photos}"
 		http('POST', "report/photo",
 			session: session
@@ -239,7 +239,7 @@ angular.module('triton_note.server', ['ionic'])
 	success: successIt
 
 .factory 'SocialFactory', ($log, LocalStorageFactory) ->
-	facebook_login = (...perm) -> (token_taker, error_taker) -> ionic.Platform.ready ->
+	facebook_login = (perm...) -> (token_taker, error_taker) -> ionic.Platform.ready ->
 		$log.info "Logging in to Facebook: #{perm}"
 		facebookConnectPlugin.login perm
 		, (result) ->
@@ -251,7 +251,7 @@ angular.module('triton_note.server', ['ionic'])
 		facebookConnectPlugin.api "me?fields=name", ['public_profile']
 		, (info) ->
 			$log.debug "Get profile: #{angular.toJson info}"
-			profile_taker do
+			profile_taker
 				id: info.id
 				name: info.name
 		, error_taker
@@ -390,7 +390,7 @@ angular.module('triton_note.server', ['ionic'])
 		ReportFactory.publish report_id, ->
 			$log.debug "Published session: #{store.session}"
 		, (error) ->
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: 'Error'
 				template: "Failed to post"
 
@@ -402,7 +402,7 @@ angular.module('triton_note.server', ['ionic'])
 			ReportFactory.add report
 			success report_id
 		, (error) ->
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: 'Error'
 				template: error.msg
 			error_taker error
@@ -458,7 +458,7 @@ angular.module('triton_note.server', ['ionic'])
 				on_finally()
 			, on_finally
 		else 
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: 'Error'
 				template: "No session started"
 			on_finally()

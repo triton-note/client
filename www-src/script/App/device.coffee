@@ -11,7 +11,7 @@ angular.module('triton_note.device', ['ionic'])
 			g =
 				latitude: Number(reader.getTagDescription 'GPSLatitude')
 				longitude: Number(reader.getTagDescription 'GPSLongitude')
-			info_taker do
+			info_taker
 				timestamp: toDate(reader.getTagDescription 'DateTimeOriginal')
 				geoinfo: if g.latitude and g.longitude then g else null
 		catch
@@ -103,7 +103,7 @@ angular.module('triton_note.device', ['ionic'])
 	store =
 		gmap: null
 	ionic.Platform.ready ->
-		gmap = plugin.google.maps.Map.getMap do
+		gmap = plugin.google.maps.Map.getMap
 			mapType: store.map_type = plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
@@ -117,7 +117,7 @@ angular.module('triton_note.device', ['ionic'])
 		$timeout store.gmap.refreshLayout, 200 if !isOpen
 	marker = (clear_pre) -> (geoinfo, title, icon) ->
 		store.gmap.clear() if clear_pre
-		store.gmap.addMarker do
+		store.gmap.addMarker
 			position: new plugin.google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
 			title: title
 			icon: icon
@@ -147,7 +147,7 @@ angular.module('triton_note.device', ['ionic'])
 	getGeoinfo: (onSuccess, onError) -> onReady ->
 		navigator.geolocation.getCurrentPosition (position) ->
 			$log.debug "Gotta GMap Location: #{angular.toJson position}"
-			onSuccess do
+			onSuccess
 				latitude: position.coords.latitude
 				longitude: position.coords.longitude
 		, (error) ->
@@ -178,13 +178,13 @@ angular.module('triton_note.device', ['ionic'])
 		store.gmap.setMapTypeId store.map_type
 		store.gmap.setClickable true
 		scope.$watch ->
-			()!$ionicSideMenuDelegate.isOpenLeft()
+			!!$ionicSideMenuDelegate.isOpenLeft()
 		, menuShown
 		success store.gmap if success
 	onTap: (proc) -> onReady ->
 		$log.debug "GMap onTap is changed: #{proc}"
 		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) ->
 			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{proc}"
-			proc do
+			proc
 				latitude: latLng.lat
 				longitude: latLng.lng

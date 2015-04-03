@@ -8,7 +8,7 @@ angular.module('triton_note.reports', ['ionic'])
 		icon: "img/tide/#{name.toLowerCase()}.png"
 	weather = (id) ->
 		"http://openweathermap.org/img/w/#{id}.png"
-	default_condition = -> angular.copy do
+	default_condition = -> angular.copy
 		moon: 0
 		tide: 'High'
 		weather:
@@ -100,7 +100,7 @@ angular.module('triton_note.reports', ['ionic'])
 			success?()
 		, (error) ->
 			$log.error "Failed to load from server: #{angular.toJson error}"
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: "Failed to load from server"
 				template: ""
 			success?()
@@ -201,10 +201,10 @@ angular.module('triton_note.reports', ['ionic'])
 		, ->
 			$log.info "Deleted report: #{removing_id}"
 			DistributionFactory.report.remove removing_id
-			store.reports = angular.copy((_.take index, store.reports) ++ (_.drop index + 1, store.reports))
+			store.reports.splice(index, 1)
 			success()
 		, (error) ->
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: "Failed to remove from server"
 				template: error.msg
 	###
@@ -221,7 +221,7 @@ angular.module('triton_note.reports', ['ionic'])
 				success()
 				on_finally()
 			, (error) ->
-				$ionicPopup.alert do
+				$ionicPopup.alert
 					title: "Failed to update to server"
 					template: error.msg
 				on_finally()
@@ -237,7 +237,7 @@ angular.module('triton_note.reports', ['ionic'])
 				on_success()
 			, on_error
 		, (error) ->
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: 'Rejected'
 				template: error
 			.then (res) ->
@@ -283,7 +283,7 @@ angular.module('triton_note.reports', ['ionic'])
 				$log.debug "Refresh units: #{angular.toJson units}"
 	ionic.Platform.ready init
 
-	units: -> angular.copy do
+	units: -> angular.copy
 		length: ['cm', 'inch']
 		weight: ['kg', 'pond']
 		temperature: ['Cels', 'Fahr']
@@ -358,7 +358,7 @@ angular.module('triton_note.reports', ['ionic'])
 			store.catches.mine = list
 			suc()
 		, (error) ->
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: "Error"
 				template: "Failed to load catches list"
 			.then ->
@@ -373,7 +373,7 @@ angular.module('triton_note.reports', ['ionic'])
 			store.catches.others = list
 			suc()
 		, (error) ->
-			$ionicPopup.alert do
+			$ionicPopup.alert
 				title: "Error"
 				template: "Failed to load catches list"
 			.then ->
