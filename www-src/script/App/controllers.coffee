@@ -74,7 +74,7 @@ angular.module('triton_note.controllers', [])
 		ReportFactory.load ->
 			$scope.$broadcast 'scroll.infiniteScrollComplete'
 
-.controller 'ShowReportCtrl', ($log, $timeout, $state, $stateParams, $ionicHistory, $ionicScrollDelegate, $scope, $ionicPopover, $ionicPopup, ReportFactory, ConditionFactory) ->
+.controller 'ShowReportCtrl', ($log, $timeout, $state, $stateParams, $ionicHistory, $scope, $ionicPopover, $ionicPopup, ReportFactory, ConditionFactory) ->
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter ShowReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.popover = {}
@@ -87,15 +87,15 @@ angular.module('triton_note.controllers', [])
 			for _, p of $scope.popover
 				p.hide()
 
-		$scope.should_clear = true
+		$scope.shouldClear = true
 		if $stateParams.index and ReportFactory.current().index is null
 			$scope.report = ReportFactory.getReport($scope.index = Number($stateParams.index))
 		else
 			c = ReportFactory.current()
 			$scope.index = c.index
 			$scope.report = c.report
-		$scope.tide_icon = ConditionFactory.tide_phases.filter((v) -> v.name is $scope.report.condition?.tide).map((v) -> v.icon)[0]
-		$scope.moon_icon = ConditionFactory.moon_phases[$scope.report.condition?.moon]
+		$scope.tideIcon = ConditionFactory.tidePhases.filter((v) -> v.name is $scope.report.condition?.tide).map((v) -> v.icon)[0]
+		$scope.moonIcon = ConditionFactory.moonPhases[$scope.report.condition?.moon]
 		
 		$scope.show_location_gmap =
 			center: new google.maps.LatLng($scope.report.location.geoinfo.latitude, $scope.report.location.geoinfo.longitude)
@@ -103,21 +103,20 @@ angular.module('triton_note.controllers', [])
 			marker: null
 		
 		$log.debug "Show Report: #{angular.toJson $scope.report}"
-		$ionicScrollDelegate.$getByHandle("scroll_img_show_report").zoomTo 1
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) ->
 		$log.debug "Before Leave ShowReportCtrl: event=#{angular.toJson event}"
-		ReportFactory.clear_current() if $scope.should_clear
+		ReportFactory.clearCurrent() if $scope.shouldClear
 		for _, p of $scope.popover
 			p?.remove()
 		$scope.show_location_gmap.map = null
 		$scope.show_location_gmap.marker = null
 
-	$scope.preview_map = ($event) ->
+	$scope.previewMap = ($event) ->
 		gmap = $scope.show_location_gmap
 		$scope.popover.show_location.show $event
 		.then ->
-			div = document.getElementById "show_gmap"
+			div = document.getElementById "show-gmap"
 			unless gmap.map
 				gmap.map = new google.maps.Map div,
 					mapTypeId: google.maps.MapTypeId.HYBRID
@@ -133,13 +132,13 @@ angular.module('triton_note.controllers', [])
 				animation: google.maps.Animation.DROP
 
 			google.maps.event.addDomListener div, 'click', ->
-				$scope.use_current()
+				$scope.useCurrent()
 				$state.go "view-on-map"
 
 	$scope.useCurrent = ->
-		$scope.should_clear = false
+		$scope.shouldClear = false
 	$scope.delete = ->
-		$scope.popover_hide()
+		$scope.popoverHide()
 		$ionicPopup.confirm
 			title: "Delete Report"
 			template: "Are you sure to delete this report ?"

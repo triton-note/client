@@ -17,7 +17,7 @@ angular.module('triton_note.reports', [])
 		tide: 'High'
 		weather:
 			name: 'Clear'
-			icon_url: weather('01d')
+			iconUrl: weather('01d')
 			temperature:
 				value: 20
 				unit: 'Cels'
@@ -34,9 +34,9 @@ angular.module('triton_note.reports', [])
 		, (error) ->
 			$log.error "Failed to get conditions from server: #{error}"
 			taker default_condition()
-	moon_phases: [0..30].map moon
-	tide_phases: ['Flood', 'High', 'Ebb', 'Low'].map tide
-	weather_states: objMap weather,
+	moonPhases: [0..30].map moon
+	tidePhases: ['Flood', 'High', 'Ebb', 'Low'].map tide
+	weatherStates: objMap weather,
 		Clear: '01d'
 		Clouds: '04d'
 		Rain: '09d'
@@ -169,7 +169,7 @@ angular.module('triton_note.reports', [])
 		store.current.report = angular.copy read store.reports[index]
 	current: ->
 		store.current
-	clear_current: ->
+	clearCurrent: ->
 		$log.debug "Report current clear()"
 		store.current =
 			index: null
