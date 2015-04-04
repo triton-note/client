@@ -291,7 +291,7 @@ angular.module('triton_note.controllers', [])
 		$scope.$watch 'view.gmap.type', (value) ->
 			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
 			GMapFactory.setMapType value
-		$ionicPopover.fromTemplateUrl 'view-map-view',
+		$ionicPopover.fromTemplateUrl 'view_map_view',
 			scope: $scope
 		.then (pop) ->
 			$scope.popoverView = pop
@@ -320,14 +320,14 @@ angular.module('triton_note.controllers', [])
 		$scope.$watch 'view.gmap.type', (value) ->
 			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
 			GMapFactory.setMapType value
-		$ionicPopover.fromTemplateUrl 'distribution-map-options',
+		$ionicPopover.fromTemplateUrl 'distribution_map_options',
 			scope: $scope
 		.then (pop) ->
 			$scope.popoverOptions = pop
 		$scope.showOptions = (event) ->
 			$scope.gmap.setClickable false
 			$scope.popoverOptions.show event
-		$ionicPopover.fromTemplateUrl 'distribution-map-view',
+		$ionicPopover.fromTemplateUrl 'distribution_map_view',
 			scope: $scope
 		.then (pop) ->
 			$scope.popoverView = pop

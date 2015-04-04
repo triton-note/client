@@ -7,7 +7,7 @@ ion-view(view-title="Distributions")
 	ion-content(scroll="false")
 		#distribution-map(style="height: 100%")
 
-	script#distribution-map-options(type="text/ng-template")
+	script#distribution_map_options(type="text/ng-template")
 		ion-popover-view
 			ion-header-bar
 				h2.title Filter
@@ -18,7 +18,7 @@ ion-view(view-title="Distributions")
 						i.icon.ion-search.placeholder-icon
 						input(type="text", ng-model="view.name", placeholder="Fish Name")
 
-	script#distribution-map-view(type="text/ng-template")
+	script#distribution_map_view(type="text/ng-template")
 		ion-popover-view
 			ion-header-bar
 				h2.title Map View

@@ -142,7 +142,7 @@ angular.module('triton_note.directive', [])
 	replace: true
 	scope: true
 	controller: ($scope, $element, $attrs, $timeout, $ionicPopover, UnitFactory) ->
-		$ionicPopover.fromTemplateUrl 'fish-edit',
+		$ionicPopover.fromTemplateUrl 'fish_edit',
 			scope: $scope
 		.then (popover) ->
 			$scope.fishEdit = popover
