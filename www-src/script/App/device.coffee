@@ -104,7 +104,7 @@ angular.module('triton_note.device', [])
 		gmap: null
 	ionic.Platform.ready ->
 		gmap = plugin.google.maps.Map.getMap
-			mapType: store.map_type = plugin.google.maps.MapTypeId.HYBRID
+			mapType: store.mapType = plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
 				zoom: false
@@ -112,7 +112,7 @@ angular.module('triton_note.device', [])
 			store.gmap = gmap
 	menuShown = (isOpen) ->
 		console.log "GMapFactory: side menu open: #{isOpen}"
-		document.getElementsByClassName('menu_left')[0]?.style.display = if isOpen then 'block' else 'none'
+		document.getElementsByClassName('menu-left')[0]?.style.display = if isOpen then 'block' else 'none'
 		store.gmap.setClickable !isOpen
 		$timeout store.gmap.refreshLayout, 200 if !isOpen
 	marker = (clear_pre) -> (geoinfo, title, icon) ->
@@ -133,17 +133,17 @@ angular.module('triton_note.device', [])
 		store.gmap.setDiv null
 		menuShown true
 
-	add_marker: marker false
-	put_marker: marker true
+	addMarker: marker false
+	putMarker: marker true
 	clear: clear
 	getMapTypes: ->
 		"Roadmap": plugin.google.maps.MapTypeId.ROADMAP
 		"Satellite": plugin.google.maps.MapTypeId.SATELLITE
 		"Road + Satellite": plugin.google.maps.MapTypeId.HYBRID
 		"Terrain": plugin.google.maps.MapTypeId.TERRAIN
-	getMapType: -> store.map_type
+	getMapType: -> store.mapType
 	setMapType: (id) -> onReady ->
-		store.gmap.setMapTypeId store.map_type = id
+		store.gmap.setMapTypeId store.mapType = id
 	getGeoinfo: (onSuccess, onError) -> onReady ->
 		navigator.geolocation.getCurrentPosition (position) ->
 			$log.debug "Gotta GMap Location: #{angular.toJson position}"
@@ -175,7 +175,7 @@ angular.module('triton_note.device', [])
 						$log.error "GMap Location Error: #{angular.toJson error}"
 		div = document.getElementById name
 		store.gmap.setDiv div
-		store.gmap.setMapTypeId store.map_type
+		store.gmap.setMapTypeId store.mapType
 		store.gmap.setClickable true
 		scope.$watch ->
 			!!$ionicSideMenuDelegate.isOpenLeft()

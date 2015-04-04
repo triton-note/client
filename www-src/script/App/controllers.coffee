@@ -161,26 +161,25 @@ angular.module('triton_note.controllers', [])
 					title: 'Error'
 					template: "Failed to post"
 
-.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicScrollDelegate, $ionicHistory, $ionicLoading, ReportFactory) ->
+.controller 'EditReportCtrl', ($log, $stateParams, $scope, $ionicHistory, $ionicLoading, ReportFactory) ->
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter EditReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		$scope.should_clear = true
+		$scope.shouldClear = true
 		$scope.report = ReportFactory.current().report
-		$ionicScrollDelegate.$getByHandle("scroll_img_edit_report").zoomTo 1
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) ->
 		$log.debug "Before Leave EditReportCtrl: event=#{angular.toJson event}"
-		ReportFactory.clear_current() if $scope.should_clear
+		ReportFactory.clearCurrent() if $scope.shouldClear
 
 	$scope.useCurrent = ->
-		$scope.should_clear = false
+		$scope.shouldClear = false
 	$scope.submit = ->
 		$ionicLoading.show()
 		ReportFactory.updateByCurrent ->
 			$log.debug "Edit completed."
 			$ionicHistory.goBack()
 		, $ionicLoading.hide
-	$scope.submission_enabled = ->
+	$scope.submissionEnabled = ->
 		!!$scope.report?.location?.name
 
 .controller 'AddReportCtrl', ($log, $timeout, $ionicPlatform, $scope, $stateParams, $ionicHistory, $ionicLoading, $ionicPopover, $ionicPopup, PhotoFactory, SessionFactory, ReportFactory, GMapFactory, ConditionFactory) ->
@@ -196,7 +195,7 @@ angular.module('triton_note.controllers', [])
 
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter AddReportCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		$scope.should_clear = true
+		$scope.shouldClear = true
 
 		if (cur = ReportFactory.current().report)
 			$ionicLoading.hide()
@@ -254,10 +253,10 @@ angular.module('triton_note.controllers', [])
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) ->
 		$log.debug "Before Leave AddReportCtrl: event=#{angular.toJson event}"
-		ReportFactory.clear_current() if $scope.should_clear
+		ReportFactory.clearCurrent() if $scope.shouldClear
 
 	$scope.useCurrent = ->
-		$scope.should_clear = false
+		$scope.shouldClear = false
 	$scope.submit = ->
 		$ionicLoading.show()
 		if !$scope.report.location.name
@@ -273,17 +272,17 @@ angular.module('triton_note.controllers', [])
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter ReportOnMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$scope.report = ReportFactory.current().report
-		GMapFactory.onDiv $scope, 'edit_map', (gmap) ->
+		GMapFactory.onDiv $scope, 'edit-map', (gmap) ->
 			$scope.$on 'popover.hidden', ->
 				gmap.setClickable true
 			$scope.showViewOptions = (event) ->
 				gmap.setClickable false
-				$scope.popover_view.show event
+				$scope.popoverView.show event
 			if $stateParams.edit
 				$scope.geoinfo = $scope.report.location.geoinfo
 				GMapFactory.onTap (geoinfo) ->
 					$scope.geoinfo = geoinfo
-					GMapFactory.put_marker geoinfo
+					GMapFactory.putMarker geoinfo
 		, $scope.report.location.geoinfo
 		$scope.view =
 			gmap:
@@ -292,10 +291,10 @@ angular.module('triton_note.controllers', [])
 		$scope.$watch 'view.gmap.type', (value) ->
 			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
 			GMapFactory.setMapType value
-		$ionicPopover.fromTemplateUrl 'view_map_view',
+		$ionicPopover.fromTemplateUrl 'view-map-view',
 			scope: $scope
 		.then (pop) ->
-			$scope.popover_view = pop
+			$scope.popoverView = pop
 
 	$scope.submit = ->
 		if (geoinfo = $scope.geoinfo)
@@ -321,20 +320,20 @@ angular.module('triton_note.controllers', [])
 		$scope.$watch 'view.gmap.type', (value) ->
 			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
 			GMapFactory.setMapType value
-		$ionicPopover.fromTemplateUrl 'distribution_map_options',
+		$ionicPopover.fromTemplateUrl 'distribution-map-options',
 			scope: $scope
 		.then (pop) ->
 			$scope.popover_options = pop
 		$scope.showOptions = (event) ->
 			$scope.gmap.setClickable false
 			$scope.popover_options.show event
-		$ionicPopover.fromTemplateUrl 'distribution_map_view',
+		$ionicPopover.fromTemplateUrl 'distribution-map-view',
 			scope: $scope
 		.then (pop) ->
-			$scope.popover_view = pop
+			$scope.popoverView = pop
 		$scope.showViewOptions = (event) ->
 			$scope.gmap.setClickable false
-			$scope.popover_view.show event
+			$scope.popoverView.show event
 		$scope.$on 'popover.hidden', ->
 			$scope.gmap.setClickable true
 
@@ -403,7 +402,7 @@ angular.module('triton_note.controllers', [])
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$ionicLoading.show()
-		GMapFactory.onDiv $scope, 'distribution_map', (gmap) ->
+		GMapFactory.onDiv $scope, 'distribution-map', (gmap) ->
 			$scope.gmap = gmap
 			$scope.map_distribution()
 			$ionicLoading.hide()

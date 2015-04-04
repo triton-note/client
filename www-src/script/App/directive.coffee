@@ -43,7 +43,7 @@ angular.module('triton_note.directive', [])
 
 .directive 'fathensEditReport', ($log) ->
 	restrict: 'E'
-	templateUrl: 'page/report/editor_report.html'
+	templateUrl: 'page/report/editor-report.html'
 	replace: true
 	controller: ($scope, $element, $attrs, $timeout, $state, $ionicPopover, ConditionFactory, UnitFactory) ->
 		$scope.popover = {}
@@ -56,21 +56,21 @@ angular.module('triton_note.directive', [])
 			for _, p of $scope.popover
 				p?.hide()
 		$scope.$on '$destroy', (event) ->
-			$log.info "Leaving 'fathens_edit_report': #{event}"
+			$log.info "Leaving 'fathens-edit-report': #{event}"
 			for _, p of $scope.popover
 				p?.remove()
 
-		$scope.tide_modified = false
-		$scope.tide_modify = ->
+		$scope.tideModified = false
+		$scope.tideModify = ->
 			$log.debug "Condition tide modified by user: #{$scope.report.condition.tide}"
-			$scope.tide_modified = true
-		$scope.weather_modified = false
-		$scope.weather_modify = ->
+			$scope.tideModified = true
+		$scope.weatherModified = false
+		$scope.weatherModify = ->
 			$log.debug "Condition weather modified by user: #{$scope.report.condition.weather.name}"
-			$scope.weather_modified = true
+			$scope.weatherModified = true
 			$timeout ->
 				$log.debug "Using weather icon by Name: #{$scope.report.condition.weather.name}"
-				$scope.report?.condition?.weather.icon_url = $scope.weather_icon($scope.report.condition.weather.name)
+				$scope.report?.condition?.weather.iconUrl = $scope.weatherIcon($scope.report.condition.weather.name)
 			, 200
 
 		$scope.$watch 'report.condition.tide', (new_value, old_value) ->
@@ -83,34 +83,34 @@ angular.module('triton_note.directive', [])
 			$scope.popover.choose_weather.hide()
 
 		$scope.$watch 'report.dateAt', (new_value, old_value) -> if old_value or !$scope.report?.condition
-			change_condition(new_value, $scope.report?.location?.geoinfo)
+			changeCondition(new_value, $scope.report?.location?.geoinfo)
 		$scope.$watch 'report.location.geoinfo', (new_value, old_value) -> if old_value or !$scope.report?.condition
-			change_condition($scope.report?.dateAt, new_value)
-		change_condition = (datetime, geoinfo) -> if datetime and geoinfo
+			changeCondition($scope.report?.dateAt, new_value)
+		changeCondition = (datetime, geoinfo) -> if datetime and geoinfo
 			$scope.report.condition = {} if !$scope.report.condition
 			ConditionFactory.state datetime, geoinfo, (state) ->
 				$log.debug "Conditions result: #{angular.toJson state}"
 				$scope.report.condition.moon = state.moon
-				if !$scope.tide_modified
+				if !$scope.tideModified
 					$scope.report.condition.tide = state.tide
 				if state.weather
-					if !$scope.weather_modified
+					if !$scope.weatherModified
 						$scope.report.condition.weather = state.weather
 					else
 						$scope.report.condition.weather.temperature = state.weather.temperature
 
-		$scope.moon_icon = -> ConditionFactory.moon_phases[$scope.report?.condition?.moon]
-		$scope.tide_icon = -> $scope.tide_phases.filter((v) -> v.name is $scope.report?.condition?.tide).map((v) -> v.icon)
-		$scope.weather_icon = (name) -> $scope.weather_states[name]
+		$scope.moonIcon = -> ConditionFactory.moonPhases[$scope.report?.condition?.moon]
+		$scope.tideIcon = -> $scope.tidePhases.filter((v) -> v.name is $scope.report?.condition?.tide).map((v) -> v.icon)[0]
+		$scope.weatherIcon = (name) -> $scope.weatherStates[name]
 
-		$scope.tide_phases = ConditionFactory.tide_phases
-		$scope.weather_states = ConditionFactory.weather_states
+		$scope.tidePhases = ConditionFactory.tidePhases
+		$scope.weatherStates = ConditionFactory.weatherStates
 
-		$scope.spot_location_gmap =
+		$scope.spotLocationGmap =
 			map: null
 			marker: null
 		$scope.showMap = ($event) ->
-			gmap = $scope.spot_location_gmap
+			gmap = $scope.spotLocationGmap
 			geoinfo = $scope.report.location.geoinfo
 			center = new google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
 			$scope.popover.spot_location.show $event
@@ -138,23 +138,23 @@ angular.module('triton_note.directive', [])
 
 .directive 'fathensEditFishes', ($log) ->
 	restrict: 'E'
-	templateUrl: 'page/report/editor_fishes.html'
+	templateUrl: 'page/report/editor-fishes.html'
 	replace: true
 	scope: true
 	controller: ($scope, $element, $attrs, $timeout, $ionicPopover, UnitFactory) ->
-		$ionicPopover.fromTemplateUrl 'fish_edit',
+		$ionicPopover.fromTemplateUrl 'fish-edit',
 			scope: $scope
 		.then (popover) ->
-			$scope.fish_edit = popover
+			$scope.fishEdit = popover
 		$scope.$on '$destroy', (event) ->
-			$log.info "Leaving 'fathens_edit_fishes': #{event}"
-			$scope.fish_edit?.remove()
+			$log.info "Leaving 'fathens-edit-fishes': #{event}"
+			$scope.fishEdit?.remove()
 		$scope.units = UnitFactory.units()
-		$scope.user_units =
+		$scope.userUnits =
 			length: 'cm'
 			weight: 'kg'
 		UnitFactory.load (units) ->
-			angular.copy units, $scope.user_units
+			angular.copy units, $scope.userUnits
 
 		$scope.adding =
 			name: null
@@ -172,14 +172,14 @@ angular.module('triton_note.directive', [])
 			if !$scope.tmpFish.length?.value
 				$scope.tmpFish.length =
 					value: null
-					unit: $scope.user_units.length
+					unit: $scope.userUnits.length
 			if !$scope.tmpFish.weight?.value
 				$scope.tmpFish.weight =
 					value: null
-					unit: $scope.user_units.weight
+					unit: $scope.userUnits.weight
 			$scope.editing = true
 			$log.debug "Editing fish(#{index}): #{angular.toJson $scope.tmpFish}"
-			$scope.fish_edit.show event
+			$scope.fishEdit.show event
 		$scope.$on 'popover.hidden', -> if $scope.editing
 			$scope.editing = false
 			$log.debug "Hide popover"

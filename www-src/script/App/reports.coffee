@@ -12,7 +12,8 @@ angular.module('triton_note.reports', [])
 		tmp = {}
 		Object.keys(obj).forEach (key) ->
 			tmp[key] = f(obj[key])
-	default_condition = -> angular.copy
+		tmp
+	defaultCondition = -> angular.copy
 		moon: 0
 		tide: 'High'
 		weather:
@@ -29,11 +30,11 @@ angular.module('triton_note.reports', [])
 		, (condition) ->
 			$log.debug "Get condition: #{angular.toJson condition}"
 			if !condition.weather
-				condition.weather = default_condition().weather
+				condition.weather = defaultCondition().weather
 			taker condition
 		, (error) ->
 			$log.error "Failed to get conditions from server: #{error}"
-			taker default_condition()
+			taker defaultCondition()
 	moonPhases: [0..30].map moon
 	tidePhases: ['Flood', 'High', 'Ebb', 'Low'].map tide
 	weatherStates: objMap weather,
@@ -251,7 +252,7 @@ angular.module('triton_note.reports', [])
 .factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
 	inchToCm = 2.54
 	pondToKg = 0.4536
-	default_units =
+	defaultUnits =
 		length: 'cm'
 		weight: 'kg'
 		temperature: 'Cels'
@@ -259,14 +260,14 @@ angular.module('triton_note.reports', [])
 	store =
 		unit: null
 
-	save_current = (units) ->
+	saveCurrent = (units) ->
 		store.unit = angular.copy units
 		AccountFactory.with_ticket (ticket) ->
 			ServerFactory.update_measures ticket, units
 		, -> $log.debug "Success to change units"
 		, (error) -> $log.debug "Failed to change units: #{angular.toJson error}"
-	load_local = -> store.unit ? default_units
-	load_server = (taker) ->
+	loadLocal = -> store.unit ? defaultUnits
+	loadServer = (taker) ->
 		$log.debug "Loading account units"
 		AccountFactory.with_ticket (ticket) ->
 			ServerFactory.load_measures ticket
@@ -276,14 +277,14 @@ angular.module('triton_note.reports', [])
 			taker units
 		, (error) ->
 			$log.error "Failed to load account units: #{angular.toJson error}"
-			taker(angular.copy default_units)
-	load_current = (taker) ->
+			taker(angular.copy defaultUnits)
+	loadCurrent = (taker) ->
 		if (unit = store.unit)
 		then taker(angular.copy unit)
-		else load_server taker
+		else loadServer taker
 	init = ->
 		unless store.unit
-			load_server (units) ->
+			loadServer (units) ->
 				$log.debug "Refresh units: #{angular.toJson units}"
 	ionic.Platform.ready init
 
@@ -291,13 +292,13 @@ angular.module('triton_note.reports', [])
 		length: ['cm', 'inch']
 		weight: ['kg', 'pond']
 		temperature: ['Cels', 'Fahr']
-	load: load_current
-	save: save_current
+	load: loadCurrent
+	save: saveCurrent
 	length: (src) ->
 		init()
-		dst_unit = load_local().length
+		dstUnit = loadLocal().length
 		convert = -> switch src.unit
-			when dst_unit then src.value
+			when dstUnit then src.value
 			when 'inch'   then src.value * inchToCm
 			when 'cm'     then src.value / inchToCm
 		{
@@ -306,9 +307,9 @@ angular.module('triton_note.reports', [])
 		}
 	weight: (src) ->
 		init()
-		dst_unit = load_local().weight
+		dstUnit = loadLocal().weight
 		convert = -> switch src.unit
-			when dst_unit then src.value
+			when dstUnit then src.value
 			when 'pond'   then src.value * pondToKg
 			when 'kg'     then src.value / pondToKg
 		{
@@ -317,14 +318,14 @@ angular.module('triton_note.reports', [])
 		}
 	temperature: (src) ->
 		init()
-		dst_unit = load_local().temperature
+		dstUnit = loadLocal().temperature
 		convert = -> switch src.unit
-			when dst_unit then src.value
+			when dstUnit then src.value
 			when 'Cels'   then src.value * 9 / 5 + 32
 			when 'Fahr'   then (src.value - 32) * 5 / 9
 		{
 			value: convert()
-			unit: dst_unit
+			unit: dstUnit
 		}
 
 .factory 'DistributionFactory', ($log, $interval, $ionicPopup, AccountFactory, ServerFactory) ->

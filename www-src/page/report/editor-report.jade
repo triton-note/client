@@ -35,8 +35,8 @@ div
 
 						script#choose_weather(type="text/ng-template")
 							ion-popover-view
-								ion-radio.item.item-avatar(ng-model="report.condition.weather.name", ng-value="name", ng-repeat="(name, id) in weatherStates", ng-click="weatherModify()")
-									img(ng-src="{{ weatherIcon(name) }}")
+								ion-radio.item.item-avatar(ng-model="report.condition.weather.name", ng-value="name", ng-repeat="(name, icon) in weatherStates", ng-click="weatherModify()")
+									img(ng-src="{{ icon }}")
 									p {{ name }}
 
 				.col-67
