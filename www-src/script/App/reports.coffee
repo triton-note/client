@@ -25,7 +25,7 @@ angular.module('triton_note.reports', [])
 
 	state: (datetime, geoinfo, taker) ->
 		$log.debug "Taking tide and moon phase at #{angular.toJson geoinfo} #{datetime}"
-		AccountFactory.with_ticket (ticket)->
+		AccountFactory.withTicket (ticket)->
 			ServerFactory.conditions ticket, datetime, geoinfo
 		, (condition) ->
 			$log.debug "Get condition: #{angular.toJson condition}"
@@ -51,7 +51,7 @@ angular.module('triton_note.reports', [])
 			index: null
 			###
 				id: String (Can be Empty, but not NULL)
-				user_id: String (Can be Empty, but not NULL)
+				userId: String (Can be Empty, but not NULL)
 				photo:
 					original: String (URL)
 					mainview: String (URL)
@@ -77,7 +77,7 @@ angular.module('triton_note.reports', [])
 					tide: String
 					weather:
 						name: String
-						icon_url: String (URL)
+						iconUrl: String (URL)
 						temperature:
 							value: Double
 							unit: 'Cels'|'Fahr'
@@ -92,11 +92,11 @@ angular.module('triton_note.reports', [])
 		hasMore: true
 
 	loadServer = (success) ->
-		last_id = store.reports[store.reports.length - 1]?.report?.id ? null
-		count = if last_id then limit else 10
-		$log.info "Loading from server: #{count} from #{last_id}: cached list: #{angular.toJson store.reports}"
-		AccountFactory.with_ticket (ticket) ->
-			ServerFactory.load_reports ticket, count, last_id
+		lastId = store.reports[store.reports.length - 1]?.report?.id ? null
+		count = if lastId then limit else 10
+		$log.info "Loading from server: #{count} from #{lastId}: cached list: #{angular.toJson store.reports}"
+		AccountFactory.withTicket (ticket) ->
+			ServerFactory.loadReports ticket, count, lastId
 		, (list) ->
 			more = save list
 			store.reports = store.reports.concat more
@@ -131,8 +131,8 @@ angular.module('triton_note.reports', [])
 		past = now - item.timestamp
 		$log.debug "Report timestamp past: #{past}ms"
 		if expiration < past
-			AccountFactory.with_ticket (ticket) ->
-				ServerFactory.read_report ticket, item.report.id
+			AccountFactory.withTicket (ticket) ->
+				ServerFactory.readReport ticket, item.report.id
 			, (result) ->
 				$log.debug "Read report: #{angular.toJson result}"
 				item.timestamp = now
@@ -154,7 +154,7 @@ angular.module('triton_note.reports', [])
 		Refresh cache
 	###
 	refresh: reload
-	clear_list: ->
+	clearList: ->
 		store.reports = []
 		store.hasMore = true
 	###
@@ -175,11 +175,11 @@ angular.module('triton_note.reports', [])
 		store.current =
 			index: null
 			report: null
-	newCurrent: (photo_uri, timestamp, geoinfo) ->
+	newCurrent: (photoUri, timestamp, geoinfo) ->
 		report =
 			photo:
 				mainview:
-					volatile_url: photo_uri
+					volatileUrl: photoUri
 			dateAt: timestamp
 			location:
 				name: null
@@ -200,12 +200,12 @@ angular.module('triton_note.reports', [])
 		Remove report specified by index
 	###
 	remove: (index, success) ->
-		removing_id = store.reports[index].report.id
-		AccountFactory.with_ticket (ticket) ->
-			ServerFactory.remove_report ticket, removing_id
+		removingId = store.reports[index].report.id
+		AccountFactory.withTicket (ticket) ->
+			ServerFactory.removeReport ticket, removingId
 		, ->
-			$log.info "Deleted report: #{removing_id}"
-			DistributionFactory.report.remove removing_id
+			$log.info "Deleted report: #{removingId}"
+			DistributionFactory.report.remove removingId
 			store.reports.splice(index, 1)
 			success()
 		, (error) ->
@@ -215,38 +215,38 @@ angular.module('triton_note.reports', [])
 	###
 		Update report
 	###
-	updateByCurrent: (success, on_finally) ->
+	updateByCurrent: (success, onFinally) ->
 		if store.current.report?.id
-			AccountFactory.with_ticket (ticket) ->
-				ServerFactory.update_report ticket, store.current.report
+			AccountFactory.withTicket (ticket) ->
+				ServerFactory.updateReport ticket, store.current.report
 			, ->
 				$log.info "Updated report: #{store.current.report.id}"
 				store.reports[store.current.index] = save([store.current.report])[0]
 				DistributionFactory.report.update store.current.report
 				success()
-				on_finally()
+				onFinally()
 			, (error) ->
 				$ionicPopup.alert
 					title: "Failed to update to server"
 					template: error.msg
-				on_finally()
+				onFinally()
 	###
 		Publish to Facebook
 	###
-	publish: (report_id, on_success, on_error) ->
+	publish: (reportId, onSuccess, onError) ->
 		SocialFactory.publish (token) ->
-			AccountFactory.with_ticket (ticket) ->
-				ServerFactory.publish_report ticket, report_id, token
+			AccountFactory.withTicket (ticket) ->
+				ServerFactory.publishReport ticket, reportId, token
 			, ->
-				$log.info "Success to publish report: #{report_id}"
-				on_success()
-			, on_error
+				$log.info "Success to publish report: #{reportId}"
+				onSuccess()
+			, onError
 		, (error) ->
 			$ionicPopup.alert
 				title: 'Rejected'
 				template: error
 			.then (res) ->
-				on_error "Rejected by user"
+				onError "Rejected by user"
 
 
 .factory 'UnitFactory', ($log, AccountFactory, ServerFactory) ->
@@ -262,15 +262,15 @@ angular.module('triton_note.reports', [])
 
 	saveCurrent = (units) ->
 		store.unit = angular.copy units
-		AccountFactory.with_ticket (ticket) ->
-			ServerFactory.update_measures ticket, units
+		AccountFactory.withTicket (ticket) ->
+			ServerFactory.updateMeasures ticket, units
 		, -> $log.debug "Success to change units"
 		, (error) -> $log.debug "Failed to change units: #{angular.toJson error}"
 	loadLocal = -> store.unit ? defaultUnits
 	loadServer = (taker) ->
 		$log.debug "Loading account units"
-		AccountFactory.with_ticket (ticket) ->
-			ServerFactory.load_measures ticket
+		AccountFactory.withTicket (ticket) ->
+			ServerFactory.loadMeasures ticket
 		, (units) ->
 			$log.debug "Loaded account units: #{angular.toJson units}"
 			store.unit = angular.copy units
@@ -332,7 +332,7 @@ angular.module('triton_note.reports', [])
 	store =
 		###
 		List of
-			report_id: String (only if mine)
+			reportId: String (only if mine)
 			name: String
 			count: Int
 			date: Date
@@ -353,12 +353,12 @@ angular.module('triton_note.reports', [])
 	convert = (fish) ->
 		fish.date = new Date(fish.date)
 		fish
-	refresh_mine = (success) ->
+	refreshMine = (success) ->
 		$log.debug "Refreshing distributions of mine ..."
 		suc = ->
 			success() if success
-		AccountFactory.with_ticket (ticket) ->
-			ServerFactory.catches_mine ticket
+		AccountFactory.withTicket (ticket) ->
+			ServerFactory.catchesMine ticket
 		, (list) ->
 			store.catches.mine = list.map(convert)
 			suc()
@@ -368,12 +368,12 @@ angular.module('triton_note.reports', [])
 				template: "Failed to load catches list"
 			.then ->
 				suc()
-	refresh_others = (success) ->
+	refreshOthers = (success) ->
 		$log.debug "Refreshing distributions of others ..."
 		suc = ->
 			success() if success
-		AccountFactory.with_ticket (ticket) ->
-			ServerFactory.catches_others ticket
+		AccountFactory.withTicket (ticket) ->
+			ServerFactory.catchesOthers ticket
 		, (list) ->
 			store.catches.others = list.map(convert)
 			suc()
@@ -383,12 +383,12 @@ angular.module('triton_note.reports', [])
 				template: "Failed to load catches list"
 			.then ->
 				suc()
-	refresh_names = (success) ->
+	refreshNames = (success) ->
 		$log.debug "Refreshing distributions of names ..."
 		suc = ->
 			success() if success
-		AccountFactory.with_ticket (ticket) ->
-			ServerFactory.catches_names ticket
+		AccountFactory.withTicket (ticket) ->
+			ServerFactory.catchesNames ticket
 		, (list) ->
 			store.names = list
 			suc()
@@ -396,19 +396,19 @@ angular.module('triton_note.reports', [])
 			suc()
 
 	$interval ->
-		refresh_mine()
-		refresh_others()
-		refresh_names()
+		refreshMine()
+		refreshOthers()
+		refreshNames()
 	, 6 * 60 * 60 * 1000
 
-	remove_mine = (report_id) ->
-		$log.debug "Removing distribution of report id:#{report_id}"
+	removeMine = (reportId) ->
+		$log.debug "Removing distribution of report id:#{reportId}"
 		if (list = store.catches.mine)
-			store.catches.mine = list.filter (v) -> v.report_id isnt report_id
-	add_mine = (report) ->
+			store.catches.mine = list.filter (v) -> v.reportId isnt reportId
+	addMine = (report) ->
 		if (mine = store.catches.mine)
 			list = report.fishes.map (fish) ->
-				report_id: report.id
+				reportId: report.id
 				name: fish.name
 				count: fish.count
 				date: report.dateAt
@@ -420,41 +420,41 @@ angular.module('triton_note.reports', [])
 		word.toUpperCase().indexOf(pre) is 0
 
 	report:
-		add: add_mine
-		remove: remove_mine
+		add: addMine
+		remove: removeMine
 		update: (report) ->
-			remove_mine report.id
-			add_mine report
-	name_suggestion: (pre_name, success) ->
-		check_or = (fail) ->
+			removeMine report.id
+			addMine report
+	nameSuggestion: (preName, success) ->
+		checkOr = (fail) ->
 			if (src = store.names)
-				pre = pre_name?.toUpperCase()
+				pre = preName?.toUpperCase()
 				list = if pre then src.filter ((a) -> startsWith(a, pre)) else []
 				success list.sort((a, b) -> a.count - b.count).reverse().map((v) -> v.name)
 			else fail()
-		check_or ->
-			refresh_names ->
-				check_or ->
+		checkOr ->
+			refreshNames ->
+				checkOr ->
 					success []
-	mine: (pre_name, success) ->
-		check_or = (fail) ->
+	mine: (preName, success) ->
+		checkOr = (fail) ->
 			if (src = store.catches.mine)
-				pre = pre_name?.toUpperCase()
+				pre = preName?.toUpperCase()
 				list = if pre then src.filter ((a) -> startsWith(a.name, pre))	else src
 				success list.sort((a, b) -> a.count - b.count).reverse()
 			else fail()
-		check_or ->
-			refresh_mine ->
-				check_or ->
+		checkOr ->
+			refreshMine ->
+				checkOr ->
 					success []
-	others: (pre_name, success) ->
-		check_or = (fail) ->
+	others: (preName, success) ->
+		checkOr = (fail) ->
 			if (src = store.catches.others)
-				pre = pre_name?.toUpperCase()
+				pre = preName?.toUpperCase()
 				list = if pre then	src.filter ((a) -> startsWith(a.name, pre)) else src
 				success list.sort((a, b) -> a.count - b.count).reverse()
 			else fail()
-		check_or ->
-			refresh_others ->
-				check_or ->
+		checkOr ->
+			refreshOthers ->
+				checkOr ->
 					success []

@@ -1,6 +1,6 @@
 angular.module('triton_note.device', [])
 .factory 'PhotoFactory', ($log, $timeout) ->
-	readExif = (photo, info_taker) ->
+	readExif = (photo, infoTaker) ->
 		try
 			console.log "Reading Exif in #{photo}"
 			reader = new ExifReader()
@@ -11,19 +11,19 @@ angular.module('triton_note.device', [])
 			g =
 				latitude: Number(reader.getTagDescription 'GPSLatitude')
 				longitude: Number(reader.getTagDescription 'GPSLongitude')
-			info_taker
+			infoTaker
 				timestamp: toDate(reader.getTagDescription 'DateTimeOriginal')
 				geoinfo: if g.latitude and g.longitude then g else null
 		catch
 			console.log "Failed to read Exif: #{e.message}"
-			info_taker null
+			infoTaker null
 	###
 		Select a photo from storage.
-		photo_taker(photo[blob])
-		info_taker(exif_info)
-		onFailure(error_message)
+		photoTaker(photo[blob])
+		infoTaker(exifInfo)
+		onFailure(errorMessage)
 	###
-	select: (photo_taker, info_taker, onFailure) -> ionic.Platform.ready ->
+	select: (photoTaker, infoTaker, onFailure) -> ionic.Platform.ready ->
 		taker = (uri) ->
 			console.log "Loading photo: #{uri}"
 			resolveLocalFileSystemURL uri
@@ -36,9 +36,9 @@ angular.module('triton_note.device', [])
 								array = evt.target.result
 								console.log "Read photo success: #{array}"
 								$timeout ->
-									readExif array, info_taker
+									readExif array, infoTaker
 								, 100
-								photo_taker new Blob [array],
+								photoTaker new Blob [array],
 									type: 'image/jpeg'
 							catch
 								plugin.acra.handleSilentException "Failed to read photo(#{uri}): #{e.message}: #{e.stack}"
@@ -86,7 +86,7 @@ angular.module('triton_note.device', [])
 		remove: ->
 			window.localStorage.removeItem name
 
-	clear_all: -> for name in names
+	clearAll: -> for name in names
 		window.localStorage.removeItem name
 	###
 	Express the account of login
@@ -115,8 +115,8 @@ angular.module('triton_note.device', [])
 		document.getElementsByClassName('menu-left')[0]?.style.display = if isOpen then 'block' else 'none'
 		store.gmap.setClickable !isOpen
 		$timeout store.gmap.refreshLayout, 200 if !isOpen
-	marker = (clear_pre) -> (geoinfo, title, icon) ->
-		store.gmap.clear() if clear_pre
+	marker = (clearPre) -> (geoinfo, title, icon) ->
+		store.gmap.clear() if clearPre
 		store.gmap.addMarker
 			position: new plugin.google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
 			title: title

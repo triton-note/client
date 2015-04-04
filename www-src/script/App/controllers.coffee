@@ -15,32 +15,32 @@ angular.module('triton_note.controllers', [])
 	$ionicLoading.show()
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter SNSCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
-		AccountFactory.get_username (username) ->
+		AccountFactory.getUsername (username) ->
 			$scope.$apply -> $scope.done username
-		, (error_msg) ->
+		, (errorMsg) ->
 			$scope.$apply -> $scope.done()
 
 	$scope.checkSocial = ->
 		$ionicLoading.show()
 		next = $scope.social.username is null
 		$log.debug "Changing social: #{next}"
-		on_error = (error) ->
+		onError = (error) ->
 			$log.error "Erorr on Facebook: #{angular.toJson error}"
 			$scope.done $scope.social.username
 			$ionicPopup.alert
 				title: "Rejected"
 		if next
-			AccountFactory.connect $scope.done, on_error
+			AccountFactory.connect $scope.done, onError
 		else
 			AccountFactory.disconnect ->
-				ReportFactory.clear_list()
+				ReportFactory.clearList()
 				$ionicHistory.clearCache()
 				$log.warn "SNSCtrl: Cache Cleared()"
 				$scope.done()
 				$ionicPopup.alert
 					title: "No social connection"
 					template: "Please login to Facebook, if you want to continue this app."
-			, on_error
+			, onError
 	$scope.done = (username = null) ->
 		$scope.social =
 			username: username
@@ -59,7 +59,7 @@ angular.module('triton_note.controllers', [])
 
 	$scope.submit = ->
 		UnitFactory.save $scope.unit
-		$ionicSideMenuDelegate.toggle_left true
+		$ionicSideMenuDelegate.toggleLeft true
 	$scope.units = UnitFactory.units()
 
 .controller 'ListReportsCtrl', ($log, $scope, ReportFactory) ->
@@ -97,7 +97,7 @@ angular.module('triton_note.controllers', [])
 		$scope.tideIcon = ConditionFactory.tidePhases.filter((v) -> v.name is $scope.report.condition?.tide).map((v) -> v.icon)[0]
 		$scope.moonIcon = ConditionFactory.moonPhases[$scope.report.condition?.moon]
 		
-		$scope.show_location_gmap =
+		$scope.showLocationGmap =
 			center: new google.maps.LatLng($scope.report.location.geoinfo.latitude, $scope.report.location.geoinfo.longitude)
 			map: null
 			marker: null
@@ -109,11 +109,11 @@ angular.module('triton_note.controllers', [])
 		ReportFactory.clearCurrent() if $scope.shouldClear
 		for _, p of $scope.popover
 			p?.remove()
-		$scope.show_location_gmap.map = null
-		$scope.show_location_gmap.marker = null
+		$scope.showLocationGmap.map = null
+		$scope.showLocationGmap.marker = null
 
 	$scope.previewMap = ($event) ->
-		gmap = $scope.show_location_gmap
+		gmap = $scope.showLocationGmap
 		$scope.popover.show_location.show $event
 		.then ->
 			div = document.getElementById "show-gmap"
@@ -147,7 +147,7 @@ angular.module('triton_note.controllers', [])
 				$log.debug "Remove completed."
 			$ionicHistory.goBack()
 	$scope.publish = ->
-		$scope.popover_hide()
+		$scope.popoverHide()
 		$ionicPopup.confirm
 			title: "Publish Report"
 			template: "Are you sure to post this report to Facebook ?"
@@ -203,11 +203,11 @@ angular.module('triton_note.controllers', [])
 			$log.debug "Getting current report: #{angular.toJson $scope.report}"
 			$scope.submission.enabled = !!$scope.report.photo.original
 		else
-			on_error = (title) -> (error_msg) ->
+			onError = (title) -> (errorMsg) ->
 				$ionicLoading.hide()
 				$ionicPopup.alert
 					title: title
-					template: error_msg
+					template: errorMsg
 				.then $ionicHistory.goBack
 			store =
 				photo: null
@@ -224,7 +224,7 @@ angular.module('triton_note.controllers', [])
 					$scope.report.location.geoinfo = geoinfo
 					$log.debug "Created report: #{angular.toJson $scope.report}"
 					SessionFactory.start geoinfo, ->
-						SessionFactory.put_photo store.photo
+						SessionFactory.putPhoto store.photo
 						, (result) ->
 							$log.debug "Get result of upload: #{angular.toJson result}"
 							$scope.submission.enabled = true
@@ -238,8 +238,8 @@ angular.module('triton_note.controllers', [])
 								$scope.report.location.name = loc
 							if inference.fishes?.length > 0
 								$scope.report.fishes = inference.fishes
-						, on_error "Failed to upload"
-					, on_error "Error"
+						, onError "Failed to upload"
+					, onError "Error"
 				if info?.geoinfo
 					upload info.geoinfo
 				else
@@ -249,7 +249,7 @@ angular.module('triton_note.controllers', [])
 						upload
 							latitude: 0
 							longitude: 0
-			, on_error "Need one photo"
+			, onError "Need one photo"
 
 	$scope.$on '$ionicView.beforeLeave', (event, state) ->
 		$log.debug "Before Leave AddReportCtrl: event=#{angular.toJson event}"
@@ -313,20 +313,20 @@ angular.module('triton_note.controllers', [])
 				types: GMapFactory.getMapTypes()
 		$scope.$watch 'view.others', (value) ->
 			$log.debug "Changing 'view.person': #{angular.toJson value}"
-			$scope.map_distribution()
+			$scope.mapDistribution()
 		$scope.$watch 'view.name', (value) ->
 			$log.debug "Changing 'view.fish': #{angular.toJson value}"
-			$scope.map_distribution()
+			$scope.mapDistribution()
 		$scope.$watch 'view.gmap.type', (value) ->
 			$log.debug "Changing 'view.gmap.type': #{angular.toJson value}"
 			GMapFactory.setMapType value
 		$ionicPopover.fromTemplateUrl 'distribution-map-options',
 			scope: $scope
 		.then (pop) ->
-			$scope.popover_options = pop
+			$scope.popoverOptions = pop
 		$scope.showOptions = (event) ->
 			$scope.gmap.setClickable false
-			$scope.popover_options.show event
+			$scope.popoverOptions.show event
 		$ionicPopover.fromTemplateUrl 'distribution-map-view',
 			scope: $scope
 		.then (pop) ->
@@ -356,26 +356,26 @@ angular.module('triton_note.controllers', [])
 			context.stroke()
 			context.fill()
 			canvas.toDataURL()
-		$scope.map_distribution = -> if gmap = $scope.gmap
+		$scope.mapDistribution = -> if gmap = $scope.gmap
 			others = $scope.view.others
-			fish_name = $scope.view.name
-			map_mine = (list) ->
-				$log.debug "Mapping my distribution (filtered by '#{fish_name}'): #{list}"
+			fishName = $scope.view.name
+			mapMine = (list) ->
+				$log.debug "Mapping my distribution (filtered by '#{fishName}'): #{list}"
 				gmap.clear()
 				detail = (fish) -> (marker) ->
 					marker.on plugin.google.maps.event.INFO_CLICK, ->
 						$log.debug "Detail for fish: #{angular.toJson fish}"
-						find_or = (fail) ->
-							index = ReportFactory.getIndex fish.report_id
+						findOr = (fail) ->
+							index = ReportFactory.getIndex fish.reportId
 							if index >= 0
 								GMapFactory.clear()
 								$state.go 'show-report',
 									index: index
 							else fail()
-						find_or ->
+						findOr ->
 							ReportFactory.refresh ->
-								find_or ->
-									$log.error "Report not found by id: #{fish.report_id}"
+								findOr ->
+									$log.error "Report not found by id: #{fish.reportId}"
 				for fish in list
 					gmap.addMarker
 						title: "#{fish.name} x #{fish.count}"
@@ -384,8 +384,8 @@ angular.module('triton_note.controllers', [])
 							lat: fish.geoinfo.latitude
 							lng: fish.geoinfo.longitude
 						, detail fish
-			map_others = (list) ->
-				$log.debug "Mapping other's distribution (filtered by '#{fish_name}'): #{list}"
+			mapOthers = (list) ->
+				$log.debug "Mapping other's distribution (filtered by '#{fishName}'): #{list}"
 				gmap.clear()
 				for fish in list
 					gmap.addMarker
@@ -395,14 +395,14 @@ angular.module('triton_note.controllers', [])
 							lat: fish.geoinfo.latitude
 							lng: fish.geoinfo.longitude
 			if others
-				DistributionFactory.others fish_name, map_others
+				DistributionFactory.others fishName, mapOthers
 			else
-				DistributionFactory.mine fish_name, map_mine
+				DistributionFactory.mine fishName, mapMine
 
 	$scope.$on '$ionicView.enter', (event, state) ->
 		$log.debug "Enter DistributionMapCtrl: params=#{angular.toJson $stateParams}: event=#{angular.toJson event}"
 		$ionicLoading.show()
 		GMapFactory.onDiv $scope, 'distribution-map', (gmap) ->
 			$scope.gmap = gmap
-			$scope.map_distribution()
+			$scope.mapDistribution()
 			$ionicLoading.hide()

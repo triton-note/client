@@ -5,7 +5,7 @@ angular.module('triton_note.directive', [])
 		if (next and left.length > 0) then getProp(next, left) else next
 
 	restrict: 'E'
-	template: '<ion_scroll><div><img/></div></ion_scroll>'
+	template: '<ion-scroll><div><img/></div></ion-scroll>'
 	replace: true
 	link: ($scope, $element, $attrs) ->
 		div = $element.children().children()[0]
@@ -15,10 +15,10 @@ angular.module('triton_note.directive', [])
 		if photo and photo.length > 0
 			chain = photo.split('.')
 			$scope.$watch chain[0], ->
-				photo_url = getProp $scope, chain
-				if photo_url
-					$log.debug "fathensFitImg: img=#{img}, photo=#{photo}, src=#{photo_url}"
-					img.attr('src', photo_url)
+				photoUrl = getProp $scope, chain
+				if photoUrl
+					$log.debug "fathensFitImg: img=#{img}, photo=#{photo}, src=#{photoUrl}"
+					img.attr('src', photoUrl)
 					img.on 'load', ->
 						rect =
 							width: img[0].clientWidth
@@ -37,9 +37,9 @@ angular.module('triton_note.directive', [])
 								top: margin (v) -> v.height
 							delegate.scrollTo sc.left, sc.top
 							$log.debug "fathensFitImg: scroll=#{angular.toJson sc}"
-							min_zoom = Math.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width / rect.height else rect.height / rect.width
-							if whole and min_zoom < 1
-								delegate.zoomTo min_zoom, true
+							minZoom = Math.min 1, if document.documentElement.clientWidth < document.documentElement.clientHeight then rect.width / rect.height else rect.height / rect.width
+							if whole and minZoom < 1
+								delegate.zoomTo minZoom, true
 
 .directive 'fathensEditReport', ($log) ->
 	restrict: 'E'
@@ -73,19 +73,19 @@ angular.module('triton_note.directive', [])
 				$scope.report?.condition?.weather.iconUrl = $scope.weatherIcon($scope.report.condition.weather.name)
 			, 200
 
-		$scope.$watch 'report.condition.tide', (new_value, old_value) ->
+		$scope.$watch 'report.condition.tide', (newValue, oldValue) ->
 			$scope.popover.choose_tide.hide()
-		$scope.$watch 'report.condition.weather.temperature.unit', (new_value, old_value) ->
+		$scope.$watch 'report.condition.weather.temperature.unit', (newValue, oldValue) ->
 			$scope.report?.condition?.weather.temperature = UnitFactory.temperature $scope.report.condition.weather.temperature
-		$scope.$watch 'report.condition.weather.temperature.value', (new_value, old_value) ->
-			$scope.report?.condition?.weather.temperature.value = Math.round(new_value * 10) / 10
-		$scope.$watch 'report.condition.weather.name', (new_value, old_value) ->
+		$scope.$watch 'report.condition.weather.temperature.value', (newValue, oldValue) ->
+			$scope.report?.condition?.weather.temperature.value = Math.round(newValue * 10) / 10
+		$scope.$watch 'report.condition.weather.name', (newValue, oldValue) ->
 			$scope.popover.choose_weather.hide()
 
-		$scope.$watch 'report.dateAt', (new_value, old_value) -> if old_value or !$scope.report?.condition
-			changeCondition(new_value, $scope.report?.location?.geoinfo)
-		$scope.$watch 'report.location.geoinfo', (new_value, old_value) -> if old_value or !$scope.report?.condition
-			changeCondition($scope.report?.dateAt, new_value)
+		$scope.$watch 'report.dateAt', (newValue, oldValue) -> if oldValue or !$scope.report?.condition
+			changeCondition(newValue, $scope.report?.location?.geoinfo)
+		$scope.$watch 'report.location.geoinfo', (newValue, oldValue) -> if oldValue or !$scope.report?.condition
+			changeCondition($scope.report?.dateAt, newValue)
 		changeCondition = (datetime, geoinfo) -> if datetime and geoinfo
 			$scope.report.condition = {} if !$scope.report.condition
 			ConditionFactory.state datetime, geoinfo, (state) ->
@@ -131,8 +131,8 @@ angular.module('triton_note.directive', [])
 					animation: google.maps.Animation.DROP
 
 				google.maps.event.addDomListener div, 'click', ->
-					$scope.popover_hide()
-					$scope.use_current()
+					$scope.popoverHide()
+					$scope.useCurrent()
 					$state.go "view-on-map",
 						edit: true
 
@@ -197,7 +197,7 @@ angular.module('triton_note.directive', [])
 	template: '<div></div>',
 	link: ($scope, $element, $attrs) ->
 		$ionicLoading.show()
-		gist_id = $attrs.id
+		gistId = $attrs.id
 
 		iframe = document.createElement 'iframe'
 		iframe.setAttribute 'width', '100%'
@@ -205,7 +205,7 @@ angular.module('triton_note.directive', [])
 		iframe.setAttribute 'marginheight', 0
 		iframe.setAttribute 'marginwidth', 0
 		iframe.setAttribute 'frameborder', '0'
-		iframe.id = "gist-#{gist_id}"
+		iframe.id = "gist-#{gistId}"
 		$element[0].appendChild(iframe)
 
 		doc = 
@@ -224,7 +224,7 @@ angular.module('triton_note.directive', [])
 				<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gist-embed/2.1/gist-embed.min.js"></script>
 			</head>
 			<body>
-				<code data-gist-id="#{gist_id}" data-gist-hide-footer="true" data-gist-show-loading="false"></code>
+				<code data-gist-id="#{gistId}" data-gist-hide-footer="true" data-gist-show-loading="false"></code>
 			</body>
 			</html>
 		"""
