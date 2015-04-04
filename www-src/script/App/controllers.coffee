@@ -82,8 +82,8 @@ angular.module('triton_note.controllers', [])
 			$ionicPopover.fromTemplateUrl name,
 				scope: $scope
 			.then (popover) ->
-				$scope.popover[_.camelize name] = popover
-		$scope.popover_hide = ->
+				$scope.popover[name] = popover
+		$scope.popoverHide = ->
 			for _, p of $scope.popover
 				p.hide()
 
