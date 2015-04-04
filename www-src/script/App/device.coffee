@@ -1,57 +1,58 @@
+angular.module('triton_note.device', [])
 .factory 'PhotoFactory', ($log, $timeout) ->
-	readExif = (photo, info-taker) !->
+	readExif = (photo, infoTaker) ->
 		try
 			console.log "Reading Exif in #{photo}"
 			reader = new ExifReader()
 			reader.load photo
 			toDate = (str) -> if !str then null else
-				a = str.split(' ') |> _.map (.split ':') |> _.flatten |> _.map Number
+				a = str.split(/[ :]/).map Number
 				new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5])
 			g =
 				latitude: Number(reader.getTagDescription 'GPSLatitude')
 				longitude: Number(reader.getTagDescription 'GPSLongitude')
-			info-taker do
+			infoTaker
 				timestamp: toDate(reader.getTagDescription 'DateTimeOriginal')
-				geoinfo: if g.latitude && g.longitude then g else null
+				geoinfo: if g.latitude and g.longitude then g else null
 		catch
 			console.log "Failed to read Exif: #{e.message}"
-			info-taker null
-	/*
+			infoTaker null
+	###
 		Select a photo from storage.
-		photo-taker(photo[blob])
-		info-taker(exif-info)
-		onFailure(error-message)
-	*/
-	select: (photo-taker, info-taker, onFailure) !-> ionic.Platform.ready !->
-		taker = (uri) !->
+		photoTaker(photo[blob])
+		infoTaker(exifInfo)
+		onFailure(errorMessage)
+	###
+	select: (photoTaker, infoTaker, onFailure) -> ionic.Platform.ready ->
+		taker = (uri) ->
 			console.log "Loading photo: #{uri}"
 			resolveLocalFileSystemURL uri
-			, (entry) !->
-				entry.file (file) !->
+			, (entry) ->
+				entry.file (file) ->
 					try
 						reader = new FileReader
-						reader.onloadend = (evt) !->
+						reader.onloadend = (evt) ->
 							try
 								array = evt.target.result
 								console.log "Read photo success: #{array}"
-								$timeout !->
-									readExif array, info-taker
+								$timeout ->
+									readExif array, infoTaker
 								, 100
-								photo-taker new Blob [array],
+								photoTaker new Blob [array],
 									type: 'image/jpeg'
 							catch
 								plugin.acra.handleSilentException "Failed to read photo(#{uri}): #{e.message}: #{e.stack}"
 								onFailure "Failed to get photo"
-						reader.onerror = (evt) !->
+						reader.onerror = (evt) ->
 							onFailure "Failed to read photo file"
 						reader.readAsArrayBuffer file
 					catch
 						plugin.acra.handleSilentException "Failed to get photo(#{uri}): #{e.message}: #{e.stack}"
 						onFailure "Failed to get photo"
-				, (error) !->
+				, (error) ->
 					console.log "Failed to get photo file: #{uri}"
 					onFailure "Failed to get photo file"
-			, (error) !->
+			, (error) ->
 				console.log "Failed to parse photo uri: #{uri}"
 				onFailure "Failed to parse photo uri"
 		try
@@ -68,12 +69,8 @@
 .factory 'LocalStorageFactory', ($log) ->
 	names = []
 	make = (name, isJson = false) ->
-		loader = switch isJson
-		| true => (v) -> angular.fromJson v
-		| _    => (v) -> v
-		saver = switch isJson
-		| true => (v) -> angular.toJson v
-		| _    => (v) -> v
+		loader = (v) -> if isJson then angular.fromJson(v) else v
+		saver = (v) -> if isJson then angular.toJson(v) else v
 
 		names.push name
 
@@ -86,107 +83,108 @@
 			$log.debug "localStorage['#{name}'] <= #{value}"
 			window.localStorage[name] = value
 			v
-		remove: !->
+		remove: ->
 			window.localStorage.removeItem name
 
-	clear-all: !-> for name in names
+	clearAll: -> for name in names
 		window.localStorage.removeItem name
-	/*
+	###
 	Express the account of login
 		id: String
 		name: String
-	*/
+	###
 	account: make 'account', true
-	/*
+	###
 	Boolean value for acceptance of 'Terms Of Use and Disclaimer'
-	*/
+	###
 	acceptance: make 'Acceptance'
 
 .factory 'GMapFactory', ($log, $ionicSideMenuDelegate, $timeout) ->
 	store =
 		gmap: null
-	ionic.Platform.ready !->
-		gmap = plugin.google.maps.Map.getMap do
-			mapType: store.map-type = plugin.google.maps.MapTypeId.HYBRID
+	ionic.Platform.ready ->
+		gmap = plugin.google.maps.Map.getMap
+			mapType: store.mapType = plugin.google.maps.MapTypeId.HYBRID
 			controls:
 				myLocationButton: true
 				zoom: false
-		gmap.on plugin.google.maps.event.MAP_READY, !->
+		gmap.on plugin.google.maps.event.MAP_READY, ->
 			store.gmap = gmap
-	menuShown = (isOpen) !->
+	menuShown = (isOpen) ->
 		console.log "GMapFactory: side menu open: #{isOpen}"
 		document.getElementsByClassName('menu-left')[0]?.style.display = if isOpen then 'block' else 'none'
 		store.gmap.setClickable !isOpen
 		$timeout store.gmap.refreshLayout, 200 if !isOpen
-	marker = (clear-pre) -> (geoinfo, title, icon) !->
-		store.gmap.clear! if clear-pre
-		store.gmap.addMarker do
+	marker = (clearPre) -> (geoinfo, title, icon) ->
+		store.gmap.clear() if clearPre
+		store.gmap.addMarker
 			position: new plugin.google.maps.LatLng(geoinfo.latitude, geoinfo.longitude)
 			title: title
 			icon: icon
-	onReady = (proc) !->
+	onReady = (proc) ->
 		if store.gmap
-		then proc!
-		else plugin.google.maps.Map.getMap!.on plugin.google.maps.event.MAP_READY, proc
-	clear = !->
+		  proc()
+		else
+			plugin.google.maps.Map.getMap().on plugin.google.maps.event.MAP_READY, proc
+	clear = ->
 		$log.info "Clear GMap"
-		store.gmap.clear!
-		store.gmap.off!
+		store.gmap.clear()
+		store.gmap.off()
 		store.gmap.setDiv null
 		menuShown true
 
-	add-marker: marker false
-	put-marker: marker true
+	addMarker: marker false
+	putMarker: marker true
 	clear: clear
 	getMapTypes: ->
 		"Roadmap": plugin.google.maps.MapTypeId.ROADMAP
 		"Satellite": plugin.google.maps.MapTypeId.SATELLITE
 		"Road + Satellite": plugin.google.maps.MapTypeId.HYBRID
 		"Terrain": plugin.google.maps.MapTypeId.TERRAIN
-	getMapType: -> store.map-type
-	setMapType: (id) !-> onReady !->
-		store.gmap.setMapTypeId store.map-type = id
-	getGeoinfo: (onSuccess, onError) !-> onReady !->
-		navigator.geolocation.getCurrentPosition (position) !->
+	getMapType: -> store.mapType
+	setMapType: (id) -> onReady ->
+		store.gmap.setMapTypeId store.mapType = id
+	getGeoinfo: (onSuccess, onError) -> onReady ->
+		navigator.geolocation.getCurrentPosition (position) ->
 			$log.debug "Gotta GMap Location: #{angular.toJson position}"
-			onSuccess do
+			onSuccess
 				latitude: position.coords.latitude
 				longitude: position.coords.longitude
-		, (error) !->
+		, (error) ->
 			$log.error "GMap Location Error: #{angular.toJson error}"
 			onError error.message if onError
 		,
 			maximumAge: 3000
 			timeout: 5000
 			enableHighAccuracy: true
-	onDiv: (scope, name, success, center) !-> onReady !->
-		clear!
+	onDiv: (scope, name, success, center) -> onReady ->
+		clear()
 		if center
 			store.gmap.setZoom 10
 			store.gmap.setCenter new plugin.google.maps.LatLng(center.latitude, center.longitude)
 			marker(true) center
 		else
-			store.gmap.getCameraPosition (camera) !->
+			store.gmap.getCameraPosition (camera) ->
 				$log.debug "Camera Position: #{angular.toJson camera}"
-				if camera.zoom == 2 && camera.target.lat == 0 && camera.target.lng == 0
+				if camera.zoom is 2 and camera.target.lat is 0 and camera.target.lng is 0
 					store.gmap.setZoom 10
-					store.gmap.getMyLocation (location) !->
+					store.gmap.getMyLocation (location) ->
 						$log.debug "Gotta GMap Location: #{angular.toJson location}"
 						store.gmap.setCenter location.latLng
-					, (error) !->
+					, (error) ->
 						$log.error "GMap Location Error: #{angular.toJson error}"
 		div = document.getElementById name
 		store.gmap.setDiv div
-		store.gmap.setMapTypeId store.map-type
+		store.gmap.setMapTypeId store.mapType
 		store.gmap.setClickable true
 		scope.$watch ->
-			!!$ionicSideMenuDelegate.isOpenLeft!
+			!!$ionicSideMenuDelegate.isOpenLeft()
 		, menuShown
 		success store.gmap if success
-	onTap: (proc) !-> onReady !->
+	onTap: (proc) -> onReady ->
 		$log.debug "GMap onTap is changed: #{proc}"
-		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) !->
+		store.gmap.on plugin.google.maps.event.MAP_CLICK, (latLng) ->
 			$log.debug "Map clicked at #{latLng.toUrlValue()} with setter: #{proc}"
-			proc do
+			proc
 				latitude: latLng.lat
 				longitude: latLng.lng

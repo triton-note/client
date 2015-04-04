@@ -14,7 +14,7 @@ div
 				.icon.ion-alert-circled.assertive(ng-hide="report.location.name")
 				p {{ report.location.name ? report.location.name : "Spot Name" }}
 
-				script#spot-location(type="text/ng-template")
+				script#spot_location(type="text/ng-template")
 					ion-popover-view(style="height: 200px")
 						.item.item-input-wrapper
 							i.icon.placeholder-icon.ion-alert-circled.assertive(ng-hide="report.location.name")
@@ -30,13 +30,13 @@ div
 
 			.item.row
 				.col-33
-					.item-image(ng-click="popover.chooseWeather.show($event)")
+					.item-image(ng-click="popover.choose_weather.show($event)")
 						img(ng-src="{{ report.condition.weather.iconUrl }}")
 
-						script#choose-weather(type="text/ng-template")
+						script#choose_weather(type="text/ng-template")
 							ion-popover-view
-								ion-radio.item.item-avatar(ng-model="report.condition.weather.name", ng-value="name", ng-repeat="(name, id) in weatherStates", ng-click="weatherModify()")
-									img(ng-src="{{ weatherIcon(name) }}")
+								ion-radio.item.item-avatar(ng-model="report.condition.weather.name", ng-value="name", ng-repeat="(name, icon) in weatherStates", ng-click="weatherModify()")
+									img(ng-src="{{ icon }}")
 									p {{ name }}
 
 				.col-67
@@ -54,12 +54,12 @@ div
 					.item-image(style="width: 50%; padding-top: 8px")
 						img(ng-src="{{ moonIcon() }}", width="50%")
 
-				.col(ng-click="popover.chooseTide.show($event)")
+				.col(ng-click="popover.choose_tide.show($event)")
 					p {{ report.condition.tide }}
 					.item-image(style="width: 50%; padding-top: 8px")
 						img(ng-src="{{ tideIcon() }}", width="50%")
 
-					script#choose-tide(type="text/ng-template")
+					script#choose_tide(type="text/ng-template")
 						ion-popover-view
 							ion-radio.item.item-avatar(ng-model="report.condition.tide", ng-value="phase.name", ng-repeat="phase in tidePhases", ng-click="tideModify()")
 								img(ng-src="{{ phase.icon }}")

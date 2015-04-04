@@ -1,6 +1,7 @@
-.constant 'serverURL', 'https://triton-note.fathens.org'
+angular.module('triton_note.config', [])
+.constant 'serverURL', 'https://triton_note.fathens.org'
 
-.config ($stateProvider, $urlRouterProvider) !->
+.config ($stateProvider, $urlRouterProvider) ->
 	$stateProvider
 	.state 'home',
 		url: '/list'
@@ -26,13 +27,13 @@
 		url: '/view-on-map?edit'
 		templateUrl: 'page/report/view-on-map.html'
 		controller: 'ReportOnMapCtrl'
-		onExit: (GMapFactory) !-> GMapFactory.clear!
+		onExit: (GMapFactory) -> GMapFactory.clear()
 
 	.state 'distribution-map',
 		url: '/distribution-map'
 		templateUrl: 'page/menu/distribution-map.html'
 		controller: 'DistributionMapCtrl'
-		onExit: (GMapFactory) !-> GMapFactory.clear!
+		onExit: (GMapFactory) -> GMapFactory.clear()
 
 	.state 'preferences',
 		url: '/preferences'
@@ -56,6 +57,6 @@
 	$urlRouterProvider
 	.when '', ($state, AcceptanceFactory) ->
 		console.log "Acceptance Checking on #{angular.toJson $state.current}"
-		v = AcceptanceFactory.isReady!
+		v = AcceptanceFactory.isReady()
 		console.log "Acceptance = #{v}"
 		if v then '/list' else '/acceptance'

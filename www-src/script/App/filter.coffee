@@ -1,5 +1,6 @@
+angular.module('triton_note.filter', [])
 .filter 'fishFilter', ($log, $filter, UnitFactory) ->
-	/*
+	###
 		fish {
 			name: String
 			count: Int
@@ -12,19 +13,17 @@
 				unit: 'pond'|'kg'
 			}
 		}
-	*/
+	###
 	(fish) ->
 		size = (u) ->
 			src = eval "fish.#{u}"
-			if src?.value then
+			if src?.value
 				converter = eval "UnitFactory.#{u}"
 				converted = converter(src)
 				"#{$filter('number')(converted.value, 0)} #{converted.unit}"
-			else []
-		sizes = (_.flatten _.map(size) ["length", "weight"]).join ', '
-		volume =
-			| sizes => "(#{sizes})"
-			| _    => ""
+			else null
+		sizes = ["length", "weight"].map(size).filter((v) -> !!v).join ', '
+		volume = if sizes then "(#{sizes})" else ""
 		"#{fish.name}#{volume} x #{fish.count}"
 
 .filter 'temperatureFilter', ($log, $filter, UnitFactory) ->
