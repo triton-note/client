@@ -4,7 +4,7 @@ environment:
 dependencies:
   angular: any
   paper_elements: any
-  polymer: any
+  polymer: 0.15.5+4
 dev_dependencies:
   mock: any
   unittest: any
