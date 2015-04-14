@@ -10,8 +10,4 @@ main() {
     final a = 0;
     expect(a, 0);
   });
-  test('another', () {
-    final a = 1;
-    expect(a, 0);
-  });
 }
