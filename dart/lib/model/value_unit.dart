@@ -9,7 +9,7 @@ abstract class Temperature implements JsonSupport {
 
   factory Temperature.fromJsonString(String text) => new _TemperatureImpl(JSON.decode(text));
   factory Temperature.fromMap(Map data) => new _TemperatureImpl(data);
-  
+
   factory Temperature.of(TemperatureUnit unit, double value) {
     return new Temperature.fromMap({"unit": nameOfEnum(unit), "value": value});
   }
@@ -19,7 +19,7 @@ abstract class Temperature implements JsonSupport {
   factory Temperature.Fahr(double value) {
     return new Temperature.of(TemperatureUnit.Fahr, value);
   }
-  
+
   Temperature convertTo(TemperatureUnit dst);
 }
 enum TemperatureUnit { Cels, Fahr }
@@ -64,7 +64,7 @@ abstract class Weight implements JsonSupport {
   factory Weight.pond(double value) {
     return new Weight.of(WeightUnit.pond, value);
   }
-  
+
   Weight convertTo(WeightUnit dst);
 }
 enum WeightUnit { kg, pond }
@@ -96,8 +96,6 @@ class _WeightImpl implements Weight {
 }
 
 abstract class Length implements JsonSupport {
-  static const inchToCm = 2.54;
-  
   double value;
   final LengthUnit unit;
 
@@ -113,7 +111,7 @@ abstract class Length implements JsonSupport {
   factory Length.inch(double value) {
     return new Length.of(LengthUnit.inch, value);
   }
-  
+
   Length convertTo(LengthUnit dst);
 }
 

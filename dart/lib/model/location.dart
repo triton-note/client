@@ -7,21 +7,19 @@ import 'package:triton_note/util/json_support.dart';
 abstract class Location implements JsonSupport {
   String name;
   GeoInfo geoinfo;
-  
+
   factory Location.fromJsonString(String text) => new _LocationImpl(JSON.decode(text));
   factory Location.fromMap(Map data) => new _LocationImpl(data);
 }
 
 class _LocationImpl implements Location {
   Map _data;
-  
   _LocationImpl(this._data);
-  
   Map toMap() => new Map.from(_data);
-  
+
   String get name => _data['name'];
   set name(String v) => _data['name'] = v;
-  
+
   GeoInfo get geoinfo => (_data['geoinfo'] == null) ? null : new GeoInfo.fromMap(_data['geoinfo']);
   set geoinfo(GeoInfo v) => _data['geoinfo'] = v.toMap();
 }
@@ -36,9 +34,7 @@ abstract class GeoInfo implements JsonSupport {
 
 class _GeoInfoImpl implements GeoInfo {
   Map _data;
-  
   _GeoInfoImpl(this._data);
-  
   Map toMap() => new Map.from(_data);
 
   double get latitude => _data['latitude'];
@@ -59,9 +55,7 @@ abstract class Condition implements JsonSupport {
 
 class _ConditionImpl implements Condition {
   Map _data;
-  
   _ConditionImpl(this._data);
-  
   Map toMap() => new Map.from(_data);
 
   int get moon => _data['moon'];
@@ -69,14 +63,12 @@ class _ConditionImpl implements Condition {
 
   Tide get tide => (_data['tide'] == null) ? null : enumByName(Tide.values, _data['tide']);
   set tide(Tide v) => _data['tide'] = nameOfEnum(v);
-  
+
   Weather get weather => (_data['weather'] == null) ? null : new Weather.fromMap(_data['weather']);
   set weather(Weather v) => _data['weather'] = v.toMap();
 }
 
-enum Tide {
-  Flood, High, Ebb, Low
-}
+enum Tide { Flood, High, Ebb, Low }
 
 abstract class Weather implements JsonSupport {
   String nominal;
@@ -89,9 +81,7 @@ abstract class Weather implements JsonSupport {
 
 class _WeatherImpl implements Weather {
   Map _data;
-  
   _WeatherImpl(this._data);
-  
   Map toMap() => new Map.from(_data);
 
   String get nominal => _data['nominal'];
@@ -99,7 +89,7 @@ class _WeatherImpl implements Weather {
 
   String get iconUrl => _data['iconUrl'];
   set iconUrl(String v) => _data['iconUrl'] = v;
-  
+
   Temperature get temperature => (_data['temperature'] == null) ? null : new Temperature.fromMap(_data['temperature']);
   set temperature(Temperature v) => _data['temperature'] = v.toMap();
 }

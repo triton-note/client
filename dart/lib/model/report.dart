@@ -14,18 +14,16 @@ abstract class Report implements JsonSupport {
   Condition condition;
   Photo photo;
   List<Fishes> fishes;
-  
+
   factory Report.fromJsonString(String text) => new _ReportImpl(JSON.decode(text));
   factory Report.fromMap(Map data) => new _ReportImpl(data);
 }
 
 class _ReportImpl implements Report {
   Map _data;
-  
   _ReportImpl(this._data);
-  
   Map toMap() => new Map.from(_data);
-  
+
   String get id => _data['id'];
   set id(String v) => _data['id'] = v;
 
@@ -34,40 +32,20 @@ class _ReportImpl implements Report {
 
   String get comment => _data['comment'];
   set comment(String v) => _data['comment'] = v;
-  
-  /**
-   * Convert epoch milliseconds to DateTime
-   */
+
   DateTime get dateAt => (_data['dateAt'] == null) ? null : new DateTime.fromMillisecondsSinceEpoch(_data['dateAt']);
   set dateAt(DateTime v) => _data['dateAt'] = v.millisecondsSinceEpoch;
-  
-  /**
-   * Convert Json to Location
-   */
+
   Location get location => (_data['location'] == null) ? null : new Location.fromMap(_data['location']);
   set location(Location v) => _data['location'] = v.toMap();
 
-  /**
-   * Convert Json to Location
-   */
   Condition get condition => (_data['condition'] == null) ? null : new Condition.fromMap(_data['condition']);
   set condition(Condition v) => _data['condition'] = v.toMap();
-  
-  /**
-   * Convert Json to Photo
-   */
+
   Photo get photo => (_data['photo'] == null) ? null : new Photo.fromMap(_data['photo']);
   set photo(Photo v) => _data['photo'] = v.toMap();
-  
-  /**
-   * Convert Json to List<Fishes>
-   */
-  List<Fishes> get fishes {
-    if (_data['fishes'] == null) return null;
-    else return _data['fishes'].map((fs) {
-      return new Fishes.fromMap(fs);
-    }).toList();
-  }
+
+  List<Fishes> get fishes => (_data['fishes'] == null) ? null : _data['fishes'].map((fs) => new Fishes.fromMap(fs)).toList();
   set fishes(List<Fishes> v) => _data['fishes'] = v.map((a) => a.toMap());
 }
 
@@ -83,9 +61,7 @@ abstract class Fishes implements JsonSupport {
 
 class _FishesImpl implements Fishes {
   Map _data;
-  
   _FishesImpl(this._data);
-  
   Map toMap() => new Map.from(_data);
 
   String get name => _data['name'];
