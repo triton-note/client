@@ -57,24 +57,22 @@ class _Cognito {
     return done;
   }
 
-  static Future<bool> _refresh() {
+  static Future<bool> _refresh() async {
     final result = new Completer();
-    try {
-      final creds = context['AWS']['config']['credentials'];
-      print("Getting credentials");
-      creds.callMethod('get', [
-        (error) {
-          if (error == null) {
-            result.complete(true);
-          } else {
-            print("Cognito Error: ${error}");
-            result.completeError(error);
-          }
+
+    final creds = context['AWS']['config']['credentials'];
+    print("Getting credentials");
+    creds.callMethod('get', [
+      (error) {
+        if (error == null) {
+          result.complete(true);
+        } else {
+          print("Cognito Error: ${error}");
+          result.completeError(error);
         }
-      ]);
-    } catch (ex) {
-      result.completeError(ex);
-    }
+      }
+    ]);
+
     return result.future;
   }
 }
