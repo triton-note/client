@@ -23,10 +23,10 @@ main() {
     });
   });
 
-  test('listen twice', () {
+  test('listen multi', () {
     final result = new Completer();
     final map = {};
-    final a = new AfterDone("test listen twice");
+    final a = new AfterDone("test listen multi");
     a.listen((e) {
       map["a"] = e;
       if (map.length == 2) result.complete(true);
@@ -63,5 +63,24 @@ main() {
     });
     expect(map.length, 2);
     expect(map["b"], 1);
+  });
+
+  test('listen twice', () async {
+    final map = {};
+    final a = new AfterDone("test listen twice");
+    a.listen((e) {
+      map["a"] = e;
+    });
+    expect(map.length, 0);
+
+    a.done(1);
+    await new Future.delayed(new Duration(seconds: 1), () => true);
+    expect(map.length, 1);
+    expect(map["a"], 1);
+
+    a.done(2);
+    await new Future.delayed(new Duration(seconds: 1), () => true);
+    expect(map.length, 1);
+    expect(map["a"], 2);
   });
 }

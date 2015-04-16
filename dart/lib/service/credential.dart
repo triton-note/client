@@ -16,7 +16,7 @@ class Credential {
   static void onConnected(void proc(String)) => _connected.listen(proc);
   static bool get isConnected => _connected.isDone;
 
-  static Future<String> get identityId => initialized.then((v) => !v ? null : _Cognito.getIdentity());
+  static Future<String> get identityId => initialized.then((v) => !v ? null : _Cognito.identityId);
 
   static Future<bool> googleSignIn(bool immediate) => initialized.then((v) => !v ? null : _GoogleSignIn.signin(immediate));
 }
@@ -41,9 +41,9 @@ class _Cognito {
     }
   }
 
-  static String getIdentity() => context['AWS']['config']['credentials']['identityId'];
+  static String get identityId => context['AWS']['config']['credentials']['identityId'];
 
-  static Future<bool> _setToken(String service, String token) {
+  static Future<bool> _setToken(String service, String token) async {
     print("Google Signin Token: ${token}");
 
     final creds = context['AWS']['config']['credentials'];
@@ -52,7 +52,9 @@ class _Cognito {
     creds['params']['Logins'] = new JsObject.jsify(logins);
     creds['expired'] = true;
 
-    return _refresh();
+    final done = await _refresh();
+    if (done) Credential._connected.done(identityId);
+    return done;
   }
 
   static Future<bool> _refresh() {
