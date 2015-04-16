@@ -9,9 +9,9 @@ import 'package:triton_note/settings.dart';
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
-final initialized = _Cognito._initialize();
-
 class Credential {
+  static final initialized = _Cognito._initialize();
+
   static final AfterDone<String> _connected = new AfterDone<String>("Credential connected");
   static void onConnected(void proc(String)) => _connected.listen(proc);
   static bool get isConnected => _connected.isDone;
