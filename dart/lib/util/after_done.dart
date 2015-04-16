@@ -8,6 +8,11 @@ class AfterDone<T> {
   bool get isDone => _msg != null;
 
   final ReceivePort port = new ReceivePort();
+  var _stream;
+  get _broadcast {
+    if (_stream == null) _stream = port.asBroadcastStream();
+    return _stream;
+  }
 
   AfterDone(this.name) {}
 
@@ -20,7 +25,7 @@ class AfterDone<T> {
 
   void listen(void proc(T)) {
     if (!isDone) {
-      port.listen(proc);
+      _broadcast.listen(proc);
     } else proc(_msg);
   }
 }
