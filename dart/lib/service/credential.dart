@@ -9,17 +9,16 @@ import 'package:triton_note/settings.dart';
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
-class Credential {
-  static final initialized = _Cognito._initialize();
+final Future<bool> initialized = _Cognito._initialize();
 
-  static final AfterDone<String> _connected = new AfterDone<String>("Credential connected");
-  static void onConnected(void proc(String)) => _connected.listen(proc);
-  static bool get isConnected => _connected.isDone;
+final AfterDone<String> _connected = new AfterDone<String>("Credential connected");
+void onConnected(void proc(String)) => _connected.listen(proc);
+bool get isConnected => _connected.isDone;
 
-  static Future<String> get identityId => initialized.then((v) => !v ? null : _Cognito.identityId);
+Future<String> get identityId => initialized.then((v) => !v ? null : _Cognito.identityId);
+Future<Map<String, String>> get logins => initialized.then((v) => !v ? null : _Cognito.logins);
 
-  static Future<bool> googleSignIn(bool immediate) => initialized.then((v) => !v ? null : _GoogleSignIn.signin(immediate));
-}
+Future<bool> googleSignIn(bool immediate) => initialized.then((v) => !v ? null : _GoogleSignIn.signin(immediate));
 
 class _Cognito {
   static Future<bool> _initialize() async {
@@ -42,6 +41,14 @@ class _Cognito {
   }
 
   static String get identityId => context['AWS']['config']['credentials']['identityId'];
+  static Map<String, String> get logins {
+    final obj = context['AWS']['config']['credentials']['params']['Logins'];
+    final map = {};
+    ["graph.facebook.com", "accounts.google.com", "www.amazon.com"].forEach((key) {
+      if (obj[key] != null) map[key] = obj[key];
+    });
+    return map;
+  }
 
   static Future<bool> _setToken(String service, String token) async {
     print("Google Signin Token: ${token}");
@@ -53,7 +60,7 @@ class _Cognito {
     creds['expired'] = true;
 
     final done = await _refresh();
-    if (done) Credential._connected.done(identityId);
+    if (done) _connected.done(identityId);
     return done;
   }
 

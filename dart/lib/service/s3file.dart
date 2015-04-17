@@ -3,7 +3,7 @@ library s3file;
 import 'dart:async';
 import 'dart:js';
 
-import 'package:triton_note/service/credential.dart';
+import 'package:triton_note/service/credential.dart' as Cred;
 import 'package:triton_note/settings.dart';
 
 class S3File {
@@ -12,7 +12,7 @@ class S3File {
 
   static Future<Map<String, String>> load(String reportId) async {
     final bucket = await Settings.s3Bucket;
-    final userId = await Credential.identityId;
+    final userId = await Cred.identityId;
     final folder = "${userId}/photo/${reportId}/";
 
     Future<String> url(String name) {
