@@ -26,8 +26,7 @@ void main() {
   Logger.root..level = Level.FINEST
              ..onRecord.listen((LogRecord r) { print(r.message); });
 
-  Cordova.initialize();
-  Cordova.onReady((event) {
+  onDeviceReady((event) {
     initPolymer().run(() {
       applicationFactory()
         .addModule(new AppModule())

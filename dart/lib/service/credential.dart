@@ -96,7 +96,7 @@ class _GoogleSignIn {
       });
       return result.future;
     }
-    return Cordova.isCordova ? _onCordova() : _onBrowser();
+    return isCordova ? _onCordova() : _onBrowser();
   }
 
   static Future<JsObject> _request(String path) {
