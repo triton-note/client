@@ -5,7 +5,6 @@ import 'package:triton_note/component/reports_list.dart';
 import 'package:triton_note/decorator/listen_event.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/resource_url_resolver_cordova.dart';
-import 'package:triton_note/settings.dart';
 
 import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
@@ -27,7 +26,6 @@ void main() {
   Logger.root..level = Level.FINEST
              ..onRecord.listen((LogRecord r) { print(r.message); });
 
-  Settings.initialize();
   Cordova.initialize();
   Cordova.onReady((event) {
     initPolymer().run(() {
