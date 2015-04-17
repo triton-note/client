@@ -46,7 +46,8 @@ Future<String> process(HttpRequest req) async {
     }
     final text = await load();
     print("Request: ${text}");
-    return JSON.encode(job(req.uri.path, JSON.decode(text)));
+    final res = job(req.uri.path, JSON.decode(text));
+    return (res is String) ? res : JSON.encode(res);
   } else {
     return "OK";
   }
@@ -76,5 +77,7 @@ job(String path, json) {
   } else if (path == "/json-list") {
     final List list = json;
     return list.map((String name) => {'id': name}).toList();
+  } else if (path == "/straight") {
+    return json['name'];
   }
 }

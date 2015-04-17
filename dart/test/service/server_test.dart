@@ -64,6 +64,15 @@ main() {
       expect(ans[2]['id'], 'Z');
     }
   });
+
+  test('straight', () async {
+    if (await check) {
+      final String ans = await Server.json("straight", {'name': 'ABC'});
+      print("Response from server: ${ans}");
+
+      expect(ans, "ABC");
+    }
+  });
 }
 
 Future<bool> get check async {

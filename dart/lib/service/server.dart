@@ -25,7 +25,12 @@ class Server {
   static Future json(String path, content, [int retry = 3]) async {
     try {
       final text = await post("${await Settings.serverUrl}/${path}", "application/json", JSON.encode(content));
-      return JSON.decode(text);
+      try {
+        return JSON.decode(text);
+      } catch (ex) {
+        if (ex is FormatException) return text;
+        else return null;
+      }
     } catch (ex) {
       print("Retry(${retry}): ${ex}");
       if (retry < 1) throw ex;
