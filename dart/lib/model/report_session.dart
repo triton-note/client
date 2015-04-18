@@ -12,7 +12,7 @@ class SessionInference {
 class SessionToken {
   final String token;
   final String uploadUrl;
-  final String uploadParams;
+  final Map<String, String> uploadParams;
 
   SessionToken(this.token, this.uploadUrl, this.uploadParams);
 }

@@ -93,7 +93,7 @@ class Server {
 
   static Future<SessionToken> newSession() async {
     final Map map = await _withTicket("/report/new-session", {});
-    return new SessionToken(map['session'], map['upload']['url'], JSON.encode(map['upload']['params']));
+    return new SessionToken(map['session'], map['upload']['url'], map['upload']['params']);
   }
 
   static Future<SessionInference> infer(String session, GeoInfo geoinfo, DateTime date) async {
