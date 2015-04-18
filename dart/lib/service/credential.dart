@@ -4,16 +4,15 @@ import 'dart:async';
 import 'dart:js';
 
 import 'package:triton_note/util/cordova.dart';
-import 'package:triton_note/util/after_done.dart';
 import 'package:triton_note/settings.dart';
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
 final Future<bool> initialized = _Cognito._initialize();
 
-final AfterDone<String> _connected = new AfterDone<String>("Credential connected");
-void onConnected(void proc(String)) => _connected.listen(proc);
-bool get isConnected => _connected.isDone;
+final Completer<String> _connected = new Completer<String>();
+void onConnected(void proc(String)) { _connected.future.then(proc); }
+bool get isConnected => _connected.isCompleted;
 
 Future<String> get identityId => initialized.then((v) => !v ? null : _Cognito.identityId);
 Future<Map<String, String>> get logins => initialized.then((v) => !v ? null : _Cognito.logins);
@@ -60,7 +59,7 @@ class _Cognito {
     creds['expired'] = true;
 
     final done = await _refresh();
-    if (done) _connected.done(identityId);
+    if (done) _connected.complete(identityId);
     return done;
   }
 

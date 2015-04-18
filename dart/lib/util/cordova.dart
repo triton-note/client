@@ -1,25 +1,24 @@
 library cordova;
 
+import 'dart:async';
 import 'dart:html';
-
-import 'package:triton_note/util/after_done.dart';
 
 final bool isCordova = window.location.protocol == "file:";
 
-final AfterDone<String> _onDeviceReady = new AfterDone<String>("Cordova deviceready");
-bool get isDeviceReady => _onDeviceReady.isDone;
+final Completer<String> _onDeviceReady = new Completer<String>();
+bool get isDeviceReady => _onDeviceReady.isCompleted;
 
 bool _initialized = false;
 void _initialize() {
   if (isCordova) {
     document.on['deviceready'].listen((event) {
-      _onDeviceReady.done("cordova");
+      _onDeviceReady.complete("cordova");
     });
-  } else _onDeviceReady.done("browser");
+  } else _onDeviceReady.complete("browser");
   _initialized = true;
 }
 
 void onDeviceReady(void proc(String)) {
   if (!_initialized) _initialize();
-  _onDeviceReady.listen(proc);
+  _onDeviceReady.future.then(proc);
 }
