@@ -8,10 +8,9 @@ import 'package:triton_note/model/distributions.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/report.dart';
+import 'package:triton_note/model/report_session.dart';
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/credential.dart' as Cred;
-import 'package:triton_note/util/enums.dart';
-import 'package:triton_note/util/tuple.dart';
 import 'package:triton_note/settings.dart';
 
 class Server {
@@ -92,15 +91,15 @@ class Server {
     return null;
   }
 
-  static Future<Tuple2<String, String>> newSession(GeoInfo geoinfo) async {
-    final Map map = await _withTicket("/report/new-session", {'geoinfo': geoinfo.toMap()});
-    return new Tuple2(map['session'], map['upload']);
+  static Future<SessionToken> newSession() async {
+    final Map map = await _withTicket("/report/new-session", {});
+    return new SessionToken(map['session'], map['upload']['url'], JSON.encode(map['upload']['params']));
   }
 
-  static Future<Tuple2<String, List<Fishes>>> infer(String session) async {
-    final Map map = await _withSession("/report/infer", session, {});
+  static Future<SessionInference> infer(String session, GeoInfo geoinfo, DateTime date) async {
+    final Map map = await _withSession("/report/infer", session, {'geoinfo': geoinfo.toMap(), 'date': date.millisecondsSinceEpoch});
     final list = map['fishes'].map((v) => new Fishes.fromMap(v)).toList();
-    return new Tuple2(map['spotName'], list);
+    return new SessionInference(map['spotName'], list);
   }
 
   static Future<Photo> photo(String session, String name) async {
@@ -140,16 +139,13 @@ class Server {
     return null;
   }
 
-  static Future<Tuple3<LengthUnit, WeightUnit, TemperatureUnit>> loadMeasures() async {
+  static Future<Measures> loadMeasures() async {
     final Map map = await _withTicket("/account/measures/load", {});
-    final l = enumByName(LengthUnit.values, map['length']);
-    final w = enumByName(WeightUnit.values, map['weight']);
-    final t = enumByName(TemperatureUnit.values, map['temperature']);
-    return new Tuple3(l, w, t);
+    return new Measures.fromMap(map);
   }
 
-  static Future<Null> updateMeasures(LengthUnit length, WeightUnit weight, TemperatureUnit temperature) async {
-    await _withTicket("/account/measures/update", {'length': length, 'weight': weight, 'temperature': temperature});
+  static Future<Null> updateMeasures(Measures measures) async {
+    await _withTicket("/account/measures/update", measures.toMap());
     return null;
   }
 

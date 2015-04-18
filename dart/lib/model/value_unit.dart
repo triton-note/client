@@ -3,6 +3,29 @@ library value_unit;
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/json_support.dart';
 
+abstract class Measures implements JsonSupport {
+  LengthUnit length;
+  WeightUnit weight;
+  TemperatureUnit temperature;
+
+  factory Measures.fromJsonString(String text) => new _MeasuresImpl(JSON.decode(text));
+  factory Measures.fromMap(Map data) => new _MeasuresImpl(data);
+}
+class _MeasuresImpl implements Measures {
+  Map _data;
+  _MeasuresImpl(this._data);
+  Map toMap() => new Map.from(_data);
+
+  TemperatureUnit get temperature => (_data['temperature'] == null) ? null : enumByName(TemperatureUnit.values, _data['temperature']);
+  set temperature(TemperatureUnit v) => _data['temperature'] = nameOfEnum(v);
+
+  WeightUnit get weight => (_data['weight'] == null) ? null : enumByName(WeightUnit.values, _data['weight']);
+  set weight(WeightUnit v) => _data['weight'] = nameOfEnum(v);
+
+  LengthUnit get length => (_data['length'] == null) ? null : enumByName(LengthUnit.values, _data['length']);
+  set length(LengthUnit v) => _data['length'] = nameOfEnum(v);
+}
+
 abstract class Temperature implements JsonSupport {
   double value;
   final TemperatureUnit unit;
@@ -33,7 +56,6 @@ class _TemperatureImpl implements Temperature {
   set value(double v) => _data['value'] = v;
 
   TemperatureUnit get unit => (_data['unit'] == null) ? null : enumByName(TemperatureUnit.values, _data['unit']);
-  set unit(TemperatureUnit v) => _data['unit'] = nameOfEnum(v);
 
   Temperature convertTo(TemperatureUnit dst) {
     if (this.unit == dst) return this;
@@ -80,7 +102,6 @@ class _WeightImpl implements Weight {
   set value(double v) => _data['value'] = v;
 
   WeightUnit get unit => (_data['unit'] == null) ? null : enumByName(WeightUnit.values, _data['unit']);
-  set unit(WeightUnit v) => _data['unit'] = nameOfEnum(v);
 
   Weight convertTo(WeightUnit dst) {
     if (this.unit == dst) return this;
@@ -128,7 +149,6 @@ class _LengthImpl implements Length {
   set value(double v) => _data['value'] = v;
 
   LengthUnit get unit => (_data['unit'] == null) ? null : enumByName(LengthUnit.values, _data['unit']);
-  set unit(LengthUnit v) => _data['unit'] = nameOfEnum(v);
 
   Length convertTo(LengthUnit dst) {
     if (this.unit == dst) return this;
