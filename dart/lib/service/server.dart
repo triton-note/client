@@ -21,7 +21,7 @@ class Server {
       if (req.status == 200) {
         result.complete(req.responseText);
       } else {
-        result.completeError(new ServerError(req.status, req.responseText));
+        result.completeError(new ServerError.fromRequest(req));
       }
     } catch (event) {
       result.completeError("Failed to post to ${url}");

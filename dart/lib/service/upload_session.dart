@@ -22,8 +22,7 @@ class UploadSession {
       return filename;
     } catch (ex) {
       if (ex is ProgressEvent && ex.target is HttpRequest) {
-        final HttpRequest req = ex.target;
-        throw new ServerError.fromRequest(req);
+        throw new ServerError.fromRequest(ex.target);
       } else throw ex;
     }
   }
