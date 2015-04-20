@@ -175,6 +175,10 @@ class ServerError {
   final String message;
 
   ServerError(this.status, this.message);
+  factory ServerError.fromRequest(HttpRequest req) => new ServerError(req.status, req.responseText);
+  
+  @override
+  String toString() => "ServerError(status:${status}): ${message}";
 }
 
 class SessionExpired {}

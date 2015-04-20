@@ -6,6 +6,7 @@ dependencies:
   paper_elements: any
   polymer: 0.15.5+4
 dev_dependencies:
+  crypto: any
   mock: any
   unittest: any
 transformers:

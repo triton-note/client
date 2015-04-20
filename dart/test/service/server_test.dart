@@ -1,4 +1,4 @@
-library server_testrun;
+library server_test;
 
 import 'dart:async';
 import 'dart:convert';
