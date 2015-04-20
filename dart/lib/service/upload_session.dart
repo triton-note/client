@@ -30,7 +30,7 @@ class UploadSession {
   
   final Completer<SessionToken> _onSession = new Completer<SessionToken>();
   final Completer<Photo> _onUploaded = new Completer<Photo>();
-  SessionInference _inference;
+  Completer<SessionInference> _onInferred;
 
   UploadSession(Blob photoData) {
     Server.newSession().then(_onSession.complete);
@@ -52,9 +52,12 @@ class UploadSession {
   }
 
   Future<SessionInference> infer(GeoInfo geoinfo, DateTime date) async {
-    if (_inference == null) {
-      _inference = await Server.infer((await session).token, geoinfo, date);
+    if (_onInferred == null) {
+      _onInferred = new Completer<SessionInference>(); 
+      Server.infer((await session).token, geoinfo, date)
+        ..then(_onInferred.complete)
+        ..catchError(_onInferred.completeError);
     }
-    return _inference;
+    return _onInferred.future;
   }
 }
