@@ -23,8 +23,10 @@ class Server {
       } else {
         result.completeError(new ServerError.fromRequest(req));
       }
-    } catch (event) {
-      result.completeError("Failed to post to ${url}");
+    } catch (ex) {
+      if (ex is ProgressEvent && ex.target is HttpRequest && ex.target.status != 0) {
+        result.completeError(new ServerError.fromRequest(ex.target));
+      } else result.completeError("Failed to post to ${url}");
     }
     return result.future;
   }
@@ -167,7 +169,7 @@ class ServerError {
 
   ServerError(this.status, this.message);
   factory ServerError.fromRequest(HttpRequest req) => new ServerError(req.status, req.responseText);
-  
+
   @override
   String toString() => "ServerError(status:${status}): ${message}";
 }
