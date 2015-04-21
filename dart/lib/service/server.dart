@@ -84,81 +84,81 @@ class Server {
   }
 
   static Future<SessionToken> newSession() async {
-    final Map map = await _withTicket("/report/new-session", {});
+    final Map map = await _withTicket("report/new-session", {});
     return new SessionToken(map['session'], map['upload']['url'], map['upload']['params']);
   }
 
   static Future<SessionInference> infer(String session, GeoInfo geoinfo, DateTime date) async {
-    final Map map = await _withSession("/report/infer", session, {'geoinfo': geoinfo.toMap(), 'date': date.millisecondsSinceEpoch});
+    final Map map = await _withSession("report/infer", session, {'geoinfo': geoinfo.toMap(), 'date': date.millisecondsSinceEpoch});
     final list = map['fishes'].map((v) => new Fishes.fromMap(v)).toList();
     return new SessionInference(map['spotName'], list);
   }
 
   static Future<Photo> photo(String session, String name) async {
-    final Map map = await _withSession("/report/photo", session, {'names': [name]});
+    final Map map = await _withSession("report/photo", session, {'names': [name]});
     return new Photo.fromMap(map['url']);
   }
 
   static Future<Report> submit(String session, Report report) async {
-    final String id = await _withSession("/report/submit", session, {'report': report});
+    final String id = await _withSession("report/submit", session, {'report': report});
     report.id = id;
     return report;
   }
 
   static Future<Null> publishToFacebook(String reportId, String accessKey) async {
-    await _withTicket("/report/publish/facebook", {'id': reportId, 'accessKey': accessKey});
+    await _withTicket("report/publish/facebook", {'id': reportId, 'accessKey': accessKey});
     return null;
   }
 
   static Future<List<Report>> load(int count, [Report last = null]) async {
     final param = {'count': count};
     if (last != null) param['last'] = last;
-    final List list = await _withTicket("/report/load", param);
+    final List list = await _withTicket("report/load", param);
     return list.map((v) => new Report.fromMap(v)).toList();
   }
 
   static Future<Report> read(String reportId) async {
-    final Map map = await _withTicket("/report/read", {'id': reportId});
+    final Map map = await _withTicket("report/read", {'id': reportId});
     return new Report.fromMap(map['report']);
   }
 
   static Future<Null> update(Report report) async {
-    await _withTicket("/report/update", {'report': report});
+    await _withTicket("report/update", {'report': report});
     return null;
   }
 
   static Future<Null> remove(String reportId) async {
-    await _withTicket("/report/remove", {'id': reportId});
+    await _withTicket("report/remove", {'id': reportId});
     return null;
   }
 
   static Future<Measures> loadMeasures() async {
-    final Map map = await _withTicket("/account/measures/load", {});
+    final Map map = await _withTicket("account/measures/load", {});
     return new Measures.fromMap(map);
   }
 
   static Future<Null> updateMeasures(Measures measures) async {
-    await _withTicket("/account/measures/update", measures.toMap());
+    await _withTicket("account/measures/update", measures.toMap());
     return null;
   }
 
   static Future<List<Catch>> distributionMine() async {
-    final List list = await _withTicket("/distribution/mine", {});
+    final List list = await _withTicket("distribution/mine", {});
     return list.map((v) => new Catch.fromMap(v)).toList();
   }
 
   static Future<List<Catch>> distributionOthers() async {
-    final List list = await _withTicket("/distribution/others", {});
+    final List list = await _withTicket("distribution/others", {});
     return list.map((v) => new Catch.fromMap(v)).toList();
   }
 
   static Future<List<Catch>> distributionNames() async {
-    final List list = await _withTicket("/distribution/names", {});
+    final List list = await _withTicket("distribution/names", {});
     return list.map((v) => new NameCount.fromMap(v)).toList();
   }
 
   static Future<Condition> getConditions(DateTime date, GeoInfo geoinfo) async {
-    final Map map = await _withTicket("/conditions/get", {"date": date, "geoinfo": geoinfo});
+    final Map map = await _withTicket("conditions/get", {"date": date, "geoinfo": geoinfo});
     return new Condition.fromMap(map);
   }
 }
