@@ -30,7 +30,7 @@ class Settings {
     return _map == null ? null : _map[name];
   }
   static Future<String> get awsRegion => _get('awsRegion');
-  static Future<String> get cognitoId => _get('cognitoId');
+  static Future<String> get cognitoPoolId => _get('cognitoPoolId');
   static Future<String> get s3Bucket => _get('s3Bucket');
   static Future<String> get serverUrl => _get('serverUrl');
 }

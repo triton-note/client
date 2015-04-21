@@ -26,10 +26,10 @@ class _Cognito {
     print("Initializing Cognito ...");
 
     final awsRegion = await Settings.awsRegion;
-    final cognitoId = await Settings.cognitoId;
+    final cognitoPoolId = await Settings.cognitoPoolId;
 
     context['AWS']['config']['region'] = awsRegion;
-    final creds = new JsObject(context['AWS']['CognitoIdentityCredentials'], [new JsObject.jsify({'IdentityPoolId': cognitoId})]);
+    final creds = new JsObject(context['AWS']['CognitoIdentityCredentials'], [new JsObject.jsify({'IdentityPoolId': cognitoPoolId})]);
     context['AWS']['config']['credentials'] = creds;
 
     try {
