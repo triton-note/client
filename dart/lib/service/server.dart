@@ -14,10 +14,10 @@ import 'package:triton_note/service/credential.dart' as Cred;
 import 'package:triton_note/settings.dart';
 
 class Server {
-  static Future<String> post(String url, String mimeType, String content) async {
+  static Future<String> post(String url, String contentType, String content) async {
     final result = new Completer<String>();
     try {
-      final req = await HttpRequest.request(url, method: 'POST', mimeType: mimeType, sendData: content);
+      final req = await HttpRequest.request(url, method: 'POST', sendData: content, requestHeaders: {"Content-Type": contentType});
       if (req.status == 200) {
         result.complete(req.responseText);
       } else {
