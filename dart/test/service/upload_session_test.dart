@@ -9,10 +9,10 @@ import 'package:unittest/unittest.dart';
 
 import 'package:triton_note/service/upload_session.dart';
 
-final String bucketName = "triton-note-test";
+final String bucketName = "";
 
 main() {
-  test('post png', () async {
+  if (bucketName.length > 0) test('post png', () async {
     final photoData = getPhoto();
     final params = makeParams();
     final result = await UploadSession.upload("https://${bucketName}.s3.amazonaws.com/", params, photoData);
