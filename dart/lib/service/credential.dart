@@ -11,13 +11,15 @@ String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]
 final Future<bool> initialized = _Cognito._initialize();
 
 final Completer<String> _connected = new Completer<String>();
-void onConnected(void proc(String)) { _connected.future.then(proc); }
 bool get isConnected => _connected.isCompleted;
+void onConnected(void proc(String)) {
+  _connected.future.then(proc);
+}
 
 Future<String> get identityId => initialized.then((v) => !v ? null : _Cognito.identityId);
 Future<Map<String, String>> get logins => initialized.then((v) => !v ? null : _Cognito.logins);
 
-Future<bool> googleSignIn(bool immediate) => initialized.then((v) => !v ? null : _GoogleSignIn.signin(immediate));
+Future<bool> googleSignIn() => initialized.then((v) => !v ? false : _GoogleSignIn.signin());
 
 class _Cognito {
   static Future<bool> _initialize() async {
@@ -43,7 +45,7 @@ class _Cognito {
   static Map<String, String> get logins {
     final obj = context['AWS']['config']['credentials']['params']['Logins'];
     final map = {};
-    ["graph.facebook.com", "accounts.google.com", "www.amazon.com"].forEach((key) {
+    if (obj != null) ["graph.facebook.com", "accounts.google.com", "www.amazon.com"].forEach((key) {
       if (obj[key] != null) map[key] = obj[key];
     });
     return map;
@@ -88,9 +90,16 @@ class _GoogleSignIn {
   static const googleClientId = "945048561360-rbftrc4m2965vuqdhr0s2nuhjvvjkbg1.apps.googleusercontent.com";
   static const scopes = const ["https://www.googleapis.com/auth/plus.login"];
 
-  static Future<bool> signin(bool immediate) async {
+  static Future<bool> signin() async {
     Future<bool> _onBrowser() async {
-      final token = await _auth(immediate);
+      auth() async {
+        try {
+          return await _auth(true);
+        } catch (ex) {
+          return _auth(false);
+        }
+      }
+      final token = await auth();
       final userId = await _getUserId();
       return (userId == null) ? false : _Cognito._setToken('accounts.google.com', token);
     }
