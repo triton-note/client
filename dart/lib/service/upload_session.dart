@@ -63,7 +63,6 @@ class UploadSession {
   }
   
   Future<Null> submit(Report report) async {
-    report.id = await Server.submit((await session).token, report);
-    Reports.add(report);
+    Reports.add(await Server.submit((await session).token, report));
   }
 }

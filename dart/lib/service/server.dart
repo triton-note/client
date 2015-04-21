@@ -107,9 +107,10 @@ class Server {
     return new Photo.fromMap(map['url']);
   }
 
-  static Future<String> submit(String session, Report report) async {
+  static Future<Report> submit(String session, Report report) async {
     final String id = await _withSession("/report/submit", session, {'report': report});
-    return id;
+    report.id = id;
+    return report;
   }
 
   static Future<Null> publishToFacebook(String reportId, String accessKey) async {
