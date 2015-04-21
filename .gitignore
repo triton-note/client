@@ -7,3 +7,4 @@ bower_components/
 *.log
 hooks
 resources/*/
+dart/web/settings.yaml
