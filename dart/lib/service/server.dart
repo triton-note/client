@@ -81,16 +81,6 @@ class Server {
     }
   }
 
-  static Future<Null> connect(String service, String accessKey) async {
-    await _withTicket("/account/connect/${service}", {'accessKey': accessKey});
-    return null;
-  }
-
-  static Future<Null> disconnect(String service) async {
-    await _withTicket("/account/disconnect/${service}", {});
-    return null;
-  }
-
   static Future<SessionToken> newSession() async {
     final Map map = await _withTicket("/report/new-session", {});
     return new SessionToken(map['session'], map['upload']['url'], map['upload']['params']);
