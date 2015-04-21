@@ -5,8 +5,10 @@ import 'dart:html';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/photo.dart';
+import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/report_session.dart';
 import 'package:triton_note/service/server.dart';
+import 'package:triton_note/service/reports.dart';
 
 class UploadSession {
   static const String filename = "user_data";
@@ -58,5 +60,10 @@ class UploadSession {
         ..catchError(_onInferred.completeError);
     }
     return _onInferred.future;
+  }
+  
+  Future<Null> submit(Report report) async {
+    report.id = await Server.submit((await session).token, report);
+    Reports.add(report);
   }
 }
