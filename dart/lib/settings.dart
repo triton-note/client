@@ -18,7 +18,7 @@ class Settings {
       final text = await HttpRequest.getString("settings.yaml");
       _map = loadYaml(text);
     } catch (ex) {
-      _map = onFail;
+      _map = (onFail != null) ? onFail : const {};
     }
     return _map;
   }
