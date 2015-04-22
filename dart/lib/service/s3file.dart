@@ -12,7 +12,7 @@ class S3File {
 
   static Future<Map<String, String>> load(String reportId) async {
     final bucket = await Settings.s3Bucket;
-    final userId = await Cred.identityId;
+    final userId = (await Cred.identity).id;
     final folder = "${userId}/photo/${reportId}/";
 
     Future<String> url(String name) {

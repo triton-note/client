@@ -1,6 +1,7 @@
 library credential;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:js';
 
 import 'package:triton_note/util/cordova.dart';
@@ -16,10 +17,16 @@ void onConnected(void proc(String)) {
   _connected.future.then(proc);
 }
 
-Future<String> get identityId => initialized.then((v) => !v ? null : _Cognito.identityId);
-Future<Map<String, String>> get logins => initialized.then((v) => !v ? null : _Cognito.logins);
-
 Future<bool> googleSignIn() => initialized.then((v) => !v ? false : _GoogleSignIn.signin());
+
+Future<Identity> get identity => initialized.then((v) => !v ? null : new Identity(_Cognito.identityId, _Cognito.logins));
+
+class Identity {
+  final String id;
+  final Map<String, String> logins;
+
+  Identity(this.id, Map<String, String> map): logins = new UnmodifiableMapView(map);
+}
 
 class _Cognito {
   static Future<bool> _initialize() async {

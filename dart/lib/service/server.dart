@@ -37,8 +37,7 @@ class Server {
       try {
         return JSON.decode(text);
       } catch (ex) {
-        if (ex is FormatException) return text;
-        else return null;
+        return (ex is FormatException) ? text : null;
       }
     } catch (ex) {
       if (ex is ServerError) throw ex;
@@ -54,9 +53,8 @@ class Server {
   static String _ticket;
 
   static Future _login() async {
-    final identityId = await Cred.identityId;
-    final logins = await Cred.logins;
-    _ticket = await json("login", {'identityId': identityId, 'logins': logins});
+    final identity = await Cred.identity;
+    _ticket = await json("login", {'identityId': identity.id, 'logins': identity.logins});
     return _ticket;
   }
 
