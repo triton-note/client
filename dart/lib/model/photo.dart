@@ -28,6 +28,7 @@ class _PhotoImpl implements Photo {
 
 abstract class Image implements JsonSupport {
   String path;
+  String get url;
 
   factory Image.fromJsonString(String text) => new _ImageImpl(JSON.decode(text));
   factory Image.fromMap(Map data) => new _ImageImpl(data);
@@ -40,4 +41,10 @@ class _ImageImpl implements Image {
 
   String get path => _data['path'];
   set path(String v) => _data['path'] = v;
+  
+  String get url {
+    if (_data['url'] != null) return _data['url'];
+    
+    return null;
+  }
 }

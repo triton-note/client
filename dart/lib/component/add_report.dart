@@ -13,10 +13,10 @@ import 'package:triton_note/util/main_frame.dart';
 class AddReportComponent extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
   final PhotoShop _shop = new PhotoShop();
-  final Report report = new Report.fromMap({});
+  final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
   AddReportComponent(Router router) : super(router);
-  
+
   choosePhoto() {
     _shop.choose();
 
@@ -33,15 +33,29 @@ class AddReportComponent extends MainFrame {
       });
 
       final date = await _shop.timestamp;
-      report.dateAt = (date != null) ? date : new DateTime.now();
+      if (date != null) {
+        report.dateAt = date;
+      } else {
+        print("No Timestamp in Exif. Get current time");
+        report.dateAt = new DateTime.now();
+      }
 
       final info = await _shop.geoinfo;
-      report.location.geoinfo = (info != null) ? info : await Geo.location();
+      if (info != null) {
+        report.location.geoinfo = info;
+      } else {
+        print("No GeoInfo in Exif. Get current location");
+        report.location.geoinfo = await Geo.location();
+      }
 
       final inference = await session.infer(report.location.geoinfo, report.dateAt);
-      report.location.name = inference.spotName;
-      if (report.fishes == null) report.fishes = inference.fishes;
-      else report.fishes.addAll(inference.fishes);
+      if (inference != null) {
+        if (inference.spotName != null) report.location.name = inference.spotName;
+        if (inference.fishes != null && inference.fishes.length > 0) {
+          if (report.fishes == null) report.fishes = inference.fishes;
+          else report.fishes.addAll(inference.fishes);
+        }
+      }
     });
   }
 

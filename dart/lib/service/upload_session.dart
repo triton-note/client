@@ -12,8 +12,9 @@ import 'package:triton_note/service/reports.dart';
 
 class UploadSession {
   static const String filename = "user_data";
-  
+
   static Future<String> upload(String url, Map<String, String> params, Blob photoData) async {
+    print("Uploading: ${url}: ${params}");
     final data = new FormData();
     params.forEach(data.append);
     data.appendBlob('file', photoData, filename);
@@ -28,7 +29,7 @@ class UploadSession {
       } else throw ex;
     }
   }
-  
+
   final Completer<SessionToken> _onSession = new Completer<SessionToken>();
   final Completer<Photo> _onUploaded = new Completer<Photo>();
   Completer<SessionInference> _onInferred;
@@ -54,15 +55,17 @@ class UploadSession {
 
   Future<SessionInference> infer(GeoInfo geoinfo, DateTime date) async {
     if (_onInferred == null) {
-      _onInferred = new Completer<SessionInference>(); 
+      _onInferred = new Completer<SessionInference>();
+      await _onUploaded.future;
       Server.infer((await session).token, geoinfo, date)
         ..then(_onInferred.complete)
         ..catchError(_onInferred.completeError);
     }
     return _onInferred.future;
   }
-  
+
   Future<Null> submit(Report report) async {
+    await _onUploaded.future;
     Reports.add(await Server.submit((await session).token, report));
   }
 }
