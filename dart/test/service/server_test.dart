@@ -18,7 +18,7 @@ main() {
   
   test('post map', () async {
     if (await check) {
-      final text = await Server.post(serverUrl, "text/json", JSON.encode({'name': 'A', 'userId': 'user-A'}));
+      final text = await Server.post(serverUrl, JSON.encode({'name': 'A', 'userId': 'user-A'}));
       print("Response from server: ${text}");
       final Map ans = JSON.decode(text);
 
@@ -28,7 +28,7 @@ main() {
 
   test('post list', () async {
     if (await check) {
-      final text = await Server.post(serverUrl, "text/json", JSON.encode({'name': 'B', 'list': ['X', 'Y', 'Z']}));
+      final text = await Server.post(serverUrl, JSON.encode({'name': 'B', 'list': ['X', 'Y', 'Z']}));
       print("Response from server: ${text}");
       final List ans = JSON.decode(text);
 

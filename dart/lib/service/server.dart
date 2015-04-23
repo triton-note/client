@@ -14,9 +14,10 @@ import 'package:triton_note/service/credential.dart' as Cred;
 import 'package:triton_note/settings.dart';
 
 class Server {
-  static Future<String> post(String url, String contentType, String content) async {
+  static Future<String> post(String url, String content, [String contentType = "text/json"]) async {
     final result = new Completer<String>();
     try {
+      print("Posting to ${url}");
       final req = await HttpRequest.request(url, method: 'POST', sendData: content, requestHeaders: {"Content-Type": contentType});
       if (req.status == 200) {
         result.complete(req.responseText);
@@ -33,7 +34,7 @@ class Server {
 
   static Future json(String path, content, [int retry = 3]) async {
     try {
-      final text = await post("${await Settings.serverUrl}/${path}", "application/json", JSON.encode(content));
+      final text = await post("${await Settings.serverUrl}/${path}", JSON.encode(content));
       try {
         return JSON.decode(text);
       } catch (ex) {
