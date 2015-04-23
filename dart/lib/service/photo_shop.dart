@@ -31,7 +31,8 @@ class PhotoShop {
     try {
       final String url = Url.createObjectUrlFromBlob(await photo);
       print("Url of blob: ${url}");
-      _onGetUrl.complete(new Photo.fromMap({'original': {'url': url}, 'mainview': {'url': url}}));
+      final v = new Photo.fromMap({'original': {'url': url}, 'mainview': {'url': url}});
+      _onGetUrl.complete(v);
     } catch (ex) {
       _onGetUrl.completeError(ex);
     }
