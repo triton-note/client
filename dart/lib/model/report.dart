@@ -1,9 +1,9 @@
 library report;
 
+import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/util/json_support.dart';
 
 abstract class Report implements JsonSupport {
   String id;
@@ -20,9 +20,25 @@ abstract class Report implements JsonSupport {
 }
 
 class _ReportImpl implements Report {
-  Map _data;
-  _ReportImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  final Map _data;
+  final CachedProp<DateTime> _dateAt;
+  final CachedProp<Photo> _photo;
+  final CachedProp<Location> _location;
+  final CachedProp<Condition> _condition;
+  final CachedProp<List<Fishes>> _fishes;
+
+  _ReportImpl(Map data)
+      : _data = data,
+        _dateAt = new CachedProp<DateTime>(data, 'dateAt', (int v) => new DateTime.fromMillisecondsSinceEpoch(v),
+            (DateTime v) => v.millisecondsSinceEpoch),
+        _photo = new CachedProp<Photo>(data, 'photo', (Map map) => new Photo.fromMap(map)),
+        _location = new CachedProp<Location>(data, 'location', (Map map) => new Location.fromMap(map)),
+        _condition = new CachedProp<Condition>(data, 'condition', (Map map) => new Condition.fromMap(map)),
+        _fishes = new CachedProp<List<Fishes>>(data, 'fishes',
+            (List list) => list.map((fs) => new Fishes.fromMap(fs)).toList(),
+            (List<Fishes> o) => o.map((a) => a.toMap()));
+
+  Map toMap() => _data;
 
   String get id => _data['id'];
   set id(String v) => _data['id'] = v;
@@ -33,20 +49,20 @@ class _ReportImpl implements Report {
   String get comment => _data['comment'];
   set comment(String v) => _data['comment'] = v;
 
-  DateTime get dateAt => (_data['dateAt'] == null) ? null : new DateTime.fromMillisecondsSinceEpoch(_data['dateAt']);
-  set dateAt(DateTime v) => _data['dateAt'] = v.millisecondsSinceEpoch;
+  DateTime get dateAt => _dateAt.value;
+  set dateAt(DateTime v) => _dateAt.value = v;
 
-  Location get location => (_data['location'] == null) ? null : new Location.fromMap(_data['location']);
-  set location(Location v) => _data['location'] = v.toMap();
+  Location get location => _location.value;
+  set location(Location v) => _location.value = v;
 
-  Condition get condition => (_data['condition'] == null) ? null : new Condition.fromMap(_data['condition']);
-  set condition(Condition v) => _data['condition'] = v.toMap();
+  Condition get condition => _condition.value;
+  set condition(Condition v) => _condition.value = v;
 
-  Photo get photo => (_data['photo'] == null) ? null : new Photo.fromMap(_data['photo']);
-  set photo(Photo v) => _data['photo'] = v.toMap();
+  Photo get photo => _photo.value;
+  set photo(Photo v) => _photo.value = v;
 
-  List<Fishes> get fishes => (_data['fishes'] == null) ? null : _data['fishes'].map((fs) => new Fishes.fromMap(fs)).toList();
-  set fishes(List<Fishes> v) => _data['fishes'] = v.map((a) => a.toMap());
+  List<Fishes> get fishes => _fishes.value;
+  set fishes(List<Fishes> v) => _fishes.value = v;
 }
 
 abstract class Fishes implements JsonSupport {
@@ -60,9 +76,16 @@ abstract class Fishes implements JsonSupport {
 }
 
 class _FishesImpl implements Fishes {
-  Map _data;
-  _FishesImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  final Map _data;
+  final CachedProp<Weight> _weight;
+  final CachedProp<Length> _length;
+
+  _FishesImpl(Map data)
+      : _data = data,
+        _weight = new CachedProp<Weight>(data, 'weight', (map) => new Weight.fromMap(map)),
+        _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map));
+
+  Map toMap() => _data;
 
   String get name => _data['name'];
   set name(String v) => _data['name'] = v;
@@ -70,9 +93,9 @@ class _FishesImpl implements Fishes {
   int get count => _data['count'];
   set count(int v) => _data['count'] = v;
 
-  Weight get weight => (_data['weight'] == null) ? null : new Weight.fromMap(_data['weight']);
-  set weight(Weight v) => _data['weight'] = v.toMap();
+  Weight get weight => _weight.value;
+  set weight(Weight v) => _weight.value = v;
 
-  Length get length => (_data['length'] == null) ? null : new Length.fromMap(_data['length']);
-  set length(Length v) => _data['length'] = v.toMap();
+  Length get length => _length.value;
+  set length(Length v) => _length.value = v;
 }

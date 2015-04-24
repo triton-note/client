@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:angular/angular.dart';
 import 'package:triton_note/model/report.dart';
+import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/service/upload_session.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
@@ -14,7 +15,6 @@ class AddReportComponent extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
   final PhotoShop _shop = new PhotoShop();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
-  String photoUrl;
 
   AddReportComponent(Router router) : super(router);
 
@@ -22,7 +22,7 @@ class AddReportComponent extends MainFrame {
     _shop.choose();
 
     _shop.photoUrl.then((url) {
-      photoUrl = url;
+      report.photo = new Photo.fromMap({'mainview': {'url': url}});
     });
 
     _shop.photo.then((photo) async {
@@ -31,7 +31,6 @@ class AddReportComponent extends MainFrame {
 
       session.photoUrl.then((v) async {
         report.photo = v;
-        photoUrl = await v.mainview.volatileUrl();
       });
 
       final date = await _shop.timestamp;

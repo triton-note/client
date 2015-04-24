@@ -1,8 +1,6 @@
 library photo;
 
-import 'dart:async';
-
-import 'package:triton_note/util/json_support.dart';
+import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/service/s3file.dart';
 
 abstract class Photo implements JsonSupport {
@@ -15,23 +13,32 @@ abstract class Photo implements JsonSupport {
 }
 
 class _PhotoImpl implements Photo {
-  Map _data;
-  _PhotoImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  final Map _data;
+  final CachedProp<Image> _original;
+  final CachedProp<Image> _mainview;
+  final CachedProp<Image> _thumbnail;
 
-  Image get original => (_data['original'] == null) ? null : new Image.fromMap(_data['original']);
-  set original(Image v) => _data['original'] = v.toMap();
+  _PhotoImpl(Map data)
+      : _data = data,
+        _original = new CachedProp<Image>(data, 'original', (map) => new Image.fromMap(map)),
+        _mainview = new CachedProp<Image>(data, 'mainview', (map) => new Image.fromMap(map)),
+        _thumbnail = new CachedProp<Image>(data, 'thumbnail', (map) => new Image.fromMap(map));
 
-  Image get mainview => (_data['mainview'] == null) ? null : new Image.fromMap(_data['mainview']);
-  set mainview(Image v) => _data['mainview'] = v.toMap();
+  Map toMap() => _data;
 
-  Image get thumbnail => (_data['thumbnail'] == null) ? null : new Image.fromMap(_data['thumbnail']);
-  set thumbnail(Image v) => _data['thumbnail'] = v.toMap();
+  Image get original => _original.value;
+  set original(Image v) => _original.value = v;
+
+  Image get mainview => _mainview.value;
+  set mainview(Image v) => _mainview.value = v;
+
+  Image get thumbnail => _thumbnail.value;
+  set thumbnail(Image v) => _thumbnail.value = v;
 }
 
 abstract class Image implements JsonSupport {
   String path;
-  Future<String> volatileUrl();
+  String url;
 
   factory Image.fromJsonString(String text) => new _ImageImpl(JSON.decode(text));
   factory Image.fromMap(Map data) => new _ImageImpl(data);
@@ -41,21 +48,41 @@ class _ImageImpl implements Image {
   static const _urlLimit = const Duration(seconds: S3File.urlExpires / 2);
   DateTime _urlStamp;
   String _url;
+  bool _isRefreshing;
 
-  Map _data;
+  final Map _data;
   _ImageImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  Map toMap() => _data;
 
   String get path => _data['path'];
   set path(String v) => _data['path'] = v;
 
-  Future<String> volatileUrl() async {
-    final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
-    print("Url timestamp difference: ${diff}");
-    if (diff == null || diff > _urlLimit) {
-      _url = await S3File.url(path);
-      _urlStamp = new DateTime.now();
+  String get url {
+    if (path == null) return _data['url'];
+    else {
+      _refreshUrl();
+      return _url;
     }
-    return _url;
+  }
+  set url(String v) {
+    if (path == null) _data['url'] = v;
+    else {
+      _url = v;
+    }
+  }
+
+  void _refreshUrl() {
+    if (!_isRefreshing) {
+      final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
+      if (diff == null || diff.compareTo(_urlLimit) > 0) {
+        print("Refresh url: timestamp difference: ${diff}");
+        _isRefreshing = true;
+        S3File.url(path).then((v) {
+          url = v;
+          _urlStamp = new DateTime.now();
+          _isRefreshing = false;
+        });
+      }
+    }
   }
 }

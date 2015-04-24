@@ -1,7 +1,7 @@
 library distributions;
 
+import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/util/json_support.dart';
 
 abstract class Catch implements JsonSupport {
   String reportId;
@@ -15,9 +15,17 @@ abstract class Catch implements JsonSupport {
 }
 
 class _CatchImpl implements Catch {
-  Map _data;
-  _CatchImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  final Map _data;
+  final CachedProp<DateTime> _date;
+  final CachedProp<GeoInfo> _geoinfo;
+
+  _CatchImpl(Map data)
+      : _data = data,
+        _date = new CachedProp<DateTime>(
+            data, 'geoinfo', (int v) => new DateTime.fromMillisecondsSinceEpoch(v), (v) => v.millisecondsSinceEpoch),
+        _geoinfo = new CachedProp<GeoInfo>(data, 'geoinfo', (map) => new GeoInfo.fromMap(map));
+
+  Map toMap() => _data;
 
   String get reportId => _data['reportId'];
   set reportId(String v) => _data['reportId'] = v;
@@ -28,11 +36,11 @@ class _CatchImpl implements Catch {
   int get count => _data['count'];
   set count(int v) => _data['count'] = v;
 
-  DateTime get date => (_data['date'] == null) ? null : new DateTime.fromMillisecondsSinceEpoch(_data['date']);
-  set date(DateTime v) => _data['date'] = v.millisecondsSinceEpoch;
+  DateTime get date => _date.value;
+  set date(DateTime v) => _date.value = v;
 
-  GeoInfo get geoinfo => (_data['geoinfo'] == null) ? null : new GeoInfo.fromMap(_data['geoinfo']);
-  set geoinfo(GeoInfo v) => _data['geoinfo'] = v.toMap();
+  GeoInfo get geoinfo => _geoinfo.value;
+  set geoinfo(GeoInfo v) => _geoinfo.value = v;
 }
 
 abstract class NameCount implements JsonSupport {
@@ -44,9 +52,9 @@ abstract class NameCount implements JsonSupport {
 }
 
 class _NameCountImpl implements NameCount {
-  Map _data;
+  final Map _data;
   _NameCountImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  Map toMap() => _data;
 
   String get name => _data['name'];
   set name(String v) => _data['name'] = v;

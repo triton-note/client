@@ -2,7 +2,7 @@ library location;
 
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';
-import 'package:triton_note/util/json_support.dart';
+import 'package:triton_note/model/_json_support.dart';
 
 abstract class Location implements JsonSupport {
   String name;
@@ -13,15 +13,20 @@ abstract class Location implements JsonSupport {
 }
 
 class _LocationImpl implements Location {
-  Map _data;
-  _LocationImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  final Map _data;
+  final CachedProp<GeoInfo> _geoinfo;
+
+  _LocationImpl(Map data)
+      : _data = data,
+        _geoinfo = new CachedProp<GeoInfo>(data, 'geoinfo', (map) => new GeoInfo.fromMap(map));
+
+  Map toMap() => _data;
 
   String get name => _data['name'];
   set name(String v) => _data['name'] = v;
 
-  GeoInfo get geoinfo => (_data['geoinfo'] == null) ? null : new GeoInfo.fromMap(_data['geoinfo']);
-  set geoinfo(GeoInfo v) => _data['geoinfo'] = v.toMap();
+  GeoInfo get geoinfo => _geoinfo.value;
+  set geoinfo(GeoInfo v) => _geoinfo.value = v;
 }
 
 abstract class GeoInfo implements JsonSupport {
@@ -33,9 +38,9 @@ abstract class GeoInfo implements JsonSupport {
 }
 
 class _GeoInfoImpl implements GeoInfo {
-  Map _data;
+  final Map _data;
   _GeoInfoImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  Map toMap() => _data;
 
   double get latitude => _data['latitude'];
   set latitude(double v) => _data['latitude'] = v;
@@ -54,18 +59,25 @@ abstract class Condition implements JsonSupport {
 }
 
 class _ConditionImpl implements Condition {
-  Map _data;
-  _ConditionImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  final Map _data;
+  final CachedProp<Tide> _tide;
+  final CachedProp<Weather> _weather;
+
+  _ConditionImpl(Map data)
+      : _data = data,
+        _tide = new CachedProp<Tide>(data, 'tide', (o) => enumByName(Tide.values, o), (v) => nameOfEnum(v)),
+        _weather = new CachedProp<Weather>(data, 'weather', (map) => new Weather.fromMap(map));
+
+  Map toMap() => _data;
 
   int get moon => _data['moon'];
   set moon(int v) => _data['moon'] = v;
 
-  Tide get tide => (_data['tide'] == null) ? null : enumByName(Tide.values, _data['tide']);
-  set tide(Tide v) => _data['tide'] = nameOfEnum(v);
+  Tide get tide => _tide.value;
+  set tide(Tide v) => _tide.value = v;
 
-  Weather get weather => (_data['weather'] == null) ? null : new Weather.fromMap(_data['weather']);
-  set weather(Weather v) => _data['weather'] = v.toMap();
+  Weather get weather => _weather.value;
+  set weather(Weather v) => _weather.value = v;
 }
 
 enum Tide { Flood, High, Ebb, Low }
@@ -80,9 +92,14 @@ abstract class Weather implements JsonSupport {
 }
 
 class _WeatherImpl implements Weather {
-  Map _data;
-  _WeatherImpl(this._data);
-  Map toMap() => new Map.from(_data);
+  final Map _data;
+  final CachedProp<Temperature> _temperature;
+
+  _WeatherImpl(Map data)
+      : _data = data,
+        _temperature = new CachedProp<Temperature>(data, 'temperature', (map) => new Temperature.fromMap(map));
+
+  Map toMap() => _data;
 
   String get nominal => _data['nominal'];
   set nominal(String v) => _data['nominal'] = v;
