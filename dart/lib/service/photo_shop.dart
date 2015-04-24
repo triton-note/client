@@ -120,7 +120,7 @@ class PhotoShop {
           }
         },
         _onChoose.completeError,
-        cameraOptions
+        new JsObject.jsify(cameraOptions)
       ]);
     } catch (ex) {
       _onChoose.completeError(ex);
