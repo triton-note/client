@@ -14,6 +14,7 @@ class AddReportComponent extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
   final PhotoShop _shop = new PhotoShop();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
+  String photoUrl;
 
   AddReportComponent(Router router) : super(router);
 
@@ -21,15 +22,16 @@ class AddReportComponent extends MainFrame {
     _shop.choose();
 
     _shop.photoUrl.then((url) {
-      report.photo = url;
+      photoUrl = url;
     });
 
     _shop.photo.then((photo) async {
       final session = new UploadSession(photo);
       _onSession.complete(session);
 
-      session.photoUrl.then((v) {
+      session.photoUrl.then((v) async {
         report.photo = v;
+        photoUrl = await v.mainview.volatileUrl();
       });
 
       final date = await _shop.timestamp;

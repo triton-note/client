@@ -3,42 +3,31 @@ library s3file;
 import 'dart:async';
 import 'dart:js';
 
-import 'package:triton_note/service/credential.dart' as Cred;
 import 'package:triton_note/settings.dart';
 
 class S3File {
-  static const photoNames = const ["original", "mainview", "thumbnail"];
+  static const urlExpires = 900;
   static final s3 = new JsObject(context['AWS']['S3'], []);
 
-  static Future<Map<String, String>> load(String reportId) async {
-    final bucket = await Settings.s3Bucket;
-    final userId = (await Cred.identity).id;
-    final folder = "${userId}/photo/${reportId}/";
-
-    Future<String> url(String name) {
-      final result = new Completer();
-      try {
-        s3.callMethod('getSignedUrl', [
-          "getObject",
-          new JsObject.jsify({"Bucket": bucket, "Key": "${folder}/${name}"}),
-          (error, String url) {
-            if (error == null) {
-              result.complete(url);
-            } else {
-              result.completeError(error);
-            }
+  static Future<String> url(String path) async {
+    final result = new Completer();
+    try {
+      final bucket = await Settings.s3Bucket;
+      s3.callMethod('getSignedUrl', [
+        "getObject",
+        new JsObject.jsify({"Bucket": bucket, "Key": path, 'Expires': urlExpires}),
+        (error, String url) {
+          if (error == null) {
+            print("S3File.url: ${path} => ${url}");
+            result.complete(url);
+          } else {
+            result.completeError(error);
           }
-        ]);
-      } catch (ex) {
-        result.completeError(ex);
-      }
-      return result.future;
+        }
+      ]);
+    } catch (ex) {
+      result.completeError(ex);
     }
-    
-    final map = {};
-    photoNames.forEach((name) async {
-      map[name] = await url(name);
-    });
-    return map;
+    return result.future;
   }
 }

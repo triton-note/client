@@ -10,7 +10,7 @@ import 'package:triton_note/util/binary_data.dart';
 
 class PhotoShop {
   final Completer<Blob> _onChoose = new Completer();
-  final Completer<Photo> _onGetUrl = new Completer();
+  final Completer<String> _onGetUrl = new Completer();
   final Completer<GeoInfo> _onGetGeoinfo = new Completer();
   final Completer<DateTime> _onGetTimestamp = new Completer();
 
@@ -23,7 +23,7 @@ class PhotoShop {
   };
 
   Future<Blob> get photo => _onChoose.future;
-  Future<Photo> get photoUrl => _onGetUrl.future;
+  Future<String> get photoUrl => _onGetUrl.future;
   Future<GeoInfo> get geoinfo => _onGetGeoinfo.future;
   Future<DateTime> get timestamp => _onGetTimestamp.future;
 
@@ -31,8 +31,7 @@ class PhotoShop {
     try {
       final String url = Url.createObjectUrlFromBlob(await photo);
       print("Url of blob: ${url}");
-      final v = new Photo.fromMap({'original': {'url': url}, 'mainview': {'url': url}});
-      _onGetUrl.complete(v);
+      _onGetUrl.complete(url);
     } catch (ex) {
       _onGetUrl.completeError(ex);
     }
