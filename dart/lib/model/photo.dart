@@ -71,17 +71,21 @@ class _ImageImpl implements Image {
     }
   }
 
-  void _refreshUrl() {
+  _refreshUrl() {
+    _doRefresh() async {
+      _isRefreshing = true;
+      try {
+        url = await S3File.url(path);
+        _urlStamp = new DateTime.now();
+      } finally {
+        _isRefreshing = false;
+      }
+    }
     if (!_isRefreshing) {
       final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
       if (diff == null || diff.compareTo(_urlLimit) > 0) {
         print("Refresh url: timestamp difference: ${diff}");
-        _isRefreshing = true;
-        S3File.url(path).then((v) {
-          url = v;
-          _urlStamp = new DateTime.now();
-          _isRefreshing = false;
-        });
+        _doRefresh();
       }
     }
   }
