@@ -6,28 +6,44 @@
     	
       		<span flex>New Report</span>
       		
-			<paper-icon-button icon="add" ng-click="choosePhoto()"></paper-icon-button>
-			<paper-icon-button icon="done" ng-click="submit()"></paper-icon-button>
+    		<div ng-if="isSubmitable">
+    			<paper-fab mini icon="done" class="green" ng-click="submit()"></paper-fab>
+			</div>
     	
     	</core-toolbar>
     	
     	<div style="margin: 10px">
-		    <div>
-		    	<p>{{ report.photo.mainview.url }}</p>
-		        <img ng-src="{{ report.photo.mainview.url }}" width="200" />
-		    </div>
-		    <div>
-		    	<div>
-		    		<p>{{report.location.name}}</p>
-		    	</div>
-		    	<div>
-		    		<p>latitude: {{report.location.geoinfo.latitude}}</p>
-		    		<p>longitude: {{report.location.geoinfo.longitude}}</p>
-		    	</div>
-		    	<div>
-			        <p>{{report.dateAt}}</p>
-		        </div>
-		    </div>
+    		<div ng-if="!isReady">
+    			<div style="margin-top: 30%; margin-left: auto; margin-right: auto; width: 100px">
+					<paper-button raised ng-click="choosePhoto(true)" style="background: green">TAKE</paper-button>
+    			</div>
+    			<div style="margin-top: 30%; margin-left: auto; margin-right: auto; width: 100px">
+					<paper-button raised ng-click="choosePhoto(false)" style="background: orange">CHOOSE</paper-button>
+				</div>
+    		</div>
+    		<div ng-if="isReady">
+			    <div>
+			    	<p>{{ report.photo.mainview.url }}</p>
+			        <img ng-src="{{ report.photo.mainview.url }}" width="200" />
+			    </div>
+			    <div>
+			    	<div style="border: solid #cccccc">
+						<paper-autogrow-textarea>
+							<textarea ng-model="report.comment"></textarea>
+						</paper-autogrow-textarea>
+					</div>
+			    	<div>
+			    		<p>{{report.location.name}}</p>
+			    	</div>
+			    	<div>
+			    		<p>latitude: {{report.location.geoinfo.latitude}}</p>
+			    		<p>longitude: {{report.location.geoinfo.longitude}}</p>
+			    	</div>
+			    	<div>
+				        <p>{{report.dateAt}}</p>
+			        </div>
+			    </div>
+    		</div>
     	</div>
     </core-header-panel>
 </core-drawer-panel>

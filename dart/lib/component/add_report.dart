@@ -13,13 +13,20 @@ import 'package:triton_note/util/main_frame.dart';
 @Component(selector: 'add-report', templateUrl: 'packages/triton_note/component/add_report.html')
 class AddReportComponent extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
-  final PhotoShop _shop = new PhotoShop();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
+  PhotoShop _shop;
+  bool get isReady => _shop != null;
+  bool get isSubmitable => report.photo != null && report.photo.mainview.path != null;
 
   AddReportComponent(Router router) : super(router);
 
-  choosePhoto() {
-    _shop.choose();
+  choosePhoto(bool take) {
+    new Future.delayed(new Duration(milliseconds: 800), () {
+      _choosePhoto(take);
+    });
+  }
+  _choosePhoto(bool take) {
+    _shop = new PhotoShop(take);
 
     _shop.photoUrl.then((url) {
       report.photo = new Photo.fromMap({'mainview': {'url': url}});

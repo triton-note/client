@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js';
 
-import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/binary_data.dart';
 
@@ -14,13 +13,17 @@ class PhotoShop {
   final Completer<GeoInfo> _onGetGeoinfo = new Completer();
   final Completer<DateTime> _onGetTimestamp = new Completer();
 
-  final cameraOptions = {
-    'mediaType': context['navigator']['camera']['MediaType']['PICTURE'],
-    'encodingType': context['Camera']['EncodingType']['JPEG'],
-    'sourceType': context['Camera']['PictureSourceType']['PHOTOLIBRARY'],
-    'destinationType': context['Camera']['DestinationType']['FILE_URI'],
-    'correctOrientation': true
-  };
+  PhotoShop(bool take) {
+    _photo({
+      'correctOrientation': true,
+      'mediaType': context['navigator']['camera']['MediaType']['PICTURE'],
+      'encodingType': context['Camera']['EncodingType']['JPEG'],
+      'destinationType': context['Camera']['DestinationType']['FILE_URI'],
+      'sourceType': take
+          ? context['Camera']['PictureSourceType']['CAMERA']
+          : context['Camera']['PictureSourceType']['PHOTOLIBRARY']
+    });
+  }
 
   Future<Blob> get photo => _onChoose.future;
   Future<String> get photoUrl => _onGetUrl.future;
@@ -74,10 +77,10 @@ class PhotoShop {
     }
   }
 
-  Future<Blob> choose() {
+  Future<Blob> _photo(options) {
     _makeUrl();
     try {
-      print("Choosing photo: ${cameraOptions}");
+      print("Choosing photo: ${options}");
       context['navigator']['camera'].callMethod('getPicture', [
         (String uri) {
           try {
@@ -119,7 +122,7 @@ class PhotoShop {
           }
         },
         _onChoose.completeError,
-        new JsObject.jsify(cameraOptions)
+        new JsObject.jsify(options)
       ]);
     } catch (ex) {
       _onChoose.completeError(ex);
