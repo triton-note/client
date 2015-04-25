@@ -1,9 +1,9 @@
 library server;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:html';
 
+import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/model/distributions.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/photo.dart';
@@ -34,7 +34,7 @@ class Server {
 
   static Future json(String path, content, [int retry = 3]) async {
     try {
-      final text = await post("${await Settings.serverUrl}/${path}", JSON.encode(content));
+      final text = await post("${await Settings.serverUrl}/${path}", encodeToJson(content));
       try {
         return JSON.decode(text);
       } catch (ex) {
@@ -88,7 +88,7 @@ class Server {
   }
 
   static Future<SessionInference> infer(String session, GeoInfo geoinfo, DateTime date) async {
-    final Map map = await _withSession("report/infer", session, {'geoinfo': geoinfo.toMap(), 'date': date.millisecondsSinceEpoch});
+    final Map map = await _withSession("report/infer", session, {'geoinfo': geoinfo, 'date': date.millisecondsSinceEpoch});
     final list = map['fishes'].map((v) => new Fishes.fromMap(v)).toList();
     return new SessionInference(map['spotName'], list);
   }
@@ -137,7 +137,7 @@ class Server {
   }
 
   static Future<Null> updateMeasures(Measures measures) async {
-    await _withTicket("account/measures/update", measures.toMap());
+    await _withTicket("account/measures/update", {'measures': measures});
     return null;
   }
 

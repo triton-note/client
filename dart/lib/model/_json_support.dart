@@ -1,5 +1,6 @@
 library json_support;
 
+import 'dart:convert';
 export 'dart:convert';
 
 abstract class JsonSupport {
@@ -21,4 +22,24 @@ class CachedProp<T> {
 
   T get value => (_cache != null) ? _cache : (_data[_name] == null) ? null : _cache = _decode(_data[_name]);
   set value(T v) => _data[_name] = _encode(_cache = v);
+}
+
+String encodeToJson(obj) {
+  serialize(content) {
+    if (content is JsonSupport) {
+      return content.toMap();
+    }
+    if (content is Map) {
+      final map = {};
+      content.forEach((key, value) {
+        map[key] = serialize(value);
+      });
+      return map;
+    }
+    if (content is List) {
+      return content.map(serialize).toList();
+    }
+    return content;
+  }
+  return JSON.encode(serialize(obj));
 }
