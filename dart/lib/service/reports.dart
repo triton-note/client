@@ -9,7 +9,7 @@ class Reports {
   static const pageSize = 30;
 
   static List<Report> _allList;
-  static Future<List<Report>> get allList => (_allList != null) ? _allList : refresh();
+  static Future<List<Report>> get allList async => (_allList != null) ? (_allList) : refresh();
 
   static bool _hasMore = true;
   static bool get hasMore => _hasMore;
@@ -31,7 +31,7 @@ class Reports {
 
   static Future<Report> get(String id) => Server.read(id);
   static Future<Null> remove(String id) => Server.remove(id);
-  
+
   /**
    * Expected to be called by UploadSession.submit
    */
