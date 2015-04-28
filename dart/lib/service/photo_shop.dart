@@ -6,6 +6,8 @@ import 'dart:js';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/binary_data.dart';
+import 'package:triton_note/util/cordova.dart';
+import 'package:triton_note/util/dialog.dart' as Dialog;
 
 class PhotoShop {
   final Completer<Blob> _onChoose = new Completer();
@@ -14,15 +16,8 @@ class PhotoShop {
   final Completer<DateTime> _onGetTimestamp = new Completer();
 
   PhotoShop(bool take) {
-    _photo({
-      'correctOrientation': true,
-      'mediaType': context['navigator']['camera']['MediaType']['PICTURE'],
-      'encodingType': context['Camera']['EncodingType']['JPEG'],
-      'destinationType': context['Camera']['DestinationType']['FILE_URI'],
-      'sourceType': take
-          ? context['Camera']['PictureSourceType']['CAMERA']
-          : context['Camera']['PictureSourceType']['PHOTOLIBRARY']
-    });
+    _makeUrl();
+    _photo(take);
   }
 
   Future<Blob> get photo => _onChoose.future;
@@ -77,8 +72,7 @@ class PhotoShop {
     }
   }
 
-  Future<Blob> _photo(options) {
-    _makeUrl();
+  _photoDevice(options) {
     try {
       print("Choosing photo: ${options}");
       context['navigator']['camera'].callMethod('getPicture', [
@@ -128,5 +122,27 @@ class PhotoShop {
       _onChoose.completeError(ex);
     }
     return photo;
+  }
+
+  _photo(bool take) async {
+    if (isCordova) {
+      _photoDevice({
+        'correctOrientation': true,
+        'mediaType': context['navigator']['camera']['MediaType']['PICTURE'],
+        'encodingType': context['Camera']['EncodingType']['JPEG'],
+        'destinationType': context['Camera']['DestinationType']['FILE_URI'],
+        'sourceType': take
+            ? context['Camera']['PictureSourceType']['CAMERA']
+            : context['Camera']['PictureSourceType']['PHOTOLIBRARY']
+      });
+    } else {
+      final file = await Dialog.chooseFile();
+      _onChoose.complete(file);
+      final reader = new FileReader();
+      reader.onLoad.listen((event) {
+        _readExif(reader.result);
+      });
+      reader.readAsArrayBuffer(file);
+    }
   }
 }
