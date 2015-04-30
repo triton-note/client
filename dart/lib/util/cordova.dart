@@ -4,23 +4,19 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js';
 
-final bool isCordova = window.location.protocol == "file:";
+final bool isCordova = context['device'] != null;
 
-final Completer<String> _onDeviceReady = new Completer<String>();
-bool get isDeviceReady => _onDeviceReady.isCompleted;
+Completer<String> _onDeviceReady;
 
-bool _initialized = false;
-void _initialize() {
-  if (isCordova) {
-    document.on['deviceready'].listen((event) {
-      _onDeviceReady.complete("cordova");
-    });
-  } else _onDeviceReady.complete("browser");
-  _initialized = true;
-}
-
-void onDeviceReady(void proc(String)) {
-  if (!_initialized) _initialize();
+void onDeviceReady(proc(String)) {
+  if (_onDeviceReady == null) {
+    _onDeviceReady = new Completer<String>();
+    if (isCordova) {
+      document.on['deviceready'].listen((event) {
+        _onDeviceReady.complete("cordova");
+      });
+    } else _onDeviceReady.complete("browser");
+  }
   _onDeviceReady.future.then(proc);
 }
 
