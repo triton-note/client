@@ -42,10 +42,10 @@ class _GeoInfoImpl implements GeoInfo {
   _GeoInfoImpl(this._data);
   Map toMap() => _data;
 
-  double get latitude => _data['latitude'];
+  double get latitude => _data['latitude'].toDouble();
   set latitude(double v) => _data['latitude'] = v;
 
-  double get longitude => _data['longitude'];
+  double get longitude => _data['longitude'].toDouble();
   set longitude(double v) => _data['longitude'] = v;
 }
 
