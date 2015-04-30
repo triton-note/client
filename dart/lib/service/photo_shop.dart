@@ -44,10 +44,12 @@ class PhotoShop {
       final exif = new JsObject(context['ExifReader'], []);
       exif.callMethod('loadView', [data]);
 
+      get(String name) => exif.callMethod('getTagDescription', [name]);
+
       try {
-        String text = exif.callMethod('getTagDescription', ['DateTimeOriginal']);
-        if (text == null) text = exif.callMethod('getTagDescription', ['DateTimeDigitized']);
-        if (text == null) text = exif.callMethod('getTagDescription', ['DateTime']);
+        String text = get('DateTimeOriginal');
+        if (text == null) text = get('DateTimeDigitized');
+        if (text == null) text = get('DateTime');
         final a = text.split(' ').expand((e) => e.split(':')).map(int.parse).toList();
         print("Exif: Timestamp: ${a}");
         final date = new DateTime(a[0], a[1], a[2], a[3], a[4], a[5]);
@@ -57,11 +59,14 @@ class PhotoShop {
         _onGetTimestamp.completeError(ex);
       }
       try {
-        final double lat = exif.callMethod('getTagDescription', ['GPSLatitude']);
-        final double lon = exif.callMethod('getTagDescription', ['GPSLongitude']);
-        print("Exif: GPS: ${lat}, ${lon}");
-        final info = (lat != null && lon != null) ? new GeoInfo.fromMap({'latitude': lat, 'longitude': lon}) : null;
-        _onGetGeoinfo.complete(info);
+        final double lat = get('GPSLatitude');
+        final double lon = get('GPSLongitude');
+        print("Exif: GPS: latitude=${lat}, longitude=${lon}");
+        if (lat != null && lon != null) {
+          _onGetGeoinfo.complete(new GeoInfo.fromMap({'latitude': lat, 'longitude': lon}));
+        } else {
+          _onGetGeoinfo.completeError("Exif: GPS: Error: null value");
+        }
       } catch (ex) {
         print("Exif: GPS: Error: ${ex}");
         _onGetGeoinfo.completeError(ex);
