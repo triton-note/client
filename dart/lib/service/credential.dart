@@ -45,6 +45,8 @@ class _Cognito {
       print("Initialize error: ${ex}");
       creds['params']['IdentityId'] = null;
       return _refresh();
+    } finally {
+      hideSplashScreen();
     }
   }
 

@@ -2,6 +2,7 @@ library cordova;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:js';
 
 final bool isCordova = window.location.protocol == "file:";
 
@@ -21,4 +22,12 @@ void _initialize() {
 void onDeviceReady(void proc(String)) {
   if (!_initialized) _initialize();
   _onDeviceReady.future.then(proc);
+}
+
+void hideSplashScreen() {
+  final splash = context['navigator']['splashscreen'];
+  if (splash != null) {
+    print("Hide SplashScreen.");
+    splash.callMethod('hide', []);
+  }
 }

@@ -17,4 +17,5 @@
   <preference name="BackupWebStorage" value="none"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
   <preference name="iosPersistentFileLocation" value="Library"/>
+  <preference name="SplashScreenDelay" value="30000"/>
 </widget>
