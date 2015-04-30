@@ -21,11 +21,13 @@ class S3File {
             print("S3File.url: ${path} => ${url}");
             result.complete(url);
           } else {
+            print("Failed to getSignedUrl: ${error}");
             result.completeError(error);
           }
         }
       ]);
     } catch (ex) {
+      print("Failed to call getObject of s3file: ${ex}");
       result.completeError(ex);
     }
     return result.future;

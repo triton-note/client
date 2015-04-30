@@ -40,7 +40,7 @@ class UploadSession {
   }
 
   Future<SessionToken> get session => _onSession.future;
-  Future<Photo> get photoUrl => _onUploaded.future;
+  Future<Photo> get photo => _onUploaded.future;
 
   _upload(Blob photoData) async {
     try {
@@ -49,6 +49,7 @@ class UploadSession {
       final photo = await Server.photo(st.token, name);
       _onUploaded.complete(photo);
     } catch (ex) {
+      print("Failed to upload file: ${ex}");
       _onUploaded.completeError(ex);
     }
   }
@@ -56,10 +57,14 @@ class UploadSession {
   Future<SessionInference> infer(GeoInfo geoinfo, DateTime date) async {
     if (_onInferred == null) {
       _onInferred = new Completer<SessionInference>();
-      await _onUploaded.future;
-      Server.infer((await session).token, geoinfo, date)
-        ..then(_onInferred.complete)
-        ..catchError(_onInferred.completeError);
+      try {
+        await _onUploaded.future;
+        final inf = await Server.infer((await session).token, geoinfo, date);
+        _onInferred.complete(inf);
+      } catch (ex) {
+        print("Failed to infer: ${ex}");
+        _onInferred.completeError(ex);
+      }
     }
     return _onInferred.future;
   }

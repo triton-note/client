@@ -31,6 +31,7 @@ class PhotoShop {
       print("Url of blob: ${url}");
       _onGetUrl.complete(url);
     } catch (ex) {
+      print("Failed to create url: ${ex}");
       _onGetUrl.completeError(ex);
     }
   }
@@ -53,7 +54,7 @@ class PhotoShop {
         _onGetTimestamp.complete(date);
       } catch (ex) {
         print("Exif: Timestamp: Error: ${ex}");
-        _onGetTimestamp.complete(null);
+        _onGetTimestamp.completeError(ex);
       }
       try {
         final double lat = exif.callMethod('getTagDescription', ['GPSLatitude']);
@@ -63,12 +64,12 @@ class PhotoShop {
         _onGetGeoinfo.complete(info);
       } catch (ex) {
         print("Exif: GPS: Error: ${ex}");
-        _onGetGeoinfo.complete(null);
+        _onGetGeoinfo.completeError(ex);
       }
     } catch (ex) {
       print("Exif: Error: ${ex}");
-      _onGetTimestamp.complete(null);
-      _onGetGeoinfo.complete(null);
+      _onGetTimestamp.completeError(ex);
+      _onGetGeoinfo.completeError(ex);
     }
   }
 
@@ -97,28 +98,36 @@ class PhotoShop {
                             _readExif(array);
                           });
                         } catch (ex) {
+                          print("Failed to load file: ${ex}");
                           _onChoose.completeError(ex);
                         }
                       };
                       reader['onerror'] = (event) {
+                        print("Error on loading file");
                         _onChoose.completeError(reader['error']);
                       };
                       reader.callMethod('readAsArrayBuffer', [file]);
                     }
                   ]);
                 } catch (ex) {
+                  print("Failed to extract file: ${ex}");
                   _onChoose.completeError(ex);
                 }
               }
             ]);
           } catch (ex) {
+            print("Failed to resolving file url: ${ex}");
             _onChoose.completeError(ex);
           }
         },
-        _onChoose.completeError,
+        (error) {
+          print("Failed to getPicture: ${error}");
+          _onChoose.completeError(error);
+        },
         new JsObject.jsify(options)
       ]);
     } catch (ex) {
+      print("Failed to choosing picture: ${ex}");
       _onChoose.completeError(ex);
     }
     return photo;

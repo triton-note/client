@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:angular/angular.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
+import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/upload_session.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
@@ -21,7 +22,7 @@ class AddReportComponent extends MainFrame {
   AddReportComponent(Router router) : super(router);
 
   choosePhoto(bool take) {
-    new Future.delayed(new Duration(milliseconds: 800), () {
+    new Future.delayed(new Duration(milliseconds: 500), () {
       _choosePhoto(take);
     });
   }
@@ -36,33 +37,42 @@ class AddReportComponent extends MainFrame {
       final session = new UploadSession(photo);
       _onSession.complete(session);
 
-      session.photoUrl.then((v) async {
+      session.photo.then((v) async {
         report.photo = v;
       });
 
-      final date = await _shop.timestamp;
-      if (date != null) {
-        report.dateAt = date;
-      } else {
-        print("No Timestamp in Exif. Get current time");
+      try {
+        report.dateAt = await _shop.timestamp;
+      } catch (ex) {
+        print("No Timestamp in Exif: ${ex}");
         report.dateAt = new DateTime.now();
       }
 
-      final info = await _shop.geoinfo;
-      if (info != null) {
-        report.location.geoinfo = info;
-      } else {
-        print("No GeoInfo in Exif. Get current location");
-        report.location.geoinfo = await Geo.location();
+      try {
+        report.location.geoinfo = await _shop.geoinfo;
+      } catch (ex) {
+        print("No GeoInfo in Exif: ${ex}");
+        try {
+          report.location.geoinfo = await Geo.location();
+        } catch (ex) {
+          print("Failed to get current location: ${ex}");
+          report.location.geoinfo = new GeoInfo.fromMap({'latitude': 0, 'longitude': 0});
+        }
       }
 
-      final inference = await session.infer(report.location.geoinfo, report.dateAt);
-      if (inference != null) {
-        if (inference.spotName != null) report.location.name = inference.spotName;
-        if (inference.fishes != null && inference.fishes.length > 0) {
-          if (report.fishes == null) report.fishes = inference.fishes;
-          else report.fishes.addAll(inference.fishes);
+      try {
+        final inference = await session.infer(report.location.geoinfo, report.dateAt);
+        if (inference != null) {
+          if (inference.spotName != null && inference.spotName.length > 0) {
+            report.location.name = inference.spotName;
+          }
+          if (inference.fishes != null && inference.fishes.length > 0) {
+            if (report.fishes == null) report.fishes = inference.fishes;
+            else report.fishes.addAll(inference.fishes);
+          }
         }
+      } catch (ex) {
+        print("Failed to infer: ${ex}");
       }
     });
   }

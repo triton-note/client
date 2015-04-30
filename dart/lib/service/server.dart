@@ -22,9 +22,11 @@ class Server {
       if (req.status == 200) {
         result.complete(req.responseText);
       } else {
+        print("Failed to post: status=${req.status}");
         result.completeError(new ServerError.fromRequest(req));
       }
     } catch (ex) {
+      print("Failed to post: ${ex}");
       if (ex is ProgressEvent && ex.target is HttpRequest && ex.target.status != 0) {
         result.completeError(new ServerError.fromRequest(ex.target));
       } else result.completeError("Failed to post to ${url}");

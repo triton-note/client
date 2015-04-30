@@ -128,6 +128,7 @@ class _GoogleSignIn {
         result.complete(res['result']);
       },
       (error) {
+        print("GAPI error: ${error}");
         result.completeError(error.result.error.message);
       }
     ]);
@@ -147,12 +148,14 @@ class _GoogleSignIn {
       new JsObject.jsify({'client_id': googleClientId, 'scope': scopes.join(' '), 'response_type': 'token id_token', 'immediate': immediate}),
       (res) {
         if (res['error'] != null) {
+          print("Google Signin Error");
           result.completeError("Google Signin Error: ${res['error']}");
         } else {
           result.complete(res['id_token']);
         }
       },
       (error) {
+        print("Google Signin Error: ${error}");
         result.completeError(error.result.error.message);
       }
     ]);
