@@ -45,10 +45,10 @@ abstract class Image implements JsonSupport {
 }
 
 class _ImageImpl implements Image {
-  static const _urlLimit = const Duration(seconds: S3File.urlExpires / 2);
+  static final _urlLimit = new Duration(seconds: (S3File.urlExpires * 0.9).round());
   DateTime _urlStamp;
   String _url;
-  bool _isRefreshing;
+  bool _isRefreshing = false;
 
   final Map _data;
   _ImageImpl(this._data);
@@ -77,6 +77,8 @@ class _ImageImpl implements Image {
       try {
         url = await S3File.url(path);
         _urlStamp = new DateTime.now();
+      } catch (ex) {
+        print("Failed to get url of s3file: ${ex}");
       } finally {
         _isRefreshing = false;
       }
