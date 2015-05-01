@@ -4,7 +4,7 @@ environment:
 dependencies:
   angular: any
   paper_elements: any
-  polymer: 0.15.5+4
+  polymer: any
 dev_dependencies:
   crypto: any
   mock: any

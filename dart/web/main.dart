@@ -25,14 +25,17 @@ class AppModule extends Module {
 }
 
 void main() {
-  Logger.root..level = Level.FINEST
-             ..onRecord.listen((LogRecord r) { print(r.message); });
+  Logger.root
+    ..level = Level.FINEST
+    ..onRecord.listen((LogRecord r) {
+      print(r.message);
+    });
 
   onDeviceReady((event) {
-    initPolymer().run(() {
-      applicationFactory()
-        .addModule(new AppModule())
-        .run();
+    initPolymer().then((zone) {
+      zone.run(() {
+        applicationFactory().addModule(new AppModule()).run();
+      });
     });
   });
 }
