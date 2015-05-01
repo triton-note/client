@@ -22,7 +22,7 @@ class AddReportComponent extends MainFrame {
   AddReportComponent(Router router) : super(router);
 
   choosePhoto(bool take) {
-    new Future.delayed(new Duration(milliseconds: 500), () {
+    new Future.delayed(new Duration(milliseconds: 300), () {
       _choosePhoto(take);
     });
   }
