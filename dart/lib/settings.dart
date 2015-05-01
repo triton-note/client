@@ -1,7 +1,9 @@
 library settings;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:html';
+
 import 'package:yaml/yaml.dart';
 
 class Settings {
@@ -10,7 +12,7 @@ class Settings {
   /**
    * This method will be invoked automatically.
    * But you can invoke manually to setup your own map of test.
-   * 
+   *
    * @param onFail works only on failed to get settings
    */
   static Future<Map<String, String>> initialize([Map<String, String> onFail = null]) async {
@@ -18,7 +20,7 @@ class Settings {
       final text = await HttpRequest.getString("settings.yaml");
       _map = loadYaml(text);
     } catch (ex) {
-      _map = (onFail != null) ? onFail : const {};
+      _map = (onFail != null) ? new UnmodifiableMapView(onFail) : const {};
     }
     return _map;
   }
