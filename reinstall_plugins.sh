@@ -6,12 +6,13 @@ cordova platform add android
 [ -n "$(uname | grep 'Darwin')" ] && cordova platform add ios
 
 # Default plugins
-cordova plugin add org.apache.cordova.device
-cordova plugin add org.apache.cordova.console
-cordova plugin add org.apache.cordova.camera
-cordova plugin add org.apache.cordova.splashscreen
-cordova plugin add org.apache.cordova.statusbar
-cordova plugin add org.apache.cordova.geolocation
+cordova plugin add cordova-plugin-device
+cordova plugin add cordova-plugin-console
+cordova plugin add cordova-plugin-camera
+cordova plugin add cordova-plugin-splashscreen
+cordova plugin add cordova-plugin-statusbar
+cordova plugin add cordova-plugin-geolocation
+cordova plugin add cordova-plugin-whitelist
 
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
