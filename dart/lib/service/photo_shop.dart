@@ -105,13 +105,7 @@ class PhotoShop {
         context['plugin']['photo'].callMethod(take ? 'take' : 'select', [
           (blob) {
             print("Get photo: ${blob}");
-            if (_onChoose.isCompleted) {
-              _onChoose.future.then((v) {
-                print("Photo is already completed: ${v}");
-              }).catchError((error) {
-                print("Photo is already completed: ${error}");
-              });
-            } else _onChoose.complete(blob);
+            _onChoose.complete(blob);
           },
           (error) {
             print("Failed to get photo: ${error}");
