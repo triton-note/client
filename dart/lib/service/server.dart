@@ -35,8 +35,10 @@ class Server {
   }
 
   static Future json(String path, content, [int retry = 3]) async {
+    final url = "${await Settings.serverUrl}/${path}";
+    final data = encodeToJson(content);
     try {
-      final text = await post("${await Settings.serverUrl}/${path}", encodeToJson(content));
+      final text = await post(url, data);
       try {
         return JSON.decode(text);
       } catch (ex) {
