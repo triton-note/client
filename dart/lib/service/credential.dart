@@ -25,7 +25,7 @@ class Identity {
   final String id;
   final Map<String, String> logins;
 
-  Identity(this.id, Map<String, String> map): logins = new UnmodifiableMapView(map);
+  Identity(this.id, this.logins);
 }
 
 class _Cognito {
@@ -52,12 +52,12 @@ class _Cognito {
 
   static String get identityId => context['AWS']['config']['credentials']['identityId'];
   static Map<String, String> get logins {
-    final obj = context['AWS']['config']['credentials']['params']['Logins'];
-    final map = {};
-    if (obj != null) ["graph.facebook.com", "accounts.google.com", "www.amazon.com"].forEach((key) {
-      if (obj[key] != null) map[key] = obj[key];
+    final result = {};
+    final map = context['AWS']['config']['credentials']['params']['Logins'];
+    if (map is Map) map.forEach((key, value) {
+      result[key] = value;
     });
-    return map;
+    return new UnmodifiableMapView(result);
   }
 
   static Future<bool> _setToken(String service, String token) async {
