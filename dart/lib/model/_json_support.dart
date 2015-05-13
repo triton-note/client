@@ -41,5 +41,5 @@ String encodeToJson(obj) {
     }
     return content;
   }
-  return JSON.encode(serialize(obj));
+  return (obj == null) ? null : JSON.encode(serialize(obj));
 }

@@ -34,6 +34,12 @@ main() {
     expect(count, 1);
   });
 
+  test('serialize null', () {
+    final obj = null;
+    final ser = encodeToJson(obj);
+    expect(ser, null);
+  });
+
   test('serialize list', () {
     final obj = ['a', 'b', 'c', new Weight.kg(12.34)];
     final ser = encodeToJson(obj);
@@ -44,6 +50,12 @@ main() {
     final obj = {'a': 1, 'weight': new Weight.kg(12.34)};
     final ser = encodeToJson(obj);
     expect(ser, JSON.encode({'a': 1, 'weight': {'unit': 'kg', 'value': 12.34}}));
+  });
+
+  test('serialize map including null', () {
+    final obj = {'a': 1, 'weight': null};
+    final ser = encodeToJson(obj);
+    expect(ser, JSON.encode({'a': 1, 'weight': null}));
   });
 
   test('serialize list in map', () {
