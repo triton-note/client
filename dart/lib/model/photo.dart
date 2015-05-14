@@ -5,8 +5,7 @@ import 'package:triton_note/service/s3file.dart';
 
 abstract class Photo implements JsonSupport {
   Image original;
-  Image mainview;
-  Image thumbnail;
+  ReducedImages reduced;
 
   factory Photo.fromJsonString(String text) => new _PhotoImpl(JSON.decode(text));
   factory Photo.fromMap(Map data) => new _PhotoImpl(data);
@@ -15,19 +14,41 @@ abstract class Photo implements JsonSupport {
 class _PhotoImpl implements Photo {
   final Map _data;
   final CachedProp<Image> _original;
-  final CachedProp<Image> _mainview;
-  final CachedProp<Image> _thumbnail;
+  final CachedProp<ReducedImages> _reduced;
 
   _PhotoImpl(Map data)
       : _data = data,
         _original = new CachedProp<Image>(data, 'original', (map) => new Image.fromMap(map)),
-        _mainview = new CachedProp<Image>(data, 'mainview', (map) => new Image.fromMap(map)),
-        _thumbnail = new CachedProp<Image>(data, 'thumbnail', (map) => new Image.fromMap(map));
+        _reduced = new CachedProp<ReducedImages>(data, 'reduced', (map) => new ReducedImages.fromMap(map));
 
   Map toMap() => _data;
 
   Image get original => _original.value;
   set original(Image v) => _original.value = v;
+
+  ReducedImages get reduced => _reduced.value;
+  set reduced(ReducedImages v) => _reduced.value = v;
+}
+
+abstract class ReducedImages implements JsonSupport {
+  Image mainview;
+  Image thumbnail;
+
+  factory ReducedImages.fromJsonString(String text) => new _ReducedImagesImpl(JSON.decode(text));
+  factory ReducedImages.fromMap(Map data) => new _ReducedImagesImpl(data);
+}
+
+class _ReducedImagesImpl implements ReducedImages {
+  final Map _data;
+  final CachedProp<Image> _mainview;
+  final CachedProp<Image> _thumbnail;
+
+  _ReducedImagesImpl(Map data)
+      : _data = data,
+        _mainview = new CachedProp<Image>(data, 'mainview', (map) => new Image.fromMap(map)),
+        _thumbnail = new CachedProp<Image>(data, 'thumbnail', (map) => new Image.fromMap(map));
+
+  Map toMap() => _data;
 
   Image get mainview => _mainview.value;
   set mainview(Image v) => _mainview.value = v;

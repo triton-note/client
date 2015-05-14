@@ -17,7 +17,8 @@ class AddReportComponent extends MainFrame {
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
   PhotoShop _shop;
   bool get isReady => _shop != null;
-  bool get isSubmitable => report.photo != null && report.photo.mainview.path != null;
+  bool get isSubmitable =>
+      report.photo != null && report.photo.reduced != null && report.photo.reduced.mainview.path != null;
 
   AddReportComponent(Router router) : super(router);
 
@@ -30,7 +31,7 @@ class AddReportComponent extends MainFrame {
     _shop = new PhotoShop(take);
 
     _shop.photoUrl.then((url) {
-      report.photo = new Photo.fromMap({'mainview': {'url': url}});
+      report.photo = new Photo.fromMap({'reduced': {'mainview': {'url': url}}});
     });
 
     _shop.photo.then((photo) async {
