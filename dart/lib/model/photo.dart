@@ -7,11 +7,10 @@ abstract class Photo implements JsonSupport {
   Image original;
   ReducedImages reduced;
 
-  factory Photo.fromJsonString(String text) => new _PhotoImpl(JSON.decode(text));
   factory Photo.fromMap(Map data) => new _PhotoImpl(data);
 }
 
-class _PhotoImpl implements Photo {
+class _PhotoImpl extends JsonSupport implements Photo {
   final Map _data;
   final CachedProp<Image> _original;
   final CachedProp<ReducedImages> _reduced;
@@ -21,7 +20,7 @@ class _PhotoImpl implements Photo {
         _original = new CachedProp<Image>(data, 'original', (map) => new Image.fromMap(map)),
         _reduced = new CachedProp<ReducedImages>(data, 'reduced', (map) => new ReducedImages.fromMap(map));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   Image get original => _original.value;
   set original(Image v) => _original.value = v;
@@ -34,11 +33,10 @@ abstract class ReducedImages implements JsonSupport {
   Image mainview;
   Image thumbnail;
 
-  factory ReducedImages.fromJsonString(String text) => new _ReducedImagesImpl(JSON.decode(text));
   factory ReducedImages.fromMap(Map data) => new _ReducedImagesImpl(data);
 }
 
-class _ReducedImagesImpl implements ReducedImages {
+class _ReducedImagesImpl extends JsonSupport implements ReducedImages {
   final Map _data;
   final CachedProp<Image> _mainview;
   final CachedProp<Image> _thumbnail;
@@ -48,7 +46,7 @@ class _ReducedImagesImpl implements ReducedImages {
         _mainview = new CachedProp<Image>(data, 'mainview', (map) => new Image.fromMap(map)),
         _thumbnail = new CachedProp<Image>(data, 'thumbnail', (map) => new Image.fromMap(map));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   Image get mainview => _mainview.value;
   set mainview(Image v) => _mainview.value = v;
@@ -61,11 +59,10 @@ abstract class Image implements JsonSupport {
   String path;
   String url;
 
-  factory Image.fromJsonString(String text) => new _ImageImpl(JSON.decode(text));
   factory Image.fromMap(Map data) => new _ImageImpl(data);
 }
 
-class _ImageImpl implements Image {
+class _ImageImpl extends JsonSupport implements Image {
   static final _urlLimit = new Duration(seconds: (S3File.urlExpires * 0.9).round());
   DateTime _urlStamp;
   String _url;
@@ -73,7 +70,7 @@ class _ImageImpl implements Image {
 
   final Map _data;
   _ImageImpl(this._data);
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   String get path => _data['path'];
   set path(String v) => _data['path'] = v;

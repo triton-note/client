@@ -22,20 +22,21 @@
 				</div>
     		</div>
     		<div ng-if="isReady">
-			    <div>
-			    	<p>{{ report.photo.reduced.mainview.url }}</p>
-			        <img ng-src="{{ report.photo.reduced.mainview.url }}" width="200" />
-			    </div>
-			    <div>
-			    	<div style="border: solid #cccccc">
+		    	<div>
+		    		<paper-input-decorator label="Write something to note">
 						<paper-autogrow-textarea>
 							<textarea ng-model="report.comment"></textarea>
 						</paper-autogrow-textarea>
-					</div>
+					</paper-input-decorator>
+				</div>
+			    <div>
+			        <img ng-src="{{ report.photo.reduced.mainview.url }}" width="200" />
+			    </div>
+			    <div>
 			    	<div>
-			    		<p>{{report.location.name}}</p>
+			    		<paper-input label="Spot Name" floatingLabel listen-change-value="changeSpotName" value="{{report.location.name}}"></paper-input>
 			    	</div>
-			    	<div>
+			    	<div ng-click="showMap()">
 			    		<p>latitude: {{report.location.geoinfo.latitude}}</p>
 			    		<p>longitude: {{report.location.geoinfo.longitude}}</p>
 			    	</div>

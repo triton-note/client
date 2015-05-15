@@ -15,11 +15,10 @@ abstract class Report implements JsonSupport {
   Photo photo;
   List<Fishes> fishes;
 
-  factory Report.fromJsonString(String text) => new _ReportImpl(JSON.decode(text));
   factory Report.fromMap(Map data) => new _ReportImpl(data);
 }
 
-class _ReportImpl implements Report {
+class _ReportImpl extends JsonSupport implements Report {
   final Map _data;
   final CachedProp<DateTime> _dateAt;
   final CachedProp<Photo> _photo;
@@ -36,9 +35,9 @@ class _ReportImpl implements Report {
         _condition = new CachedProp<Condition>(data, 'condition', (Map map) => new Condition.fromMap(map)),
         _fishes = new CachedProp<List<Fishes>>(data, 'fishes',
             (List list) => list.map((fs) => new Fishes.fromMap(fs)).toList(),
-            (List<Fishes> o) => o.map((a) => a.toMap()));
+            (List<Fishes> o) => o.map((a) => a.asMap));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   String get id => _data['id'];
   set id(String v) => _data['id'] = v;
@@ -71,11 +70,10 @@ abstract class Fishes implements JsonSupport {
   Weight weight;
   Length length;
 
-  factory Fishes.fromJsonString(String text) => new _FishesImpl(JSON.decode(text));
   factory Fishes.fromMap(Map data) => new _FishesImpl(data);
 }
 
-class _FishesImpl implements Fishes {
+class _FishesImpl extends JsonSupport implements Fishes {
   final Map _data;
   final CachedProp<Weight> _weight;
   final CachedProp<Length> _length;
@@ -85,7 +83,7 @@ class _FishesImpl implements Fishes {
         _weight = new CachedProp<Weight>(data, 'weight', (map) => new Weight.fromMap(map)),
         _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   String get name => _data['name'];
   set name(String v) => _data['name'] = v;

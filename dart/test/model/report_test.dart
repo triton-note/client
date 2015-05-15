@@ -12,9 +12,8 @@ import 'package:triton_note/util/enums.dart';
 
 main() {
   test('fromJson', () {
-    final text = makeJson();
-    final json = JSON.decode(text);
-    final obj = new Report.fromJsonString(text);
+    final json = makeJson();
+    final obj = new Report.fromMap(json);
     print("Loaded report: ${obj}");
 
     expect(obj.id, json['id']);
@@ -47,11 +46,11 @@ main() {
 
     expect(true, obj.photo is Photo);
     expect(true, obj.photo.original is Image);
-    expect(true, obj.photo.mainview is Image);
-    expect(true, obj.photo.thumbnail is Image);
+    expect(true, obj.photo.reduced.mainview is Image);
+    expect(true, obj.photo.reduced.thumbnail is Image);
     expect(obj.photo.original.path, json['photo']['original']['path']);
-    expect(obj.photo.mainview.path, json['photo']['mainview']['path']);
-    expect(obj.photo.thumbnail.path, json['photo']['thumbnail']['path']);
+    expect(obj.photo.reduced.mainview.path, json['photo']['reduced']['mainview']['path']);
+    expect(obj.photo.reduced.thumbnail.path, json['photo']['reduced']['thumbnail']['path']);
 
     expect(true, obj.fishes is List);
     expect(obj.fishes.length, 2);
@@ -82,14 +81,14 @@ main() {
   });
 
   test('empty json', () {
-    final obj = new Report.fromJsonString("{}");
+    final obj = new Report.fromMap({});
     expect(obj.id, null);
     obj.id = "A";
     expect(obj.id, "A");
   });
 
   test('changeAttributes', () {
-    final obj = new Report.fromJsonString(makeJson());
+    final obj = new Report.fromMap(makeJson());
     final geoB = new GeoInfo.fromMap({"latitude": 20.0, "longitude": 30.0});
     obj.location.geoinfo = geoB;
     expect(obj.location.geoinfo.latitude, 20.0);
@@ -98,15 +97,15 @@ main() {
   });
 
   test('toJson', () {
-    final textA = makeJson();
-    final obj = new Report.fromJsonString(textA);
-    final textB = JSON.encode(obj.toMap());
-    expect(textA, textB);
+    final map = makeJson();
+    final obj = new Report.fromMap(map);
+    final textB = JSON.encode(obj.asMap);
+    expect(textB, JSON.encode(map));
   });
 }
 
-String makeJson() {
-  return JSON.encode({
+Map makeJson() {
+  return {
     "id": "Sample",
     "userId": "user-A",
     "comment": "Hoge",
@@ -115,16 +114,27 @@ String makeJson() {
     "condition": {
       "moon": 15,
       "tide": "Flood",
-      "weather": {"nominal": "Clouds", "iconUrl": "http://openweathermap.org/img/w/04n.png", "temperature": {"value": 14.5, "unit": "Cels"}}
+      "weather": {
+        "nominal": "Clouds",
+        "iconUrl": "http://openweathermap.org/img/w/04n.png",
+        "temperature": {"value": 14.5, "unit": "Cels"}
+      }
     },
     "photo": {
       "original": {"path": "photo/original/7a5b4bfa350b3150dfee9428/user-photo"},
-      "mainview": {"path": "photo/reduced/7a5b4bfa350b3150dfee9428/mainview"},
-      "thumbnail": {"path": "photo/reduced/7a5b4bfa350b3150dfee9428/thumbnail"}
+      "reduced": {
+        "mainview": {"path": "photo/reduced/7a5b4bfa350b3150dfee9428/mainview"},
+        "thumbnail": {"path": "photo/reduced/7a5b4bfa350b3150dfee9428/thumbnail"}
+      }
     },
     "fishes": [
       {"name": "flounder", "count": 2, "weight": {"value": 1.2, "unit": "kg"}, "length": {"value": 38.5, "unit": "cm"}},
-      {"name": "snapper", "count": 1, "weight": {"value": 0.4, "unit": "pond"}, "length": {"value": 17.9, "unit": "inch"}}
+      {
+        "name": "snapper",
+        "count": 1,
+        "weight": {"value": 0.4, "unit": "pond"},
+        "length": {"value": 17.9, "unit": "inch"}
+      }
     ]
-  });
+  };
 }

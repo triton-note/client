@@ -8,11 +8,10 @@ abstract class Location implements JsonSupport {
   String name;
   GeoInfo geoinfo;
 
-  factory Location.fromJsonString(String text) => new _LocationImpl(JSON.decode(text));
   factory Location.fromMap(Map data) => new _LocationImpl(data);
 }
 
-class _LocationImpl implements Location {
+class _LocationImpl extends JsonSupport implements Location {
   final Map _data;
   final CachedProp<GeoInfo> _geoinfo;
 
@@ -20,7 +19,7 @@ class _LocationImpl implements Location {
       : _data = data,
         _geoinfo = new CachedProp<GeoInfo>(data, 'geoinfo', (map) => new GeoInfo.fromMap(map));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   String get name => _data['name'];
   set name(String v) => _data['name'] = v;
@@ -33,14 +32,13 @@ abstract class GeoInfo implements JsonSupport {
   double latitude;
   double longitude;
 
-  factory GeoInfo.fromJsonString(String text) => new _GeoInfoImpl(JSON.decode(text));
   factory GeoInfo.fromMap(Map data) => new _GeoInfoImpl(data);
 }
 
-class _GeoInfoImpl implements GeoInfo {
+class _GeoInfoImpl extends JsonSupport implements GeoInfo {
   final Map _data;
   _GeoInfoImpl(this._data);
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   double get latitude => _data['latitude'].toDouble();
   set latitude(double v) => _data['latitude'] = v;
@@ -54,11 +52,10 @@ abstract class Condition implements JsonSupport {
   Tide tide;
   Weather weather;
 
-  factory Condition.fromJsonString(String text) => new _ConditionImpl(JSON.decode(text));
   factory Condition.fromMap(Map data) => new _ConditionImpl(data);
 }
 
-class _ConditionImpl implements Condition {
+class _ConditionImpl extends JsonSupport implements Condition {
   final Map _data;
   final CachedProp<Tide> _tide;
   final CachedProp<Weather> _weather;
@@ -68,7 +65,7 @@ class _ConditionImpl implements Condition {
         _tide = new CachedProp<Tide>(data, 'tide', (o) => enumByName(Tide.values, o), (v) => nameOfEnum(v)),
         _weather = new CachedProp<Weather>(data, 'weather', (map) => new Weather.fromMap(map));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   int get moon => _data['moon'];
   set moon(int v) => _data['moon'] = v;
@@ -87,11 +84,10 @@ abstract class Weather implements JsonSupport {
   String iconUrl;
   Temperature temperature;
 
-  factory Weather.fromJsonString(String text) => new _WeatherImpl(JSON.decode(text));
   factory Weather.fromMap(Map data) => new _WeatherImpl(data);
 }
 
-class _WeatherImpl implements Weather {
+class _WeatherImpl extends JsonSupport implements Weather {
   final Map _data;
   final CachedProp<Temperature> _temperature;
 
@@ -99,7 +95,7 @@ class _WeatherImpl implements Weather {
       : _data = data,
         _temperature = new CachedProp<Temperature>(data, 'temperature', (map) => new Temperature.fromMap(map));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   String get nominal => _data['nominal'];
   set nominal(String v) => _data['nominal'] = v;
@@ -108,5 +104,5 @@ class _WeatherImpl implements Weather {
   set iconUrl(String v) => _data['iconUrl'] = v;
 
   Temperature get temperature => (_data['temperature'] == null) ? null : new Temperature.fromMap(_data['temperature']);
-  set temperature(Temperature v) => _data['temperature'] = v.toMap();
+  set temperature(Temperature v) => _data['temperature'] = v.asMap;
 }

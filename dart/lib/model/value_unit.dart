@@ -8,10 +8,10 @@ abstract class Measures implements JsonSupport {
   WeightUnit weight;
   TemperatureUnit temperature;
 
-  factory Measures.fromJsonString(String text) => new _MeasuresImpl(JSON.decode(text));
+  factory Measures.fromJsonString(String text) => new _MeasuresImpl(new Map.from(JSON.decode(text)));
   factory Measures.fromMap(Map data) => new _MeasuresImpl(data);
 }
-class _MeasuresImpl implements Measures {
+class _MeasuresImpl extends JsonSupport implements Measures {
   final Map _data;
   final CachedProp<TemperatureUnit> _temperature;
   final CachedProp<WeightUnit> _weight;
@@ -26,7 +26,7 @@ class _MeasuresImpl implements Measures {
         _length = new CachedProp<LengthUnit>(
             data, 'length', (o) => enumByName(LengthUnit.values, o), (v) => nameOfEnum(v));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   TemperatureUnit get temperature => _temperature.value;
   set temperature(TemperatureUnit v) => _temperature.value = v;
@@ -42,7 +42,7 @@ abstract class Temperature implements JsonSupport {
   double value;
   final TemperatureUnit unit;
 
-  factory Temperature.fromJsonString(String text) => new _TemperatureImpl(JSON.decode(text));
+  factory Temperature.fromJsonString(String text) => new _TemperatureImpl(new Map.from(JSON.decode(text)));
   factory Temperature.fromMap(Map data) => new _TemperatureImpl(data);
 
   factory Temperature.of(TemperatureUnit unit, double value) {
@@ -59,7 +59,7 @@ abstract class Temperature implements JsonSupport {
 }
 enum TemperatureUnit { Cels, Fahr }
 
-class _TemperatureImpl implements Temperature {
+class _TemperatureImpl extends JsonSupport implements Temperature {
   final Map _data;
   final CachedProp<TemperatureUnit> _unit;
 
@@ -68,7 +68,7 @@ class _TemperatureImpl implements Temperature {
         _unit = new CachedProp<TemperatureUnit>(
             data, 'unit', (o) => enumByName(TemperatureUnit.values, o), (v) => nameOfEnum(v));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   double get value => _data['value'];
   set value(double v) => _data['value'] = v;
@@ -92,7 +92,7 @@ abstract class Weight implements JsonSupport {
   double value;
   final WeightUnit unit;
 
-  factory Weight.fromJsonString(String text) => new _WeightImpl(JSON.decode(text));
+  factory Weight.fromJsonString(String text) => new _WeightImpl(new Map.from(JSON.decode(text)));
   factory Weight.fromMap(Map data) => new _WeightImpl(data);
 
   factory Weight.of(WeightUnit unit, double value) {
@@ -109,7 +109,7 @@ abstract class Weight implements JsonSupport {
 }
 enum WeightUnit { kg, pond }
 
-class _WeightImpl implements Weight {
+class _WeightImpl extends JsonSupport implements Weight {
   static const pondToKg = 0.4536;
 
   final Map _data;
@@ -120,7 +120,7 @@ class _WeightImpl implements Weight {
         _unit = new CachedProp<WeightUnit>(
             data, 'unit', (o) => enumByName(WeightUnit.values, o), (v) => nameOfEnum(v));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   double get value => _data['value'];
   set value(double v) => _data['value'] = v;
@@ -144,7 +144,7 @@ abstract class Length implements JsonSupport {
   double value;
   final LengthUnit unit;
 
-  factory Length.fromJsonString(String text) => new _LengthImpl(JSON.decode(text));
+  factory Length.fromJsonString(String text) => new _LengthImpl(new Map.from(JSON.decode(text)));
   factory Length.fromMap(Map data) => new _LengthImpl(data);
 
   factory Length.of(LengthUnit unit, double value) {
@@ -162,7 +162,7 @@ abstract class Length implements JsonSupport {
 
 enum LengthUnit { cm, inch }
 
-class _LengthImpl implements Length {
+class _LengthImpl extends JsonSupport implements Length {
   static const inchToCm = 2.54;
 
   final Map _data;
@@ -173,7 +173,7 @@ class _LengthImpl implements Length {
         _unit = new CachedProp<LengthUnit>(
             data, 'unit', (o) => enumByName(LengthUnit.values, o), (v) => nameOfEnum(v));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   double get value => _data['value'];
   set value(double v) => _data['value'] = v;

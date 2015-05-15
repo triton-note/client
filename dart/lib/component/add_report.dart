@@ -15,26 +15,27 @@ import 'package:triton_note/util/main_frame.dart';
 class AddReportComponent extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
-  PhotoShop _shop;
-  bool get isReady => _shop != null;
-  bool get isSubmitable =>
-      report.photo != null && report.photo.reduced != null && report.photo.reduced.mainview.path != null;
+  bool isReady = false;
+  bool get isSubmitable => report.photo != null && report.photo.original != null;
 
-  AddReportComponent(Router router) : super(router);
-
-  choosePhoto(bool take) {
-    new Future.delayed(new Duration(milliseconds: 300), () {
-      _choosePhoto(take);
-    });
+  AddReportComponent(Router router, RouteProvider routeProvider) : super(router) {
+    try {
+      report.asParam = routeProvider.parameters['report'];
+      isReady = true;
+    } catch (ex) {
+      print("Adding new report.");
+    }
   }
-  _choosePhoto(bool take) {
-    _shop = new PhotoShop(take);
 
-    _shop.photoUrl.then((url) {
+  choosePhoto(bool take) => rippling(() {
+    final shop = new PhotoShop(take);
+    isReady = true;
+
+    shop.photoUrl.then((url) {
       report.photo = new Photo.fromMap({'reduced': {'mainview': {'url': url}}});
     });
 
-    _shop.photo.then((photo) async {
+    shop.photo.then((photo) async {
       final session = new UploadSession(photo);
       _onSession.complete(session);
 
@@ -43,14 +44,14 @@ class AddReportComponent extends MainFrame {
       });
 
       try {
-        report.dateAt = await _shop.timestamp;
+        report.dateAt = await shop.timestamp;
       } catch (ex) {
         print("No Timestamp in Exif: ${ex}");
         report.dateAt = new DateTime.now();
       }
 
       try {
-        report.location.geoinfo = await _shop.geoinfo;
+        report.location.geoinfo = await shop.geoinfo;
       } catch (ex) {
         print("No GeoInfo in Exif: ${ex}");
         try {
@@ -76,9 +77,19 @@ class AddReportComponent extends MainFrame {
         print("Failed to infer: ${ex}");
       }
     });
+  });
+
+  changeSpotName(v) {
+    report.location.name = v;
   }
 
-  submit() async {
+  submit() => rippling(() async {
     (await _onSession.future).submit(report);
-  }
+  });
+
+  showMap() => rippling(() {
+    if (report.location.geoinfo != null) {
+      router.go('map', {'from': 'add', 'editable': true, 'report': report.asParam});
+    }
+  });
 }

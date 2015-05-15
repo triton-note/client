@@ -7,6 +7,12 @@ void getTritonNoteRouteInitializer(Router router, RouteViewFactory views) {
     'reports-list': ngRoute(
         path: '/reports',
         viewHtml: '<reports-list></reports-list>'),
+    'add': ngRoute(
+        path: '/add/:report',
+        viewHtml: '<add-report></add-report>'),
+    'map': ngRoute(
+        path: '/map/:from/:editable/:report',
+        viewHtml: '<map-view></map-view>'),
     'report': ngRoute(
         path: '/report/:reportId',
         mount: {

@@ -10,11 +10,10 @@ abstract class Catch implements JsonSupport {
   DateTime date;
   GeoInfo geoinfo;
 
-  factory Catch.fromJsonString(String text) => new _CatchImpl(JSON.decode(text));
   factory Catch.fromMap(Map data) => new _CatchImpl(data);
 }
 
-class _CatchImpl implements Catch {
+class _CatchImpl extends JsonSupport implements Catch {
   final Map _data;
   final CachedProp<DateTime> _date;
   final CachedProp<GeoInfo> _geoinfo;
@@ -25,7 +24,7 @@ class _CatchImpl implements Catch {
             data, 'geoinfo', (int v) => new DateTime.fromMillisecondsSinceEpoch(v), (v) => v.millisecondsSinceEpoch),
         _geoinfo = new CachedProp<GeoInfo>(data, 'geoinfo', (map) => new GeoInfo.fromMap(map));
 
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   String get reportId => _data['reportId'];
   set reportId(String v) => _data['reportId'] = v;
@@ -47,14 +46,13 @@ abstract class NameCount implements JsonSupport {
   String name;
   int count;
 
-  factory NameCount.fromJsonString(String text) => new _NameCountImpl(JSON.decode(text));
   factory NameCount.fromMap(Map data) => new _NameCountImpl(data);
 }
 
-class _NameCountImpl implements NameCount {
+class _NameCountImpl extends JsonSupport implements NameCount {
   final Map _data;
   _NameCountImpl(this._data);
-  Map toMap() => _data;
+  Map get asMap => _data;
 
   String get name => _data['name'];
   set name(String v) => _data['name'] = v;
