@@ -1,6 +1,7 @@
 library triton_note;
 
 import 'package:triton_note/router.dart';
+import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/component/add_report.dart';
 import 'package:triton_note/component/reports_list.dart';
 import 'package:triton_note/component/map_view.dart';
@@ -16,6 +17,7 @@ import 'package:polymer/polymer.dart';
 
 class AppModule extends Module {
   AppModule() {
+    bind(FitImageElement);
     bind(AddReportComponent);
     bind(ReportsListComponent);
     bind(MapViewComponent);
