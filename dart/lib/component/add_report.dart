@@ -83,10 +83,6 @@ class AddReportComponent extends MainFrame {
     });
   });
 
-  changeSpotName(v) {
-    report.location.name = v;
-  }
-
   submit() => rippling(() async {
     (await _onSession.future).submit(report);
   });

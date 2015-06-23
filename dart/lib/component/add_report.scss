@@ -1,0 +1,16 @@
+@import "compass";
+
+div#pre {
+  div {
+    displa: block;
+    
+    margin-top: 30%;
+    text-align: center;
+  }
+  paper-button#take {
+    background: green;
+  }
+  paper-button#choose {
+    background: orange;
+  }
+}

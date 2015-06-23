@@ -12,16 +12,16 @@
     	
     	</core-toolbar>
     	
-    	<div style="margin: 10px">
-    		<div ng-if="!isReady">
-    			<div style="margin-top: 30%; margin-left: auto; margin-right: auto; width: 100px">
-					<paper-button raised ng-click="choosePhoto(true)" style="background: green">TAKE</paper-button>
+    	<div>
+    		<div id="pre" ng-if="!isReady">
+    			<div>
+					<paper-button id="take" raised ng-click="choosePhoto(true)">TAKE</paper-button>
     			</div>
-    			<div style="margin-top: 30%; margin-left: auto; margin-right: auto; width: 100px">
-					<paper-button raised ng-click="choosePhoto(false)" style="background: orange">CHOOSE</paper-button>
+    			<div>
+					<paper-button id="choose" raised ng-click="choosePhoto(false)">CHOOSE</paper-button>
 				</div>
     		</div>
-    		<div ng-if="isReady">
+    		<div id="input" ng-if="isReady">
 		    	<div>
 		    		<paper-input-decorator label="Write something to note">
 						<paper-autogrow-textarea>
@@ -34,7 +34,9 @@
 			    </div>
 			    <div>
 			    	<div>
-			    		<paper-input label="Spot Name" floatingLabel listen-change-value="changeSpotName" value="{{report.location.name}}"></paper-input>
+			    		<paper-input-decorator label="Spot Name" floatingLabel>
+			    			<input ng-model="report.location.name"></input>
+			    		</paper-input-decorator>
 			    	</div>
 			    	<div ng-click="showMap()">
 			    		<p>latitude: {{report.location.geoinfo.latitude}}</p>
