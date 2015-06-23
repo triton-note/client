@@ -1,6 +1,7 @@
 library reports_add_component;
 
 import 'dart:async';
+import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:triton_note/model/report.dart';
@@ -9,6 +10,7 @@ import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/upload_session.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
+import 'package:triton_note/util/googlemaps_browser.dart';
 import 'package:triton_note/util/main_frame.dart';
 
 @Component(
@@ -62,9 +64,11 @@ class AddReportComponent extends MainFrame {
           report.location.geoinfo = await Geo.location();
         } catch (ex) {
           print("Failed to get current location: ${ex}");
-          report.location.geoinfo = new GeoInfo.fromMap({'latitude': 0, 'longitude': 0});
+          report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
+      final gmap = new GoogleMaps(document.getElementById('google-maps'), center: report.location.geoinfo);
+      gmap.dropMarker(report.location.geoinfo);
 
       try {
         final inference = await session.infer(report.location.geoinfo, report.dateAt);
