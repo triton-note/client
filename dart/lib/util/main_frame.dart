@@ -5,16 +5,11 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 
-class MainFrame implements ShadowRootAware {
+class MainFrame {
   final Router router;
-  var drawerPanel;
+  get drawerPanel => document.getElementById('drawerPanel');
 
   MainFrame(this.router);
-
-  @override
-  onShadowRoot(ShadowRoot sr) {
-    drawerPanel = sr.getElementById('drawerPanel');
-  }
 
   Future rippling(Proc()) {
     return new Future.delayed(new Duration(milliseconds: 250), Proc);

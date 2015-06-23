@@ -8,7 +8,11 @@ dependencies:
 dev_dependencies:
   crypto: any
   mock: any
+  sass: any
   unittest: any
 transformers:
+- sass:
+    compass: true
+    style: compressed
 - angular
 - polymer

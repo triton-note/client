@@ -1,0 +1,27 @@
+
+@mixin radio-color($my_color) {
+  paper-radio-button::shadow #ink[checked] {
+    color: $my_color;
+  }
+  paper-radio-button::shadow #onRadio {
+    background-color: $my_color;
+  }
+  paper-radio-button[checked]::shadow #offRadio {
+    border-color: $my_color;
+  }
+  paper-radio-button[disabled]::shadow #offRadio {
+    border-color: $my_color;
+  }
+}
+
+paper-radio-group {
+  @include radio-color(#555);
+}
+
+paper-radio-group.gray {
+	@include radio-color(#555);
+}
+
+paper-radio-group.blue {
+  @include radio-color(#000080);
+}

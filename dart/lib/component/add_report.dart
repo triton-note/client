@@ -11,7 +11,11 @@ import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/util/main_frame.dart';
 
-@Component(selector: 'add-report', templateUrl: 'packages/triton_note/component/add_report.html')
+@Component(
+    selector: 'add-report',
+    templateUrl: 'packages/triton_note/component/add_report.html',
+    cssUrl: 'packages/triton_note/component/add_report.css',
+    useShadowDom: false)
 class AddReportComponent extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
