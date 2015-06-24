@@ -7,11 +7,12 @@
 
 <title>Triton Note</title>
 
-<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.27.min.js"></script>
-<script src="https://apis.google.com/js/client:plusone.js?onload=OnLoadCallback"></script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.34.min.js" async></script>
 <script src="https://raw.githack.com/mattiasw/ExifReader/master/js/ExifReader.js"></script>
 
 <link rel="import" href="packages/polymer/polymer.html">
+<link rel="import" href="packages/core_elements/core_animated_pages.html">
+<link rel="import" href="packages/core_elements/core_animated_pages/transitions/slide_from_right.html">
 <link rel="import" href="packages/core_elements/core_scaffold.html">
 <link rel="import" href="packages/core_elements/core_header_panel.html">
 <link rel="import" href="packages/core_elements/core_toolbar.html">
@@ -25,6 +26,9 @@
 <link rel="import" href="packages/paper_elements/paper_shadow.html">
 <link rel="import" href="packages/paper_elements/paper_spinner.html">
 <link rel="import" href="packages/paper_elements/paper_item.html">
+<link rel="import" href="packages/paper_elements/paper_dialog.html">
+<link rel="import" href="packages/paper_elements/paper_action_dialog.html">
+<link rel="import" href="packages/paper_elements/paper_toast.html">
 
 <link rel="stylesheet" href="styles/main.css">
 <link rel="stylesheet" href="styles/shadow.css" shim-shadowdom>
@@ -32,6 +36,10 @@
 </head>
 <body unresolved>
 
+	<div style="display: none">
+		<paper-input-decorator></paper-input-decorator>
+	</div>
+	
 	<ng-view></ng-view>
 
 	<script type="text/javascript" src="cordova.js"></script>

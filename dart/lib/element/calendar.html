@@ -1,0 +1,27 @@
+<div id="root">
+	<div id="view">
+		<p>{{ value | date:'longDate' }}</p>
+	</div>
+	<div id="control">
+		<div id="back">
+			<paper-button raised>
+				<core-icon icon="arrow-back"></core-icon>
+			</paper-button>
+		</div>
+		<div id="today">
+			<paper-button raised>
+				<core-icon icon="today"></core-icon>
+				today
+			</paper-button>
+		</div>
+		<div id="forward">
+			<paper-button raised>
+				<core-icon icon="arrow-forward"></core-icon>
+			</paper-button>
+		</div>
+	</div>
+	<div id="calendar">
+		<core-animated-pages id="calendar-pages">
+		</core-animated-pages>
+	</div>
+</div>

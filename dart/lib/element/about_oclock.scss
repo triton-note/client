@@ -1,0 +1,14 @@
+@import "compass";
+
+div#root {
+  display: block;
+  
+  &>* {
+    @include inline-block();
+    vertical-align: bottom;
+  }
+  paper-input-decorator {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+}

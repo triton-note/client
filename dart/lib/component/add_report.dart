@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
@@ -21,6 +22,10 @@ import 'package:triton_note/util/main_frame.dart';
 class AddReportComponent extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
+
+  DateTime tmpDate = new DateTime.now();
+  int tmpOclock = 0;
+
   bool isReady = false;
   bool get isSubmitable => report.photo != null && report.photo.original != null;
 
@@ -100,4 +105,15 @@ class AddReportComponent extends MainFrame {
       router.go('map', {'from': 'add', 'editable': true, 'report': report.asParam});
     }
   });
+
+  dialogDate() {
+    tmpDate = new DateTime(report.dateAt.year, report.dateAt.month, report.dateAt.day);
+    tmpOclock = report.dateAt.hour;
+    final dialog = document.getElementById('date-dialog') as PaperActionDialog;
+    dialog.toggle();
+  }
+  commitCalendar() {
+    report.dateAt = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
+    print("Commit date: ${report.dateAt}");
+  }
 }

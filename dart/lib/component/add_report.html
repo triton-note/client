@@ -32,6 +32,35 @@
 			    <div id="photo">
 			        <fit-image url="report.photo.reduced.mainview.url" width="photoWidth" height="200" shrink="true"></fit-image>
 			    </div>
+		        <div id="date">
+		        	<p>at</p>
+		        	<paper-button raised ng-click="dialogDate()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
+		        </div>
+	        	<paper-action-dialog id="date-dialog" transition="core-transition-center" backdrop layered autoCloseDisabled>
+	        		<style>
+	        			paper-shadow {
+	        				margin-bottom: 10px;
+	        				padding-left: 10px;
+	        				padding-right: 10px;
+	        				-moz-border-radius: 2px;
+	        				-webkit-border-radius: 2px;
+	        				border-radius: 2px;
+	        			}
+	        		</style>
+	        		
+	        		<paper-shadow z="1">
+	        			<calendar value="tmpDate"></calendar>
+        			</paper-shadow>
+	        		
+	        		<br>
+	        		
+	        		<paper-shadow z="1">
+	        			<about-oclock value="tmpOclock"></about-oclock>
+        			</paper-shadow>
+	        		
+	        		<paper-button dismissive style="color: red">Cancel</paper-button>
+	        		<paper-button affirmative style="color: green" ng-click="commitCalendar()">OK</paper-button>
+	        	</paper-action-dialog>
 			    <div>
 			    	<div>
 			    		<paper-input-decorator label="Spot Name" floatingLabel>
@@ -41,9 +70,6 @@
 			    	<div ng-click="showMap()">
 			    		<div id="google-maps"></div>
 			    	</div>
-			    	<div>
-				        <p>{{report.dateAt}}</p>
-			        </div>
 			    </div>
     		</div>
     	</div>

@@ -1,0 +1,61 @@
+@import "compass";
+
+div#view {
+  display: block;
+  text-align: center;
+}
+
+div#control {
+  display: table;
+  width: 100%;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  
+  background-color: #eee;
+  
+  div {
+    display: table-cell;
+  }
+  paper-button {
+    font-size: 12px;
+    padding: 0px;
+    background-color: white;
+  }
+  core-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  #back {
+    padding-left: 10px;
+    text-align: left;
+  }
+  #today {
+    text-align: center;
+    core-icon {
+      margin-right: 4px;
+    }
+  }
+  #forward {
+    padding-right: 10px;
+    text-align: right;
+  }
+}
+
+div#calendar {
+  
+  #calendar-pages {
+    width: 100%;
+    height: 300px;
+    
+    section {
+      padding: 10px;
+      
+      paper-shadow {
+        border: solid 1px #ddd;
+        @include border-radius(8px);
+        padding: 10px;
+      }
+    }
+  }
+}

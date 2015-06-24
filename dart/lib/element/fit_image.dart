@@ -1,4 +1,4 @@
-library infoarts_eep.element.fit_image;
+library triton_note.element.fit_image;
 
 import 'dart:html';
 import 'package:angular/angular.dart';
