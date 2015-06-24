@@ -28,8 +28,9 @@ class _ReportImpl extends JsonSupport implements Report {
 
   _ReportImpl(Map data)
       : _data = data,
-        _dateAt = new CachedProp<DateTime>(data, 'dateAt', (int v) => new DateTime.fromMillisecondsSinceEpoch(v),
-            (DateTime v) => v.millisecondsSinceEpoch),
+        _dateAt = new CachedProp<DateTime>(data, 'dateAt',
+            (int v) => new DateTime.fromMillisecondsSinceEpoch(v, isUtc: true),
+            (DateTime v) => v.toUtc().millisecondsSinceEpoch),
         _photo = new CachedProp<Photo>(data, 'photo', (Map map) => new Photo.fromMap(map)),
         _location = new CachedProp<Location>(data, 'location', (Map map) => new Location.fromMap(map)),
         _condition = new CachedProp<Condition>(data, 'condition', (Map map) => new Condition.fromMap(map)),
