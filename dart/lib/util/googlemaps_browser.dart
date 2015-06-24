@@ -5,7 +5,6 @@ import 'dart:html';
 import 'dart:js';
 
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/settings.dart';
 
 Completer<Null> _onAppended = null;
@@ -34,14 +33,14 @@ class GoogleMaps {
   final Completer _onInitialized = new Completer();
   final Element div;
 
-  GoogleMaps(this.div, {GeoInfo center: null, zoom: 8, disableDefaultUI: true}) {
+  GoogleMaps(this.div, GeoInfo center, {mark: false, zoom: 8, disableDefaultUI: true}) {
     _initialize(center, zoom, disableDefaultUI);
+    if (mark) dropMarker(center);
   }
 
   _initialize(GeoInfo center, int zoom, bool disableDefaultUI) async {
     await _append();
 
-    if (center == null) center = await Geo.location();
     final options = {
       'center': {'lat': center.latitude, 'lng': center.longitude},
       'zoom': zoom,

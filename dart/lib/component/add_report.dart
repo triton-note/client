@@ -67,8 +67,7 @@ class AddReportComponent extends MainFrame {
           report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
-      final gmap = new GoogleMaps(document.getElementById('google-maps'), center: report.location.geoinfo);
-      gmap.dropMarker(report.location.geoinfo);
+      new GoogleMaps(document.getElementById('google-maps'), report.location.geoinfo, mark: true);
 
       try {
         final inference = await session.infer(report.location.geoinfo, report.dateAt);
