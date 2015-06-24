@@ -24,6 +24,11 @@ class AddReportComponent extends MainFrame {
   bool isReady = false;
   bool get isSubmitable => report.photo != null && report.photo.original != null;
 
+  int get photoWidth {
+    final div = document.getElementById('photo');
+    return div != null ? div.clientWidth : null;
+  }
+
   AddReportComponent(Router router, RouteProvider routeProvider) : super(router) {
     try {
       report.asParam = routeProvider.parameters['report'];
