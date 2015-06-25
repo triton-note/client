@@ -4,18 +4,18 @@
 	</div>
 	<div id="control">
 		<div id="back">
-			<paper-button raised>
+			<paper-button raised ng-click="previousMonth()">
 				<core-icon icon="arrow-back"></core-icon>
 			</paper-button>
 		</div>
 		<div id="today">
-			<paper-button raised>
+			<paper-button raised ng-click="today()">
 				<core-icon icon="today"></core-icon>
 				today
 			</paper-button>
 		</div>
 		<div id="forward">
-			<paper-button raised>
+			<paper-button raised ng-click="nextMonth()">
 				<core-icon icon="arrow-forward"></core-icon>
 			</paper-button>
 		</div>

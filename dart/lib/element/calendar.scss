@@ -51,10 +51,15 @@ div#calendar {
     section {
       padding: 10px;
       
-      paper-shadow {
+      &>div {
         border: solid 1px #ddd;
-        @include border-radius(8px);
         padding: 10px;
+        
+        div#head {
+          border: solid 0px;
+          padding: 0px;
+          text-align: center;
+        }
       }
     }
   }
