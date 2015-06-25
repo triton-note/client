@@ -1,11 +1,11 @@
 @import "compass";
 
-div#view {
+div.view {
   display: block;
   text-align: center;
 }
 
-div#control {
+div.control {
   display: table;
   width: 100%;
   padding-top: 5px;
@@ -17,48 +17,97 @@ div#control {
     display: table-cell;
   }
   paper-button {
+    height: 24px;
+    
+    /deep/ .button-content {
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    
     font-size: 12px;
-    padding: 0px;
     background-color: white;
-  }
-  core-icon {
-    width: 16px;
-    height: 16px;
+    
+    core-icon {
+      width: 16px;
+      height: 16px;
+    }
   }
   
-  #back {
+  .back {
     padding-left: 10px;
     text-align: left;
   }
-  #today {
+  .today {
     text-align: center;
     core-icon {
       margin-right: 4px;
     }
   }
-  #forward {
+  .forward {
     padding-right: 10px;
     text-align: right;
   }
 }
 
-div#calendar {
-  
-  #calendar-pages {
+div.calendar {
+  core-animated-pages {
     width: 100%;
-    height: 300px;
+    height: 230px;
     
     section {
       padding: 10px;
+      font-size: 12px;
       
       &>div {
         border: solid 1px #ddd;
-        padding: 10px;
         
-        div#head {
-          border: solid 0px;
-          padding: 0px;
+        &>div {
+          padding-top: 12px;
+          padding-bottom: 12px;
+          
           text-align: center;
+          font-weight: 400;
+          @include background-image(linear-gradient(#f8f8f8, white));
+          
+          p {
+            margin: 0;
+          }
+        }
+        
+        table {
+          width: 100%;
+          table-layout: fixed;
+          border-collapse: collapse;
+          
+          p {
+            margin-top: 4px;
+            margin-bottom: 4px;
+          }
+          
+          th {
+            color: #888;
+          }
+          
+          td {
+            border: solid 1px #ddd;
+            text-align: center;
+            
+            &.inside {
+              background: white;
+            }
+            &.outside {
+              background: #f8f8f8;
+              color: #ddd;
+            }
+            &.today {
+              border: solid 3px #aaf;
+            }
+            &.selected {
+              background: #eef;
+              color: #00e;
+              font-weight: 600;
+            }
+          }
         }
       }
     }
