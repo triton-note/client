@@ -49,7 +49,7 @@
 	        		</style>
 	        		
 	        		<paper-shadow z="1">
-	        			<calendar value="tmpDate"></calendar>
+	        			<calendar value="tmpDate" start-of-week="1"></calendar>
         			</paper-shadow>
 	        		
 	        		<br>
@@ -64,7 +64,7 @@
 			    <div>
 			    	<div>
 			    		<paper-input-decorator label="Spot Name" floatingLabel>
-			    			<input ng-model="report.location.name"></input>
+			    			<input ng-model="report.location.name">
 			    		</paper-input-decorator>
 			    	</div>
 			    	<div ng-click="showMap()">

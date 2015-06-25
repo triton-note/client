@@ -18,11 +18,11 @@ class CalendarElement extends ShadowRootAware with AttachAware {
   static const day31 = const Duration(days: 31);
 
   @NgTwoWay('value') DateTime value;
-  @NgAttr('start-of-week') int startOfWeek;
+  @NgAttr('start-of-week') String startOfWeekAttr;
 
   @override
   void attach() {
-    startOfWeek = startOfWeek == null ? 0 : startOfWeek;
+    startOfWeek = startOfWeekAttr == null ? 0 : int.parse(startOfWeekAttr);
     value = new DateTime(value.year, value.month, value.day);
     pageA_currentFirst = new DateTime(value.year, value.month);
 
@@ -38,6 +38,7 @@ class CalendarElement extends ShadowRootAware with AttachAware {
       ..selected = 0;
   }
 
+  int startOfWeek;
   List<String> weekNamesList;
   CoreAnimatedPages _pages;
   DateTime _pageA_currentFirst, _pageB_currentFirst;
