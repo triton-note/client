@@ -1,7 +1,12 @@
 @import "compass";
 
+p {
+  margin: 0;
+}
+
 div.view {
   display: block;
+  padding: 8px;
   text-align: center;
 }
 
@@ -68,10 +73,6 @@ div.calendar {
           text-align: center;
           font-weight: 400;
           @include background-image(linear-gradient(#f8f8f8, white));
-          
-          p {
-            margin: 0;
-          }
         }
         
         table {
