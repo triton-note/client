@@ -15,6 +15,7 @@
   <preference name="UIWebViewBounce" value="false"/>
   <preference name="DisallowOverscroll" value="false"/>
   <preference name="BackupWebStorage" value="none"/>
+  <preference name="android-minSdkVersion" value="21"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
   <preference name="iosPersistentFileLocation" value="Library"/>
   <preference name="SplashScreenDelay" value="30000"/>
