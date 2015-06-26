@@ -4,6 +4,8 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:logging/logging.dart';
+
 import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
@@ -11,7 +13,7 @@ import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/upload_session.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
-import 'package:triton_note/util/googlemaps_browser.dart';
+import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/main_frame.dart';
 
 @Component(
@@ -20,6 +22,8 @@ import 'package:triton_note/util/main_frame.dart';
     cssUrl: 'packages/triton_note/component/add_report.css',
     useShadowDom: false)
 class AddReportComponent extends MainFrame {
+  static final logger = new Logger('AddReportComponent');
+
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
@@ -33,13 +37,14 @@ class AddReportComponent extends MainFrame {
     final div = document.getElementById('photo');
     return div != null ? div.clientWidth : null;
   }
+  int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
 
   AddReportComponent(Router router, RouteProvider routeProvider) : super(router) {
     try {
       report.asParam = routeProvider.parameters['report'];
       isReady = true;
     } catch (ex) {
-      print("Adding new report.");
+      logger.info("Adding new report.");
     }
   }
 
@@ -62,18 +67,18 @@ class AddReportComponent extends MainFrame {
       try {
         report.dateAt = await shop.timestamp;
       } catch (ex) {
-        print("No Timestamp in Exif: ${ex}");
+        logger.info("No Timestamp in Exif: ${ex}");
         report.dateAt = new DateTime.now();
       }
 
       try {
         report.location.geoinfo = await shop.geoinfo;
       } catch (ex) {
-        print("No GeoInfo in Exif: ${ex}");
+        logger.info("No GeoInfo in Exif: ${ex}");
         try {
           report.location.geoinfo = await Geo.location();
         } catch (ex) {
-          print("Failed to get current location: ${ex}");
+          logger.info("Failed to get current location: ${ex}");
           report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
@@ -91,7 +96,7 @@ class AddReportComponent extends MainFrame {
           }
         }
       } catch (ex) {
-        print("Failed to infer: ${ex}");
+        logger.info("Failed to infer: ${ex}");
       }
     });
   });
@@ -101,9 +106,7 @@ class AddReportComponent extends MainFrame {
   });
 
   showMap() => rippling(() {
-    if (report.location.geoinfo != null) {
-      router.go('map', {'from': 'add', 'editable': true, 'report': report.asParam});
-    }
+    logger.info("Show GoogleMaps");
   });
 
   dialogDate() {
@@ -114,6 +117,6 @@ class AddReportComponent extends MainFrame {
   }
   commitCalendar() {
     report.dateAt = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
-    print("Commit date: ${report.dateAt}");
+    logger.fine("Commit date: ${report.dateAt}");
   }
 }
