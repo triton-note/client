@@ -1,5 +1,7 @@
 library triton_note;
 
+import 'dart:html';
+
 import 'package:triton_note/router.dart';
 import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/element/calendar.dart';
@@ -40,8 +42,8 @@ class AppModule extends Module {
 void main() {
   Logger.root
     ..level = Level.FINEST
-    ..onRecord.listen((LogRecord r) {
-      print(r.message);
+    ..onRecord.listen((record) {
+      window.console.log(record.toString());
     });
 
   onDeviceReady((event) {
