@@ -2,7 +2,9 @@ library triton_note.element.calendar;
 
 import 'dart:html';
 import 'package:angular/angular.dart';
+import 'package:logging/logging.dart';
 import 'package:core_elements/core_animated_pages.dart';
+import 'package:core_elements/core_animation.dart';
 
 @Component(
     selector: 'calendar',
@@ -10,9 +12,9 @@ import 'package:core_elements/core_animated_pages.dart';
     cssUrl: 'packages/triton_note/element/calendar.css',
     useShadowDom: true)
 class CalendarElement extends ShadowRootAware with AttachAware {
+  static final logger = new Logger('CalendarElement');
+
   static const maxPages = 10;
-  static const transitionNormal = "slide-from-right";
-  static const transitionToday = "cross-fade-all";
   static const weekNames = const ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sut'];
   static const day1 = const Duration(days: 1);
   static const day31 = const Duration(days: 31);
@@ -33,9 +35,7 @@ class CalendarElement extends ShadowRootAware with AttachAware {
   }
   @override
   void onShadowRoot(ShadowRoot shadowRoot) {
-    _pages = shadowRoot.getElementsByTagName('core-animated-pages')[0] as CoreAnimatedPages
-      ..transitions = transitionNormal
-      ..selected = 0;
+    _pages = shadowRoot.querySelector('core-animated-pages') as CoreAnimatedPages..selected = 0;
   }
 
   int startOfWeek;
@@ -57,17 +57,17 @@ class CalendarElement extends ShadowRootAware with AttachAware {
   }
 
   List<List<DateTime>> weeks(DateTime currentFirst) {
-    print("Creating calender: ${currentFirst}");
+    logger.info("Creating calender: ${currentFirst}");
     today = makeToday();
 
     final last = atFirst(currentFirst.add(day31));
     var day = new DateTime(currentFirst.year, currentFirst.month, 1);
     day = day.subtract(new Duration(days: (day.weekday - startOfWeek + 7) % 7));
-    print("Start from: ${day} to ${last}");
+    logger.finer("Start from: ${day} to ${last}");
 
     final table = [];
     while (day.isBefore(last)) {
-      print("week at ${day}");
+      logger.finest("week at ${day}");
       final row = [];
       for (var i = 0; i < 7; i++) {
         final list = [day.month == currentFirst.month ? "inside" : "outside"];
@@ -90,30 +90,48 @@ class CalendarElement extends ShadowRootAware with AttachAware {
 
   selectDay(int year, int month, int day) {
     final selected = new DateTime(year, month, day);
-    print("Selected: ${selected}");
+    logger.fine("Selected: ${selected}");
     value = selected;
   }
 
   goToday() async {
-    _pages.transitions = transitionToday;
-
     final cur = atFirst(new DateTime.now());
-    print("Today's month: ${cur}");
+    logger.fine("Today's month: ${cur}");
 
     final all = _pages.querySelectorAll('section');
     final index = _pages.selected;
 
-    if (all[index].id == "pageA") {
-      pageB_currentFirst = cur;
-    } else {
-      pageA_currentFirst = cur;
+    bool pageSelect() {
+      if (all[index].id == "pageA") {
+        pageB_currentFirst = cur;
+        return cur.isAfter(pageA_currentFirst);
+      } else {
+        pageA_currentFirst = cur;
+        return cur.isAfter(pageB_currentFirst);
+      }
     }
-    _pages.selected = (index + 1) % 2;
+    final nextIndex = pageSelect() ? 1 : 0;
+    final next = all[(index + 1) % 2];
+    if (index == nextIndex) {
+      next.remove();
+      if (nextIndex == 0) {
+        _pages.insertBefore(next, all.first);
+      } else {
+        _pages.append(next);
+      }
+    }
+    _pages.selected = nextIndex;
+    new CoreAnimation()
+      ..target = next
+      ..delay = 300
+      ..duration = 300
+      ..fill = "both"
+      ..keyframes = [{'opacity': 0}, {'opacity': 1}]
+      ..play();
+    logger.fine("Animation of page of today is started");
   }
 
   previousMonth() async {
-    _pages.transitions = transitionNormal;
-
     final index = _pages.selected;
     final all = _pages.querySelectorAll('section');
 
@@ -131,8 +149,6 @@ class CalendarElement extends ShadowRootAware with AttachAware {
   }
 
   nextMonth() async {
-    _pages.transitions = transitionNormal;
-
     final index = _pages.selected;
     final all = _pages.querySelectorAll('section');
 

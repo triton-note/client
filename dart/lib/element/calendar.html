@@ -4,24 +4,24 @@
 	</div>
 	<div class="control">
 		<div class="back">
-			<paper-button raised ng-click="previousMonth()">
+			<paper-button ng-click="previousMonth()">
 				<core-icon icon="arrow-back"></core-icon>
 			</paper-button>
 		</div>
 		<div class="today">
-			<paper-button raised ng-click="goToday()">
+			<paper-button ng-click="goToday()">
 				<core-icon icon="today"></core-icon>
 				today
 			</paper-button>
 		</div>
 		<div class="forward">
-			<paper-button raised ng-click="nextMonth()">
+			<paper-button ng-click="nextMonth()">
 				<core-icon icon="arrow-forward"></core-icon>
 			</paper-button>
 		</div>
 	</div>
 	<div class="calendar">
-		<core-animated-pages>
+		<core-animated-pages transitions="slide-from-right">
 			<section id="pageA">
 				<div>
 					<div>
