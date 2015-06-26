@@ -1,35 +1,39 @@
-library triton_note.util.googlemaps;
+library triton_note.service.googlemaps;
 
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
 
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/settings.dart';
 
-Completer<Null> _onAppended = null;
-
-Future<Null> _append() async {
-  if (_onAppended == null) {
-    _onAppended = new Completer();
-
-    final initializer = 'triton_note_initialize_googlemaps';
-    context[initializer] = () {
-      print("Google Maps API is initialized.");
-      _onAppended.complete();
-    };
-
-    final elem = document.createElement('script');
-    elem.type = 'text/javascript';
-    elem.src = "https://maps.googleapis.com/maps/api/js?v=3&key=${await Settings.googleKey}&callback=${initializer}";
-
-    final first = document.getElementsByTagName('script')[0];
-    first.parentNode.insertBefore(elem, first);
-  }
-  return _onAppended.future;
-}
-
 class GoogleMaps {
+  static final logger = new Logger('GoogleMaps');
+
+  static Completer<Null> _onAppended = null;
+
+  static Future<Null> _append() async {
+    if (_onAppended == null) {
+      _onAppended = new Completer();
+
+      final initializer = 'triton_note_initialize_googlemaps';
+      context[initializer] = () {
+        logger.info("Google Maps API is initialized.");
+        _onAppended.complete();
+      };
+
+      final elem = document.createElement('script');
+      elem.type = 'text/javascript';
+      elem.src = "https://maps.googleapis.com/maps/api/js?v=3&key=${await Settings.googleKey}&callback=${initializer}";
+
+      final first = document.getElementsByTagName('script')[0];
+      first.parentNode.insertBefore(elem, first);
+    }
+    return _onAppended.future;
+  }
+
   final Completer _onInitialized = new Completer();
   final Element div;
 
