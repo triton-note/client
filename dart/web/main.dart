@@ -46,11 +46,9 @@ void main() {
       window.console.log(record.toString());
     });
 
-  onDeviceReady((event) {
-    initPolymer().then((zone) {
-      zone.run(() {
-        applicationFactory().addModule(new AppModule()).run();
-      });
+  initPolymer().then((zone) => Polymer.onReady.then((_) {
+    onDeviceReady((event) {
+      applicationFactory().addModule(new AppModule()).run();
     });
-  });
+  }));
 }
