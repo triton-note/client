@@ -1,4 +1,4 @@
-library triton_note.component.reports_add;
+library triton_note.page.reports_add;
 
 import 'dart:async';
 import 'dart:html';
@@ -16,14 +16,14 @@ import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/main_frame.dart';
 
-final _logger = new Logger('AddReportComponent');
+final _logger = new Logger('AddReportPage');
 
 @Component(
     selector: 'add-report',
     templateUrl: 'packages/triton_note/component/add_report.html',
     cssUrl: 'packages/triton_note/component/add_report.css',
     useShadowDom: false)
-class AddReportComponent extends MainFrame {
+class AddReportPage extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
@@ -39,7 +39,7 @@ class AddReportComponent extends MainFrame {
   }
   int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
 
-  AddReportComponent(Router router, RouteProvider routeProvider) : super(router) {
+  AddReportPage(Router router, RouteProvider routeProvider) : super(router) {
     try {
       report.asParam = routeProvider.parameters['report'];
       isReady = true;

@@ -6,9 +6,9 @@ import 'package:triton_note/router.dart';
 import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/element/calendar.dart';
 import 'package:triton_note/element/about_oclock.dart';
-import 'package:triton_note/component/add_report.dart';
-import 'package:triton_note/component/reports_list.dart';
-import 'package:triton_note/component/map_view.dart';
+import 'package:triton_note/page/add_report.dart';
+import 'package:triton_note/page/reports_list.dart';
+import 'package:triton_note/page/map_view.dart';
 import 'package:triton_note/decorator/listen_event.dart';
 import 'package:triton_note/decorator/google_map.dart';
 import 'package:triton_note/util/cordova.dart';
@@ -25,9 +25,9 @@ class AppModule extends Module {
     bind(CalendarElement);
     bind(AboutOclockElement);
 
-    bind(AddReportComponent);
-    bind(ReportsListComponent);
-    bind(MapViewComponent);
+    bind(AddReportPage);
+    bind(ReportsListPage);
+    bind(MapViewPage);
 
     bind(ListenChangeValue);
     bind(GoogleMap);
