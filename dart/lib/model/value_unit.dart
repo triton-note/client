@@ -1,4 +1,4 @@
-library value_unit;
+library triton_note.model.value_unit;
 
 import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/util/enums.dart';
@@ -117,8 +117,7 @@ class _WeightImpl extends JsonSupport implements Weight {
 
   _WeightImpl(Map data)
       : _data = data,
-        _unit = new CachedProp<WeightUnit>(
-            data, 'unit', (o) => enumByName(WeightUnit.values, o), (v) => nameOfEnum(v));
+        _unit = new CachedProp<WeightUnit>(data, 'unit', (o) => enumByName(WeightUnit.values, o), (v) => nameOfEnum(v));
 
   Map get asMap => _data;
 
@@ -170,8 +169,7 @@ class _LengthImpl extends JsonSupport implements Length {
 
   _LengthImpl(Map data)
       : _data = data,
-        _unit = new CachedProp<LengthUnit>(
-            data, 'unit', (o) => enumByName(LengthUnit.values, o), (v) => nameOfEnum(v));
+        _unit = new CachedProp<LengthUnit>(data, 'unit', (o) => enumByName(LengthUnit.values, o), (v) => nameOfEnum(v));
 
   Map get asMap => _data;
 

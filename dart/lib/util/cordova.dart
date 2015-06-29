@@ -1,8 +1,12 @@
-library cordova;
+library triton_note.util.cordova;
 
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
+
+import 'package:logging/logging.dart';
+
+final _logger = new Logger('Cordova');
 
 final bool isCordova = window.location.protocol == "file:";
 
@@ -24,7 +28,7 @@ void onDeviceReady(proc(String)) {
 void hideSplashScreen() {
   final splash = context['navigator']['splashscreen'];
   if (splash != null) {
-    print("Hide SplashScreen.");
+    _logger.info("Hide SplashScreen.");
     splash.callMethod('hide', []);
   }
 }
@@ -32,7 +36,7 @@ void hideSplashScreen() {
 void hideStatusBar() {
   final bar = context['StatusBar'];
   if (bar != null) {
-    print("Hide StatusBar");
+    _logger.info("Hide StatusBar");
     bar.callMethod('hide', []);
   }
 }

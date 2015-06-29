@@ -1,4 +1,4 @@
-library report_session;
+library triton_note.model.report_session;
 
 import 'dart:collection';
 
@@ -16,6 +16,5 @@ class SessionToken {
   final String uploadUrl;
   final Map<String, String> uploadParams;
 
-  SessionToken(this.token, this.uploadUrl, Map<String, String> map): uploadParams = new UnmodifiableMapView(map);
+  SessionToken(this.token, this.uploadUrl, Map<String, String> map) : uploadParams = new UnmodifiableMapView(map);
 }
-

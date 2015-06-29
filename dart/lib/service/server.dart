@@ -1,7 +1,9 @@
-library server;
+library triton_note.service.server;
 
 import 'dart:async';
 import 'dart:html';
+
+import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/model/distributions.dart';
@@ -13,20 +15,23 @@ import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/credential.dart' as Cred;
 import 'package:triton_note/settings.dart';
 
+final _logger = new Logger('Server');
+
 class Server {
   static Future<String> post(String url, String content, [String contentType = "text/json"]) async {
     final result = new Completer<String>();
     try {
-      print("Posting to ${url}");
-      final req = await HttpRequest.request(url, method: 'POST', sendData: content, requestHeaders: {"Content-Type": contentType});
+      _logger.fine("Posting to ${url}");
+      final req = await HttpRequest.request(url,
+          method: 'POST', sendData: content, requestHeaders: {"Content-Type": contentType});
       if (req.status == 200) {
         result.complete(req.responseText);
       } else {
-        print("Failed to post: status=${req.status}");
+        _logger.fine("Failed to post: status=${req.status}");
         result.completeError(new ServerError.fromRequest(req));
       }
     } catch (ex) {
-      print("Failed to post: ${ex}");
+      _logger.fine("Failed to post: ${ex}");
       if (ex is ProgressEvent && ex.target is HttpRequest && ex.target.status != 0) {
         result.completeError(new ServerError.fromRequest(ex.target));
       } else result.completeError("Failed to post to ${url}");
@@ -47,7 +52,7 @@ class Server {
     } catch (ex) {
       if (ex is ServerError) throw ex;
 
-      print("Retry(${retry}): ${ex}");
+      _logger.fine("Retry(${retry}): ${ex}");
       if (retry < 1) throw ex;
       return new Future.delayed(new Duration(seconds: retry * 3), () {
         return json(path, content, retry - 1);
@@ -92,7 +97,8 @@ class Server {
   }
 
   static Future<SessionInference> infer(String session, GeoInfo geoinfo, DateTime date) async {
-    final Map map = await _withSession("report/infer", session, {'geoinfo': geoinfo, 'date': date.millisecondsSinceEpoch});
+    final Map map =
+        await _withSession("report/infer", session, {'geoinfo': geoinfo, 'date': date.millisecondsSinceEpoch});
     final list = map['fishes'].map((v) => new Fishes.fromMap(v)).toList();
     return new SessionInference(map['spotName'], list);
   }

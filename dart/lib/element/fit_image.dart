@@ -1,10 +1,14 @@
 library triton_note.element.fit_image;
 
 import 'dart:html';
+
 import 'package:angular/angular.dart';
+import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 
 import 'package:triton_note/util/geometry.dart';
+
+final _logger = new Logger('FitImageElement');
 
 @Component(
     selector: 'fit-image',
@@ -29,13 +33,13 @@ class FitImageElement {
       _loaded = true;
     }
 
-    print("Image loaded: ${event.target}");
+    _logger.fine("Image loaded: ${event.target}");
     final ImageElement target = event.target;
 
     final real = new Size.fromRect(target.client);
     final base = new Size(width.toDouble(), height.toDouble());
     final fit = real.putInto(base);
-    print("Real:${real} -> Base:${base} => Fit:${fit}");
+    _logger.fine("Real:${real} -> Base:${base} => Fit:${fit}");
 
     if (shrink != null && shrink) {
       target.parent.style
@@ -45,7 +49,7 @@ class FitImageElement {
     } else {
       final align = new Alignment2d.fromName(alignName == null ? "center" : alignName);
       final margin = align.at(base, fit);
-      print("Fitted margin: ${margin}");
+      _logger.fine("Fitted margin: ${margin}");
       target.style
         ..marginTop = "${margin.top.floor()}px"
         ..marginBottom = "${margin.bottom.floor()}px"

@@ -9,9 +9,9 @@ import 'package:logging/logging.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/settings.dart';
 
-class GoogleMaps {
-  static final logger = new Logger('GoogleMaps');
+final _logger = new Logger('GoogleMaps');
 
+class GoogleMaps {
   static Completer<Null> _onAppended = null;
 
   static Future<Null> _append() async {
@@ -20,7 +20,7 @@ class GoogleMaps {
 
       final initializer = 'triton_note_initialize_googlemaps';
       context[initializer] = () {
-        logger.info("Google Maps API is initialized.");
+        _logger.info("Google Maps API is initialized.");
         _onAppended.complete();
       };
 

@@ -1,10 +1,14 @@
 library triton_note.element.calendar;
 
 import 'dart:html';
+
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
+
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_animation.dart';
+
+final _logger = new Logger('CalendarElement');
 
 @Component(
     selector: 'calendar',
@@ -12,8 +16,6 @@ import 'package:core_elements/core_animation.dart';
     cssUrl: 'packages/triton_note/element/calendar.css',
     useShadowDom: true)
 class CalendarElement extends ShadowRootAware with AttachAware {
-  static final logger = new Logger('CalendarElement');
-
   static const maxPages = 10;
   static const weekNames = const ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sut'];
   static const day1 = const Duration(days: 1);
@@ -57,17 +59,17 @@ class CalendarElement extends ShadowRootAware with AttachAware {
   }
 
   List<List<DateTime>> weeks(DateTime currentFirst) {
-    logger.info("Creating calender: ${currentFirst}");
+    _logger.info("Creating calender: ${currentFirst}");
     today = makeToday();
 
     final last = atFirst(currentFirst.add(day31));
     var day = new DateTime(currentFirst.year, currentFirst.month, 1);
     day = day.subtract(new Duration(days: (day.weekday - startOfWeek + 7) % 7));
-    logger.finer("Start from: ${day} to ${last}");
+    _logger.finer("Start from: ${day} to ${last}");
 
     final table = [];
     while (day.isBefore(last)) {
-      logger.finest("week at ${day}");
+      _logger.finest("week at ${day}");
       final row = [];
       for (var i = 0; i < 7; i++) {
         final list = [day.month == currentFirst.month ? "inside" : "outside"];
@@ -90,13 +92,13 @@ class CalendarElement extends ShadowRootAware with AttachAware {
 
   selectDay(int year, int month, int day) {
     final selected = new DateTime(year, month, day);
-    logger.fine("Selected: ${selected}");
+    _logger.fine("Selected: ${selected}");
     value = selected;
   }
 
   goToday() async {
     final cur = atFirst(new DateTime.now());
-    logger.fine("Today's month: ${cur}");
+    _logger.fine("Today's month: ${cur}");
 
     final all = _pages.querySelectorAll('section');
     final index = _pages.selected;
@@ -128,7 +130,7 @@ class CalendarElement extends ShadowRootAware with AttachAware {
       ..fill = "both"
       ..keyframes = [{'opacity': 0}, {'opacity': 1}]
       ..play();
-    logger.fine("Animation of page of today is started");
+    _logger.fine("Animation of page of today is started");
   }
 
   previousMonth() async {

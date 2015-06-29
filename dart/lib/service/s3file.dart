@@ -1,9 +1,13 @@
-library s3file;
+library triton_note.service.s3file;
 
 import 'dart:async';
 import 'dart:js';
 
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/settings.dart';
+
+final _logger = new Logger('S3File');
 
 class S3File {
   static const urlExpires = 900;
@@ -18,16 +22,16 @@ class S3File {
         new JsObject.jsify({"Bucket": bucket, "Key": path, 'Expires': urlExpires}),
         (error, String url) {
           if (error == null) {
-            print("S3File.url: ${path} => ${url}");
+            _logger.fine("S3File.url: ${path} => ${url}");
             result.complete(url);
           } else {
-            print("Failed to getSignedUrl: ${error}");
+            _logger.fine("Failed to getSignedUrl: ${error}");
             result.completeError(error);
           }
         }
       ]);
     } catch (ex) {
-      print("Failed to call getObject of s3file: ${ex}");
+      _logger.fine("Failed to call getObject of s3file: ${ex}");
       result.completeError(ex);
     }
     return result.future;

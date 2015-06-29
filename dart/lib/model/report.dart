@@ -1,4 +1,4 @@
-library report;
+library triton_note.model.report;
 
 import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/model/value_unit.dart';

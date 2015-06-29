@@ -1,9 +1,13 @@
-library reports;
+library triton_note.service.reports;
 
 import 'dart:async';
 
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/server.dart';
+
+final _logger = new Logger('Reports');
 
 class Reports {
   static const pageSize = 30;

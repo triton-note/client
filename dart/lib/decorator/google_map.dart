@@ -1,12 +1,15 @@
-library google_map;
+library triton_note.decorator.google_map;
 
 import 'dart:async';
 import 'dart:js';
 import 'dart:html';
 
+import 'package:angular/angular.dart';
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/model/location.dart';
 
-import 'package:angular/angular.dart';
+final _logger = new Logger('GoogleMaps');
 
 @Decorator(selector: '[google-maps]')
 class GoogleMap {
@@ -25,14 +28,14 @@ class GoogleMap {
       zoom = int.parse(parent.attributes['zoom']);
     } catch (ex) {}
     final fullHeight = parent.attributes['full-height'] != null;
-    print("Creating GoogleMap: element=${parent}, zoom=${zoom}, full-height=${fullHeight}");
+    _logger.fine("Creating GoogleMap: element=${parent}, zoom=${zoom}, full-height=${fullHeight}");
 
     setZoom(zoom);
     if (fullHeight) {
       final baseHeight = window.screen.height;
       final top = parent.getBoundingClientRect().top as double;
       final value = (baseHeight - top).floor();
-      print("Make google map to full height: ${baseHeight} - ${top} = ${value}");
+      _logger.fine("Make google map to full height: ${baseHeight} - ${top} = ${value}");
       parent.style.height = "${value}px";
     }
     _setDiv(parent);
@@ -71,7 +74,7 @@ class GoogleMap {
     _gmap('on', [
       pluginGMap['event']['MAP_CLICK'],
       (pos, [event = null]) {
-        print("map clicked: ${pos}");
+        _logger.fine("map clicked: ${pos}");
         final geoinfo = new GeoInfo.fromMap({'latitude': pos['lat'], 'longitude': pos['lng']});
         proc(geoinfo);
       }
@@ -79,7 +82,7 @@ class GoogleMap {
   }
 
   putMarker(GeoInfo geoinfo, [clearPrevious = false]) {
-    print("Putting marker at ${geoinfo}");
+    _logger.fine("Putting marker at ${geoinfo}");
     _gmap('addMarker', [
       new JsObject.jsify({'position': _newLatLng(geoinfo)}),
       (next, [event = null]) {

@@ -1,12 +1,16 @@
-library photo_shop;
+library triton_note.service.photo_shop;
 
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
 
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/dialog.dart' as Dialog;
+
+final _logger = new Logger('PhotoShop');
 
 class PhotoShop {
   final Completer<Blob> _onChoose = new Completer();
@@ -34,10 +38,10 @@ class PhotoShop {
   _makeUrl(Blob blob) {
     try {
       final String url = Url.createObjectUrlFromBlob(blob);
-      print("Url of blob => ${url}");
+      _logger.fine("Url of blob => ${url}");
       _onGetUrl.complete(url);
     } catch (ex) {
-      print("Failed to create url: ${ex}");
+      _logger.fine("Failed to create url: ${ex}");
       _onGetUrl.completeError(ex);
     }
   }
@@ -48,7 +52,7 @@ class PhotoShop {
       reader['onloadend'] = (event) {
         try {
           final array = reader['result'];
-          print("Exif Loading on ${array}");
+          _logger.fine("Exif Loading on ${array}");
           final exif = new JsObject(context['ExifReader'], []);
           exif.callMethod('load', [array]);
 
@@ -59,41 +63,41 @@ class PhotoShop {
             if (text == null) text = get('DateTimeDigitized');
             if (text == null) text = get('DateTime');
             final a = text.split(' ').expand((e) => e.split(':')).map(int.parse).toList();
-            print("Exif: Timestamp: ${a}");
+            _logger.fine("Exif: Timestamp: ${a}");
             final date = new DateTime(a[0], a[1], a[2], a[3], a[4], a[5]);
             _onGetTimestamp.complete(date);
           } catch (ex) {
-            print("Exif: Timestamp: Error: ${ex}");
+            _logger.fine("Exif: Timestamp: Error: ${ex}");
             _onGetTimestamp.completeError(ex);
           }
           try {
             final double lat = get('GPSLatitude');
             final double lon = get('GPSLongitude');
-            print("Exif: GPS: latitude=${lat}, longitude=${lon}");
+            _logger.fine("Exif: GPS: latitude=${lat}, longitude=${lon}");
             if (lat != null && lon != null) {
               _onGetGeoinfo.complete(new GeoInfo.fromMap({'latitude': lat, 'longitude': lon}));
             } else {
               _onGetGeoinfo.completeError("Exif: GPS: Error: null value");
             }
           } catch (ex) {
-            print("Exif: GPS: Error: ${ex}");
+            _logger.fine("Exif: GPS: Error: ${ex}");
             _onGetGeoinfo.completeError(ex);
           }
         } catch (ex) {
-          print("Exif: Error: ${ex}");
+          _logger.fine("Exif: Error: ${ex}");
           _onGetTimestamp.completeError(ex);
           _onGetGeoinfo.completeError(ex);
         }
       };
       reader['onerror'] = (event) {
         final error = reader['error'];
-        print("Exif: Error on reading blob: ${error}");
+        _logger.fine("Exif: Error on reading blob: ${error}");
         _onGetTimestamp.completeError(error);
         _onGetGeoinfo.completeError(error);
       };
       reader.callMethod('readAsArrayBuffer', [blob.slice(0, 128 * 1024)]);
     } catch (ex) {
-      print("Exif: Error: ${ex}");
+      _logger.fine("Exif: Error: ${ex}");
       _onGetTimestamp.completeError(ex);
       _onGetGeoinfo.completeError(ex);
     }
@@ -104,11 +108,11 @@ class PhotoShop {
       if (isCordova) {
         context['plugin']['photo'].callMethod(take ? 'take' : 'select', [
           (blob) {
-            print("Get photo: ${blob}");
+            _logger.fine("Get photo: ${blob}");
             _onChoose.complete(blob);
           },
           (error) {
-            print("Failed to get photo: ${error}");
+            _logger.fine("Failed to get photo: ${error}");
             _onChoose.completeError(error);
           }
         ]);
@@ -117,7 +121,7 @@ class PhotoShop {
         _onChoose.complete(file);
       }
     } catch (ex) {
-      print("Failed to get photo file: ${ex}");
+      _logger.fine("Failed to get photo file: ${ex}");
       _onChoose.completeError(ex);
     }
   }

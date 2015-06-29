@@ -23,6 +23,7 @@ div#photo {
 
 div#date {
   margin-top: 10px;
+  text-align: right;
   * {
     @include inline-block();
   }

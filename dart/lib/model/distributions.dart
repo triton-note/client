@@ -1,4 +1,4 @@
-library distributions;
+library triton_note.model.distributions;
 
 import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/model/location.dart';

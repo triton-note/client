@@ -1,6 +1,10 @@
-library util.geometry;
+library triton_note.util.geometry;
 
 import 'dart:html';
+
+import 'package:logging/logging.dart';
+
+final _logger = new Logger('Geometry');
 
 class Size {
   final double width;

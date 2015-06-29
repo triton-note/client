@@ -1,4 +1,4 @@
-library resource_url_resolver_cordova;
+library triton_note.util.resource_url_resolver_cordova;
 
 import 'dart:html';
 import 'package:angular/angular.dart';
@@ -23,7 +23,7 @@ class ResourceUrlResolverCordova implements ResourceUrlResolver {
   final TypeToUriMapper _uriMapper;
   final ResourceResolverConfig _config;
 
-  ResourceUrlResolverCordova(this._uriMapper, this._config): _baseUri = _getBaseUri();
+  ResourceUrlResolverCordova(this._uriMapper, this._config) : _baseUri = _getBaseUri();
 
   ResourceUrlResolverCordova.forTests(this._uriMapper, this._config, this._baseUri);
 
@@ -128,7 +128,7 @@ class ResourceUrlResolverCordova implements ResourceUrlResolver {
   /// package-relative URIs.
   String combine(Uri baseUri, String path) {
     if (!_config.useRelativeUrls) {
-       return path;
+      return path;
     }
 
     Uri resolved;
@@ -160,7 +160,7 @@ class ResourceUrlResolverCordova implements ResourceUrlResolver {
       return '${_config.packageRoot}${uri.path}';
     } else if (uri.isAbsolute && uri.toString().startsWith(_baseUri)) {
       return uri.path;
-    }  else {
+    } else {
       return uri.toString();
     }
   }

@@ -13,16 +13,30 @@
     	
 			<paper-icon-button icon="menu" ng-click="toggleMenu()"></paper-icon-button>
     	
-      		<p>Report List</p>
+      		<span flex>Report List</span>
       		
+   			<paper-fab mini icon="add" class="red" ng-click="addReport()"></paper-fab>
+    	
     	</core-toolbar>
     	
-    	<div style="margin: 10px">
-	        <div ng-repeat="model in reports" ng-click="goReport(model.id)">
-	            <paper-item>
-	                <p>{{model.id}}</p>
-	            </paper-item>
-	        </div>
+    	<div>
+		    <div ng-if="reports == null">
+		        <div style="margin: 10px">
+		            <paper-spinner active></paper-spinner>
+		        </div>
+		    </div>
+		    <div ng-if="reports != null">
+		    	<div ng-if="reports.length < 1">
+		    		<p>ADD FIRST REPORT NOW !</p>
+		    	</div>
+		    	<div ng-if="reports.length > 0">
+			        <div ng-repeat="model in reports" ng-click="goReport(model.id)">
+			            <paper-item>
+			                <p>{{model.id}}</p>
+			            </paper-item>
+			        </div>
+		        </div>
+		    </div>
     	</div>
     </core-header-panel>
 </core-drawer-panel>

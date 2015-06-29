@@ -1,7 +1,11 @@
-library photo;
+library triton_note.model.photo;
+
+import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/service/s3file.dart';
+
+final _logger = new Logger('Photo');
 
 abstract class Photo implements JsonSupport {
   Image original;
@@ -96,7 +100,7 @@ class _ImageImpl extends JsonSupport implements Image {
         url = await S3File.url(path);
         _urlStamp = new DateTime.now();
       } catch (ex) {
-        print("Failed to get url of s3file: ${ex}");
+        _logger.info("Failed to get url of s3file: ${ex}");
       } finally {
         _isRefreshing = false;
       }
@@ -104,7 +108,7 @@ class _ImageImpl extends JsonSupport implements Image {
     if (!_isRefreshing) {
       final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
       if (diff == null || diff.compareTo(_urlLimit) > 0) {
-        print("Refresh url: timestamp difference: ${diff}");
+        _logger.info("Refresh url: timestamp difference: ${diff}");
         _doRefresh();
       }
     }

@@ -1,4 +1,4 @@
-library reports_add_component;
+library triton_note.component.reports_add;
 
 import 'dart:async';
 import 'dart:html';
@@ -16,14 +16,14 @@ import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/main_frame.dart';
 
+final _logger = new Logger('AddReportComponent');
+
 @Component(
     selector: 'add-report',
     templateUrl: 'packages/triton_note/component/add_report.html',
     cssUrl: 'packages/triton_note/component/add_report.css',
     useShadowDom: false)
 class AddReportComponent extends MainFrame {
-  static final logger = new Logger('AddReportComponent');
-
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
@@ -44,7 +44,7 @@ class AddReportComponent extends MainFrame {
       report.asParam = routeProvider.parameters['report'];
       isReady = true;
     } catch (ex) {
-      logger.info("Adding new report.");
+      _logger.info("Adding new report.");
     }
   }
 
@@ -67,18 +67,18 @@ class AddReportComponent extends MainFrame {
       try {
         report.dateAt = await shop.timestamp;
       } catch (ex) {
-        logger.info("No Timestamp in Exif: ${ex}");
+        _logger.info("No Timestamp in Exif: ${ex}");
         report.dateAt = new DateTime.now();
       }
 
       try {
         report.location.geoinfo = await shop.geoinfo;
       } catch (ex) {
-        logger.info("No GeoInfo in Exif: ${ex}");
+        _logger.info("No GeoInfo in Exif: ${ex}");
         try {
           report.location.geoinfo = await Geo.location();
         } catch (ex) {
-          logger.info("Failed to get current location: ${ex}");
+          _logger.info("Failed to get current location: ${ex}");
           report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
@@ -96,7 +96,7 @@ class AddReportComponent extends MainFrame {
           }
         }
       } catch (ex) {
-        logger.info("Failed to infer: ${ex}");
+        _logger.info("Failed to infer: ${ex}");
       }
     });
   });
@@ -106,7 +106,7 @@ class AddReportComponent extends MainFrame {
   });
 
   showMap() => rippling(() {
-    logger.info("Show GoogleMaps");
+    _logger.info("Show GoogleMaps");
   });
 
   dialogDate() {
@@ -117,6 +117,6 @@ class AddReportComponent extends MainFrame {
   }
   commitCalendar() {
     report.dateAt = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
-    logger.fine("Commit date: ${report.dateAt}");
+    _logger.fine("Commit date: ${report.dateAt}");
   }
 }

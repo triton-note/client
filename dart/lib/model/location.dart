@@ -1,4 +1,4 @@
-library location;
+library triton_note.model.location;
 
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';

@@ -1,11 +1,15 @@
-library credential;
+library triton_note.service.credential;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:js';
 
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/settings.dart';
+
+final _logger = new Logger('Credential');
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
@@ -19,7 +23,8 @@ void onConnected(void proc(String)) {
 
 Future<bool> googleSignIn() => initialized.then((v) => !v ? false : _GoogleSignIn.signin());
 
-Future<Identity> get identity => initialized.then((v) => !v ? null : new Identity(_Cognito.identityId, _Cognito.logins));
+Future<Identity> get identity =>
+    initialized.then((v) => !v ? null : new Identity(_Cognito.identityId, _Cognito.logins));
 
 class Identity {
   final String id;
@@ -30,19 +35,20 @@ class Identity {
 
 class _Cognito {
   static Future<bool> _initialize() async {
-    print("Initializing Cognito ...");
+    _logger.fine("Initializing Cognito ...");
 
     final awsRegion = await Settings.awsRegion;
     final cognitoPoolId = await Settings.cognitoPoolId;
 
     context['AWS']['config']['region'] = awsRegion;
-    final creds = new JsObject(context['AWS']['CognitoIdentityCredentials'], [new JsObject.jsify({'IdentityPoolId': cognitoPoolId})]);
+    final creds = new JsObject(
+        context['AWS']['CognitoIdentityCredentials'], [new JsObject.jsify({'IdentityPoolId': cognitoPoolId})]);
     context['AWS']['config']['credentials'] = creds;
 
     try {
       return await _refresh();
     } catch (ex) {
-      print("Initialize error: ${ex}");
+      _logger.fine("Initialize error: ${ex}");
       creds['params']['IdentityId'] = null;
       return _refresh();
     } finally {
@@ -61,7 +67,7 @@ class _Cognito {
   }
 
   static Future<bool> _setToken(String service, String token) async {
-    print("Google Signin Token: ${token}");
+    _logger.fine("Google Signin Token: ${token}");
 
     final creds = context['AWS']['config']['credentials'];
     final logins = (creds['params']['Logins'] == null) ? {} : creds['params']['Logins'];
@@ -78,13 +84,13 @@ class _Cognito {
     final result = new Completer();
 
     final creds = context['AWS']['config']['credentials'];
-    print("Getting credentials");
+    _logger.fine("Getting credentials");
     creds.callMethod('get', [
       (error) {
         if (error == null) {
           result.complete(true);
         } else {
-          print("Cognito Error: ${error}");
+          _logger.fine("Cognito Error: ${error}");
           result.completeError(error);
         }
       }
@@ -130,7 +136,7 @@ class _GoogleSignIn {
         result.complete(res['result']);
       },
       (error) {
-        print("GAPI error: ${error}");
+        _logger.fine("GAPI error: ${error}");
         result.completeError(error.result.error.message);
       }
     ]);
@@ -139,7 +145,7 @@ class _GoogleSignIn {
 
   static Future<String> _getUserId() async {
     final result = await _request('/plus/v1/people/me');
-    print("me: ${_stringify(result)}");
+    _logger.fine("me: ${_stringify(result)}");
     return result['id'];
   }
 
@@ -147,17 +153,22 @@ class _GoogleSignIn {
     final result = new Completer();
     context['gapi']['client'].callMethod('setApiKey', [googleApiKey]);
     context['gapi']['auth'].callMethod('authorize', [
-      new JsObject.jsify({'client_id': googleClientId, 'scope': scopes.join(' '), 'response_type': 'token id_token', 'immediate': immediate}),
+      new JsObject.jsify({
+        'client_id': googleClientId,
+        'scope': scopes.join(' '),
+        'response_type': 'token id_token',
+        'immediate': immediate
+      }),
       (res) {
         if (res['error'] != null) {
-          print("Google Signin Error");
+          _logger.fine("Google Signin Error");
           result.completeError("Google Signin Error: ${res['error']}");
         } else {
           result.complete(res['id_token']);
         }
       },
       (error) {
-        print("Google Signin Error: ${error}");
+        _logger.fine("Google Signin Error: ${error}");
         result.completeError(error.result.error.message);
       }
     ]);

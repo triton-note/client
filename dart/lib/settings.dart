@@ -1,4 +1,4 @@
-library settings;
+library triton_note.settings;
 
 import 'dart:async';
 import 'dart:collection';

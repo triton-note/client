@@ -1,9 +1,13 @@
-library dialog;
+library triton_note.util.dialog;
 
 import 'dart:async';
 import 'dart:html';
 
+import 'package:logging/logging.dart';
+
 import 'package:paper_elements/paper_dialog.dart';
+
+final _logger = new Logger('Dialog');
 
 Future<File> chooseFile() {
   final result = new Completer<File>();
@@ -19,7 +23,7 @@ Future<File> chooseFile() {
       sub.cancel();
     }
   });
-  print("Toggle dialog: ${fileChooser}");
+  _logger.fine("Toggle dialog: ${fileChooser}");
   fileChooser.toggle();
   return result.future;
 }

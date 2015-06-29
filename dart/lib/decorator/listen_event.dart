@@ -1,6 +1,7 @@
-library listen_event;
+library triton_note.decorator.listen_event;
 
 import 'dart:html';
+
 import 'package:angular/angular.dart';
 
 @Decorator(selector: '[listen-change-value]')

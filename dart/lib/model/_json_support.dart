@@ -1,4 +1,4 @@
-library json_support;
+library triton_note.model.json_support;
 
 import 'dart:convert';
 export 'dart:convert';

@@ -1,9 +1,12 @@
-library main_frame;
+library triton_note.util.main_frame;
 
 import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:logging/logging.dart';
+
+final _logger = new Logger('MainFrame');
 
 class MainFrame {
   final Router router;
@@ -24,6 +27,6 @@ class MainFrame {
   }
 
   void goPreferences() {
-    print("Going to preferences");
+    _logger.info("Going to preferences");
   }
 }
