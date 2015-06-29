@@ -1,7 +1,15 @@
 library triton_note.model.value_unit;
 
+import 'dart:math';
+
 import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/util/enums.dart';
+
+String _rounded(double v, int digits) {
+  if (digits <= 0) return "${v.round()}";
+  final d = pow(10, digits);
+  return "${(v * d).round() / d}";
+}
 
 abstract class Measures implements JsonSupport {
   LengthUnit length;
@@ -88,9 +96,8 @@ class _TemperatureImpl extends JsonSupport implements Temperature {
   }
 
   @override
-  String toString() {
-    return "${value.round()} °${nameOfEnum(unit).substring(0, 1)}";
-  }
+  String toString() => rounded(0);
+  String rounded(int digits) => "${_rounded(value, digits)} °${nameOfEnum(unit)[0]}";
 }
 
 abstract class Weight implements JsonSupport {
@@ -142,6 +149,10 @@ class _WeightImpl extends JsonSupport implements Weight {
       }
     }
   }
+
+  @override
+  String toString() => rounded(1);
+  String rounded(int digits) => "${_rounded(value, digits)} ${nameOfEnum(unit)}";
 }
 
 abstract class Length implements JsonSupport {
@@ -194,4 +205,8 @@ class _LengthImpl extends JsonSupport implements Length {
       }
     }
   }
+
+  @override
+  String toString() => rounded(1);
+  String rounded(int digits) => "${_rounded(value, digits)} ${nameOfEnum(unit)}";
 }

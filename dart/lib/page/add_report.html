@@ -65,32 +65,37 @@
 		        	</div>
 				    <div id="condition">
 				    	<div class="weather">
-				    		<p>Weather: {{report.condition.weather.nominal}}</p>
 				    		<div ng-if="report.condition.weather.iconUrl == null">
+				    			<p>Weather</p>
 				    			<paper-spinner active class="red"></paper-spinner>
 				    		</div>
-				    		<div class="row" ng-if="report.condition.weather.iconUrl != null">
-					    		<img ng-src="{{report.condition.weather.iconUrl}}">
-					    		<p>{{report.condition.weather.temperature}}</p>
+				    		<div ng-if="report.condition.weather.iconUrl != null">
+					    		<p>{{report.condition.weather.nominal}}</p>
+					    		<div class="row">
+						    		<img ng-src="{{report.condition.weather.iconUrl}}">
+						    		<p>{{report.condition.weather.temperature}}</p>
+					    		</div>
 				    		</div>
-				    	</div>
-				    	<div class="moon">
-				    		<p>Moon Age: {{report.condition.moon}}</p>
-				    		<div ng-if="moonImage == null">
-				    			<paper-spinner active class="green"></paper-spinner>
-				    		</div>
-				    		<div ng-if="moonImage != null">
-					    		<img ng-src="{{moonImage}}">
-					    	</div>
 				    	</div>
 				    	<div class="tide">
-				    		<p>Tide: {{tideName}}</p>
 				    		<div ng-if="tideImage == null">
+				    			<p>Tide</p>
 				    			<paper-spinner active class="blue"></paper-spinner>
 				    		</div>
 				    		<div ng-if="tideImage != null">
+					    		<p>{{tideName}}</p>
 				    			<img ng-src="{{tideImage}}">
 				    		</div>
+				    	</div>
+				    	<div class="moon">
+				    		<div ng-if="moonImage == null">
+				    			<p>Moon</p>
+				    			<paper-spinner active class="green"></paper-spinner>
+				    		</div>
+				    		<div ng-if="moonImage != null">
+					    		<p>Phase: {{report.condition.moon}}</p>
+					    		<img ng-src="{{moonImage}}">
+					    	</div>
 				    	</div>
 				    </div>
 	        	</div>
