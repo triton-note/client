@@ -20,8 +20,8 @@ final _logger = new Logger('AddReportPage');
 
 @Component(
     selector: 'add-report',
-    templateUrl: 'packages/triton_note/component/add_report.html',
-    cssUrl: 'packages/triton_note/component/add_report.css',
+    templateUrl: 'packages/triton_note/page/add_report.html',
+    cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: false)
 class AddReportPage extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();

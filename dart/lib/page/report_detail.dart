@@ -9,7 +9,11 @@ import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('ReportsDetailPage');
 
-@Component(selector: 'report-detail', templateUrl: 'packages/triton_note/component/report_detail.html')
+@Component(
+    selector: 'report-detail',
+    templateUrl: 'packages/triton_note/page/report_detail.html',
+    cssUrl: 'packages/triton_note/page/report_detail.css',
+    useShadowDom: false)
 class ReportsDetailPage extends MainFrame {
   Report report;
 

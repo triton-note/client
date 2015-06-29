@@ -10,7 +10,10 @@ import 'package:triton_note/util/main_frame.dart';
 final _logger = new Logger('ReportsListPage');
 
 @Component(
-    selector: 'reports-list', templateUrl: 'packages/triton_note/component/reports_list.html', useShadowDom: false)
+    selector: 'reports-list',
+    templateUrl: 'packages/triton_note/page/reports_list.html',
+    cssUrl: 'packages/triton_note/page/reports_list.css',
+    useShadowDom: false)
 class ReportsListPage extends MainFrame {
   List<Report> reports;
 

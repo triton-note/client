@@ -9,7 +9,11 @@ import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('MapViewPage');
 
-@Component(selector: 'map-view', templateUrl: 'packages/triton_note/component/map_view.html')
+@Component(
+    selector: 'map-view',
+    templateUrl: 'packages/triton_note/page/map_view.html',
+    cssUrl: 'packages/triton_note/page/map_view.css',
+    useShadowDom: false)
 class MapViewPage extends MainFrame {
   final String from;
   final Report report = new Report.fromMap({});
