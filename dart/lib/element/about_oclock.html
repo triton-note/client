@@ -1,7 +1,20 @@
-<div id="root">
-	<p>about </p>
-	<paper-input-decorator>
-		<input ng-model="value" type="number" min="0" max="23">
-	</paper-input-decorator>
-	<p>O'clock</p>
+<div class="base">
+	<div class="root">
+		<p>about </p>
+		
+		<p class="value">{{value}}</p>
+		
+		<div class="buttons">
+			<div class="button" ng-click="up()">
+				<core-icon icon="arrow-drop-up"></core-icon>
+				<paper-ripple fit></paper-ripple>
+			</div>
+			<div class="button" ng-click="down()">
+				<core-icon icon="arrow-drop-down"></core-icon>
+				<paper-ripple fit></paper-ripple>
+			</div>
+		</div>
+		
+		<p>O'clock</p>
+	</div>
 </div>

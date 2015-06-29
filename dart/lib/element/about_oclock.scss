@@ -1,14 +1,52 @@
 @import "compass";
 
-div#root {
+div.base {
+  text-align: center;
+}
+
+div.root {
   display: block;
   
   &>* {
     @include inline-block();
-    vertical-align: bottom;
+    vertical-align: center;
   }
-  paper-input-decorator {
-    margin-left: 20px;
-    margin-right: 20px;
+  
+  .value {
+    width: 40px;
+    margin-left: 0px;
+    margin-right: 10px;
+    text-align: right;
+    font-size: 20px;
+  }
+  
+  div.buttons {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-right: 5px;
+    text-align: center;
+    
+    div.button {
+      position: relative;
+      display: block;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      margin-left: 2px;
+      margin-right: 2px;
+      
+      border: solid 2px #eee;
+      @include border-radius(4px);
+      background-color: white;
+      
+      text-align: center;
+      
+      core-icon {
+        width: 36px;
+        height: 24px;
+      }
+      paper-ripple {
+        color: #66f;
+      }
+    }
   }
 }

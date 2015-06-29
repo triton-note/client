@@ -9,4 +9,11 @@ import 'package:angular/angular.dart';
     useShadowDom: true)
 class AboutOclockElement {
   @NgTwoWay('value') int value;
+
+  up() {
+    value = (value + 1) % 24;
+  }
+  down() {
+    value = (value - 1 + 24) % 24;
+  }
 }
