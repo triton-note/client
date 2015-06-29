@@ -167,7 +167,8 @@ class Server {
   }
 
   static Future<Condition> getConditions(DateTime date, GeoInfo geoinfo) async {
-    final Map map = await _withTicket("conditions/get", {"date": date, "geoinfo": geoinfo});
+    final Map map =
+        await _withTicket("conditions/get", {"date": date.toUtc().millisecondsSinceEpoch, "geoinfo": geoinfo});
     return new Condition.fromMap(map);
   }
 }

@@ -86,6 +86,11 @@ class _TemperatureImpl extends JsonSupport implements Temperature {
       }
     }
   }
+
+  @override
+  String toString() {
+    return "${value.round()} °${nameOfEnum(unit).substring(0, 1)}";
+  }
 }
 
 abstract class Weight implements JsonSupport {

@@ -32,35 +32,68 @@
 			    <div id="photo">
 			        <fit-image url="report.photo.reduced.mainview.url" width="photoWidth" height="photoHeight" shrink="true"></fit-image>
 			    </div>
-		        <div id="date">
-		        	<p>at</p>
-		        	<paper-button raised ng-click="dialogDate()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
-		        </div>
-	        	<paper-action-dialog id="date-dialog" transition="core-transition-center" backdrop layered autoCloseDisabled>
-	        		<style>
-	        			paper-shadow {
-	        				margin-bottom: 10px;
-	        				padding-left: 10px;
-	        				padding-right: 10px;
-	        				-moz-border-radius: 2px;
-	        				-webkit-border-radius: 2px;
-	        				border-radius: 2px;
-	        			}
-	        		</style>
-	        		
-	        		<paper-shadow z="1">
-	        			<calendar value="tmpDate" start-of-week="1"></calendar>
-        			</paper-shadow>
-	        		
-	        		<br>
-	        		
-	        		<paper-shadow z="1">
-	        			<about-oclock value="tmpOclock"></about-oclock>
-        			</paper-shadow>
-	        		
-	        		<paper-button dismissive style="color: red">Cancel</paper-button>
-	        		<paper-button affirmative style="color: green" ng-click="commitCalendar()">OK</paper-button>
-	        	</paper-action-dialog>
+			    <div>
+			    	<div>
+				        <div id="date">
+				        	<paper-button raised ng-click="dialogDate()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
+				        </div>
+			        	<paper-action-dialog id="date-dialog" transition="core-transition-center" backdrop layered autoCloseDisabled>
+			        		<style>
+			        			paper-shadow {
+			        				margin-bottom: 10px;
+			        				padding-left: 10px;
+			        				padding-right: 10px;
+			        				-moz-border-radius: 3px;
+			        				-webkit-border-radius: 3px;
+			        				border-radius: 3px;
+			        			}
+			        		</style>
+			        		
+			        		<paper-shadow z="1">
+			        			<about-oclock value="tmpOclock"></about-oclock>
+		        			</paper-shadow>
+			        		
+			        		<br>
+			        		
+			        		<paper-shadow z="1">
+			        			<calendar value="tmpDate" start-of-week="1"></calendar>
+		        			</paper-shadow>
+			        		
+			        		<paper-button dismissive style="color: red">Cancel</paper-button>
+			        		<paper-button affirmative style="color: green" ng-click="commitCalendar()">OK</paper-button>
+			        	</paper-action-dialog>
+		        	</div>
+				    <div id="condition">
+				    	<div class="weather">
+				    		<p>Weather: {{report.condition.weather.nominal}}</p>
+				    		<div ng-if="report.condition.weather.iconUrl == null">
+				    			<paper-spinner active class="red"></paper-spinner>
+				    		</div>
+				    		<div class="row" ng-if="report.condition.weather.iconUrl != null">
+					    		<img ng-src="{{report.condition.weather.iconUrl}}">
+					    		<p>{{report.condition.weather.temperature}}</p>
+				    		</div>
+				    	</div>
+				    	<div class="moon">
+				    		<p>Moon Age: {{report.condition.moon}}</p>
+				    		<div ng-if="moonImage == null">
+				    			<paper-spinner active class="green"></paper-spinner>
+				    		</div>
+				    		<div ng-if="moonImage != null">
+					    		<img ng-src="{{moonImage}}">
+					    	</div>
+				    	</div>
+				    	<div class="tide">
+				    		<p>Tide: {{tideName}}</p>
+				    		<div ng-if="tideImage == null">
+				    			<paper-spinner active class="blue"></paper-spinner>
+				    		</div>
+				    		<div ng-if="tideImage != null">
+				    			<img ng-src="{{tideImage}}">
+				    		</div>
+				    	</div>
+				    </div>
+	        	</div>
 			    <div>
 			    	<div>
 			    		<paper-input-decorator label="Spot Name" floatingLabel>
@@ -70,6 +103,8 @@
 			    	<div ng-click="showMap()">
 			    		<div id="google-maps"></div>
 			    	</div>
+			    </div>
+			    <div id="catchess">
 			    </div>
     		</div>
     	</div>
