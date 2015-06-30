@@ -1,4 +1,5 @@
 @import "compass";
+@import "../../web/styles/common";
 
 div#pre {
   div {
@@ -48,6 +49,7 @@ div#condition {
   @include border-radius(8px);
   
   &>div {
+    position: relative;
     display: table-cell;
     margin: 0;
     padding: 1%;

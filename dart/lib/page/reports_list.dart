@@ -13,7 +13,7 @@ final _logger = new Logger('ReportsListPage');
     selector: 'reports-list',
     templateUrl: 'packages/triton_note/page/reports_list.html',
     cssUrl: 'packages/triton_note/page/reports_list.css',
-    useShadowDom: false)
+    useShadowDom: true)
 class ReportsListPage extends MainFrame {
   List<Report> reports;
 

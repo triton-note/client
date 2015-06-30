@@ -5,8 +5,9 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-
 import 'package:paper_elements/paper_action_dialog.dart';
+import 'package:paper_elements/paper_dialog.dart';
+
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
@@ -24,15 +25,21 @@ final _logger = new Logger('AddReportPage');
     selector: 'add-report',
     templateUrl: 'packages/triton_note/page/add_report.html',
     cssUrl: 'packages/triton_note/page/add_report.css',
-    useShadowDom: false)
-class AddReportPage extends MainFrame {
+    useShadowDom: true)
+class AddReportPage extends MainFrame implements ShadowRootAware {
+  static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
+
+  ShadowRoot _shadowRoot;
+
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
+  List<String> get tideNames => tideList.map((t) => nameOfEnum(t));
+  String tideIcon(String name) => name == null ? null : "/img/tide/${name.toLowerCase()}.png";
+  String get tideName => report.condition.tide == null ? null : nameOfEnum(report.condition.tide);
+  String get tideImage => tideIcon(tideName);
   String get moonImage =>
       report.condition.moon == null ? null : "/img/moon/phase-${report.condition.moon.toString().padLeft(2, '0')}.png";
-  String get tideName => report.condition.tide == null ? null : nameOfEnum(report.condition.tide);
-  String get tideImage => tideName == null ? null : "/img/tide/${tideName.toLowerCase()}.png";
 
   DateTime tmpDate = new DateTime.now();
   int tmpOclock = 0;
@@ -41,10 +48,26 @@ class AddReportPage extends MainFrame {
   bool get isSubmitable => report.photo != null && report.photo.original != null;
 
   int get photoWidth {
-    final div = document.getElementById('photo');
+    final div = _shadowRoot.querySelector('#photo');
     return div != null ? div.clientWidth : null;
   }
   int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
+
+  PaperActionDialog _dateDialog;
+  PaperActionDialog get dateDialog {
+    if (_dateDialog == null) _dateDialog = _shadowRoot.querySelector('#date-dialog');
+    return _dateDialog;
+  }
+  PaperDialog _tideDialog;
+  PaperDialog get tideDialog {
+    if (_tideDialog == null) _tideDialog = _shadowRoot.querySelector('#tide-dialog');
+    return _tideDialog;
+  }
+  PaperDialog _weatherDialog;
+  PaperDialog get weatherDialog {
+    if (_weatherDialog == null) _weatherDialog = _shadowRoot.querySelector('#weather-dialog');
+    return _weatherDialog;
+  }
 
   AddReportPage(Router router, RouteProvider routeProvider) : super(router) {
     try {
@@ -53,6 +76,10 @@ class AddReportPage extends MainFrame {
     } catch (ex) {
       _logger.info("Adding new report.");
     }
+  }
+
+  void onShadowRoot(ShadowRoot sr) {
+    _shadowRoot = sr;
   }
 
   choosePhoto(bool take) => rippling(() {
@@ -89,7 +116,7 @@ class AddReportPage extends MainFrame {
           report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
-      new GoogleMaps(document.getElementById('google-maps'), report.location.geoinfo, mark: true);
+      new GoogleMaps(_shadowRoot.querySelector('#google-maps'), report.location.geoinfo, mark: true);
       renewConditions();
 
       try {
@@ -133,12 +160,18 @@ class AddReportPage extends MainFrame {
   dialogDate() {
     tmpDate = new DateTime(report.dateAt.year, report.dateAt.month, report.dateAt.day);
     tmpOclock = report.dateAt.hour;
-    final dialog = document.getElementById('date-dialog') as PaperActionDialog;
-    dialog.toggle();
+    dateDialog.toggle();
   }
   commitCalendar() {
     report.dateAt = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
     _logger.fine("Commit date: ${report.dateAt}");
     renewConditions();
+  }
+
+  dialogTide() => tideDialog.toggle();
+  changeTide(String name) {
+    final tide = enumByName(tideList, name);
+    if (tide != null) report.condition.tide = tide;
+    tideDialog.toggle();
   }
 }

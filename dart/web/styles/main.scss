@@ -1,5 +1,10 @@
-@import "compass";
-
-@import "general";
-@import "animation";
-@import "paper";
+body {
+	font: {
+		family: 'Noto Sans Japanese', sans-serif;
+		size: 16px;
+		weight: 100;
+	}
+	color: #555;
+	-webkit-font-smoothing: subpixel-antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}

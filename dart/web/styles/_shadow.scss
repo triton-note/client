@@ -14,14 +14,8 @@
   }
 }
 
-paper-radio-group {
-  @include radio-color(#555);
-}
-
-paper-radio-group.gray {
-	@include radio-color(#555);
-}
-
-paper-radio-group.blue {
-  @include radio-color(#000080);
+@mixin spinner-color($color) {
+  &::shadow .circle {
+    border-color: $color;
+  }
 }

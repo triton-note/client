@@ -13,7 +13,7 @@ final _logger = new Logger('ReportsDetailPage');
     selector: 'report-detail',
     templateUrl: 'packages/triton_note/page/report_detail.html',
     cssUrl: 'packages/triton_note/page/report_detail.css',
-    useShadowDom: false)
+    useShadowDom: true)
 class ReportsDetailPage extends MainFrame {
   Report report;
 

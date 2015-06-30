@@ -13,7 +13,7 @@ final _logger = new Logger('MapViewPage');
     selector: 'map-view',
     templateUrl: 'packages/triton_note/page/map_view.html',
     cssUrl: 'packages/triton_note/page/map_view.css',
-    useShadowDom: false)
+    useShadowDom: true)
 class MapViewPage extends MainFrame {
   final String from;
   final Report report = new Report.fromMap({});

@@ -1,3 +1,10 @@
+
+core-header-panel[main] {
+  &>div {
+    margin: 10px;
+  }
+}
+
 paper-radio-button {
   display: block;
   font-weight: 200;
