@@ -34,38 +34,52 @@ div#catches {
     width: 100%;
     border-bottom: solid 1px #ccc;
     
-    &>* {
+    &>:first-child {
+      padding-left: 10px;
+    }
+    &>:last-child {
+      padding-right: 10px;
+    }
+    
+    &>div {
       display: table-cell;
-      padding-top: 5px;
-      padding-bottom: 5px;
+      padding: 5px;
       vertical-align: middle;
       *vertical-align: auto;
-    }
-    .title {
-      padding-left: 20px;
-      text-align: left;
-    
-      p {
+      
+      &>p {
         margin: 0;
         font: {
           size: 20px;
-          weight: 500;
+          weight: 400;
         }
       }
     }
-    .fish-name {
-      padding-left: 10px;
-      padding-right: 10px;
-    }
-    .add-button {
-      padding-right: 20px;
-      text-align: right;
-    }
   }
   .list {
-    padding: 10px;
+    $fontSize: 16px;
+    
+    &>:first-child {
+      border-top: 0;
+    }
+    
     .item {
       position: relative;
+      display: block;
+      padding-top: $fontSize / 2;
+      padding-bottom: $fontSize / 2;
+      padding-left: $fontSize;
+      padding-right: $fontSize;
+      
+      border-top: solid 1px #eee;
+      
+      &>p {
+        margin: 0;
+        font: {
+          size: $fontSize;
+          weight: 300;
+        }
+      }
     }
   }
 }

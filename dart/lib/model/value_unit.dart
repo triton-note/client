@@ -2,8 +2,12 @@ library triton_note.model.value_unit;
 
 import 'dart:math';
 
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/util/enums.dart';
+
+final _logger = new Logger('ValueUnit');
 
 String _rounded(double v, int digits) {
   if (digits <= 0) return "${v.round()}";
@@ -84,6 +88,7 @@ class _TemperatureImpl extends JsonSupport implements Temperature {
   TemperatureUnit get unit => _unit.value;
 
   Temperature convertTo(TemperatureUnit dst) {
+    _logger.finest("Converting ${this.asMap} to '${dst}'");
     if (this.unit == dst) return this;
     else {
       switch (dst) {

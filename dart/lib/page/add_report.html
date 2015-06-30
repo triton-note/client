@@ -38,8 +38,8 @@
 			    			<p>Catches</p>
 			    		</div>
 			    		<div class="fish-name">
-			    			<paper-input-decorator label="FISH NAME">
-			    				<input ng-model="tmpFishName">
+			    			<paper-input-decorator label="Fish name">
+			    				<input ng-model="addingFishName">
 			    			</paper-input-decorator>
 			    		</div>
 			    		<div class="add-button">
@@ -89,30 +89,31 @@
 			    		
 			    		<paper-shadow class="rounded name">
 				    		<div class="row fish-name">
-				    			<paper-input-decorator floatingLabel label="FISH NAME">
+				    			<paper-input-decorator floatingLabel label="Fish name">
 				    				<input ng-model="tmpFish.name">
 				    			</paper-input-decorator>
 				    		</div>
 				    		
 				    		<div class="row count">
 				    			<p>Count</p>
-				    			<num-input value="tmpFish.count" min="0"></num-input>
+				    			<num-input value="tmpFishCount" min="0"></num-input>
 				    		</div>
 			    		</paper-shadow>
 			    		
 			    		<paper-shadow class="rounded sizes">
 				    		<div class="row size length">
 				    			<p>Length ({{lengthUnit}})</p>
-				    			<num-input value="tmpFish.length.value" min="0"></num-input>
+				    			<num-input value="tmpFishLength" min="0"></num-input>
 				    		</div>
 				    		
 				    		<div class="row size weight">
 				    			<p>Weight ({{weightUnit}})</p>
-				    			<num-input value="tmpFish.weight.value" min="0"></num-input>
+				    			<num-input value="tmpFishWeight" min="0"></num-input>
 				    		</div>
 				    	</paper-shadow>
 			    		
-		        		<paper-button dismissive style="color: red">Cancel</paper-button>
+		        		<paper-button dismissive style="color: red">Reset</paper-button>
+		        		<paper-button dismissive style="color: red" ng-click="deleteFish()">Delete</paper-button>
 		        		<paper-button affirmative style="color: green" ng-click="commitFish()">OK</paper-button>
 			    	</paper-action-dialog>
 			    </div>

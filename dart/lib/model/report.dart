@@ -100,8 +100,9 @@ class _FishesImpl extends JsonSupport implements Fishes {
 
   @override
   String toString() {
-    final sizesList = [weight, length].map((a) => a.toString());
-    final sizes = sizesList.isEmpty ? '' : "(${sizesList.join(', ')})";
+    final sizesList =
+        [weight, length].where((a) => a != null && a.value != null && a.value > 0).map((a) => a.toString());
+    final sizes = sizesList.isEmpty ? '' : " (${sizesList.join(', ')})";
     return "${name}${sizes} x ${count}";
   }
 }

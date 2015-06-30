@@ -30,26 +30,47 @@ final _logger = new Logger('AddReportPage');
 class AddReportPage extends MainFrame implements ShadowRootAware {
   static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
 
+  static LengthUnit get userLengthUnit => LengthUnit.cm;
+  static WeightUnit get userWeightUnit => WeightUnit.kg;
+  static TemperatureUnit get userTemperatureUnit => TemperatureUnit.Cels;
+
   ShadowRoot _shadowRoot;
 
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
-  String tmpFishName;
-  Fishes tmpFish;
+  String addingFishName;
   int tmpFishIndex;
+  Fishes tmpFish;
+  // tmpFish.count
+  int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
+  set tmpFishCount(int v) => (tmpFish == null || v == null || v == 0) ? null : tmpFish.count = v;
+  // tmpFish.lenth
+  int get tmpFishLength =>
+      (tmpFish == null || tmpFish.length == null || tmpFish.length.value == null) ? null : tmpFish.length.value.round();
+  set tmpFishLength(int v) =>
+      (tmpFish == null || tmpFish.length == null || v == null) ? null : tmpFish.length.value = v.toDouble();
+  // tmpFish.weight
+  int get tmpFishWeight =>
+      (tmpFish == null || tmpFish.weight == null || tmpFish.weight.value == null) ? null : tmpFish.weight.value.round();
+  set tmpFishWeight(int v) =>
+      (tmpFish == null || tmpFish.weight == null || v == null) ? null : tmpFish.weight.value = v.toDouble();
 
-  String get lengthUnit => nameOfEnum(LengthUnit.cm);
-  String get weightUnit => nameOfEnum(WeightUnit.kg);
+  String get lengthUnit => nameOfEnum(userLengthUnit);
+  String get weightUnit => nameOfEnum(userWeightUnit);
+  String get temperatureUnit => "°${nameOfEnum(userTemperatureUnit)[0]}";
 
-  String get temperatureUnit => report.condition.weather.temperature == null
-      ? null
-      : "°${nameOfEnum(report.condition.weather.temperature.unit)[0]}";
   Timer _weatherDialogTimer;
-  int get temperatureValue =>
-      report.condition.weather.temperature == null ? null : report.condition.weather.temperature.value.round();
+  Temperature _temperature;
+  int get temperatureValue {
+    if (report.condition.weather.temperature == null) return null;
+    if (_temperature == null) _temperature = report.condition.weather.temperature.convertTo(userTemperatureUnit);
+    return _temperature.value.round();
+  }
   set temperatureValue(int v) {
-    report.condition.weather.temperature.value = v.toDouble();
+    _temperature = new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(userTemperatureUnit)});
+    _logger.fine("Set temperature: ${_temperature.asMap}");
+    report.condition.weather.temperature = _temperature;
     _logger.finest("Setting timer for closing weather dialog.");
     if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
     _weatherDialogTimer = new Timer(new Duration(seconds: 3), () {
@@ -192,13 +213,9 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   });
 
   addFish() {
-    if (tmpFishName != null && tmpFishName.isNotEmpty) {
-      final fish = new Fishes.fromMap({
-        'name': tmpFishName,
-        'count': 1,
-        'length': {'value': 0, 'unit': 'cm'},
-        'weight': {'value': 0, 'unit': 'kg'}
-      });
+    if (addingFishName != null && addingFishName.isNotEmpty) {
+      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
+      addingFishName = null;
       if (report.fishes == null) {
         report.fishes = [fish];
       } else {
@@ -208,16 +225,30 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   }
   editFish(int index) {
     if (0 <= index && index < report.fishes.length) {
+      final fish = new Fishes.fromMap(new Map.from(report.fishes[index].asMap));
+      if (fish.length == null) fish.length = new Length.fromMap({'value': 0, 'unit': nameOfEnum(userLengthUnit)});
+      if (fish.weight == null) fish.weight = new Weight.fromMap({'value': 0, 'unit': nameOfEnum(userWeightUnit)});
+      _logger.fine("Editing fish[${index}]: ${fish.asMap}");
+
       tmpFishIndex = index;
-      tmpFish = new Fishes.fromMap(report.fishes[index].asMap);
-      fishDialog.open();
+      tmpFish = fish;
+      fishDialog.toggle();
     }
   }
   commitFish() {
-    if (tmpFish.length != null && tmpFish.length.value == 0) tmpFish.length = null;
-    if (tmpFish.weight != null && tmpFish.weight.value == 0) tmpFish.weight = null;
-    report.fishes[tmpFishIndex].asMap.addAll(tmpFish.asMap);
-    fishDialog.close();
+    _logger.fine("Commit fish: ${tmpFish.asMap}");
+    final fish = new Fishes.fromMap(new Map.from(tmpFish.asMap));
+
+    if (fish.length != null && fish.length.value == 0) fish.length = null;
+    if (fish.weight != null && fish.weight.value == 0) fish.weight = null;
+    _logger.finest("Set fish[${tmpFishIndex}]: ${fish.asMap}");
+    report.fishes[tmpFishIndex] = fish;
+  }
+  deleteFish() {
+    _logger.fine("Deleting fish: ${tmpFishIndex}");
+    if (0 <= tmpFishIndex && tmpFishIndex < report.fishes.length) {
+      report.fishes.removeAt(tmpFishIndex);
+    }
   }
 
   dialogDate() {
@@ -233,7 +264,7 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
 
   dialogTide() => tideDialog.toggle();
   changeTide(String name) {
-    final tide = enumByName(tideList, name);
+    final tide = enumByName(Tide.values, name);
     if (tide != null) report.condition.tide = tide;
     tideDialog.toggle();
   }
