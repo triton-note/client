@@ -94,7 +94,7 @@
 					    		</div>
 				    			<paper-ripple fit ng-click="dialogWeather()"></paper-ripple>
 				    		</div>
-				    		<paper-dialog id="weather-dialog" transition="core-transition-center">
+				    		<paper-dialog id="weather-dialog" transition="core-transition-center" backdrop>
 				    			<style>
 				        			#weather-dialog paper-shadow {
 				        				margin-bottom: 10px;
@@ -163,7 +163,7 @@
 				    			<img ng-src="{{tideImage}}">
 				    			<paper-ripple fit ng-click="dialogTide()"></paper-ripple>
 				    		</div>
-				    		<paper-dialog id="tide-dialog" transition="core-transition-center">
+				    		<paper-dialog id="tide-dialog" transition="core-transition-center" backdrop>
 				    			<style>
 				    				#tide-dialog .row {
 				    					position: relative;
