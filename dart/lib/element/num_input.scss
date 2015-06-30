@@ -1,11 +1,7 @@
 @import "compass";
 
-div.base {
-  text-align: center;
-}
-
 div.root {
-  display: block;
+  @include inline-block();
   
   &>* {
     @include inline-block();
@@ -17,7 +13,6 @@ div.root {
     margin-left: 0px;
     margin-right: 10px;
     text-align: right;
-    font-size: 20px;
   }
   
   div.buttons {
@@ -40,10 +35,6 @@ div.root {
       
       text-align: center;
       
-      core-icon {
-        width: 36px;
-        height: 24px;
-      }
       paper-ripple {
         color: #66f;
       }
