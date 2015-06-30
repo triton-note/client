@@ -5,7 +5,7 @@ import 'dart:html';
 import 'package:triton_note/router.dart';
 import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/element/calendar.dart';
-import 'package:triton_note/element/about_oclock.dart';
+import 'package:triton_note/element/num_input.dart';
 import 'package:triton_note/page/add_report.dart';
 import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/map_view.dart';
@@ -23,7 +23,7 @@ class AppModule extends Module {
   AppModule() {
     bind(FitImageElement);
     bind(CalendarElement);
-    bind(AboutOclockElement);
+    bind(NumInputElement);
 
     bind(AddReportPage);
     bind(ReportsListPage);
