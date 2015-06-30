@@ -35,6 +35,13 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
+  String tmpFishName;
+  Fishes tmpFish;
+  int tmpFishIndex;
+
+  String get lengthUnit => nameOfEnum(LengthUnit.cm);
+  String get weightUnit => nameOfEnum(WeightUnit.kg);
+
   String get temperatureUnit => report.condition.weather.temperature == null
       ? null
       : "°${nameOfEnum(report.condition.weather.temperature.unit)[0]}";
@@ -71,6 +78,11 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   }
   int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
 
+  PaperActionDialog _fishDialog;
+  PaperActionDialog get fishDialog {
+    if (_fishDialog == null) _fishDialog = _shadowRoot.querySelector('#fish-dialog');
+    return _fishDialog;
+  }
   PaperActionDialog _dateDialog;
   PaperActionDialog get dateDialog {
     if (_dateDialog == null) _dateDialog = _shadowRoot.querySelector('#date-dialog');
@@ -178,6 +190,35 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   showMap() => rippling(() {
     _logger.info("Show GoogleMaps");
   });
+
+  addFish() {
+    if (tmpFishName != null && tmpFishName.isNotEmpty) {
+      final fish = new Fishes.fromMap({
+        'name': tmpFishName,
+        'count': 1,
+        'length': {'value': 0, 'unit': 'cm'},
+        'weight': {'value': 0, 'unit': 'kg'}
+      });
+      if (report.fishes == null) {
+        report.fishes = [fish];
+      } else {
+        report.fishes.add(fish);
+      }
+    }
+  }
+  editFish(int index) {
+    if (0 <= index && index < report.fishes.length) {
+      tmpFishIndex = index;
+      tmpFish = new Fishes.fromMap(report.fishes[index].asMap);
+      fishDialog.open();
+    }
+  }
+  commitFish() {
+    if (tmpFish.length != null && tmpFish.length.value == 0) tmpFish.length = null;
+    if (tmpFish.weight != null && tmpFish.weight.value == 0) tmpFish.weight = null;
+    report.fishes[tmpFishIndex].asMap.addAll(tmpFish.asMap);
+    fishDialog.close();
+  }
 
   dialogDate() {
     tmpDate = new DateTime(report.dateAt.year, report.dateAt.month, report.dateAt.day);

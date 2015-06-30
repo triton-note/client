@@ -22,6 +22,54 @@ div#photo {
   text-align: center;
 }
 
+div#catches {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  border: solid 2px #ccc;
+  @include border-radius(8px);
+  
+  .control {
+    display: table;
+    width: 100%;
+    border-bottom: solid 1px #ccc;
+    
+    &>* {
+      display: table-cell;
+      padding-top: 5px;
+      padding-bottom: 5px;
+      vertical-align: middle;
+      *vertical-align: auto;
+    }
+    .title {
+      padding-left: 20px;
+      text-align: left;
+    
+      p {
+        margin: 0;
+        font: {
+          size: 20px;
+          weight: 500;
+        }
+      }
+    }
+    .fish-name {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .add-button {
+      padding-right: 20px;
+      text-align: right;
+    }
+  }
+  .list {
+    padding: 10px;
+    .item {
+      position: relative;
+    }
+  }
+}
+
 div#date {
   margin-top: 10px;
   margin-bottom: 10px;
@@ -63,6 +111,7 @@ div#condition {
     img {
       width: $icon_size;
       height: $icon_size;
+      margin-top: 4px;
       @include border-radius(4px);
     }
   }
@@ -74,6 +123,7 @@ div#condition {
     img {
       width: $icon_size * 1.5;
       height: $icon_size * 1.5;
+      margin-top: 0;
     }
     .row {
       &>* {
