@@ -11,6 +11,7 @@ import 'package:paper_elements/paper_dialog.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/upload_session.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/server.dart';
@@ -33,6 +34,23 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
 
   final Completer<UploadSession> _onSession = new Completer();
   final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
+
+  String get temperatureUnit => report.condition.weather.temperature == null
+      ? null
+      : "°${nameOfEnum(report.condition.weather.temperature.unit)[0]}";
+  Timer _weatherDialogTimer;
+  int get temperatureValue =>
+      report.condition.weather.temperature == null ? null : report.condition.weather.temperature.value.round();
+  set temperatureValue(int v) {
+    report.condition.weather.temperature.value = v.toDouble();
+    _logger.finest("Setting timer for closing weather dialog.");
+    if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
+    _weatherDialogTimer = new Timer(new Duration(seconds: 3), () {
+      if (weatherDialog.opened) weatherDialog.toggle();
+    });
+  }
+  List<String> get weatherNames => Weather.nominalMap.keys;
+  String weatherIcon(String nominal) => Weather.nominalMap[nominal];
 
   List<String> get tideNames => tideList.map((t) => nameOfEnum(t));
   String tideIcon(String name) => name == null ? null : "/img/tide/${name.toLowerCase()}.png";
@@ -142,6 +160,10 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
       if (report.dateAt != null && report.location.geoinfo != null) {
         final cond = await Server.getConditions(report.dateAt, report.location.geoinfo);
         _logger.fine("Get conditions: ${cond}");
+        if (cond.weather == null) {
+          cond.weather = new Weather.fromMap(
+              {'nominal': 'Clear', 'iconUrl': weatherIcon('Clear'), 'temperature': {'value': 20, 'unit': 'Cels'}});
+        }
         report.condition = cond;
       }
     } catch (ex) {
@@ -173,5 +195,12 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
     final tide = enumByName(tideList, name);
     if (tide != null) report.condition.tide = tide;
     tideDialog.toggle();
+  }
+
+  dialogWeather() => weatherDialog.toggle();
+  changeWeather(String nominal) {
+    report.condition.weather.nominal = nominal;
+    report.condition.weather.iconUrl = weatherIcon(nominal);
+    weatherDialog.toggle();
   }
 }

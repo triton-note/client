@@ -80,6 +80,13 @@ class _ConditionImpl extends JsonSupport implements Condition {
 enum Tide { Flood, High, Ebb, Low }
 
 abstract class Weather implements JsonSupport {
+  static const Map<String, String> nominalMap = const {
+    'Clear': "http://openweathermap.org/img/w/01d.png",
+    'Clouds': "http://openweathermap.org/img/w/02d.png",
+    'Rain': "http://openweathermap.org/img/w/10d.png",
+    'Show': "http://openweathermap.org/img/w/13d.png",
+  };
+
   String nominal;
   String iconUrl;
   Temperature temperature;
