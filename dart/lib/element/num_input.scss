@@ -9,10 +9,10 @@ div.root {
   }
   
   .value {
-    width: 40px;
     margin-left: 0px;
-    margin-right: 10px;
+    border: none;
     text-align: right;
+    font-family: 'Courier New', Courier, Monaco, monospace;
   }
   
   div.buttons {

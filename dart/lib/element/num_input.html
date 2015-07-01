@@ -1,7 +1,6 @@
 <style>
 	.value {
-		width: {{fontSize * 2}}px;
-		margin-right: {{(fontSize / 2).round()}}px;
+		width: {{(fontSize * numDigits).round()}}px;
 		font-size: {{fontSize}}px;
 	}
 	.buttons .button core-icon {
@@ -10,7 +9,7 @@
 	}
 </style>
 <div class="root">
-	<p class="value">{{value}}</p>
+	<input class="value" type="number" ng-model="curValue">
 	
 	<div class="buttons">
 		<div class="button" ng-click="up()">

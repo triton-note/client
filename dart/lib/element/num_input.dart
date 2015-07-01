@@ -1,6 +1,9 @@
-library triton_note.element.about_oclock;
+library triton_note.element.num_input;
 
+import 'package:logging/logging.dart';
 import 'package:angular/angular.dart';
+
+final _logger = new Logger('NumInputElement');
 
 @Component(
     selector: 'num-input',
@@ -9,13 +12,27 @@ import 'package:angular/angular.dart';
     useShadowDom: true)
 class NumInputElement {
   @NgTwoWay('value') int value;
+  @NgAttr('digits') String digits;
   @NgAttr('size') String size;
   @NgAttr('max') String max;
   @NgAttr('min') String min;
 
+  int get numDigits => digits == null ? 2 : int.parse(digits);
   int get fontSize => size == null ? 20 : int.parse(size);
   int get minValue => min == null ? null : int.parse(min);
   int get maxValue => max == null ? null : int.parse(max);
+
+  int get curValue => value == null ? 0 : value;
+  set curValue(int v) {
+    final s = v.toString();
+    int a = 0;
+    try {
+      a = int.parse(s);
+    } catch (ex) {
+      _logger.info("Invalid integer: ${s}");
+    }
+    return value = a;
+  }
 
   _loop(int v) {
     final loop = (maxValue - minValue + 1);
@@ -30,9 +47,9 @@ class NumInputElement {
   }
 
   up() {
-    value = _limit(value + 1);
+    curValue = _limit(curValue + 1);
   }
   down() {
-    value = _limit(value - 1);
+    curValue = _limit(curValue - 1);
   }
 }

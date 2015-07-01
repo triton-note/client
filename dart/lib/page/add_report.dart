@@ -44,17 +44,17 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   Fishes tmpFish;
   // tmpFish.count
   int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
-  set tmpFishCount(int v) => (tmpFish == null || v == null || v == 0) ? null : tmpFish.count = v;
+  set tmpFishCount(int v) => (tmpFish == null) ? null : tmpFish.count = (v == null || v == 0) ? 1 : v;
   // tmpFish.lenth
   int get tmpFishLength =>
       (tmpFish == null || tmpFish.length == null || tmpFish.length.value == null) ? null : tmpFish.length.value.round();
   set tmpFishLength(int v) =>
-      (tmpFish == null || tmpFish.length == null || v == null) ? null : tmpFish.length.value = v.toDouble();
+      (tmpFish == null || tmpFish.length == null) ? null : tmpFish.length.value = (v == null) ? null : v.toDouble();
   // tmpFish.weight
   int get tmpFishWeight =>
       (tmpFish == null || tmpFish.weight == null || tmpFish.weight.value == null) ? null : tmpFish.weight.value.round();
   set tmpFishWeight(int v) =>
-      (tmpFish == null || tmpFish.weight == null || v == null) ? null : tmpFish.weight.value = v.toDouble();
+      (tmpFish == null || tmpFish.weight == null) ? null : tmpFish.weight.value = (v == null) ? null : v.toDouble();
 
   String get lengthUnit => nameOfEnum(userLengthUnit);
   String get weightUnit => nameOfEnum(userWeightUnit);

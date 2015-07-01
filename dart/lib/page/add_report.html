@@ -78,7 +78,7 @@
 			    			#fish-dialog .row p {
 			    				width: 120px;
 			    			}
-			    			#fish-dialog .row num-input::shadow p.value {
+			    			#fish-dialog .row num-input::shadow .value {
 			    				padding: 3px;
 			    				border: solid 1px #ddd;
 		        				-moz-border-radius: 3px;
@@ -103,12 +103,12 @@
 			    		<paper-shadow class="rounded sizes">
 				    		<div class="row size length">
 				    			<p>Length ({{lengthUnit}})</p>
-				    			<num-input value="tmpFishLength" min="0"></num-input>
+				    			<num-input value="tmpFishLength" min="0" digits="3"></num-input>
 				    		</div>
 				    		
 				    		<div class="row size weight">
 				    			<p>Weight ({{weightUnit}})</p>
-				    			<num-input value="tmpFishWeight" min="0"></num-input>
+				    			<num-input value="tmpFishWeight" min="0" digits="3"></num-input>
 				    		</div>
 				    	</paper-shadow>
 			    		
