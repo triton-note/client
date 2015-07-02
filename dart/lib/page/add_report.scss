@@ -94,10 +94,22 @@ div#date {
   }
 }
 
-div#google-maps {
-  width: 100%;
-  height: 200px;
-  background: #eee;
+#location {
+  #google-maps {
+    width: 100%;
+    background: #eee;
+  }
+  
+  .toggle {
+    width: 100%;
+    
+    paper-button {
+      margin-left: auto;
+      margin-right: auto;
+      
+      color: #0dd;
+    }
+  }
 }
 
 div#condition {

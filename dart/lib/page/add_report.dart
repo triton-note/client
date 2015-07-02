@@ -2,9 +2,12 @@ library triton_note.page.reports_add;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math' as Math;
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
+import 'package:core_elements/core_header_panel.dart';
+import 'package:core_elements/core_animation.dart';
 import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:paper_elements/paper_dialog.dart';
 
@@ -99,6 +102,32 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   }
   int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
 
+  Future<GoogleMap> __gmap;
+  Future<GoogleMap> get _gmap async {
+    if (__gmap == null && report.location.geoinfo != null) {
+      final div = _shadowRoot.querySelector('#google-maps');
+      div.style.height = "${mapShrinkedHeight}px";
+      __gmap = makeMap(div, report.location.geoinfo)
+        ..then((gmap) {
+          gmap.onClick = (pos) {
+            gmap.clearMarkers();
+            gmap.dropMarker(pos);
+          };
+        });
+    }
+    return __gmap;
+  }
+  bool mapExpanded = false;
+  static const int mapShrinkedHeight = 200;
+
+  DivElement _scroller;
+  DivElement get scroller {
+    if (_scroller == null) {
+      final panel = _shadowRoot.querySelector('core-header-panel[main]') as CoreHeaderPanel;
+      _scroller = panel.scroller;
+    }
+    return _scroller;
+  }
   PaperActionDialog _fishDialog;
   PaperActionDialog get fishDialog {
     if (_fishDialog == null) _fishDialog = _shadowRoot.querySelector('#fish-dialog');
@@ -167,7 +196,7 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
           report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
-      new GoogleMaps(_shadowRoot.querySelector('#google-maps'), report.location.geoinfo, mark: true);
+      _gmap.then((g) => g.dropMarker(report.location.geoinfo));
       renewConditions();
 
       try {
@@ -208,9 +237,60 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
     (await _onSession.future).submit(report);
   });
 
-  showMap() => rippling(() {
-    _logger.info("Show GoogleMaps");
-  });
+  toggleMap(event) {
+    final button = event.target as Element;
+    final int buttonHeight = button.getBoundingClientRect().height.round();
+    _logger.finest("Toggle map: ${button}(height: ${buttonHeight})");
+    rippling(() async {
+      final gmap = await _gmap;
+      if (gmap == null) return;
+
+      final margin = 10;
+      final base = _shadowRoot.querySelector('#input');
+      final int curHeight = gmap.hostElement.getBoundingClientRect().height.round();
+
+      scroll(int nextHeight, int move, [int duration = 300]) {
+        _logger.info("Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, duration: ${duration}");
+        new CoreAnimation()
+          ..target = gmap.hostElement
+          ..duration = duration
+          ..fill = "forwards"
+          ..keyframes = [{'height': "${curHeight}px"}, {'height': "${nextHeight}px"}]
+          ..play();
+
+        shift(String translation, int duration) => new CoreAnimation()
+          ..target = base
+          ..duration = duration
+          ..fill = "both"
+          ..keyframes = [{'transform': "none"}, {'transform': translation}]
+          ..play();
+        shift("translateY(${-move}px)", duration);
+
+        new Future.delayed(new Duration(milliseconds: (duration * 1.1).round()), () {
+          gmap.triggerResize();
+          if (move != 0) {
+            _logger.finest("Scrolling by ${move}");
+            shift("none", 0);
+            scroller.scrollTop += move;
+          }
+        });
+      }
+
+      if (mapExpanded) {
+        _logger.info("Shrink map: ${gmap}");
+        scroll(mapShrinkedHeight, 0);
+        mapExpanded = false;
+      } else {
+        _logger.info("Expand map: ${gmap}");
+        final int top = base.getBoundingClientRect().top.round();
+        final int curPos = gmap.hostElement.getBoundingClientRect().top.round() - top;
+        _logger.finest("Map div pos: ${curPos}");
+
+        scroll(window.innerHeight - top - buttonHeight - margin, Math.max(0, curPos - margin));
+        mapExpanded = true;
+      }
+    });
+  }
 
   addFish() {
     if (addingFishName != null && addingFishName.isNotEmpty) {

@@ -21,7 +21,7 @@
 					<paper-button id="choose" raised ng-click="choosePhoto(false)">CHOOSE</paper-button>
 				</div>
     		</div>
-    		<div id="input" ng-if="isReady">
+	   		<div id="input" ng-if="isReady">
 		    	<div>
 		    		<paper-input-decorator label="Write something to note">
 						<paper-autogrow-textarea>
@@ -305,8 +305,17 @@
 			    			<input ng-model="report.location.name">
 			    		</paper-input-decorator>
 			    	</div>
-			    	<div ng-click="showMap()">
+			    	
+			    	<div>
 			    		<div id="google-maps"></div>
+			    	</div>
+			    	
+			    	<div class="toggle" ng-if="report.location.geoinfo != null">
+			    		<paper-button ng-click="toggleMap($event)">
+			    			<core-icon icon="{{ mapExpanded ? 'expand-less' : 'expand-more' }}">
+			    			</core-icon>
+			    			{{ mapExpanded ? "Shrink Map" : "Expand Map" }}
+			    		</paper-button>
 			    	</div>
 			    </div>
     		</div>
