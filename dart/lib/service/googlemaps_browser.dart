@@ -56,11 +56,20 @@ class GoogleMap {
   final JsObject _src;
   final Element hostElement;
 
-  var _mapsEventListener;
+  var _clickListener;
 
   final List<Marker> _markers = [];
 
-  GoogleMap(this._src, this.hostElement);
+  GoogleMap(this._src, this.hostElement) {
+    _gmaps['event'].callMethod('addListener', [
+      _src,
+      'click',
+      (mouseEvent) {
+        _logger.finest("Clicked: ${mouseEvent}");
+        if (_clickListener != null) _clickListener(_fromLatLng(mouseEvent['latLng']));
+      }
+    ]);
+  }
 
   set center(GeoInfo pos) {
     _logger.fine("Setting gmap center: ${pos}");
@@ -85,18 +94,7 @@ class GoogleMap {
     return marker;
   }
 
-  set onClick(void proc(GeoInfo)) {
-    if (_mapsEventListener != null) {
-      _gmaps['event'].callMethod('removeListener', [_mapsEventListener]);
-      _mapsEventListener = null;
-    }
-    _gmaps['event'].callMethod('addListener', [
-      _src,
-      (mouseEvent) {
-        proc(_fromLatLng(mouseEvent['latLng']));
-      }
-    ]);
-  }
+  set onClick(void proc(GeoInfo pos)) => _clickListener = proc;
 
   trigger(String name) => _gmaps['event'].callMethod('trigger', [_src, name]);
   triggerResize() => trigger('resize');
