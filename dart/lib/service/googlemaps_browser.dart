@@ -34,25 +34,24 @@ Future<Null> _append() async {
   return _onAppended.future;
 }
 
-final _gmaps = context['google']['maps'];
-
-Future<GoogleMap> makeMap(Element div, GeoInfo center, {int zoom: 8, bool disableDefaultUI: true}) async {
+Future<GoogleMap> makeGoogleMap(Element div, GeoInfo center, {int zoom: 8, bool disableDefaultUI: true}) async {
   await _append();
 
-  final options = {
-    'center': {'lat': center.latitude, 'lng': center.longitude},
-    'zoom': zoom,
-    'disableDefaultUI': disableDefaultUI
-  };
+  final options = {'center': _toLatLng(center), 'zoom': zoom, 'disableDefaultUI': disableDefaultUI};
 
-  final g = new JsObject(_gmaps['Map'], [div, new JsObject.jsify(options)]);
+  final g = new JsObject(context['google']['maps']['Map'], [div, new JsObject.jsify(options)]);
   return new GoogleMap(g, div);
 }
 
-JsObject _toLatLng(GeoInfo pos) => new JsObject(_gmaps['LatLng'], [pos.latitude, pos.longitude]);
-GeoInfo _fromLatLng(latLng) => new GeoInfo.fromMap({'latitide': latLng['lat'], 'longitude': latLng['lng']});
+JsObject _toLatLng(GeoInfo pos) => new JsObject(context['google']['maps']['LatLng'], [pos.latitude, pos.longitude]);
+GeoInfo _fromLatLng(JsObject latLng) =>
+    new GeoInfo.fromMap({'latitude': latLng.callMethod('lat', []), 'longitude': latLng.callMethod('lng', [])});
 
-class GoogleMap {
+abstract class Wrapper {
+  JsObject get _src;
+}
+
+class GoogleMap implements Wrapper {
   final JsObject _src;
   final Element hostElement;
 
@@ -61,7 +60,7 @@ class GoogleMap {
   final List<Marker> _markers = [];
 
   GoogleMap(this._src, this.hostElement) {
-    _gmaps['event'].callMethod('addListener', [
+    context['google']['maps']['event'].callMethod('addListener', [
       _src,
       'click',
       (mouseEvent) {
@@ -79,67 +78,42 @@ class GoogleMap {
   clearMarkers() {
     _markers.forEach((m) => m.remove());
   }
-  putMarker(GeoInfo pos) {
-    final marker = new Marker(pos, map: this, draggable: false);
-    _markers.add(marker);
-    return marker;
-  }
-  dropMarker(GeoInfo pos, [int bounce = 8]) async {
-    final marker =
-        new Marker(pos, map: this, draggable: false, animation: (bounce > 0) ? Animation.BOUNCE : Animation.DROP);
-    if (bounce > 0) new Future.delayed(new Duration(milliseconds: 8 * 750), () {
-      marker.animation = null;
-    });
+  putMarker(GeoInfo pos, [Map options = const {}]) {
+    final marker = new Marker(pos, this, options);
     _markers.add(marker);
     return marker;
   }
 
   set onClick(void proc(GeoInfo pos)) => _clickListener = proc;
 
-  trigger(String name) => _gmaps['event'].callMethod('trigger', [_src, name]);
+  trigger(String name) => context['google']['maps']['event'].callMethod('trigger', [_src, name]);
   triggerResize() => trigger('resize');
 }
 
-class Marker {
-  static Map makeIcon(String iconUrl, {int sizeW, int sizeH, int originX, int originY, int anchorX, int anchorY}) {
-    var size, origin, anchor;
-    if (sizeW != null && sizeH != null) size = new JsObject(_gmaps['Size'], [sizeW, sizeH]);
-    if (originX != null && originY != null) origin = new JsObject(_gmaps['Point'], [originX, originY]);
-    if (anchorX != null && anchorY != null) anchor = new JsObject(_gmaps['Point'], [anchorX, anchorY]);
-    return (size == null && origin == null && anchor == null)
-        ? iconUrl
-        : {'url': iconUrl, 'size': size, 'origin': origin, 'anchor': anchor};
+class Marker implements Wrapper {
+  static Map collectOptions(Map src, Map alpha) {
+    final result = {};
+    new Map.from(alpha)
+      ..addAll(src)
+      ..forEach((name, value) {
+        if (value != null) {
+          if (value is Wrapper) value = value._src;
+          if (value is GeoInfo) value = _toLatLng(value);
+          result[name] = value;
+        }
+      });
+    _logger.finest("Created marker options: ${result}");
+    return result;
   }
-
   final GeoInfo position;
   final JsObject _src;
 
-  Marker(GeoInfo pos, {GoogleMap map, bool draggable, Animation animation, String title, int zIndex, String iconUrl})
+  Marker(GeoInfo pos, GoogleMap gmap, Map options)
       : this.position = pos,
-        this._src = new JsObject(_gmaps['Marker'], [
-          new JsObject.jsify({
-            'position': _toLatLng(pos),
-            'map': map._src,
-            'draggable': draggable,
-            'animation': animation._src,
-            'title': title,
-            'zIndex': zIndex,
-            'icon': makeIcon(iconUrl)
-          })
-        ]);
+        this._src = new JsObject(context['google']['maps']['Marker'],
+            [new JsObject.jsify(collectOptions(options, {'map': gmap, 'position': pos}))]);
 
-  set animation(Animation a) => _src.callMethod('setAnimation', [a]);
-
-  set map(GoogleMap map) => _src.callMethod('setMap', [map._src]);
+  set map(GoogleMap map) => _src.callMethod('setMap', [map == null ? null : map._src]);
 
   void remove() => map = null;
-}
-
-class Animation {
-  static final BOUNCE = new Animation._of(_gmaps['Animation']['BOUNCE']);
-  static final DROP = new Animation._of(_gmaps['Animation']['DROP']);
-
-  final JsObject _src;
-
-  Animation._of(this._src);
 }

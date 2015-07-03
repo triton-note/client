@@ -107,11 +107,13 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
     if (__gmap == null && report.location.geoinfo != null) {
       final div = _shadowRoot.querySelector('#google-maps');
       div.style.height = "${mapShrinkedHeight}px";
-      __gmap = makeMap(div, report.location.geoinfo)
+      __gmap = makeGoogleMap(div, report.location.geoinfo)
         ..then((gmap) {
           gmap.onClick = (pos) {
+            _logger.fine("Point map: ${pos}");
+            report.location.geoinfo = pos;
             gmap.clearMarkers();
-            gmap.dropMarker(pos);
+            gmap.putMarker(pos);
           };
         });
     }
@@ -196,7 +198,7 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
           report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
-      _gmap.then((g) => g.dropMarker(report.location.geoinfo));
+      _gmap.then((g) => g.putMarker(report.location.geoinfo));
       renewConditions();
 
       try {
