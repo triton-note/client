@@ -22,7 +22,54 @@
 				</div>
     		</div>
 	   		<div id="input" ng-if="isReady">
-		    	<div>
+		    	<div id="date">
+		    		<div class="buttons">
+		        		<paper-button ng-click="dialogDate()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
+		        	</div>
+		        	<paper-action-dialog id="date-dialog" transition="core-transition-center" backdrop layered autoCloseDisabled>
+		        		<style>
+		        			#date-dialog paper-shadow {
+		        				margin-bottom: 10px;
+		        				padding-left: 10px;
+		        				padding-right: 10px;
+		        				-moz-border-radius: 3px;
+		        				-webkit-border-radius: 3px;
+		        				border-radius: 3px;
+		        			}
+		        			#date-dialog #oclock {
+		        				text-align: center;
+		        			}
+		        			#date-dialog #oclock p {
+		        				font-size: 16px;
+	        				}
+		        			#date-dialog #oclock * {
+		    					display: inline-block;
+		    					vertical-align: middle;
+		    					*vertical-align: auto;
+		    					*zoom: 1;
+		    					*display: inline;
+		        			}
+		        		</style>
+		        		
+		        		<paper-shadow id="oclock" z="1">
+		        			<div>
+		        				<p>about</p>
+		        				<num-input value="tmpOclock" min="0" max="23" size="20"></num-input>
+		        				<p>O'clock</p>
+		        			</div>
+	        			</paper-shadow>
+		        		
+		        		<br>
+		        		
+		        		<paper-shadow z="1">
+		        			<calendar value="tmpDate" start-of-week="1"></calendar>
+	        			</paper-shadow>
+		        		
+		        		<paper-button dismissive style="color: red">Cancel</paper-button>
+		        		<paper-button affirmative style="color: green" ng-click="commitCalendar()">OK</paper-button>
+		        	</paper-action-dialog>
+	        	</div>
+		    	<div id="comment">
 		    		<paper-input-decorator label="Write something to note">
 						<paper-autogrow-textarea>
 							<textarea ng-model="report.comment"></textarea>
@@ -117,51 +164,23 @@
 		        		<paper-button affirmative style="color: green" ng-click="commitFish()">OK</paper-button>
 			    	</paper-action-dialog>
 			    </div>
-		    	<div id="date">
-		        	<paper-button raised ng-click="dialogDate()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
-		        	<paper-action-dialog id="date-dialog" transition="core-transition-center" backdrop layered autoCloseDisabled>
-		        		<style>
-		        			#date-dialog paper-shadow {
-		        				margin-bottom: 10px;
-		        				padding-left: 10px;
-		        				padding-right: 10px;
-		        				-moz-border-radius: 3px;
-		        				-webkit-border-radius: 3px;
-		        				border-radius: 3px;
-		        			}
-		        			#date-dialog #oclock {
-		        				text-align: center;
-		        			}
-		        			#date-dialog #oclock p {
-		        				font-size: 16px;
-	        				}
-		        			#date-dialog #oclock * {
-		    					display: inline-block;
-		    					vertical-align: middle;
-		    					*vertical-align: auto;
-		    					*zoom: 1;
-		    					*display: inline;
-		        			}
-		        		</style>
-		        		
-		        		<paper-shadow id="oclock" z="1">
-		        			<div>
-		        				<p>about</p>
-		        				<num-input value="tmpOclock" min="0" max="23" size="20"></num-input>
-		        				<p>O'clock</p>
-		        			</div>
-	        			</paper-shadow>
-		        		
-		        		<br>
-		        		
-		        		<paper-shadow z="1">
-		        			<calendar value="tmpDate" start-of-week="1"></calendar>
-	        			</paper-shadow>
-		        		
-		        		<paper-button dismissive style="color: red">Cancel</paper-button>
-		        		<paper-button affirmative style="color: green" ng-click="commitCalendar()">OK</paper-button>
-		        	</paper-action-dialog>
-	        	</div>
+			    <div id="location">
+			    	<div>
+			    		<paper-input-decorator label="Spot Name" floatingLabel>
+			    			<input ng-model="report.location.name">
+			    		</paper-input-decorator>
+			    	</div>
+			    	
+			    	<div id="google-maps"></div>
+			    	
+			    	<div class="toggle" ng-if="report.location.geoinfo != null">
+			    		<paper-button ng-click="toggleMap($event)">
+			    			<core-icon icon="{{ mapExpanded ? 'expand-less' : 'expand-more' }}">
+			    			</core-icon>
+			    			{{ mapExpanded ? "Shrink Map" : "Expand Map" }}
+			    		</paper-button>
+			    	</div>
+			    </div>
 			    <div id="condition">
 			    	<div class="weather">
 			    		<div class="spinning" ng-if="report.condition.weather.iconUrl == null">
@@ -297,23 +316,6 @@
 				    		<p>Phase: {{report.condition.moon}}</p>
 				    		<img ng-src="{{moonImage}}">
 				    	</div>
-			    	</div>
-			    </div>
-			    <div id="location">
-			    	<div>
-			    		<paper-input-decorator label="Spot Name" floatingLabel>
-			    			<input ng-model="report.location.name">
-			    		</paper-input-decorator>
-			    	</div>
-			    	
-			    	<div id="google-maps"></div>
-			    	
-			    	<div class="toggle" ng-if="report.location.geoinfo != null">
-			    		<paper-button ng-click="toggleMap($event)">
-			    			<core-icon icon="{{ mapExpanded ? 'expand-less' : 'expand-more' }}">
-			    			</core-icon>
-			    			{{ mapExpanded ? "Shrink Map" : "Expand Map" }}
-			    		</paper-button>
 			    	</div>
 			    </div>
     		</div>

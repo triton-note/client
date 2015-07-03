@@ -87,10 +87,14 @@ div#catches {
 div#date {
   margin-top: 10px;
   margin-bottom: 10px;
-  text-align: center;
-  paper-button {
-    background: white;
-    text-transform: none;
+  
+  .buttons {
+    paper-button {
+      background: white;
+      text-transform: none;
+      font-weight: 500;
+      color: #888;
+    }
   }
 }
 
