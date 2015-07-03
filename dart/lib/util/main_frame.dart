@@ -8,15 +8,17 @@ import 'package:logging/logging.dart';
 
 final _logger = new Logger('MainFrame');
 
+Future alfterRippling(Proc()) {
+  return new Future.delayed(new Duration(milliseconds: 250), Proc);
+}
+
 class MainFrame {
   final Router router;
   get drawerPanel => document.getElementById('drawerPanel');
 
   MainFrame(this.router);
 
-  Future rippling(Proc()) {
-    return new Future.delayed(new Duration(milliseconds: 250), Proc);
-  }
+  rippling(proc()) => alfterRippling(proc);
 
   void toggleMenu() {
     drawerPanel.togglePanel();

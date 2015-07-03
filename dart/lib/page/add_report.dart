@@ -22,6 +22,7 @@ import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
+import 'package:triton_note/util/getter_setter.dart';
 
 final _logger = new Logger('AddReportPage');
 
@@ -31,125 +32,28 @@ final _logger = new Logger('AddReportPage');
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
 class AddReportPage extends MainFrame implements ShadowRootAware {
-  static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
-
-  static LengthUnit get userLengthUnit => LengthUnit.cm;
-  static WeightUnit get userWeightUnit => WeightUnit.kg;
-  static TemperatureUnit get userTemperatureUnit => TemperatureUnit.Cels;
-
-  ShadowRoot _shadowRoot;
-
   final Completer<UploadSession> _onSession = new Completer();
-  final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
+  final Report report = new Report.fromMap({'fishes': [], 'location': {}, 'condition': {'weather': {}}});
 
-  String addingFishName;
-  int tmpFishIndex;
-  Fishes tmpFish;
-  // tmpFish.count
-  int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
-  set tmpFishCount(int v) => (tmpFish == null) ? null : tmpFish.count = (v == null || v == 0) ? 1 : v;
-  // tmpFish.lenth
-  int get tmpFishLength =>
-      (tmpFish == null || tmpFish.length == null || tmpFish.length.value == null) ? null : tmpFish.length.value.round();
-  set tmpFishLength(int v) =>
-      (tmpFish == null || tmpFish.length == null) ? null : tmpFish.length.value = (v == null) ? null : v.toDouble();
-  // tmpFish.weight
-  int get tmpFishWeight =>
-      (tmpFish == null || tmpFish.weight == null || tmpFish.weight.value == null) ? null : tmpFish.weight.value.round();
-  set tmpFishWeight(int v) =>
-      (tmpFish == null || tmpFish.weight == null) ? null : tmpFish.weight.value = (v == null) ? null : v.toDouble();
+  ShadowRoot _root;
 
-  String get lengthUnit => nameOfEnum(userLengthUnit);
-  String get weightUnit => nameOfEnum(userWeightUnit);
-  String get temperatureUnit => "°${nameOfEnum(userTemperatureUnit)[0]}";
-
-  Timer _weatherDialogTimer;
-  Temperature _temperature;
-  int get temperatureValue {
-    if (report.condition.weather.temperature == null) return null;
-    if (_temperature == null) _temperature = report.condition.weather.temperature.convertTo(userTemperatureUnit);
-    return _temperature.value.round();
-  }
-  set temperatureValue(int v) {
-    _temperature = new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(userTemperatureUnit)});
-    _logger.fine("Set temperature: ${_temperature.asMap}");
-    report.condition.weather.temperature = _temperature;
-    _logger.finest("Setting timer for closing weather dialog.");
-    if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
-    _weatherDialogTimer = new Timer(new Duration(seconds: 3), () {
-      if (weatherDialog.opened) weatherDialog.toggle();
-    });
-  }
-  List<String> get weatherNames => Weather.nominalMap.keys;
-  String weatherIcon(String nominal) => Weather.nominalMap[nominal];
-
-  List<String> get tideNames => tideList.map((t) => nameOfEnum(t));
-  String tideIcon(String name) => name == null ? null : "/img/tide/${name.toLowerCase()}.png";
-  String get tideName => report.condition.tide == null ? null : nameOfEnum(report.condition.tide);
-  String get tideImage => tideIcon(tideName);
-  String get moonImage =>
-      report.condition.moon == null ? null : "/img/moon/phase-${report.condition.moon.toString().padLeft(2, '0')}.png";
-
-  DateTime tmpDate = new DateTime.now();
-  int tmpOclock = 0;
+  _Catches catches;
+  _DateOclock dateOclock;
+  _GMap gmap;
+  _Conditions conditions;
 
   bool isReady = false;
   bool get isSubmitable => report.photo != null && report.photo.original != null;
 
+  int _photoWidth;
   int get photoWidth {
-    final div = _shadowRoot.querySelector('#photo');
-    return div != null ? div.clientWidth : null;
+    if (_photoWidth == null) {
+      final div = _root.querySelector('#photo');
+      if (div != null) _photoWidth = div.clientWidth;
+    }
+    return _photoWidth;
   }
   int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
-
-  Future<GoogleMap> __gmap;
-  Future<GoogleMap> get _gmap async {
-    if (__gmap == null && report.location.geoinfo != null) {
-      final div = _shadowRoot.querySelector('#google-maps');
-      div.style.height = "${mapShrinkedHeight}px";
-      __gmap = makeGoogleMap(div, report.location.geoinfo)
-        ..then((gmap) {
-          gmap.onClick = (pos) {
-            _logger.fine("Point map: ${pos}");
-            report.location.geoinfo = pos;
-            gmap.clearMarkers();
-            gmap.putMarker(pos);
-          };
-        });
-    }
-    return __gmap;
-  }
-  bool mapExpanded = false;
-  static const int mapShrinkedHeight = 200;
-
-  DivElement _scroller;
-  DivElement get scroller {
-    if (_scroller == null) {
-      final panel = _shadowRoot.querySelector('core-header-panel[main]') as CoreHeaderPanel;
-      _scroller = panel.scroller;
-    }
-    return _scroller;
-  }
-  PaperActionDialog _fishDialog;
-  PaperActionDialog get fishDialog {
-    if (_fishDialog == null) _fishDialog = _shadowRoot.querySelector('#fish-dialog');
-    return _fishDialog;
-  }
-  PaperActionDialog _dateDialog;
-  PaperActionDialog get dateDialog {
-    if (_dateDialog == null) _dateDialog = _shadowRoot.querySelector('#date-dialog');
-    return _dateDialog;
-  }
-  PaperDialog _tideDialog;
-  PaperDialog get tideDialog {
-    if (_tideDialog == null) _tideDialog = _shadowRoot.querySelector('#tide-dialog');
-    return _tideDialog;
-  }
-  PaperDialog _weatherDialog;
-  PaperDialog get weatherDialog {
-    if (_weatherDialog == null) _weatherDialog = _shadowRoot.querySelector('#weather-dialog');
-    return _weatherDialog;
-  }
 
   AddReportPage(Router router, RouteProvider routeProvider) : super(router) {
     try {
@@ -160,8 +64,19 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
     }
   }
 
-  void onShadowRoot(ShadowRoot sr) {
-    _shadowRoot = sr;
+  void onShadowRoot(ShadowRoot root) {
+    _root = root;
+
+    catches = new _Catches(root, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
+    dateOclock = new _DateOclock(root, new GetterSetter(() => report.dateAt, (v) {
+      report.dateAt = v;
+      renewConditions();
+    }));
+    gmap = new _GMap(root, new GetterSetter(() => report.location.name, (v) => report.location.name = v),
+        new GetterSetter(() => report.location.geoinfo, (pos) {
+      report.location.geoinfo = pos;
+    }));
+    conditions = new _Conditions(root, new Getter(() => report.condition));
   }
 
   choosePhoto(bool take) => rippling(() {
@@ -198,7 +113,7 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
           report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
-      _gmap.then((g) => g.putMarker(report.location.geoinfo));
+      gmap.getMap().then((g) => g.putMarker(report.location.geoinfo));
       renewConditions();
 
       try {
@@ -225,8 +140,11 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
         final cond = await Server.getConditions(report.dateAt, report.location.geoinfo);
         _logger.fine("Get conditions: ${cond}");
         if (cond.weather == null) {
-          cond.weather = new Weather.fromMap(
-              {'nominal': 'Clear', 'iconUrl': weatherIcon('Clear'), 'temperature': {'value': 20, 'unit': 'Cels'}});
+          cond.weather = new Weather.fromMap({
+            'nominal': 'Clear',
+            'iconUrl': conditions.weatherIcon('Clear'),
+            'temperature': {'value': 20, 'unit': 'Cels'}
+          });
         }
         report.condition = cond;
       }
@@ -236,19 +154,165 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   }
 
   submit() => rippling(() async {
-    (await _onSession.future).submit(report);
+    _logger.finest("Submitting report: ${report}");
+    //(await _onSession.future).submit(report);
   });
+}
+
+class UserPreferences {
+  static LengthUnit get lengthUnit => LengthUnit.cm;
+  static WeightUnit get weightUnit => WeightUnit.kg;
+  static TemperatureUnit get temperatureUnit => TemperatureUnit.Cels;
+}
+
+class _DateOclock {
+  final ShadowRoot _root;
+  final GetterSetter<DateTime> _dateAt;
+
+  DateTime tmpDate = new DateTime.now();
+  int tmpOclock = 0;
+
+  _DateOclock(this._root, this._dateAt);
+
+  PaperActionDialog _dateDialog;
+  PaperActionDialog get dateDialog {
+    if (_dateDialog == null) _dateDialog = _root.querySelector('#date-dialog');
+    return _dateDialog;
+  }
+
+  dialogDate() {
+    tmpDate = new DateTime(_dateAt.value.year, _dateAt.value.month, _dateAt.value.day);
+    tmpOclock = _dateAt.value.hour;
+    dateDialog.toggle();
+  }
+  commitCalendar() {
+    _dateAt.value = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
+    _logger.fine("Commit date: ${_dateAt.value}");
+  }
+}
+
+class _Catches {
+  final ShadowRoot _root;
+  final GetterSetter<List<Fishes>> list;
+
+  _Catches(this._root, this.list);
+
+  PaperActionDialog _fishDialog;
+  PaperActionDialog get fishDialog {
+    if (_fishDialog == null) _fishDialog = _root.querySelector('#fish-dialog');
+    return _fishDialog;
+  }
+
+  String addingFishName;
+  int tmpFishIndex;
+  Fishes tmpFish;
+
+  // count
+  int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
+  set tmpFishCount(int v) => (tmpFish == null) ? null : tmpFish.count = (v == null || v == 0) ? 1 : v;
+
+  // lenth
+  int get tmpFishLength =>
+      (tmpFish == null || tmpFish.length == null || tmpFish.length.value == null) ? null : tmpFish.length.value.round();
+  set tmpFishLength(int v) =>
+      (tmpFish == null || tmpFish.length == null) ? null : tmpFish.length.value = (v == null) ? null : v.toDouble();
+
+  // weight
+  int get tmpFishWeight =>
+      (tmpFish == null || tmpFish.weight == null || tmpFish.weight.value == null) ? null : tmpFish.weight.value.round();
+  set tmpFishWeight(int v) =>
+      (tmpFish == null || tmpFish.weight == null) ? null : tmpFish.weight.value = (v == null) ? null : v.toDouble();
+
+  String get lengthUnit => nameOfEnum(UserPreferences.lengthUnit);
+  String get weightUnit => nameOfEnum(UserPreferences.weightUnit);
+
+  addFish() {
+    if (addingFishName != null && addingFishName.isNotEmpty) {
+      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
+      addingFishName = null;
+      list.value = list.value..add(fish);
+    }
+  }
+  editFish(int index) {
+    if (0 <= index && index < list.value.length) {
+      final fish = new Fishes.fromMap(new Map.from(list.value[index].asMap));
+      if (fish.length == null) fish.length =
+          new Length.fromMap({'value': 0, 'unit': nameOfEnum(UserPreferences.lengthUnit)});
+      if (fish.weight == null) fish.weight =
+          new Weight.fromMap({'value': 0, 'unit': nameOfEnum(UserPreferences.weightUnit)});
+      _logger.fine("Editing fish[${index}]: ${fish.asMap}");
+
+      tmpFishIndex = index;
+      tmpFish = fish;
+      fishDialog.toggle();
+    }
+  }
+  commitFish() {
+    _logger.fine("Commit fish: ${tmpFish.asMap}");
+    final fish = new Fishes.fromMap(new Map.from(tmpFish.asMap));
+
+    if (fish.length != null && fish.length.value == 0) fish.length = null;
+    if (fish.weight != null && fish.weight.value == 0) fish.weight = null;
+    _logger.finest("Set fish[${tmpFishIndex}]: ${fish.asMap}");
+    list.value = (list.value..[tmpFishIndex] = fish);
+  }
+  deleteFish() {
+    _logger.fine("Deleting fish: ${tmpFishIndex}");
+    if (0 <= tmpFishIndex && tmpFishIndex < list.value.length) {
+      list.value = list.value..removeAt(tmpFishIndex);
+    }
+  }
+}
+
+class _GMap {
+  static const int mapShrinkedHeight = 200;
+
+  final ShadowRoot _root;
+  final GetterSetter<String> spotName;
+  final GetterSetter<GeoInfo> _geoinfo;
+
+  _GMap(this._root, this.spotName, this._geoinfo);
+
+  DivElement _scroller;
+  DivElement get scroller {
+    if (_scroller == null) {
+      final panel = _root.querySelector('core-header-panel[main]') as CoreHeaderPanel;
+      if (panel != null) _scroller = panel.scroller;
+    }
+    return _scroller;
+  }
+
+  bool get isReady => _geoinfo.value != null;
+
+  Future<GoogleMap> _gmap;
+  Future<GoogleMap> getMap() async {
+    if (_gmap == null && _geoinfo.value != null) {
+      final div = _root.querySelector('#google-maps');
+      div.style.height = "${mapShrinkedHeight}px";
+      _gmap = makeGoogleMap(div, _geoinfo.value)
+        ..then((gmap) {
+          gmap.onClick = (pos) {
+            _logger.fine("Point map: ${pos}");
+            _geoinfo.value = pos;
+            gmap.clearMarkers();
+            gmap.putMarker(pos);
+          };
+        });
+    }
+    return _gmap;
+  }
+  bool mapExpanded = false;
 
   toggleMap(event) {
     final button = event.target as Element;
     final int buttonHeight = button.getBoundingClientRect().height.round();
     _logger.finest("Toggle map: ${button}(height: ${buttonHeight})");
-    rippling(() async {
-      final gmap = await _gmap;
+    alfterRippling(() async {
+      final gmap = await getMap();
       if (gmap == null) return;
 
       final margin = 10;
-      final base = _shadowRoot.querySelector('#input');
+      final base = _root.querySelector('#input');
       final int curHeight = gmap.hostElement.getBoundingClientRect().height.round();
 
       scroll(int nextHeight, int move, [int duration = 300]) {
@@ -293,68 +357,73 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
       }
     });
   }
+}
 
-  addFish() {
-    if (addingFishName != null && addingFishName.isNotEmpty) {
-      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
-      addingFishName = null;
-      if (report.fishes == null) {
-        report.fishes = [fish];
-      } else {
-        report.fishes.add(fish);
-      }
-    }
-  }
-  editFish(int index) {
-    if (0 <= index && index < report.fishes.length) {
-      final fish = new Fishes.fromMap(new Map.from(report.fishes[index].asMap));
-      if (fish.length == null) fish.length = new Length.fromMap({'value': 0, 'unit': nameOfEnum(userLengthUnit)});
-      if (fish.weight == null) fish.weight = new Weight.fromMap({'value': 0, 'unit': nameOfEnum(userWeightUnit)});
-      _logger.fine("Editing fish[${index}]: ${fish.asMap}");
+class _Conditions {
+  static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
 
-      tmpFishIndex = index;
-      tmpFish = fish;
-      fishDialog.toggle();
-    }
-  }
-  commitFish() {
-    _logger.fine("Commit fish: ${tmpFish.asMap}");
-    final fish = new Fishes.fromMap(new Map.from(tmpFish.asMap));
+  final ShadowRoot _root;
+  final Getter<Condition> _condition;
 
-    if (fish.length != null && fish.length.value == 0) fish.length = null;
-    if (fish.weight != null && fish.weight.value == 0) fish.weight = null;
-    _logger.finest("Set fish[${tmpFishIndex}]: ${fish.asMap}");
-    report.fishes[tmpFishIndex] = fish;
+  _Conditions(this._root, this._condition);
+
+  PaperDialog _tideDialog;
+  PaperDialog get tideDialog {
+    if (_tideDialog == null) _tideDialog = _root.querySelector('#tide-dialog');
+    return _tideDialog;
   }
-  deleteFish() {
-    _logger.fine("Deleting fish: ${tmpFishIndex}");
-    if (0 <= tmpFishIndex && tmpFishIndex < report.fishes.length) {
-      report.fishes.removeAt(tmpFishIndex);
-    }
+  PaperDialog _weatherDialog;
+  PaperDialog get weatherDialog {
+    if (_weatherDialog == null) _weatherDialog = _root.querySelector('#weather-dialog');
+    return _weatherDialog;
   }
 
-  dialogDate() {
-    tmpDate = new DateTime(report.dateAt.year, report.dateAt.month, report.dateAt.day);
-    tmpOclock = report.dateAt.hour;
-    dateDialog.toggle();
-  }
-  commitCalendar() {
-    report.dateAt = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
-    _logger.fine("Commit date: ${report.dateAt}");
-    renewConditions();
-  }
+  Weather get weather => _condition.value.weather;
+  Tide get tide => _condition.value.tide;
+  int get moon => _condition.value.moon;
 
   dialogTide() => tideDialog.toggle();
   changeTide(String name) {
     final tide = enumByName(Tide.values, name);
-    if (tide != null) report.condition.tide = tide;
+    if (tide != null) _condition.value.tide = tide;
     tideDialog.toggle();
   }
 
   dialogWeather() => weatherDialog.toggle();
   changeWeather(String nominal) {
-    report.condition.weather.nominal = nominal;
-    report.condition.weather.iconUrl = weatherIcon(nominal);
+    _condition.value.weather.nominal = nominal;
+    _condition.value.weather.iconUrl = weatherIcon(nominal);
     weatherDialog.toggle();
   }
+
+  String get temperatureUnit => "°${nameOfEnum(UserPreferences.temperatureUnit)[0]}";
+
+  Timer _weatherDialogTimer;
+  Temperature _temperature;
+  int get temperatureValue {
+    if (_condition.value.weather.temperature == null) return null;
+    if (_temperature == null) _temperature =
+        _condition.value.weather.temperature.convertTo(UserPreferences.temperatureUnit);
+    return _temperature.value.round();
+  }
+  set temperatureValue(int v) {
+    _temperature =
+        new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(UserPreferences.temperatureUnit)});
+    _logger.fine("Set temperature: ${_temperature.asMap}");
+    _condition.value.weather.temperature = _temperature;
+    _logger.finest("Setting timer for closing weather dialog.");
+    if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
+    _weatherDialogTimer = new Timer(new Duration(seconds: 3), () {
+      if (weatherDialog.opened) weatherDialog.toggle();
+    });
+  }
+  List<String> get weatherNames => Weather.nominalMap.keys;
+  String weatherIcon(String nominal) => Weather.nominalMap[nominal];
+
+  List<String> get tideNames => tideList.map((t) => nameOfEnum(t));
+  String tideIcon(String name) => name == null ? null : "/img/tide/${name.toLowerCase()}.png";
+  String get tideName => _condition.value.tide == null ? null : nameOfEnum(_condition.value.tide);
+  String get tideImage => tideIcon(tideName);
+  String get moonImage =>
+      _condition.value.moon == null ? null : "/img/moon/phase-${_condition.value.moon.toString().padLeft(2, '0')}.png";
 }

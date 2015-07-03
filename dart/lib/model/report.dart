@@ -36,7 +36,7 @@ class _ReportImpl extends JsonSupport implements Report {
         _condition = new CachedProp<Condition>(data, 'condition', (Map map) => new Condition.fromMap(map)),
         _fishes = new CachedProp<List<Fishes>>(data, 'fishes',
             (List list) => list.map((fs) => new Fishes.fromMap(fs)).toList(),
-            (List<Fishes> o) => o.map((a) => a.asMap));
+            (List<Fishes> o) => o.map((a) => a.asMap).toList());
 
   Map get asMap => _data;
 

@@ -24,7 +24,7 @@
 	   		<div id="input" ng-if="isReady">
 		    	<div id="date">
 		    		<div class="buttons">
-		        		<paper-button ng-click="dialogDate()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
+		        		<paper-button ng-click="dateOclock.dialogDate()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
 		        	</div>
 		        	<paper-action-dialog id="date-dialog" transition="core-transition-center" backdrop layered autoCloseDisabled>
 		        		<style>
@@ -54,7 +54,7 @@
 		        		<paper-shadow id="oclock" z="1">
 		        			<div>
 		        				<p>about</p>
-		        				<num-input value="tmpOclock" min="0" max="23" size="20"></num-input>
+		        				<num-input value="dateOclock.tmpOclock" min="0" max="23" size="20"></num-input>
 		        				<p>O'clock</p>
 		        			</div>
 	        			</paper-shadow>
@@ -62,11 +62,11 @@
 		        		<br>
 		        		
 		        		<paper-shadow z="1">
-		        			<calendar value="tmpDate" start-of-week="1"></calendar>
+		        			<calendar value="dateOclock.tmpDate" start-of-week="1"></calendar>
 	        			</paper-shadow>
 		        		
 		        		<paper-button dismissive style="color: red">Cancel</paper-button>
-		        		<paper-button affirmative style="color: green" ng-click="commitCalendar()">OK</paper-button>
+		        		<paper-button affirmative style="color: green" ng-click="dateOclock.commitCalendar()">OK</paper-button>
 		        	</paper-action-dialog>
 	        	</div>
 		    	<div id="comment">
@@ -86,17 +86,17 @@
 			    		</div>
 			    		<div class="fish-name">
 			    			<paper-input-decorator label="Fish name">
-			    				<input ng-model="addingFishName">
+			    				<input ng-model="catches.addingFishName">
 			    			</paper-input-decorator>
 			    		</div>
 			    		<div class="add-button">
-				    		<paper-fab mini icon="add" ng-click="addFish()"></paper-fab>
+				    		<paper-fab mini icon="add" ng-click="catches.addFish()"></paper-fab>
 			    		</div>
 			    	</div>
 			    	<div class="list">
-			    		<div class="item" ng-repeat="fish in report.fishes">
+			    		<div class="item" ng-repeat="fish in catches.list.value">
 		    				<p>{{fish}}</p>
-		    				<paper-ripple fit ng-click="editFish($index)"></paper-ripple>
+		    				<paper-ripple fit ng-click="catches.editFish($index)"></paper-ripple>
 			    		</div>
 			    	</div>
 			    	<paper-action-dialog id="fish-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
@@ -137,63 +137,63 @@
 			    		<paper-shadow class="rounded name">
 				    		<div class="row fish-name">
 				    			<paper-input-decorator floatingLabel label="Fish name">
-				    				<input ng-model="tmpFish.name">
+				    				<input ng-model="catches.tmpFish.name">
 				    			</paper-input-decorator>
 				    		</div>
 				    		
 				    		<div class="row count">
 				    			<p>Count</p>
-				    			<num-input value="tmpFishCount" min="0"></num-input>
+				    			<num-input value="catches.tmpFishCount" min="0"></num-input>
 				    		</div>
 			    		</paper-shadow>
 			    		
 			    		<paper-shadow class="rounded sizes">
 				    		<div class="row size length">
-				    			<p>Length ({{lengthUnit}})</p>
-				    			<num-input value="tmpFishLength" min="0" digits="3"></num-input>
+				    			<p>Length ({{catches.lengthUnit}})</p>
+				    			<num-input value="catches.tmpFishLength" min="0" digits="3"></num-input>
 				    		</div>
 				    		
 				    		<div class="row size weight">
-				    			<p>Weight ({{weightUnit}})</p>
-				    			<num-input value="tmpFishWeight" min="0" digits="3"></num-input>
+				    			<p>Weight ({{catches.weightUnit}})</p>
+				    			<num-input value="catches.tmpFishWeight" min="0" digits="3"></num-input>
 				    		</div>
 				    	</paper-shadow>
 			    		
 		        		<paper-button dismissive style="color: red">Reset</paper-button>
-		        		<paper-button dismissive style="color: red" ng-click="deleteFish()">Delete</paper-button>
-		        		<paper-button affirmative style="color: green" ng-click="commitFish()">OK</paper-button>
+		        		<paper-button dismissive style="color: red" ng-click="catches.deleteFish()">Delete</paper-button>
+		        		<paper-button affirmative style="color: green" ng-click="catches.commitFish()">OK</paper-button>
 			    	</paper-action-dialog>
 			    </div>
 			    <div id="location">
 			    	<div>
 			    		<paper-input-decorator label="Spot Name" floatingLabel>
-			    			<input ng-model="report.location.name">
+			    			<input ng-model="gmap.spotName.value">
 			    		</paper-input-decorator>
 			    	</div>
 			    	
 			    	<div id="google-maps"></div>
 			    	
-			    	<div class="toggle" ng-if="report.location.geoinfo != null">
-			    		<paper-button ng-click="toggleMap($event)">
-			    			<core-icon icon="{{ mapExpanded ? 'expand-less' : 'expand-more' }}">
+			    	<div class="toggle" ng-if="gmap.isReady">
+			    		<paper-button ng-click="gmap.toggleMap($event)">
+			    			<core-icon icon="{{ gmap.mapExpanded ? 'expand-less' : 'expand-more' }}">
 			    			</core-icon>
-			    			{{ mapExpanded ? "Shrink Map" : "Expand Map" }}
+			    			{{ gmap.mapExpanded ? "Shrink Map" : "Expand Map" }}
 			    		</paper-button>
 			    	</div>
 			    </div>
 			    <div id="condition">
 			    	<div class="weather">
-			    		<div class="spinning" ng-if="report.condition.weather.iconUrl == null">
+			    		<div class="spinning" ng-if="conditions.weather.iconUrl == null">
 			    			<p>Weather</p>
 			    			<paper-spinner active class="red"></paper-spinner>
 			    		</div>
-			    		<div class="stable" ng-if="report.condition.weather.iconUrl != null">
-				    		<p>{{report.condition.weather.nominal}}</p>
+			    		<div class="stable" ng-if="conditions.weather.iconUrl != null">
+				    		<p>{{conditions.weather.nominal}}</p>
 				    		<div class="row">
-					    		<img ng-src="{{report.condition.weather.iconUrl}}">
-					    		<p>{{report.condition.weather.temperature}}</p>
+					    		<img ng-src="{{conditions.weather.iconUrl}}">
+					    		<p>{{conditions.weather.temperature}}</p>
 				    		</div>
-			    			<paper-ripple fit ng-click="dialogWeather()"></paper-ripple>
+			    			<paper-ripple fit ng-click="conditions.dialogWeather()"></paper-ripple>
 			    		</div>
 			    		<paper-dialog id="weather-dialog" transition="core-transition-center" backdrop>
 			    			<style>
@@ -233,36 +233,36 @@
 			    			<div>
 				        		<paper-shadow id="temperature" z="1">
 				        			<div class="row">
-				        				<num-input value="temperatureValue"></num-input>
-				        				<p>{{temperatureUnit}}</p>
+				        				<num-input value="conditions.temperatureValue"></num-input>
+				        				<p>{{conditions.temperatureUnit}}</p>
 				        			</div>
 			        			</paper-shadow>
 				        		
 				        		<br>
 				        		
 				        		<paper-shadow id="sky" z="1">
-				        			<div class="row" ng-repeat="name in weatherNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
+				        			<div class="row" ng-repeat="name in conditions.weatherNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
 				    					<div class="cell">
-					    					<img width="64" height="64" ng-src="{{weatherIcon(name)}}">
+					    					<img width="64" height="64" ng-src="{{conditions.weatherIcon(name)}}">
 				    					</div>
 				    					<div class="cell">
 					    					<p>{{name}}</p>
 				    					</div>
-						    			<paper-ripple fit ng-click="changeWeather(name)"></paper-ripple>
+						    			<paper-ripple fit ng-click="conditions.changeWeather(name)"></paper-ripple>
 				    				</div>
 			        			</paper-shadow>
 		    				</div>
 			    		</paper-dialog>
 			    	</div>
 			    	<div class="tide">
-			    		<div class="spinning" ng-if="tideImage == null">
+			    		<div class="spinning" ng-if="conditions.tideImage == null">
 			    			<p>Tide</p>
 			    			<paper-spinner active class="blue"></paper-spinner>
 			    		</div>
-			    		<div class="stable" ng-if="tideImage != null">
-				    		<p>{{tideName}}</p>
-			    			<img ng-src="{{tideImage}}">
-			    			<paper-ripple fit ng-click="dialogTide()"></paper-ripple>
+			    		<div class="stable" ng-if="conditions.tideImage != null">
+				    		<p>{{conditions.tideName}}</p>
+			    			<img ng-src="{{conditions.tideImage}}">
+			    			<paper-ripple fit ng-click="conditions.dialogTide()"></paper-ripple>
 			    		</div>
 			    		<paper-dialog id="tide-dialog" transition="core-transition-center" backdrop>
 			    			<style>
@@ -295,26 +295,26 @@
 			    				}
 			    			</style>
 			    			<div>
-			    				<div class="row" ng-repeat="name in tideNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
+			    				<div class="row" ng-repeat="name in conditions.tideNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
 			    					<div class="cell">
-				    					<img width="48" height="48" ng-src="{{tideIcon(name)}}">
+				    					<img width="48" height="48" ng-src="{{conditions.tideIcon(name)}}">
 			    					</div>
 			    					<div class="cell">
 				    					<p>{{name}}</p>
 			    					</div>
-					    			<paper-ripple fit ng-click="changeTide(name)"></paper-ripple>
+					    			<paper-ripple fit ng-click="conditions.changeTide(name)"></paper-ripple>
 			    				</div>
 		    				</div>
 			    		</paper-dialog>
 			    	</div>
 			    	<div class="moon">
-			    		<div class="spinning" ng-if="moonImage == null">
+			    		<div class="spinning" ng-if="conditions.moonImage == null">
 			    			<p>Moon</p>
 			    			<paper-spinner active class="green"></paper-spinner>
 			    		</div>
-			    		<div class="stable" ng-if="moonImage != null">
-				    		<p>Phase: {{report.condition.moon}}</p>
-				    		<img ng-src="{{moonImage}}">
+			    		<div class="stable" ng-if="conditions.moonImage != null">
+				    		<p>Phase: {{conditions.moon}}</p>
+				    		<img ng-src="{{conditions.moonImage}}">
 				    	</div>
 			    	</div>
 			    </div>
