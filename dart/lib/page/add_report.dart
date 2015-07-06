@@ -33,7 +33,8 @@ final _logger = new Logger('AddReportPage');
     useShadowDom: true)
 class AddReportPage extends MainFrame implements ShadowRootAware {
   final Completer<UploadSession> _onSession = new Completer();
-  final Report report = new Report.fromMap({'fishes': [], 'location': {}, 'condition': {'weather': {}}});
+  final Report report =
+      new Report.fromMap({'id': '', 'userId': '', 'fishes': [], 'location': {}, 'condition': {'weather': {}}});
 
   ShadowRoot _root;
 
@@ -155,7 +156,9 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
 
   submit() => rippling(() async {
     _logger.finest("Submitting report: ${report}");
-    //(await _onSession.future).submit(report);
+    if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
+    (await _onSession.future).submit(report);
+    back();
   });
 }
 
