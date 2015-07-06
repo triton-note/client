@@ -44,7 +44,17 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   _Conditions conditions;
 
   bool isReady = false;
-  bool get isSubmitable => report.photo != null && report.photo.original != null;
+  void submitable() {
+    final div = _root.querySelector('core-toolbar div.submit');
+    _logger.fine("Appearing submit button: ${div}");
+    div.style.display = "block";
+    new CoreAnimation()
+      ..target = div
+      ..duration = 300
+      ..fill = "both"
+      ..keyframes = [{'transform': "translate(-500px, 100px)", 'opacity': '0'}, {'transform': "none", 'opacity': '1'}]
+      ..play();
+  }
 
   int _photoWidth;
   int get photoWidth {
@@ -94,6 +104,7 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
 
       session.photo.then((v) async {
         report.photo = v;
+        submitable();
       });
 
       try {

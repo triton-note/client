@@ -1,6 +1,10 @@
 @import "compass";
 @import "../../web/styles/common";
 
+.submit {
+  display: none;
+}
+
 div#pre {
   div {
     display: block;
@@ -86,7 +90,6 @@ div#catches {
 
 div#date {
   margin-top: 10px;
-  margin-bottom: 10px;
   
   .buttons {
     paper-button {
