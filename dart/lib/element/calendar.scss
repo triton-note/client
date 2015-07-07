@@ -1,4 +1,4 @@
-@import "compass";
+@import "../../web/styles/common";
 
 p {
   margin: 0;
@@ -71,7 +71,7 @@ div.calendar {
           padding-bottom: 12px;
           
           text-align: center;
-          font-weight: 400;
+          @include font-bold();
           @include background-image(linear-gradient(#f8f8f8, white));
         }
         
@@ -106,7 +106,7 @@ div.calendar {
             &.selected {
               background: #eef;
               color: #00e;
-              font-weight: 600;
+              @include font-bold();
             }
           }
         }

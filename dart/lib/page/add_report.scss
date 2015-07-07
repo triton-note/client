@@ -1,4 +1,3 @@
-@import "compass";
 @import "../../web/styles/common";
 
 .submit {
@@ -53,10 +52,7 @@ div#catches {
       
       &>p {
         margin: 0;
-        font: {
-          size: 20px;
-          weight: 400;
-        }
+        @include font-bold(20px);
       }
     }
   }
@@ -79,10 +75,7 @@ div#catches {
       
       &>p {
         margin: 0;
-        font: {
-          size: $fontSize;
-          weight: 300;
-        }
+        @include font-normal($fontSize);
       }
     }
   }
@@ -95,7 +88,7 @@ div#date {
     paper-button {
       background: white;
       text-transform: none;
-      font-weight: 500;
+      @include font-bold();
       color: #888;
     }
   }

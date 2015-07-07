@@ -1,5 +1,9 @@
 
 core-header-panel[main] {
+  core-toolbar span[flex] {
+    @include font-bold(24px);
+  }
+  
   &>div {
     margin: 10px;
   }

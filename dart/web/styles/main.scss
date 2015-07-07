@@ -1,9 +1,7 @@
+@import 'font';
+
 body {
-	font: {
-		family: 'Noto Sans Japanese', sans-serif;
-		size: 16px;
-		weight: 100;
-	}
+	@include font-normal(16px);
 	color: #555;
 	-webkit-font-smoothing: subpixel-antialiased;
 	-moz-osx-font-smoothing: grayscale;

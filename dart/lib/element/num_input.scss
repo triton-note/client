@@ -1,4 +1,4 @@
-@import "compass";
+@import "../../web/styles/common";
 
 div.root {
   @include inline-block();
@@ -12,7 +12,7 @@ div.root {
     margin-left: 0px;
     border: none;
     text-align: right;
-    font-family: 'Courier New', Courier, Monaco, monospace;
+    @include font-mono();
   }
   
   div.buttons {

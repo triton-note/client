@@ -1,0 +1,31 @@
+$font-name-normal: 'Exo 2';
+
+@mixin font-spec($name, $style, $weight, $size: "") {
+  font: {
+    family: $name;
+    style: $style;
+    weight: $weight;
+    @if $size != "" {
+      size: $size;
+    }
+  }
+}
+
+@mixin font-mono($size: "") {
+  @include font-spec('Roboto Mono', normal, 300, $size);
+}
+@mixin font-light($size: "") {
+  @include font-spec($font-name-normal, normal, 200, $size);
+}
+@mixin font-normal($size: "") {
+  @include font-spec($font-name-normal, normal, 300, $size);
+}
+@mixin font-bold($size: "") {
+  @include font-spec($font-name-normal, normal, 400, $size);
+}
+@mixin font-extra-bold($size: "") {
+  @include font-spec($font-name-normal, normal, 600, $size);
+}
+@mixin font-italic-bold($size: "") {
+  @include font-spec($font-name-normal, italic, 800, $size);
+}
