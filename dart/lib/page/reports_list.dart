@@ -28,9 +28,9 @@ class ReportsListPage extends MainFrame {
     });
   }
 
-  goReport(String id) {
+  goReport(String id) => rippling(() {
     router.go('report.detail', {'reportId': id});
-  }
+  });
 
   addReport() {
     router.go('add', {});
