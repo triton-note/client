@@ -12,11 +12,17 @@ Future alfterRippling(Proc()) {
   return new Future.delayed(new Duration(milliseconds: 250), Proc);
 }
 
-class MainFrame {
+class MainFrame extends ShadowRootAware {
   final Router router;
-  get drawerPanel => document.getElementById('drawerPanel');
+  ShadowRoot _root;
+  ShadowRoot get root => _root;
+  get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
 
   MainFrame(this.router);
+
+  void onShadowRoot(ShadowRoot sr) {
+    _root = sr;
+  }
 
   rippling(proc()) => alfterRippling(proc);
 

@@ -31,12 +31,10 @@ final _logger = new Logger('AddReportPage');
     templateUrl: 'packages/triton_note/page/add_report.html',
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
-class AddReportPage extends MainFrame implements ShadowRootAware {
+class AddReportPage extends MainFrame {
   final Completer<UploadSession> _onSession = new Completer();
   final Report report =
       new Report.fromMap({'id': '', 'userId': '', 'fishes': [], 'location': {}, 'condition': {'weather': {}}});
-
-  ShadowRoot _root;
 
   _Catches catches;
   _DateOclock dateOclock;
@@ -45,7 +43,7 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
 
   bool isReady = false;
   void submitable() {
-    final div = _root.querySelector('core-toolbar div.submit');
+    final div = root.querySelector('core-toolbar div.submit');
     _logger.fine("Appearing submit button: ${div}");
     div.style.display = "block";
     new CoreAnimation()
@@ -59,7 +57,7 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
   int _photoWidth;
   int get photoWidth {
     if (_photoWidth == null) {
-      final div = _root.querySelector('#photo');
+      final div = root.querySelector('#photo');
       if (div != null) _photoWidth = div.clientWidth;
     }
     return _photoWidth;
@@ -75,8 +73,8 @@ class AddReportPage extends MainFrame implements ShadowRootAware {
     }
   }
 
-  void onShadowRoot(ShadowRoot root) {
-    _root = root;
+  void onShadowRoot(ShadowRoot sr) {
+    super.onShadowRoot(sr);
 
     catches = new _Catches(root, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
     dateOclock = new _DateOclock(root, new GetterSetter(() => report.dateAt, (v) {
