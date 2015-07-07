@@ -20,20 +20,32 @@
     	</core-toolbar>
     	
     	<div>
-		    <div ng-if="reports == null">
-		        <div style="margin: 10px">
-		            <paper-spinner active></paper-spinner>
-		        </div>
+		    <div ng-if="reports == null" class="getting-reports">
+	            <paper-spinner active></paper-spinner>
 		    </div>
 		    <div ng-if="reports != null">
-		    	<div ng-if="reports.length < 1">
-		    		<p>ADD FIRST REPORT NOW !</p>
+		    	<div class="no-reports" ng-if="reports.length < 1">
+		    		<paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
 		    	</div>
-		    	<div ng-if="reports.length > 0">
-			        <div ng-repeat="model in reports" ng-click="goReport(model.id)">
-			            <paper-item>
-			                <p>{{model.id}}</p>
-			            </paper-item>
+		    	<div class="report-table" ng-if="reports.length > 0">
+			        <div class="report-row" ng-repeat="report in reports" ng-click="goReport(report.id)">
+		        		<div class="border-top"></div>
+			        	<div class="head">
+		                	<fit-image width="100" height="100" align="top" shrink="true" url="report.photo.reduced.mainview.url"></fit-image>
+				        	<div class="desc">
+			                	<div class="spot">
+			                		<p>{{report.location.name}}, {{report.dateAt | date:"yyyy-MM-dd" }}</p>
+			                	</div>
+				                <div class="fishes">
+					        		<div ng-repeat="fish in report.fishes">
+					        			<p>{{fish}}</p>
+					        		</div>
+				                </div>
+			                </div>
+		                </div>
+		                <div class="comment">
+		                	<p>{{report.comment}}</p>
+		                </div>
 			        </div>
 		        </div>
 		    </div>
