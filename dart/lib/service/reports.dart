@@ -42,6 +42,6 @@ class Reports {
   static Future<Null> add(Report report) async {
     (await allList)
       ..add(report)
-      ..sort((a, b) => a.dateAt.compareTo(b.dateAt));
+      ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
   }
 }
