@@ -39,6 +39,7 @@ class ExpandableGMapElement extends ShadowRootAware {
 
       final div = _root.querySelector('#google-maps');
       if (shrinkedHeight == null) shrinkedHeight = (div.clientWidth * 2 / (1 + Math.sqrt(5))).round();
+      _logger.fine("Shrinked height: ${shrinkedHeight}");
       div.style.height = "${shrinkedHeight}px";
 
       makeGoogleMap(div, center).then((v) {

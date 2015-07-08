@@ -1,0 +1,10 @@
+<div id="text">
+	<p>{{text}}</p>
+</div>
+
+<div id="toggle">
+	<paper-button ng-click="toggle()">
+		<core-icon icon="{{ isExpanded ? 'expand-less' : 'expand-more' }}"></core-icon>
+		{{ isExpanded ? "Shrink" : "Read More..." }}
+	</paper-button>
+</div>

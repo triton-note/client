@@ -90,7 +90,7 @@ class _PhotoSize {
     }
     return _width;
   }
-  int get height => width == null ? null : (width * 2 / 3).round();
+  int get height => width;
 }
 
 class _Conditions {

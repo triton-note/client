@@ -1,5 +1,9 @@
 @import "../../web/styles/common";
 
+p {
+  margin: 0;
+}
+
 .row {
   &>* {
     @include inline-block();
@@ -15,28 +19,65 @@
   }
 }
 
+#photo {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
 #dateAt {
   width: 100%;
+  margin-top: 4px;
+  
   text-align: right;
+  @include font-bold();
 }
 
 #condition {
+  $imgSize: 48px;
+  $border: solid 2px #eee;
+  
   display: table;
-  width: 100%;
+  
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  
+  border: $border;
+  @include border-radius(8px);
   
   &>div {
     display: table-cell;
-    width: 30%;
+    width: 33%;
+    
+    padding-top: 4px;
+    padding-bottom: 0px;
+    padding-left: 8px;
+    padding-right: 8px;
+    
+    text-align: center;
+    
+    &>p {
+      margin-bottom: 10px;
+    }
+    
+    img {
+      width: $imgSize;
+      height: $imgSize;
+    }
   }
   
-  $imgSize: 48px;
-  img {
-    width: $imgSize;
-    height: $imgSize;
+  &>div:nth-child(2n) {
+    border-left: $border;
+    border-right: $border;
   }
   
   .weather {
-    width: 40%;
+    &>p {
+      margin-bottom: 0px;
+    }
+    
     img {
       width: $imgSize * 1.5;
       height: $imgSize * 1.5;
@@ -44,31 +85,46 @@
   }
 }
 
-#photo {
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
-#comment {
-  width: 100%;
-  margin-top: 4px;
-  overflow: hidden;
-  @include font-normal(16px);
+#fishes {
+  margin-top: 8px;
+  margin-bottom: 8px;
   
-  p {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;
+  border: solid 2px #eee;
+  
+  .title {
+    @include font-bold(18px);
+    @include background-image(linear-gradient(#cadaf0, white));
+    
+    p {
+      margin-left: 4px;
+    }
+  }
+  
+  .item {
+    margin-top: 8px;
+    p {
+      margin: 8px;
+    }
   }
 }
 
-#fishes {
-  width: 100%;
+#comment {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 4px;
+  @include font-normal(16px);
+  border: solid 1px #eee;
 }
 
 #location {
   width: 100%;
+  margin-top: 10px;
+  padding-top: 5px;
+  
+  .name {
+    margin-bottom: 2px;
+    @include font-bold(20px);
+  }
   
   expandable-gmap {
     width: 100%;

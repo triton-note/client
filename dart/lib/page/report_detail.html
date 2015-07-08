@@ -14,17 +14,18 @@
 				</div>
 			</div>
 			<div id="base" ng-if="report != null">
+		    	<div id="photo">
+		    		<fit-image ng-if="photo.width != null" width="photo.width" height="photo.height" url="report.photo.reduced.mainview.url"></fit-image>
+		    	</div>
+		    	
 		    	<div id="dateAt">
 		    		<p>{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
 		    	</div>
 		    	
 			    <div id="condition">
 			    	<div class="weather">
-			    		<p>{{conditions.weather.nominal}}</p>
-			    		<div class="row">
-				    		<img ng-src="{{conditions.weather.iconUrl}}">
-				    		<p>{{conditions.temperature}}</p>
-			    		</div>
+			    		<p>{{conditions.weather.nominal}} / {{conditions.temperature}}</p>
+			    		<img ng-src="{{conditions.weather.iconUrl}}">
 			    	</div>
 			    	<div class="tide">
 			    		<p>{{conditions.tideName}}</p>
@@ -36,18 +37,17 @@
 			    	</div>
 			    </div>
 			    
-		    	<div id="photo">
-		    		<fit-image ng-if="photo.width != null" width="photo.width" height="photo.height" url="report.photo.reduced.mainview.url"></fit-image>
+		    	<div id="fishes">
+		    		<div class="title">
+		    			<p>Catches</p>
+		    		</div>
+		    		<div class="item">
+	    				<p ng-repeat="fish in report.fishes">{{fish}}</p>
+		    		</div>
 		    	</div>
 		    	
 		    	<div id="comment">
-		    		<p>{{report.comment}}</p>
-		    	</div>
-		    	
-		    	<div id="fishes">
-		    		<div class="item" ng-repeat="fish in report.fishes">
-	    				<p>{{fish}}</p>
-		    		</div>
+		    		<expandable-text text="report.comment" shrinked-lines="3"></expandable-text>
 		    	</div>
 		    	
 		    	<div id="location">
