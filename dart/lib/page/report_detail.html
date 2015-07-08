@@ -1,13 +1,4 @@
 <core-drawer-panel id="mainFrame">
-    <core-header-panel drawer>
-        <core-toolbar>
-	        <div>Menu</div>
-	    </core-toolbar>
-	    <core-menu>
-	        <core-item icon="settings" label="Preferences" ng-click="goPreferences()"></core-item>
-	    </core-menu>
-	</core-header-panel>
-
     <core-header-panel main>
     	<core-toolbar>
 			<paper-icon-button icon="arrow-back" ng-click="back()"></paper-icon-button>
@@ -17,10 +8,55 @@
    		</core-toolbar>
 
 		<div>
-		    <div ng-if="report == null">
-		    </div>
-		    <div ng-if="report != null">
-		    </div>
+			<div id="pre" ng-if="report == null">
+				<div>
+					<paper-spinner active></paper-spinner>
+				</div>
+			</div>
+			<div id="base" ng-if="report != null">
+		    	<div id="dateAt">
+		    		<p>{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
+		    	</div>
+		    	
+			    <div id="condition">
+			    	<div class="weather">
+			    		<p>{{conditions.weather.nominal}}</p>
+			    		<div class="row">
+				    		<img ng-src="{{conditions.weather.iconUrl}}">
+				    		<p>{{conditions.temperature}}</p>
+			    		</div>
+			    	</div>
+			    	<div class="tide">
+			    		<p>{{conditions.tideName}}</p>
+		    			<img ng-src="{{conditions.tideImage}}">
+			    	</div>
+			    	<div class="moon">
+			    		<p>Phase: {{conditions.moon}}</p>
+			    		<img ng-src="{{conditions.moonImage}}">
+			    	</div>
+			    </div>
+			    
+		    	<div id="photo">
+		    		<fit-image ng-if="photo.width != null" width="photo.width" height="photo.height" url="report.photo.reduced.mainview.url"></fit-image>
+		    	</div>
+		    	
+		    	<div id="comment">
+		    		<p>{{report.comment}}</p>
+		    	</div>
+		    	
+		    	<div id="fishes">
+		    		<div class="item" ng-repeat="fish in report.fishes">
+	    				<p>{{fish}}</p>
+		    		</div>
+		    	</div>
+		    	
+		    	<div id="location">
+			    	<div class="name">
+		    			<p>{{report.location.name}}</p>
+			    	</div>
+			    	<expandable-gmap center="gmap.geoinfo" set-gmap="gmap.setGMap" get-scroller="gmap.getScroller" get-base="gmap.getBase"></expandable-gmap>
+			    </div>
+			</div>
 		</div>
 	</core-header-panel>
 </core-drawer-panel>

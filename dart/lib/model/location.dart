@@ -78,6 +78,14 @@ class _ConditionImpl extends JsonSupport implements Condition {
 }
 
 enum Tide { Flood, High, Ebb, Low }
+abstract class Tides {
+  static String iconOf(Tide v) => iconBy(nameOfEnum(v));
+  static String iconBy(String name) => "/img/tide/${name.toLowerCase()}.png";
+}
+
+abstract class MoonPhases {
+  static String iconOf(int v) => "/img/moon/phase-${v.toString().padLeft(2, '0')}.png";
+}
 
 abstract class Weather implements JsonSupport {
   static const Map<String, String> nominalMap = const {

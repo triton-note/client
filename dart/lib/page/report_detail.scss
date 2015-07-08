@@ -1,1 +1,76 @@
 @import "../../web/styles/common";
+
+.row {
+  &>* {
+    @include inline-block();
+  }
+}
+
+#pre {
+  div {
+    display: block;
+    
+    margin-top: 30%;
+    text-align: center;
+  }
+}
+
+#dateAt {
+  width: 100%;
+  text-align: right;
+}
+
+#condition {
+  display: table;
+  width: 100%;
+  
+  &>div {
+    display: table-cell;
+    width: 30%;
+  }
+  
+  $imgSize: 48px;
+  img {
+    width: $imgSize;
+    height: $imgSize;
+  }
+  
+  .weather {
+    width: 40%;
+    img {
+      width: $imgSize * 1.5;
+      height: $imgSize * 1.5;
+    }
+  }
+}
+
+#photo {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+#comment {
+  width: 100%;
+  margin-top: 4px;
+  overflow: hidden;
+  @include font-normal(16px);
+  
+  p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+  }
+}
+
+#fishes {
+  width: 100%;
+}
+
+#location {
+  width: 100%;
+  
+  expandable-gmap {
+    width: 100%;
+  }
+}

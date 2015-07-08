@@ -20,7 +20,7 @@ class Setter<T> {
   void set value(T v) => _setter(v);
 }
 
-class GetterSetter<T> {
+class GetterSetter<T> implements Getter<T>, Setter<T> {
   final Function _getter;
   final Function _setter;
 
