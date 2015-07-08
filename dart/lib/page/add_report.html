@@ -171,15 +171,7 @@
 			    		</paper-input-decorator>
 			    	</div>
 			    	
-			    	<div id="google-maps"></div>
-			    	
-			    	<div class="toggle" ng-if="gmap.isReady">
-			    		<paper-button ng-click="gmap.toggleMap($event)">
-			    			<core-icon icon="{{ gmap.mapExpanded ? 'expand-less' : 'expand-more' }}">
-			    			</core-icon>
-			    			{{ gmap.mapExpanded ? "Shrink Map" : "Expand Map" }}
-			    		</paper-button>
-			    	</div>
+			    	<expandable-gmap center="gmap.geoinfo" set-gmap="gmap.setGMap" get-scroller="gmap.getScroller" get-base="gmap.getBase"></expandable-gmap>
 			    </div>
 			    <div id="condition">
 			    	<div class="weather">

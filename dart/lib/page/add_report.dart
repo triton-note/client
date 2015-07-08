@@ -73,6 +73,7 @@ class AddReportPage extends MainFrame {
     }
   }
 
+  @override
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
@@ -123,7 +124,6 @@ class AddReportPage extends MainFrame {
           report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
         }
       }
-      gmap.getMap().then((g) => g.putMarker(report.location.geoinfo));
       renewConditions();
 
       try {
@@ -277,96 +277,30 @@ class _Catches {
 }
 
 class _GMap {
-  static const int mapShrinkedHeight = 200;
-
   final ShadowRoot _root;
   final GetterSetter<String> spotName;
   final GetterSetter<GeoInfo> _geoinfo;
+  GeoInfo get geoinfo => _geoinfo.value;
+  Getter<Element> getScroller;
+  Getter<Element> getBase;
+  Setter<GoogleMap> setGMap;
+  GoogleMap _gmap;
 
-  _GMap(this._root, this.spotName, this._geoinfo);
-
-  DivElement _scroller;
-  DivElement get scroller {
-    if (_scroller == null) {
+  _GMap(this._root, this.spotName, this._geoinfo) {
+    getBase = new Getter<Element>(() => _root.querySelector('#input'));
+    getScroller = new Getter<Element>(() {
       final panel = _root.querySelector('core-header-panel[main]') as CoreHeaderPanel;
-      if (panel != null) _scroller = panel.scroller;
-    }
-    return _scroller;
-  }
-
-  bool get isReady => _geoinfo.value != null;
-
-  Future<GoogleMap> _gmap;
-  Future<GoogleMap> getMap() async {
-    if (_gmap == null && _geoinfo.value != null) {
-      final div = _root.querySelector('#google-maps');
-      div.style.height = "${mapShrinkedHeight}px";
-      _gmap = makeGoogleMap(div, _geoinfo.value)
-        ..then((gmap) {
-          gmap.onClick = (pos) {
-            _logger.fine("Point map: ${pos}");
-            _geoinfo.value = pos;
-            gmap.clearMarkers();
-            gmap.putMarker(pos);
-          };
-        });
-    }
-    return _gmap;
-  }
-  bool mapExpanded = false;
-
-  toggleMap(event) {
-    final button = event.target as Element;
-    final int buttonHeight = button.getBoundingClientRect().height.round();
-    _logger.finest("Toggle map: ${button}(height: ${buttonHeight})");
-    alfterRippling(() async {
-      final gmap = await getMap();
-      if (gmap == null) return;
-
-      final margin = 10;
-      final base = _root.querySelector('#input');
-      final int curHeight = gmap.hostElement.getBoundingClientRect().height.round();
-
-      scroll(int nextHeight, int move, [int duration = 300]) {
-        _logger.info("Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, duration: ${duration}");
-        new CoreAnimation()
-          ..target = gmap.hostElement
-          ..duration = duration
-          ..fill = "forwards"
-          ..keyframes = [{'height': "${curHeight}px"}, {'height': "${nextHeight}px"}]
-          ..play();
-
-        shift(String translation, int duration) => new CoreAnimation()
-          ..target = base
-          ..duration = duration
-          ..fill = "both"
-          ..keyframes = [{'transform': "none"}, {'transform': translation}]
-          ..play();
-        shift("translateY(${-move}px)", duration);
-
-        new Future.delayed(new Duration(milliseconds: (duration * 1.1).round()), () {
-          gmap.triggerResize();
-          if (move != 0) {
-            _logger.finest("Scrolling by ${move}");
-            shift("none", 0);
-            scroller.scrollTop += move;
-          }
-        });
-      }
-
-      if (mapExpanded) {
-        _logger.info("Shrink map: ${gmap}");
-        scroll(mapShrinkedHeight, 0);
-        mapExpanded = false;
-      } else {
-        _logger.info("Expand map: ${gmap}");
-        final int top = base.getBoundingClientRect().top.round();
-        final int curPos = gmap.hostElement.getBoundingClientRect().top.round() - top;
-        _logger.finest("Map div pos: ${curPos}");
-
-        scroll(window.innerHeight - top - buttonHeight - margin, Math.max(0, curPos - margin));
-        mapExpanded = true;
-      }
+      return (panel == null) ? null : panel.scroller;
+    });
+    setGMap = new Setter<GoogleMap>((v) {
+      _gmap = v;
+      _gmap.putMarker(_geoinfo.value);
+      _gmap.onClick = (pos) {
+        _logger.fine("Point map: ${pos}");
+        _geoinfo.value = pos;
+        _gmap.clearMarkers();
+        _gmap.putMarker(pos);
+      };
     });
   }
 }
@@ -433,9 +367,8 @@ class _Conditions {
   String weatherIcon(String nominal) => Weather.nominalMap[nominal];
 
   List<String> get tideNames => tideList.map((t) => nameOfEnum(t));
-  String tideIcon(String name) => name == null ? null : "/img/tide/${name.toLowerCase()}.png";
+  String tideIcon(String name) => name == null ? null : Tides.iconBy(name);
   String get tideName => _condition.value.tide == null ? null : nameOfEnum(_condition.value.tide);
   String get tideImage => tideIcon(tideName);
-  String get moonImage =>
-      _condition.value.moon == null ? null : "/img/moon/phase-${_condition.value.moon.toString().padLeft(2, '0')}.png";
+  String get moonImage => _condition.value.moon == null ? null : MoonPhases.iconOf(_condition.value.moon);
 }
