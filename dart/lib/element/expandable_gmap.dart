@@ -84,12 +84,14 @@ class ExpandableGMapElement extends ShadowRootAware {
           ..play();
 
         onFinish() {
-          if (move != 0) {
+          if (move != 0) new Future.delayed(new Duration(milliseconds: 10), () {
             shift("none", 0);
             scroller.scrollTop = scrollTo;
-          }
+          });
         }
-
+        if (move != 0) {
+          shift("translateY(${-move}px)", duration);
+        }
         new CoreAnimation()
           ..target = gmap.hostElement
           ..duration = duration
@@ -102,7 +104,6 @@ class ExpandableGMapElement extends ShadowRootAware {
             if (timeFractal == 1) onFinish();
           }
           ..play();
-        shift("translateY(${-move}px)", duration);
       }
 
       if (isExpanded) {
