@@ -15,7 +15,7 @@
 			</div>
 			<div id="base" ng-if="report != null">
 		    	<div id="photo">
-		    		<fit-image ng-if="photo.width != null" width="photo.width" height="photo.height" url="report.photo.reduced.mainview.url"></fit-image>
+		    		<fit-image ng-if="photo.width != null" width="photo.width" height="photo.height" shrink="true" url="report.photo.reduced.mainview.url"></fit-image>
 		    	</div>
 		    	
 		    	<div id="dateAt">
@@ -38,16 +38,23 @@
 			    </div>
 			    
 		    	<div id="fishes">
-		    		<div class="title">
+		    		<div class="header">
 		    			<p>Catches</p>
+		    			<p class="empty" ng-if="report.fishes == null || report.fishes.isEmpty">Empty</p>
 		    		</div>
-		    		<div class="item">
+		    		<div class="content">
 	    				<p ng-repeat="fish in report.fishes">{{fish}}</p>
 		    		</div>
 		    	</div>
 		    	
 		    	<div id="comment">
-		    		<expandable-text text="report.comment" shrinked-lines="3"></expandable-text>
+		    		<div class="header">
+		    			<p>Note</p>
+		    			<p class="empty" ng-if="report.comment == null || report.comment.isEmpty">Empty</p>
+		    		</div>
+		    		<div class="content">
+		    			<expandable-text text="report.comment" shrinked-lines="3"></expandable-text>
+		    		</div>
 		    	</div>
 		    	
 		    	<div id="location">

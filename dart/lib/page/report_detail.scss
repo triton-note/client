@@ -85,22 +85,30 @@ p {
   }
 }
 
-#fishes {
-  margin-top: 8px;
-  margin-bottom: 8px;
+.header {
+  display: table;
+  width: 100%;
+  vertical-align: baseline;
   
-  border: solid 2px #eee;
+  @include font-bold(18px);
+  @include background-image(linear-gradient(#cadaf0, white));
   
-  .title {
-    @include font-bold(18px);
-    @include background-image(linear-gradient(#cadaf0, white));
-    
-    p {
-      margin-left: 4px;
-    }
+  p {
+    display: table-cell;
+    width: 40%;
+    padding-left: 4px;
   }
+  .empty {
+    @include font-light(14px);
+  }
+}
+
+#fishes {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: solid 1px #eee;
   
-  .item {
+  .content {
     margin-top: 8px;
     p {
       margin: 8px;
@@ -111,9 +119,12 @@ p {
 #comment {
   margin-top: 10px;
   margin-bottom: 10px;
-  padding: 4px;
-  @include font-normal(16px);
   border: solid 1px #eee;
+  
+  .content {
+    padding: 4px;
+    @include font-normal(16px);
+  }
 }
 
 #location {
