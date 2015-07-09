@@ -5,6 +5,7 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
+import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 
 import 'package:triton_note/model/report.dart';
@@ -77,19 +78,47 @@ class _GMap {
 }
 
 class _PhotoSize {
-  final ShadowRoot root;
+  final ShadowRoot _root;
 
-  _PhotoSize(this.root);
+  _PhotoSize(this._root);
+
+  CoreAnimatedPages get pages => _root.querySelector('core-animated-pages');
+  Element get divNormal => _root.querySelector('#normal #photo');
+  Element get divFullsize => _root.querySelector('#fullPhoto #photo');
+  Element get toolbar => _root.querySelector('core-toolbar');
+  Element get fullToolbar => _root.querySelector('#fullPhoto #toolbar');
 
   int _width;
   int get width {
     if (_width == null) {
-      final div = root.querySelector('#photo');
-      if (div != null) _width = div.clientWidth;
+      if (divNormal != null && 0 < divNormal.clientWidth) {
+        _init();
+        _width = divNormal.clientWidth;
+      }
     }
     return _width;
   }
   int get height => width;
+
+  _init() async {
+    final height = window.screen.height;
+    _logger.fine("Full height: ${height}");
+    divFullsize.style.height = "${height}px";
+
+    divNormal.onDoubleClick.listen((event) {
+      pages.selected = 1;
+      toolbar.style.display = "none";
+    });
+
+    divFullsize.onClick.listen((event) {
+      fullToolbar.style.display = "block";
+    });
+  }
+
+  closeFullsize() {
+    toolbar.style.display = "block";
+    pages.selected = 0;
+  }
 }
 
 class _Conditions {

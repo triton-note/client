@@ -4,12 +4,6 @@ p {
   margin: 0;
 }
 
-.row {
-  &>* {
-    @include inline-block();
-  }
-}
-
 #pre {
   div {
     display: block;
@@ -19,10 +13,41 @@ p {
   }
 }
 
-#photo {
-  display: block;
-  width: 100%;
-  text-align: center;
+#base {
+  margin: 10px;
+}
+
+#normal {
+  #photo {
+    display: block;
+    width: 100%;
+    
+    text-align: center;
+  }
+}
+
+#fullPhoto {
+  &>div {
+    position: relative;
+    &>div {
+      position: absolute;
+      width: 100%;
+      top: 0;
+      left: 0;
+      background: transparent;
+    }
+  }
+  
+  #toolbar {
+    paper-fab {
+      background-color: black;
+    }
+  }
+  
+  #photo {
+    overflow: scroll;
+    background: #eee;
+  }
 }
 
 #dateAt {
@@ -93,13 +118,15 @@ p {
   @include font-bold(18px);
   @include background-image(linear-gradient(#cadaf0, white));
   
-  p {
+  &>* {
     display: table-cell;
-    width: 40%;
+  }
+  *:first-child {
+    width: 30%;
     padding-left: 4px;
   }
   .empty {
-    @include font-light(14px);
+    @include font-italic-light(14px);
   }
 }
 
@@ -130,14 +157,15 @@ p {
 #location {
   width: 100%;
   margin-top: 10px;
-  padding-top: 5px;
+  border: solid 1px #eee;
   
-  .name {
-    margin-bottom: 2px;
-    @include font-bold(20px);
-  }
-  
-  expandable-gmap {
-    width: 100%;
+  .content {
+    p {
+      margin: 4px;
+    }
+    
+    expandable-gmap {
+      width: 100%;
+    }
   }
 }

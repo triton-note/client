@@ -14,6 +14,9 @@ $font-name-normal: 'Exo 2';
 @mixin font-mono($size: "") {
   @include font-spec('Roboto Mono', normal, 300, $size);
 }
+@mixin font-italic-light($size: "") {
+  @include font-spec($font-name-normal, italic, 100, $size);
+}
 @mixin font-light($size: "") {
   @include font-spec($font-name-normal, normal, 200, $size);
 }
