@@ -24,6 +24,7 @@ class ExpandableTextElement extends ShadowRootAware {
   ShadowRoot _root;
   Element textarea;
   int shrinkedHeight, expandedHeight;
+  bool hasMore = false;
   bool isExpanded = false;
 
   @override
@@ -36,19 +37,20 @@ class ExpandableTextElement extends ShadowRootAware {
     textarea = _root.querySelector('#text :first-child');
 
     Future<int> getHeight(int lines) async {
-      setLines(lines);
+      _setLines(lines);
       return new Future.delayed(new Duration(milliseconds: 10), () {
         return textarea.getBoundingClientRect().height.round();
       });
     }
     expandedHeight = await getHeight(expandedLines);
     shrinkedHeight = await getHeight(shrinkedLines);
+    hasMore = shrinkedHeight < expandedHeight;
 
     _logger.fine("Obtained height: shrinked=${shrinkedHeight}, expanded=${expandedHeight}");
     textarea.style.opacity = "1";
   }
 
-  setLines(int v) {
+  _setLines(int v) {
     _logger.fine("Set line clamp: '${v}'");
     if (v != null) {
       textarea.style.setProperty('-webkit-line-clamp', v.toString());
@@ -69,7 +71,7 @@ class ExpandableTextElement extends ShadowRootAware {
       ..fill = "both"
       ..keyframes = frames
       ..play();
-    setLines(isExpanded ? shrinkedLines : expandedLines);
+    _setLines(isExpanded ? shrinkedLines : expandedLines);
 
     isExpanded = !isExpanded;
   });

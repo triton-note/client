@@ -6,6 +6,7 @@ import 'package:triton_note/router.dart';
 import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/element/calendar.dart';
 import 'package:triton_note/element/expandable_gmap.dart';
+import 'package:triton_note/element/expandable_text.dart';
 import 'package:triton_note/element/num_input.dart';
 import 'package:triton_note/page/add_report.dart';
 import 'package:triton_note/page/reports_list.dart';
@@ -26,6 +27,7 @@ class AppModule extends Module {
     bind(FitImageElement);
     bind(CalendarElement);
     bind(ExpandableGMapElement);
+    bind(ExpandableTextElement);
     bind(NumInputElement);
 
     bind(AddReportPage);
