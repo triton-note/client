@@ -35,12 +35,12 @@ class ExpandableGMapElement extends ShadowRootAware {
   Completer<GoogleMap> _readyGMap;
   bool get isReady {
     if (_root != null && center != null && _readyGMap == null) {
-      _readyGMap = new Completer();
-
       final div = _root.querySelector('#google-maps');
       final w = div.clientWidth;
       _logger.finest("Checking width of host div: ${w}");
-      if (w > 0) {
+      if (w > 0 && _readyGMap == null) {
+        _readyGMap = new Completer();
+
         if (shrinkedHeight == null) shrinkedHeight = (w * 2 / (1 + Math.sqrt(5))).round();
         _logger.fine("Shrinked height: ${shrinkedHeight}");
         div.style.height = "${shrinkedHeight}px";
@@ -50,8 +50,6 @@ class ExpandableGMapElement extends ShadowRootAware {
           _logger.finest("Callback gmap: ${setGMap}");
           if (setGMap != null) setGMap.value = v;
         });
-      } else {
-        _readyGMap = null;
       }
     }
     return _readyGMap != null && _readyGMap.isCompleted;
