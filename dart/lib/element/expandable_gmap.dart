@@ -67,16 +67,14 @@ class ExpandableGMapElement extends ShadowRootAware {
 
       final scroller = getScroller.value;
       final base = getBase.value;
-      final int curHeight = gmap.hostElement.getBoundingClientRect().height.round();
+      final curHeight = gmap.hostElement.getBoundingClientRect().height.round();
+      final curCenter = gmap.center;
 
       scroll(int nextHeight, int move, [int duration = 300]) {
-        _logger.info("Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, duration: ${duration}");
-        new CoreAnimation()
-          ..target = gmap.hostElement
-          ..duration = duration
-          ..fill = "forwards"
-          ..keyframes = [{'height': "${curHeight}px"}, {'height': "${nextHeight}px"}]
-          ..play();
+        final scrollTo = scroller.scrollTop + move;
+
+        _logger.info(
+            "Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, scrollTo: ${scrollTo}, duration: ${duration}");
 
         shift(String translation, int duration) => new CoreAnimation()
           ..target = base
@@ -84,16 +82,27 @@ class ExpandableGMapElement extends ShadowRootAware {
           ..fill = "both"
           ..keyframes = [{'transform': "none"}, {'transform': translation}]
           ..play();
-        shift("translateY(${-move}px)", duration);
 
-        new Future.delayed(new Duration(milliseconds: (duration * 1.1).round()), () {
-          gmap.triggerResize();
+        onFinish() {
           if (move != 0) {
-            _logger.finest("Scrolling by ${move}");
             shift("none", 0);
-            scroller.scrollTop += move;
+            scroller.scrollTop = scrollTo;
           }
-        });
+        }
+
+        new CoreAnimation()
+          ..target = gmap.hostElement
+          ..duration = duration
+          ..fill = "forwards"
+          ..customEffect = (timeFractal, target, animation) {
+            final delta = (nextHeight - curHeight) * timeFractal;
+            target.style.height = "${curHeight + delta.round()}px";
+            gmap.triggerResize();
+            gmap.panTo(curCenter);
+            if (timeFractal == 1) onFinish();
+          }
+          ..play();
+        shift("translateY(${-move}px)", duration);
       }
 
       if (isExpanded) {
