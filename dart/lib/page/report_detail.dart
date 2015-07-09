@@ -5,6 +5,7 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
+import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 
@@ -78,21 +79,27 @@ class _GMap {
 }
 
 class _PhotoSize {
+  static const buttonsTimeout = const Duration(seconds: 5);
+
   final ShadowRoot _root;
+  CachedValue<Element> _toolbar, _buttons;
+  CachedValue<CoreAnimatedPages> _pages;
 
-  _PhotoSize(this._root);
+  Timer buttonsTimer;
+  bool buttonsShow;
 
-  CoreAnimatedPages get pages => _root.querySelector('core-animated-pages');
-  Element get divNormal => _root.querySelector('#normal #photo');
-  Element get divFullsize => _root.querySelector('#fullPhoto #photo');
-  Element get toolbar => _root.querySelector('core-toolbar');
-  Element get fullToolbar => _root.querySelector('#fullPhoto #toolbar');
+  _PhotoSize(this._root) {
+    _toolbar = new CachedValue(() => _root.querySelector('core-toolbar'));
+    _pages = new CachedValue(() => _root.querySelector('core-animated-pages'));
+    _buttons = new CachedValue(() => _root.querySelector('#fullPhoto #buttons'));
+  }
 
   int _width;
   int get width {
     if (_width == null) {
+      final divNormal = _root.querySelector('#normal #photo');
       if (divNormal != null && 0 < divNormal.clientWidth) {
-        _init();
+        _init(divNormal);
         _width = divNormal.clientWidth;
       }
     }
@@ -100,24 +107,49 @@ class _PhotoSize {
   }
   int get height => width;
 
-  _init() async {
-    final height = window.screen.height;
-    _logger.fine("Full height: ${height}");
-    divFullsize.style.height = "${height}px";
+  _init(Element divNormal) async {
+    final fullHeight = _root.querySelector('#mainFrame').clientHeight;
+    final divFullsize = _root.querySelector('#fullPhoto #photo');
+    divFullsize.style.height = "${fullHeight}px";
 
-    divNormal.onDoubleClick.listen((event) {
-      pages.selected = 1;
-      toolbar.style.display = "none";
-    });
+    divNormal.onDoubleClick.listen((event) => _openFullsize());
+    divFullsize.onClick.listen((event) => _showButtons());
+  }
 
-    divFullsize.onClick.listen((event) {
-      fullToolbar.style.display = "block";
-    });
+  _showButtons() {
+    _logger.fine("show fullphoto buttons");
+    if (buttonsTimer != null) buttonsTimer.cancel();
+    buttonsTimer = new Timer(buttonsTimeout, _hideButtons);
+    if (!buttonsShow) _animateButtons(buttonsShow = true);
+  }
+
+  _hideButtons() {
+    _logger.fine("hide fullphoto buttons");
+    _animateButtons(buttonsShow = false);
+  }
+
+  _animateButtons(bool show) {
+    final move = _buttons.value.clientHeight;
+    final list = [{'transform': "translateY(${-move}px)"}, {'transform': "none"}];
+    final frames = show ? list : list.reversed.toList();
+
+    new CoreAnimation()
+      ..target = _buttons.value
+      ..duration = 300
+      ..fill = "forwards"
+      ..keyframes = frames
+      ..play();
+  }
+
+  _openFullsize() {
+    _pages.value.selected = 1;
+    _toolbar.value.style.display = "none";
+    _showButtons();
   }
 
   closeFullsize() {
-    toolbar.style.display = "block";
-    pages.selected = 0;
+    _toolbar.value.style.display = "block";
+    _pages.value.selected = 0;
   }
 }
 

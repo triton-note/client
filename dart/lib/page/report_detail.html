@@ -7,9 +7,9 @@
       		
    		</core-toolbar>
 
-		<core-animated-pages transitions="hero-transition">
+		<core-animated-pages transitions="hero-transition cross-fade">
 			<section id="normal">
-				<div id="base">
+				<div id="base" cross-fade>
 					<div id="pre" ng-if="report == null">
 						<div>
 							<paper-spinner active></paper-spinner>
@@ -73,11 +73,11 @@
 			</section>
 			
 			<section id="fullPhoto">
-				<div>
+				<div cross-fade>
 					<div id="photo" hero-id="hero" hero>
 						<img ng-src="{{report.photo.original.url}}">
 					</div>
-					<div id="toolbar">
+					<div id="buttons">
 						<paper-fab mini icon="close" ng-click="photo.closeFullsize()"></paper-fab>
 					</div>
 				</div>

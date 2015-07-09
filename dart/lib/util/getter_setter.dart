@@ -29,3 +29,15 @@ class GetterSetter<T> implements Getter<T>, Setter<T> {
   T get value => _getter();
   void set value(T v) => _setter(v);
 }
+
+class CachedValue<T> implements Getter<T> {
+  T _cache;
+  final Function _getter;
+
+  CachedValue(this._getter);
+
+  T get value {
+    if (_cache == null) _cache = _getter();
+    return _cache;
+  }
+}

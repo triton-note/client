@@ -27,19 +27,14 @@ p {
 }
 
 #fullPhoto {
-  &>div {
-    position: relative;
-    &>div {
-      position: absolute;
-      width: 100%;
-      top: 0;
-      left: 0;
-      background: transparent;
-    }
-  }
-  
-  #toolbar {
+  #buttons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: transparent;
+    
     paper-fab {
+      margin: 10px;
       background-color: black;
     }
   }
