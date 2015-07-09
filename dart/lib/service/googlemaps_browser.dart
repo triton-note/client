@@ -70,9 +70,17 @@ class GoogleMap implements Wrapper {
     ]);
   }
 
+  GeoInfo get center {
+    final pos = _src.callMethod('getCenter', []);
+    return _fromLatLng(pos);
+  }
   set center(GeoInfo pos) {
     _logger.fine("Setting gmap center: ${pos}");
     _src.callMethod('setCenter', [_toLatLng(pos)]);
+  }
+
+  panTo(GeoInfo pos) {
+    _src.callMethod('panTo', [_toLatLng(pos)]);
   }
 
   clearMarkers() {
