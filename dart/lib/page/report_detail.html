@@ -1,0 +1,87 @@
+<core-drawer-panel id="mainFrame">
+    <core-header-panel main>
+    	<core-toolbar>
+			<paper-icon-button icon="arrow-back" ng-click="back()"></paper-icon-button>
+			
+      		<span flex>Report Detail</span>
+      		
+   		</core-toolbar>
+
+		<core-animated-pages transitions="hero-transition cross-fade">
+			<section id="normal">
+				<div id="base" cross-fade>
+					<div id="pre" ng-if="report == null">
+						<div>
+							<paper-spinner active></paper-spinner>
+						</div>
+					</div>
+					<div ng-if="report != null">
+				    	<div id="photo" hero-id="hero" hero>
+		    				<fit-image ng-if="photo.width != null" width="photo.width" height="photo.height" shrink="true" url="report.photo.reduced.mainview.url"></fit-image>
+				    	</div>
+				    	
+				    	<div id="dateAt">
+				    		<p>{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
+				    	</div>
+				    	
+					    <div id="condition">
+					    	<div class="weather">
+					    		<p>{{conditions.weather.nominal}} / {{conditions.temperature}}</p>
+					    		<img ng-src="{{conditions.weather.iconUrl}}">
+					    	</div>
+					    	<div class="tide">
+					    		<p>{{conditions.tideName}}</p>
+				    			<img ng-src="{{conditions.tideImage}}">
+					    	</div>
+					    	<div class="moon">
+					    		<p>Phase: {{conditions.moon}}</p>
+					    		<img ng-src="{{conditions.moonImage}}">
+					    	</div>
+					    </div>
+					    
+				    	<div id="fishes">
+				    		<div class="header">
+				    			<p>Catches</p>
+				    			<p class="empty" ng-if="report.fishes == null || report.fishes.isEmpty">Empty</p>
+				    		</div>
+				    		<div class="content">
+			    				<p ng-repeat="fish in report.fishes">{{fish}}</p>
+				    		</div>
+				    	</div>
+				    	
+				    	<div id="comment">
+				    		<div class="header">
+				    			<p>Note</p>
+				    			<p class="empty" ng-if="report.comment == null || report.comment.isEmpty">Empty</p>
+				    		</div>
+				    		<div class="content">
+				    			<expandable-text text="report.comment" shrinked-lines="3"></expandable-text>
+				    		</div>
+				    	</div>
+				    	
+				    	<div id="location">
+					    	<div class="header">
+				    			<p>Location</p>
+					    	</div>
+					    	<div class="content">
+				    			<p>{{report.location.name}}</p>
+					    		<expandable-gmap center="gmap.geoinfo" set-gmap="gmap.setGMap" get-scroller="gmap.getScroller" get-base="gmap.getBase"></expandable-gmap>
+					    	</div>
+					    </div>
+					</div>
+				</div>
+			</section>
+			
+			<section id="fullPhoto">
+				<div cross-fade>
+					<div id="photo" hero-id="hero" hero>
+						<img ng-src="{{report.photo.original.url}}">
+					</div>
+					<div id="buttons">
+						<paper-fab mini icon="close" ng-click="photo.closeFullsize()"></paper-fab>
+					</div>
+				</div>
+			</section>
+		</core-animated-pages>
+	</core-header-panel>
+</core-drawer-panel>

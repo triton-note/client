@@ -1,0 +1,166 @@
+@import "../../web/styles/common";
+
+p {
+  margin: 0;
+}
+
+#pre {
+  div {
+    display: block;
+    
+    margin-top: 30%;
+    text-align: center;
+  }
+}
+
+#base {
+  margin: 10px;
+}
+
+#normal {
+  #photo {
+    display: block;
+    width: 100%;
+    
+    text-align: center;
+  }
+}
+
+#fullPhoto {
+  #buttons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: transparent;
+    
+    paper-fab {
+      margin: 10px;
+      background-color: black;
+    }
+  }
+  
+  #photo {
+    overflow: scroll;
+    background: #eee;
+  }
+}
+
+#dateAt {
+  width: 100%;
+  margin-top: 4px;
+  
+  text-align: right;
+  @include font-bold();
+}
+
+#condition {
+  $imgSize: 48px;
+  $border: solid 2px #eee;
+  
+  display: table;
+  
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  
+  border: $border;
+  @include border-radius(8px);
+  
+  &>div {
+    display: table-cell;
+    width: 33%;
+    
+    padding-top: 4px;
+    padding-bottom: 0px;
+    padding-left: 8px;
+    padding-right: 8px;
+    
+    text-align: center;
+    
+    &>p {
+      margin-bottom: 10px;
+    }
+    
+    img {
+      width: $imgSize;
+      height: $imgSize;
+    }
+  }
+  
+  &>div:nth-child(2n) {
+    border-left: $border;
+    border-right: $border;
+  }
+  
+  .weather {
+    &>p {
+      margin-bottom: 0px;
+    }
+    
+    img {
+      width: $imgSize * 1.5;
+      height: $imgSize * 1.5;
+    }
+  }
+}
+
+.header {
+  display: table;
+  width: 100%;
+  vertical-align: baseline;
+  
+  @include font-bold(18px);
+  @include background-image(linear-gradient(#cadaf0, white));
+  
+  &>* {
+    display: table-cell;
+  }
+  *:first-child {
+    width: 30%;
+    padding-left: 4px;
+  }
+  .empty {
+    @include font-italic-light(14px);
+  }
+}
+
+#fishes {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: solid 1px #eee;
+  
+  .content {
+    margin-top: 8px;
+    p {
+      margin: 8px;
+    }
+  }
+}
+
+#comment {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: solid 1px #eee;
+  
+  .content {
+    padding: 4px;
+    @include font-normal(16px);
+  }
+}
+
+#location {
+  width: 100%;
+  margin-top: 10px;
+  border: solid 1px #eee;
+  
+  .content {
+    p {
+      margin: 4px;
+    }
+    
+    expandable-gmap {
+      width: 100%;
+    }
+  }
+}

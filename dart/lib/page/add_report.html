@@ -1,0 +1,316 @@
+<core-drawer-panel id="mainFrame">
+    <core-header-panel main>
+    	<core-toolbar>
+    	
+			<paper-icon-button icon="arrow-back" ng-click="back()"></paper-icon-button>
+    	
+      		<span flex>New Report</span>
+      		
+    		<div class="submit">
+    			<paper-fab mini icon="done" class="green" ng-click="submit()"></paper-fab>
+			</div>
+    	
+    	</core-toolbar>
+    	
+    	<div>
+    		<div id="pre" ng-if="!isReady">
+    			<div>
+					<paper-button id="take" raised ng-click="choosePhoto(true)">TAKE</paper-button>
+    			</div>
+    			<div>
+					<paper-button id="choose" raised ng-click="choosePhoto(false)">CHOOSE</paper-button>
+				</div>
+    		</div>
+	   		<div id="input" ng-if="isReady">
+		    	<div id="date">
+		    		<div class="buttons">
+		        		<paper-button ng-click="dateOclock.dialogDate()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
+		        	</div>
+		        	<paper-action-dialog id="date-dialog" transition="core-transition-center" backdrop layered autoCloseDisabled>
+		        		<style>
+		        			#date-dialog paper-shadow {
+		        				margin-bottom: 10px;
+		        				padding-left: 10px;
+		        				padding-right: 10px;
+		        				-moz-border-radius: 3px;
+		        				-webkit-border-radius: 3px;
+		        				border-radius: 3px;
+		        			}
+		        			#date-dialog #oclock {
+		        				text-align: center;
+		        			}
+		        			#date-dialog #oclock p {
+		        				font-size: 16px;
+	        				}
+		        			#date-dialog #oclock * {
+		    					display: inline-block;
+		    					vertical-align: middle;
+		    					*vertical-align: auto;
+		    					*zoom: 1;
+		    					*display: inline;
+		        			}
+		        		</style>
+		        		
+		        		<paper-shadow id="oclock" z="1">
+		        			<div>
+		        				<p>about</p>
+		        				<num-input value="dateOclock.tmpOclock" min="0" max="23" size="20"></num-input>
+		        				<p>O'clock</p>
+		        			</div>
+	        			</paper-shadow>
+		        		
+		        		<br>
+		        		
+		        		<paper-shadow z="1">
+		        			<calendar value="dateOclock.tmpDate" start-of-week="1"></calendar>
+	        			</paper-shadow>
+		        		
+		        		<paper-button dismissive style="color: red">Cancel</paper-button>
+		        		<paper-button affirmative style="color: green" ng-click="dateOclock.commitCalendar()">OK</paper-button>
+		        	</paper-action-dialog>
+	        	</div>
+		    	<div id="comment">
+		    		<paper-input-decorator label="Write something to note">
+						<paper-autogrow-textarea>
+							<textarea ng-model="report.comment"></textarea>
+						</paper-autogrow-textarea>
+					</paper-input-decorator>
+				</div>
+			    <div id="photo">
+			        <fit-image url="report.photo.reduced.mainview.url" width="photoWidth" height="photoHeight" shrink="true"></fit-image>
+			    </div>
+			    <div id="catches">
+			    	<div class="control">
+			    		<div class="title">
+			    			<p>Catches</p>
+			    		</div>
+			    		<div class="fish-name">
+			    			<paper-input-decorator label="Fish name">
+			    				<input ng-model="catches.addingFishName">
+			    			</paper-input-decorator>
+			    		</div>
+			    		<div class="add-button">
+				    		<paper-fab mini icon="add" ng-click="catches.addFish()"></paper-fab>
+			    		</div>
+			    	</div>
+			    	<div class="list">
+			    		<div class="item" ng-repeat="fish in catches.list.value">
+		    				<p>{{fish}}</p>
+		    				<paper-ripple fit ng-click="catches.editFish($index)"></paper-ripple>
+			    		</div>
+			    	</div>
+			    	<paper-action-dialog id="fish-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
+			    		<style>
+		        			#fish-dialog .rounded {
+		        				margin-bottom: 20px;
+		        				padding-left: 10px;
+		        				padding-right: 10px;
+		        				-moz-border-radius: 3px;
+		        				-webkit-border-radius: 3px;
+		        				border-radius: 3px;
+		        			}
+			    			#fish-dialog .fish-name {
+			    				font-size: 20px;
+			    			}
+			    			#fish-dialog .sizes .length {
+			    				border-bottom: solid 1px blue;
+			    			}
+			    			#fish-dialog .row > * {
+		    					display: inline-block;
+		    					vertical-align: middle;
+		    					*vertical-align: auto;
+		    					*zoom: 1;
+		    					*display: inline;
+			    			}
+			    			#fish-dialog .row p {
+			    				width: 120px;
+			    			}
+			    			#fish-dialog .row num-input::shadow .value {
+			    				padding: 3px;
+			    				border: solid 1px #ddd;
+		        				-moz-border-radius: 3px;
+		        				-webkit-border-radius: 3px;
+		        				border-radius: 3px;
+			    			}
+			    		</style>
+			    		
+			    		<paper-shadow class="rounded name">
+				    		<div class="row fish-name">
+				    			<paper-input-decorator floatingLabel label="Fish name">
+				    				<input ng-model="catches.tmpFish.name">
+				    			</paper-input-decorator>
+				    		</div>
+				    		
+				    		<div class="row count">
+				    			<p>Count</p>
+				    			<num-input value="catches.tmpFishCount" min="0"></num-input>
+				    		</div>
+			    		</paper-shadow>
+			    		
+			    		<paper-shadow class="rounded sizes">
+				    		<div class="row size length">
+				    			<p>Length ({{catches.lengthUnit}})</p>
+				    			<num-input value="catches.tmpFishLength" min="0" digits="3"></num-input>
+				    		</div>
+				    		
+				    		<div class="row size weight">
+				    			<p>Weight ({{catches.weightUnit}})</p>
+				    			<num-input value="catches.tmpFishWeight" min="0" digits="3"></num-input>
+				    		</div>
+				    	</paper-shadow>
+			    		
+		        		<paper-button dismissive style="color: red">Reset</paper-button>
+		        		<paper-button dismissive style="color: red" ng-click="catches.deleteFish()">Delete</paper-button>
+		        		<paper-button affirmative style="color: green" ng-click="catches.commitFish()">OK</paper-button>
+			    	</paper-action-dialog>
+			    </div>
+			    <div id="location">
+			    	<div>
+			    		<paper-input-decorator label="Spot Name" floatingLabel>
+			    			<input ng-model="gmap.spotName.value">
+			    		</paper-input-decorator>
+			    	</div>
+			    	
+			    	<expandable-gmap center="gmap.geoinfo" set-gmap="gmap.setGMap" get-scroller="gmap.getScroller" get-base="gmap.getBase"></expandable-gmap>
+			    </div>
+			    <div id="condition">
+			    	<div class="weather">
+			    		<div class="spinning" ng-if="conditions.weather.iconUrl == null">
+			    			<p>Weather</p>
+			    			<paper-spinner active class="red"></paper-spinner>
+			    		</div>
+			    		<div class="stable" ng-if="conditions.weather.iconUrl != null">
+				    		<p>{{conditions.weather.nominal}}</p>
+				    		<div class="row">
+					    		<img ng-src="{{conditions.weather.iconUrl}}">
+					    		<p>{{conditions.weather.temperature}}</p>
+				    		</div>
+			    			<paper-ripple fit ng-click="conditions.dialogWeather()"></paper-ripple>
+			    		</div>
+			    		<paper-dialog id="weather-dialog" transition="core-transition-center" backdrop>
+			    			<style>
+			        			#weather-dialog paper-shadow {
+			        				margin-bottom: 10px;
+			        				padding-left: 10px;
+			        				padding-right: 10px;
+			        				-moz-border-radius: 3px;
+			        				-webkit-border-radius: 3px;
+			        				border-radius: 3px;
+			        			}
+			    				#weather-dialog #temperature > div {
+			    					text-align: center;
+			    				}
+			    				#weather-dialog .row {
+			    					position: relative;
+			    					padding: 10px;
+			    				}
+			    				#weather-dialog .first {
+			    					border-bottom: solid 1px #ccc;
+			    				}
+			    				#weather-dialog .middle {
+			    					border-top: solid 1px #ccc;
+			    					border-bottom: solid 1px #ccc;
+			    				}
+			    				#weather-dialog .last {
+			    					border-top: solid 1px #ccc;
+			    				}
+			    				#weather-dialog .row > * {
+			    					display: inline-block;
+			    					vertical-align: middle;
+			    					*vertical-align: auto;
+			    					*zoom: 1;
+			    					*display: inline;
+			    				}
+			    			</style>
+			    			<div>
+				        		<paper-shadow id="temperature" z="1">
+				        			<div class="row">
+				        				<num-input value="conditions.temperatureValue"></num-input>
+				        				<p>{{conditions.temperatureUnit}}</p>
+				        			</div>
+			        			</paper-shadow>
+				        		
+				        		<br>
+				        		
+				        		<paper-shadow id="sky" z="1">
+				        			<div class="row" ng-repeat="name in conditions.weatherNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
+				    					<div class="cell">
+					    					<img width="64" height="64" ng-src="{{conditions.weatherIcon(name)}}">
+				    					</div>
+				    					<div class="cell">
+					    					<p>{{name}}</p>
+				    					</div>
+						    			<paper-ripple fit ng-click="conditions.changeWeather(name)"></paper-ripple>
+				    				</div>
+			        			</paper-shadow>
+		    				</div>
+			    		</paper-dialog>
+			    	</div>
+			    	<div class="tide">
+			    		<div class="spinning" ng-if="conditions.tideImage == null">
+			    			<p>Tide</p>
+			    			<paper-spinner active class="blue"></paper-spinner>
+			    		</div>
+			    		<div class="stable" ng-if="conditions.tideImage != null">
+				    		<p>{{conditions.tideName}}</p>
+			    			<img ng-src="{{conditions.tideImage}}">
+			    			<paper-ripple fit ng-click="conditions.dialogTide()"></paper-ripple>
+			    		</div>
+			    		<paper-dialog id="tide-dialog" transition="core-transition-center" backdrop>
+			    			<style>
+			    				#tide-dialog .row {
+			    					position: relative;
+			    					padding: 10px;
+			    				}
+			    				#tide-dialog .first {
+			    					border-bottom: solid 1px #ccc;
+			    				}
+			    				#tide-dialog .middle {
+			    					border-top: solid 1px #ccc;
+			    					border-bottom: solid 1px #ccc;
+			    				}
+			    				#tide-dialog .last {
+			    					border-top: solid 1px #ccc;
+			    				}
+			    				#tide-dialog .cell {
+			    					display: inline-block;
+			    					vertical-align: middle;
+			    					*vertical-align: auto;
+			    					*zoom: 1;
+			    					*display: inline;
+			    				}
+			    				#tide-dialog img {
+			    					margin-right: 10px;
+			        				-moz-border-radius: 4px;
+			        				-webkit-border-radius: 4px;
+			        				border-radius: 4px;
+			    				}
+			    			</style>
+			    			<div>
+			    				<div class="row" ng-repeat="name in conditions.tideNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
+			    					<div class="cell">
+				    					<img width="48" height="48" ng-src="{{conditions.tideIcon(name)}}">
+			    					</div>
+			    					<div class="cell">
+				    					<p>{{name}}</p>
+			    					</div>
+					    			<paper-ripple fit ng-click="conditions.changeTide(name)"></paper-ripple>
+			    				</div>
+		    				</div>
+			    		</paper-dialog>
+			    	</div>
+			    	<div class="moon">
+			    		<div class="spinning" ng-if="conditions.moonImage == null">
+			    			<p>Moon</p>
+			    			<paper-spinner active class="green"></paper-spinner>
+			    		</div>
+			    		<div class="stable" ng-if="conditions.moonImage != null">
+				    		<p>Phase: {{conditions.moon}}</p>
+				    		<img ng-src="{{conditions.moonImage}}">
+				    	</div>
+			    	</div>
+			    </div>
+    		</div>
+    	</div>
+    </core-header-panel>
+</core-drawer-panel>

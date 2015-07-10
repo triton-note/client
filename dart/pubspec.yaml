@@ -1,0 +1,18 @@
+name: triton_note
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+dependencies:
+  angular: any
+  paper_elements: any
+  polymer: any
+dev_dependencies:
+  crypto: any
+  mock: any
+  sass: any
+  unittest: any
+transformers:
+- sass:
+    compass: true
+    style: compressed
+- angular
+- polymer

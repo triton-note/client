@@ -2,19 +2,21 @@
 <widget id="org.fathens.triton-note" version="1.0.62" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <name>TritonNote</name>
   <description>
-        Triton Note Client
-    </description>
+    Triton Note Client
+  </description>
   <author email="admin+triton_note@fathens.org" href="http://www.fathens.org/">
-		Office fathens
-    </author>
+    Office fathens
+  </author>
   <content src="index.html"/>
   <access origin="*"/>
-  <preference name="fullscreen" value="true"/>
+  <preference name="fullscreen" value="false"/>
   <preference name="Orientation" value="portrait"/>
   <preference name="webviewbounce" value="false"/>
   <preference name="UIWebViewBounce" value="false"/>
   <preference name="DisallowOverscroll" value="false"/>
   <preference name="BackupWebStorage" value="none"/>
+  <preference name="android-minSdkVersion" value="21"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
   <preference name="iosPersistentFileLocation" value="Library"/>
+  <preference name="SplashScreenDelay" value="30000"/>
 </widget>

@@ -1,0 +1,43 @@
+@import "../../web/styles/common";
+
+div.root {
+  @include inline-block();
+  
+  &>* {
+    @include inline-block();
+    vertical-align: center;
+  }
+  
+  .value {
+    margin-left: 0px;
+    border: none;
+    text-align: right;
+    @include font-mono();
+  }
+  
+  div.buttons {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-right: 5px;
+    text-align: center;
+    
+    div.button {
+      position: relative;
+      display: block;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      margin-left: 2px;
+      margin-right: 2px;
+      
+      border: solid 2px #eee;
+      @include border-radius(4px);
+      background-color: white;
+      
+      text-align: center;
+      
+      paper-ripple {
+        color: #66f;
+      }
+    }
+  }
+}

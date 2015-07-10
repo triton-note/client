@@ -1,0 +1,45 @@
+
+@mixin radio-color($my_color) {
+  paper-radio-button::shadow #ink[checked] {
+    color: $my_color;
+  }
+  paper-radio-button::shadow #onRadio {
+    background-color: $my_color;
+  }
+  paper-radio-button[checked]::shadow #offRadio {
+    border-color: $my_color;
+  }
+  paper-radio-button[disabled]::shadow #offRadio {
+    border-color: $my_color;
+  }
+}
+
+paper-radio-group.gray {
+	@include radio-color(#555);
+}
+
+paper-radio-group.blue {
+  @include radio-color(#000080);
+}
+
+@mixin spinner-color($color) {
+  &::shadow .circle {
+    border-color: $color;
+  }
+}
+
+paper-spinner.red {
+  @include spinner-color(red);
+}
+
+paper-spinner.green {
+  @include spinner-color(green);
+}
+
+paper-spinner.blue {
+  @include spinner-color(blue);
+}
+
+paper-spinner.gray {
+  @include spinner-color(gray);
+}

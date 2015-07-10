@@ -1,0 +1,17 @@
+@import "../../web/styles/common";
+
+#google-maps {
+  width: 100%;
+}
+
+#toggle {
+  width: 100%;
+  
+  paper-button {
+    margin-left: auto;
+    margin-right: auto;
+    
+    @include font-light(12px);
+    color: #0dd;
+  }
+}

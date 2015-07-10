@@ -1,0 +1,8 @@
+
+<div id="google-maps"></div>
+<div id="toggle" ng-if="isReady">
+	<paper-button ng-click="toggle()">
+		<core-icon icon="{{ isExpanded ? 'expand-less' : 'expand-more' }}"></core-icon>
+		{{ isExpanded ? "Shrink Map" : "Expand Map" }}
+	</paper-button>
+</div>

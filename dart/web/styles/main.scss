@@ -1,0 +1,8 @@
+@import 'font';
+
+body {
+	@include font-normal(16px);
+	color: #555;
+	-webkit-font-smoothing: subpixel-antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}

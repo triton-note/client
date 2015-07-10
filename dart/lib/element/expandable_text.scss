@@ -1,0 +1,19 @@
+@import "../../web/styles/common";
+
+#text {
+  overflow: hidden;
+  
+  p {
+    display: -webkit-box;
+    opacity: 0;
+    margin: 0;
+    -webkit-box-orient: vertical;
+  }
+}
+
+#toggle {
+  paper-button {
+    @include font-light(10px);
+    color: #0dd;
+  }
+}
