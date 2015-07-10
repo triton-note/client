@@ -1,0 +1,22 @@
+@import "compass";
+
+#timestamp-dialog {
+  paper-shadow {
+  	margin-bottom: 10px;
+  	padding-left: 10px;
+  	padding-right: 10px;
+  	@include border-radius(3px);
+  }
+  
+  #oclock {
+  	text-align: center;
+  	
+  	p {
+      font-size: 16px;
+    }
+    
+    div>* {
+      @include inline-block();
+    }
+  }
+}

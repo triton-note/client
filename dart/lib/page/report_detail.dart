@@ -10,6 +10,7 @@ import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:paper_elements/paper_icon_button.dart';
 
+import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
@@ -35,6 +36,7 @@ class ReportDetailPage extends MainFrame {
   _PhotoSize photo;
   _GMap gmap;
   _Conditions conditions;
+  GetterSetter<EditTimestampDialog> editTimestamp = new PipeValue();
 
   ReportDetailPage(Router router, RouteProvider routeProvider) : super(router) {
     final String reportId = routeProvider.parameters['reportId'];
@@ -89,8 +91,8 @@ class _PhotoSize {
   CachedValue<Element> _toolbar, _buttons;
   CachedValue<CoreAnimatedPages> _pages;
 
-  Timer buttonsTimer;
-  bool buttonsShow;
+  Timer _buttonsTimer;
+  bool _buttonsShow;
 
   _PhotoSize(this._root) {
     _toolbar = new CachedValue(() => _root.querySelector('core-toolbar'));
@@ -122,14 +124,14 @@ class _PhotoSize {
 
   _showButtons() {
     _logger.fine("show fullphoto buttons");
-    if (buttonsTimer != null) buttonsTimer.cancel();
-    buttonsTimer = new Timer(buttonsTimeout, _hideButtons);
-    if (!buttonsShow) _animateButtons(buttonsShow = true);
+    if (_buttonsTimer != null) _buttonsTimer.cancel();
+    _buttonsTimer = new Timer(buttonsTimeout, _hideButtons);
+    if (!_buttonsShow) _animateButtons(_buttonsShow = true);
   }
 
   _hideButtons() {
     _logger.fine("hide fullphoto buttons");
-    _animateButtons(buttonsShow = false);
+    _animateButtons(_buttonsShow = false);
   }
 
   _animateButtons(bool show) {

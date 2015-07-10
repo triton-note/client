@@ -2,7 +2,6 @@ library triton_note.page.reports_add;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:math' as Math;
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
@@ -11,6 +10,7 @@ import 'package:core_elements/core_animation.dart';
 import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:paper_elements/paper_dialog.dart';
 
+import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
@@ -37,7 +37,7 @@ class AddReportPage extends MainFrame {
       new Report.fromMap({'id': '', 'userId': '', 'fishes': [], 'location': {}, 'condition': {'weather': {}}});
 
   _Catches catches;
-  _DateOclock dateOclock;
+  PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
   _GMap gmap;
   _Conditions conditions;
 
@@ -78,10 +78,6 @@ class AddReportPage extends MainFrame {
     super.onShadowRoot(sr);
 
     catches = new _Catches(root, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
-    dateOclock = new _DateOclock(root, new GetterSetter(() => report.dateAt, (v) {
-      report.dateAt = v;
-      renewConditions();
-    }));
     gmap = new _GMap(root, new GetterSetter(() => report.location.name, (v) => report.location.name = v),
         new GetterSetter(() => report.location.geoinfo, (pos) {
       report.location.geoinfo = pos;
@@ -175,32 +171,6 @@ class UserPreferences {
   static LengthUnit get lengthUnit => LengthUnit.cm;
   static WeightUnit get weightUnit => WeightUnit.kg;
   static TemperatureUnit get temperatureUnit => TemperatureUnit.Cels;
-}
-
-class _DateOclock {
-  final ShadowRoot _root;
-  final GetterSetter<DateTime> _dateAt;
-
-  DateTime tmpDate = new DateTime.now();
-  int tmpOclock = 0;
-
-  _DateOclock(this._root, this._dateAt);
-
-  PaperActionDialog _dateDialog;
-  PaperActionDialog get dateDialog {
-    if (_dateDialog == null) _dateDialog = _root.querySelector('#date-dialog');
-    return _dateDialog;
-  }
-
-  dialogDate() {
-    tmpDate = new DateTime(_dateAt.value.year, _dateAt.value.month, _dateAt.value.day);
-    tmpOclock = _dateAt.value.hour;
-    dateDialog.toggle();
-  }
-  commitCalendar() {
-    _dateAt.value = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
-    _logger.fine("Commit date: ${_dateAt.value}");
-  }
 }
 
 class _Catches {

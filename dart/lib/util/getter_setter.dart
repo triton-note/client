@@ -41,3 +41,18 @@ class CachedValue<T> implements Getter<T> {
     return _cache;
   }
 }
+
+class PipeValue<T> implements GetterSetter<T> {
+  T _cache;
+
+  Function _getter;
+  Function _setter;
+
+  PipeValue() {
+    _getter = () => _cache;
+    _setter = (v) => _cache = v;
+  }
+
+  T get value => _getter();
+  void set value(T v) => _setter(v);
+}

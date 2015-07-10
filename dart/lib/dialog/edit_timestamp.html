@@ -1,0 +1,42 @@
+<paper-action-dialog id="timestamp-dialog" transition="core-transition-center" backdrop layered autoCloseDisabled>
+	<style>
+		#timestamp-dialog paper-shadow {
+			margin-bottom: 10px;
+			padding-left: 10px;
+			padding-right: 10px;
+			-moz-border-radius: 3px;
+			-webkit-border-radius: 3px;
+			border-radius: 3px;
+		}
+		#timestamp-dialog #oclock {
+			text-align: center;
+		}
+		#timestamp-dialog #oclock p {
+			font-size: 16px;
+		}
+		#timestamp-dialog #oclock div>* {
+			display: inline-block;
+			vertical-align: middle;
+			*vertical-align: auto;
+			*zoom: 1;
+			*display: inline;
+		}
+	</style>
+	
+	<paper-shadow id="oclock" z="1">
+		<div>
+			<p>about</p>
+			<num-input value="tmpOclock" min="0" max="23" size="20"></num-input>
+			<p>O'clock</p>
+		</div>
+	</paper-shadow>
+	
+	<br>
+	
+	<paper-shadow z="1">
+		<calendar value="tmpDate" start-of-week="1"></calendar>
+	</paper-shadow>
+	
+	<paper-button dismissive style="color: red">Cancel</paper-button>
+	<paper-button affirmative style="color: green" ng-click="commit()">OK</paper-button>
+</paper-action-dialog>
