@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
+import 'package:paper_elements/paper_icon_button.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
@@ -19,6 +20,9 @@ import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('ReportDetailPage');
+
+const String editFlip = "create";
+const String editFlop = "done";
 
 @Component(
     selector: 'report-detail',

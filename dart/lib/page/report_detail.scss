@@ -4,6 +4,18 @@ p {
   margin: 0;
 }
 
+$edit-button-size: 24px;
+$edit-button-padding: 8px;
+.edit-button {
+  position: absolute;
+  bottom: -$edit-button-padding;
+  right: -$edit-button-padding;
+  
+  paper-icon-button {
+    color: green;
+  }
+}
+
 #pre {
   div {
     display: block;
@@ -46,11 +58,20 @@ p {
 }
 
 #dateAt {
+  position: relative;
+  
   width: 100%;
   margin-top: 4px;
   
   text-align: right;
   @include font-bold();
+  
+  p {
+    margin-right: $edit-button-size + $edit-button-padding;
+  }
+  .edit-button {
+    bottom: -$edit-button-padding - 4px;
+  }
 }
 
 #condition {
@@ -68,6 +89,7 @@ p {
   @include border-radius(8px);
   
   &>div {
+    position: relative;
     display: table-cell;
     width: 33%;
     
@@ -85,6 +107,7 @@ p {
     img {
       width: $imgSize;
       height: $imgSize;
+      @include border-radius(4px);
     }
   }
   
@@ -106,6 +129,7 @@ p {
 }
 
 .header {
+  position: relative;
   display: table;
   width: 100%;
   vertical-align: baseline;
@@ -116,7 +140,7 @@ p {
   &>* {
     display: table-cell;
   }
-  *:first-child {
+  &>*:first-child {
     width: 30%;
     padding-left: 4px;
   }

@@ -22,16 +22,26 @@
 				    	
 				    	<div id="dateAt">
 				    		<p>{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
+					    	<div class="edit-button">
+					    		<paper-icon-button icon="create" ng-click="editTimestamp.value.toggle()"></paper-icon-button>
+					    		<edit-timestamp-dialog value="report.dateAt" setter="editTimestamp"></edit-timestamp-dialog>
+					    	</div>
 				    	</div>
 				    	
 					    <div id="condition">
 					    	<div class="weather">
 					    		<p>{{conditions.weather.nominal}} / {{conditions.temperature}}</p>
 					    		<img ng-src="{{conditions.weather.iconUrl}}">
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create"></paper-icon-button>
+						    	</div>
 					    	</div>
 					    	<div class="tide">
 					    		<p>{{conditions.tideName}}</p>
 				    			<img ng-src="{{conditions.tideImage}}">
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create"></paper-icon-button>
+						    	</div>
 					    	</div>
 					    	<div class="moon">
 					    		<p>Phase: {{conditions.moon}}</p>
@@ -43,6 +53,9 @@
 				    		<div class="header">
 				    			<p>Catches</p>
 				    			<p class="empty" ng-if="report.fishes == null || report.fishes.isEmpty">Empty</p>
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create"></paper-icon-button>
+						    	</div>
 				    		</div>
 				    		<div class="content">
 			    				<p ng-repeat="fish in report.fishes">{{fish}}</p>
@@ -53,6 +66,9 @@
 				    		<div class="header">
 				    			<p>Note</p>
 				    			<p class="empty" ng-if="report.comment == null || report.comment.isEmpty">Empty</p>
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create"></paper-icon-button>
+						    	</div>
 				    		</div>
 				    		<div class="content">
 				    			<expandable-text text="report.comment" shrinked-lines="3"></expandable-text>
@@ -62,6 +78,9 @@
 				    	<div id="location">
 					    	<div class="header">
 				    			<p>Location</p>
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create"></paper-icon-button>
+						    	</div>
 					    	</div>
 					    	<div class="content">
 				    			<p>{{report.location.name}}</p>
