@@ -14,6 +14,7 @@ import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
+import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/enums.dart';
@@ -55,12 +56,6 @@ class ReportDetailPage extends MainFrame {
       gmap = new _GMap(root, report.location.geoinfo);
     });
   }
-}
-
-class UserPreferences {
-  static LengthUnit get lengthUnit => LengthUnit.cm;
-  static WeightUnit get weightUnit => WeightUnit.kg;
-  static TemperatureUnit get temperatureUnit => TemperatureUnit.Cels;
 }
 
 class _GMap {

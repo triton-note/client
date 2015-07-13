@@ -20,6 +20,7 @@ import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/server.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
+import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
@@ -165,12 +166,6 @@ class AddReportPage extends MainFrame {
     (await _onSession.future).submit(report);
     back();
   });
-}
-
-class UserPreferences {
-  static LengthUnit get lengthUnit => LengthUnit.cm;
-  static WeightUnit get weightUnit => WeightUnit.kg;
-  static TemperatureUnit get temperatureUnit => TemperatureUnit.Cels;
 }
 
 class _Catches {
