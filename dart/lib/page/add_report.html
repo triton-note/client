@@ -45,83 +45,20 @@
 			    		</div>
 			    		<div class="fish-name">
 			    			<paper-input-decorator label="Fish name">
-			    				<input ng-model="catches.addingFishName">
+			    				<input ng-model="addingFishName">
 			    			</paper-input-decorator>
 			    		</div>
 			    		<div class="add-button">
-				    		<paper-fab mini icon="add" ng-click="catches.addFish()"></paper-fab>
+				    		<paper-fab mini icon="add" ng-click="addFish()"></paper-fab>
 			    		</div>
 			    	</div>
 			    	<div class="list">
-			    		<div class="item" ng-repeat="fish in catches.list.value">
+			    		<div class="item" ng-repeat="fish in report.fishes">
 		    				<p>{{fish}}</p>
-		    				<paper-ripple fit ng-click="catches.editFish($index)"></paper-ripple>
+		    				<paper-ripple fit ng-click="editFish($index)"></paper-ripple>
 			    		</div>
 			    	</div>
-			    	<paper-action-dialog id="fish-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
-			    		<style>
-		        			#fish-dialog .rounded {
-		        				margin-bottom: 20px;
-		        				padding-left: 10px;
-		        				padding-right: 10px;
-		        				-moz-border-radius: 3px;
-		        				-webkit-border-radius: 3px;
-		        				border-radius: 3px;
-		        			}
-			    			#fish-dialog .fish-name {
-			    				font-size: 20px;
-			    			}
-			    			#fish-dialog .sizes .length {
-			    				border-bottom: solid 1px blue;
-			    			}
-			    			#fish-dialog .row > * {
-		    					display: inline-block;
-		    					vertical-align: middle;
-		    					*vertical-align: auto;
-		    					*zoom: 1;
-		    					*display: inline;
-			    			}
-			    			#fish-dialog .row p {
-			    				width: 120px;
-			    			}
-			    			#fish-dialog .row num-input::shadow .value {
-			    				padding: 3px;
-			    				border: solid 1px #ddd;
-		        				-moz-border-radius: 3px;
-		        				-webkit-border-radius: 3px;
-		        				border-radius: 3px;
-			    			}
-			    		</style>
-			    		
-			    		<paper-shadow class="rounded name">
-				    		<div class="row fish-name">
-				    			<paper-input-decorator floatingLabel label="Fish name">
-				    				<input ng-model="catches.tmpFish.name">
-				    			</paper-input-decorator>
-				    		</div>
-				    		
-				    		<div class="row count">
-				    			<p>Count</p>
-				    			<num-input value="catches.tmpFishCount" min="0"></num-input>
-				    		</div>
-			    		</paper-shadow>
-			    		
-			    		<paper-shadow class="rounded sizes">
-				    		<div class="row size length">
-				    			<p>Length ({{catches.lengthUnit}})</p>
-				    			<num-input value="catches.tmpFishLength" min="0" digits="3"></num-input>
-				    		</div>
-				    		
-				    		<div class="row size weight">
-				    			<p>Weight ({{catches.weightUnit}})</p>
-				    			<num-input value="catches.tmpFishWeight" min="0" digits="3"></num-input>
-				    		</div>
-				    	</paper-shadow>
-			    		
-		        		<paper-button dismissive style="color: red">Reset</paper-button>
-		        		<paper-button dismissive style="color: red" ng-click="catches.deleteFish()">Delete</paper-button>
-		        		<paper-button affirmative style="color: green" ng-click="catches.commitFish()">OK</paper-button>
-			    	</paper-action-dialog>
+                    <edit-fish-dialog setter="fishDialog"></edit-fish-dialog>
 			    </div>
 			    <div id="location">
 			    	<div>

@@ -7,9 +7,9 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
-import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:paper_elements/paper_dialog.dart';
 
+import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
@@ -37,33 +37,13 @@ class AddReportPage extends MainFrame {
   final Report report =
       new Report.fromMap({'id': '', 'userId': '', 'fishes': [], 'location': {}, 'condition': {'weather': {}}});
 
-  _Catches catches;
-  PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
+  final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
+  final PipeValue<EditFishDialog> fishDialog = new PipeValue();
+
   _GMap gmap;
   _Conditions conditions;
 
   bool isReady = false;
-  void submitable() {
-    final div = root.querySelector('core-toolbar div.submit');
-    _logger.fine("Appearing submit button: ${div}");
-    div.style.display = "block";
-    new CoreAnimation()
-      ..target = div
-      ..duration = 300
-      ..fill = "both"
-      ..keyframes = [{'transform': "translate(-500px, 100px)", 'opacity': '0'}, {'transform': "none", 'opacity': '1'}]
-      ..play();
-  }
-
-  int _photoWidth;
-  int get photoWidth {
-    if (_photoWidth == null) {
-      final div = root.querySelector('#photo');
-      if (div != null) _photoWidth = div.clientWidth;
-    }
-    return _photoWidth;
-  }
-  int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
 
   AddReportPage(Router router, RouteProvider routeProvider) : super(router) {
     try {
@@ -78,7 +58,6 @@ class AddReportPage extends MainFrame {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    catches = new _Catches(root, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
     gmap = new _GMap(root, new GetterSetter(() => report.location.name, (v) => report.location.name = v),
         new GetterSetter(() => report.location.geoinfo, (pos) {
       report.location.geoinfo = pos;
@@ -86,6 +65,9 @@ class AddReportPage extends MainFrame {
     conditions = new _Conditions(root, new Getter(() => report.condition));
   }
 
+  /**
+   * Choosing photo and get conditions and inference.
+   */
   choosePhoto(bool take) => rippling(() {
     final shop = new PhotoShop(take);
     isReady = true;
@@ -140,6 +122,9 @@ class AddReportPage extends MainFrame {
     });
   });
 
+  /**
+   * Refresh conditions, on changing location or timestamp.
+   */
   renewConditions() async {
     try {
       _logger.finest("Getting conditions by report info: ${report}");
@@ -160,85 +145,65 @@ class AddReportPage extends MainFrame {
     }
   }
 
+  //********************************
+  // Photo View Size
+
+  int _photoWidth;
+  int get photoWidth {
+    if (_photoWidth == null) {
+      final div = root.querySelector('#photo');
+      if (div != null) _photoWidth = div.clientWidth;
+    }
+    return _photoWidth;
+  }
+  int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
+
+  //********************************
+  // Edit Catches
+
+  String addingFishName;
+
+  addFish() {
+    if (addingFishName != null && addingFishName.isNotEmpty) {
+      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
+      addingFishName = null;
+      report.fishes = report.fishes..add(fish);
+    }
+  }
+
+  editFish(int index) {
+    if (0 <= index && index < report.fishes.length) {
+      fishDialog.value.open(new GetterSetter(() => report.fishes[index], (v) {
+        if (v == null) {
+          report.fishes = report.fishes..removeAt(index);
+        } else {
+          report.fishes = report.fishes..[index] = v;
+        }
+      }));
+    }
+  }
+
+  //********************************
+  // Submit
+
+  void submitable() {
+    final div = root.querySelector('core-toolbar div.submit');
+    _logger.fine("Appearing submit button: ${div}");
+    div.style.display = "block";
+    new CoreAnimation()
+      ..target = div
+      ..duration = 300
+      ..fill = "both"
+      ..keyframes = [{'transform': "translate(-500px, 100px)", 'opacity': '0'}, {'transform': "none", 'opacity': '1'}]
+      ..play();
+  }
+
   submit() => rippling(() async {
     _logger.finest("Submitting report: ${report}");
     if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
     (await _onSession.future).submit(report);
     back();
   });
-}
-
-class _Catches {
-  final ShadowRoot _root;
-  final GetterSetter<List<Fishes>> list;
-
-  _Catches(this._root, this.list);
-
-  PaperActionDialog _fishDialog;
-  PaperActionDialog get fishDialog {
-    if (_fishDialog == null) _fishDialog = _root.querySelector('#fish-dialog');
-    return _fishDialog;
-  }
-
-  String addingFishName;
-  int tmpFishIndex;
-  Fishes tmpFish;
-
-  // count
-  int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
-  set tmpFishCount(int v) => (tmpFish == null) ? null : tmpFish.count = (v == null || v == 0) ? 1 : v;
-
-  // lenth
-  int get tmpFishLength =>
-      (tmpFish == null || tmpFish.length == null || tmpFish.length.value == null) ? null : tmpFish.length.value.round();
-  set tmpFishLength(int v) =>
-      (tmpFish == null || tmpFish.length == null) ? null : tmpFish.length.value = (v == null) ? null : v.toDouble();
-
-  // weight
-  int get tmpFishWeight =>
-      (tmpFish == null || tmpFish.weight == null || tmpFish.weight.value == null) ? null : tmpFish.weight.value.round();
-  set tmpFishWeight(int v) =>
-      (tmpFish == null || tmpFish.weight == null) ? null : tmpFish.weight.value = (v == null) ? null : v.toDouble();
-
-  String get lengthUnit => nameOfEnum(UserPreferences.lengthUnit);
-  String get weightUnit => nameOfEnum(UserPreferences.weightUnit);
-
-  addFish() {
-    if (addingFishName != null && addingFishName.isNotEmpty) {
-      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
-      addingFishName = null;
-      list.value = list.value..add(fish);
-    }
-  }
-  editFish(int index) {
-    if (0 <= index && index < list.value.length) {
-      final fish = new Fishes.fromMap(new Map.from(list.value[index].asMap));
-      if (fish.length == null) fish.length =
-          new Length.fromMap({'value': 0, 'unit': nameOfEnum(UserPreferences.lengthUnit)});
-      if (fish.weight == null) fish.weight =
-          new Weight.fromMap({'value': 0, 'unit': nameOfEnum(UserPreferences.weightUnit)});
-      _logger.fine("Editing fish[${index}]: ${fish.asMap}");
-
-      tmpFishIndex = index;
-      tmpFish = fish;
-      fishDialog.toggle();
-    }
-  }
-  commitFish() {
-    _logger.fine("Commit fish: ${tmpFish.asMap}");
-    final fish = new Fishes.fromMap(new Map.from(tmpFish.asMap));
-
-    if (fish.length != null && fish.length.value == 0) fish.length = null;
-    if (fish.weight != null && fish.weight.value == 0) fish.weight = null;
-    _logger.finest("Set fish[${tmpFishIndex}]: ${fish.asMap}");
-    list.value = (list.value..[tmpFishIndex] = fish);
-  }
-  deleteFish() {
-    _logger.fine("Deleting fish: ${tmpFishIndex}");
-    if (0 <= tmpFishIndex && tmpFishIndex < list.value.length) {
-      list.value = list.value..removeAt(tmpFishIndex);
-    }
-  }
 }
 
 class _GMap {
