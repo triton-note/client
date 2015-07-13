@@ -53,12 +53,17 @@
 				    		<div class="header">
 				    			<p>Catches</p>
 				    			<p class="empty" ng-if="report.fishes == null || report.fishes.isEmpty">Empty</p>
+                                <paper-icon-button class="add" ng-if="catches.isEditing" icon="add" ng-click="catches.add()"></paper-icon-button>
 						    	<div class="edit-button">
-						    		<paper-icon-button icon="create"></paper-icon-button>
+						    		<paper-icon-button icon="create" ng-click="catches.toggle($event)"></paper-icon-button>
+                                    <edit-fish-dialog setter="catches.dialog"></edit-fish-dialog>
 						    	</div>
 				    		</div>
 				    		<div class="content">
-			    				<p ng-repeat="fish in report.fishes">{{fish}}</p>
+                                <div class="item" ng-repeat="fish in report.fishes">
+    			    				<p>{{fish}}</p>
+                                    <paper-ripple ng-if="catches.isEditing" ng-click="catches.edit($index)"></paper-ripple>
+                                </div>
 				    		</div>
 				    	</div>
 				    	

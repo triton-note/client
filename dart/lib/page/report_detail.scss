@@ -154,9 +154,18 @@ $edit-button-padding: 8px;
   margin-bottom: 10px;
   border: solid 1px #eee;
   
+  paper-icon-button.add {
+    position: absolute;
+    left: 100px;
+    bottom: -8px;
+    opacity: 0;
+    color: red;
+  }
+  
   .content {
     margin-top: 8px;
-    p {
+    .item {
+      position: relative;
       margin: 8px;
     }
   }
