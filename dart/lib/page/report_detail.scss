@@ -179,6 +179,16 @@ $edit-button-padding: 8px;
   .content {
     padding: 4px;
     @include font-normal(16px);
+    
+    .editor {
+      paper-input-decorator {
+        padding: 0;
+      }
+      
+      paper-autogrow-textarea {
+        margin: 0;
+      }
+    }
   }
 }
 

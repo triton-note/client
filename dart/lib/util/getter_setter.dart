@@ -40,6 +40,8 @@ class CachedValue<T> implements Getter<T> {
     if (_cache == null) _cache = _getter();
     return _cache;
   }
+
+  void clear() => _cache = null;
 }
 
 class PipeValue<T> implements GetterSetter<T> {

@@ -9,6 +9,7 @@ import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:paper_elements/paper_icon_button.dart';
+import 'package:paper_elements/paper_autogrow_textarea.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
@@ -21,6 +22,7 @@ import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/server.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
+import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/main_frame.dart';
@@ -29,7 +31,14 @@ final _logger = new Logger('ReportDetailPage');
 
 const String editFlip = "create";
 const String editFlop = "done";
+
+const Duration blinkDuration = const Duration(seconds: 2);
+const Duration blinkDownDuration = const Duration(milliseconds: 300);
+const frameBackground = const [const {'background': "#fffcfc"}, const {'background': "#fee"}];
+const frameBackgroundDown = const [const {'background': "#fee"}, const {'background': "white"}];
+
 const submitDuration = const Duration(minutes: 1);
+
 typedef void OnChanged();
 
 @Component(
@@ -40,6 +49,7 @@ typedef void OnChanged();
 class ReportDetailPage extends MainFrame {
   Future<Report> _report;
   Report report;
+  _Comment comment;
   _Catches catches;
   _PhotoSize photo;
   _GMap gmap;
@@ -60,6 +70,7 @@ class ReportDetailPage extends MainFrame {
 
     _report.then((v) async {
       report = v;
+      comment = new _Comment(root, _onChanged, report);
       catches = new _Catches(root, _onChanged, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
       conditions = new _Conditions(report.condition, _onChanged);
       gmap = new _GMap(root, report.location.geoinfo);
@@ -85,69 +96,95 @@ class ReportDetailPage extends MainFrame {
   }
 }
 
-class _Catches {
-  static const frameButton = const [const {'opacity': 0.05}, const {'opacity': 1}];
-  static const frameItem = const [const {'background': "#fffcfc"}, const {'background': "#fee"}];
-  static const Duration blinkDuration = const Duration(seconds: 2);
-  static const Duration blinkDownDuration = const Duration(milliseconds: 300);
-
+class _Comment {
   final ShadowRoot _root;
   final OnChanged _onChanged;
-  final GetterSetter<List<Fishes>> list;
-  GetterSetter<EditFishDialog> dialog = new PipeValue();
-  bool isEditing = false;
-  Timer _blinkTimer;
-  List<CoreAnimation> _animations;
+  final Report _report;
 
-  _Catches(this._root, this._onChanged, this.list);
+  CachedValue<List<Element>> _area;
+  Blinker _blinker;
+
+  bool isEditing = false;
+
+  _Comment(this._root, this._onChanged, this._report) {
+    _area = new CachedValue(() => _root.querySelectorAll('#comment .editor').toList(growable: false));
+    _blinker = new Blinker(blinkDuration, blinkDownDuration, [new BlinkTarget(_area, frameBackground)]);
+  }
+
+  bool get isEmpty => _report.comment == null || _report.comment.isEmpty;
+
+  String get text => _report.comment;
+  set text(String v) {
+    _report.comment = v;
+    _onChanged();
+  }
 
   toggle(event) {
     final button = event.target as PaperIconButton;
     _logger.fine("Toggle edit: ${button.icon}");
     button.icon = isEditing ? editFlip : editFlop;
 
-    final CachedValue<Element> addButton = new CachedValue(() => _root.querySelector('#fishes paper-icon-button.add'));
-    final CachedValue<ElementList<Element>> fishItems =
-        new CachedValue(() => _root.querySelectorAll('#fishes div.item'));
-
-    blink(final bool updown,
-        {final duration: blinkDuration, final repeat: true, frameItem: frameItem, frameButton: frameButton}) {
-      _animations = [];
-
-      animate(Element target, List frames) {
-        final keyframes = updown ? frames : frames.reversed.toList();
-        _logger.finest("Blink: ${target}: ${keyframes}");
-        final a = new CoreAnimation()
-          ..target = target
-          ..duration = duration.inMilliseconds
-          ..keyframes = keyframes
-          ..fill = "forwards"
-          ..easing = "ease-in-out"
-          ..play();
-        _animations.add(a);
-      }
-      animate(addButton.value, frameButton);
-      fishItems.value.forEach((item) {
-        animate(item, frameItem);
+    if (isEditing) {
+      _blinker.stop();
+      new Future.delayed(_blinker.blinkStopDuration, () {
+        isEditing = false;
       });
-      if (repeat) _blinkTimer = new Timer(blinkDuration, () => blink(!updown));
+    } else {
+      _logger.finest("Start editing comment.");
+      isEditing = true;
+      new Future.delayed(new Duration(milliseconds: 10), () {
+        final a = _root.querySelector('#comment .editor  paper-autogrow-textarea') as PaperAutogrowTextarea;
+        a.update(a.querySelector('textarea'));
+
+        _area.clear();
+        _blinker.start();
+      });
     }
+  }
+}
+
+class _Catches {
+  static const frameButton = const [const {'opacity': 0.05}, const {'opacity': 1}];
+
+  final ShadowRoot _root;
+  final OnChanged _onChanged;
+  final GetterSetter<List<Fishes>> list;
+  final GetterSetter<EditFishDialog> dialog = new PipeValue();
+
+  CachedValue<List<Element>> _addButton;
+  CachedValue<List<Element>> _fishItems;
+  Blinker _blinker;
+
+  bool isEditing = false;
+
+  _Catches(this._root, this._onChanged, this.list) {
+    _addButton = new CachedValue(() => _root.querySelectorAll('#fishes paper-icon-button.add').toList(growable: false));
+    _fishItems = new CachedValue(() => _root.querySelectorAll('#fishes div.item').toList(growable: false));
+
+    _blinker = new Blinker(blinkDuration, blinkDownDuration, [
+      new BlinkTarget(_addButton, frameButton),
+      new BlinkTarget(_fishItems, frameBackground, frameBackgroundDown)
+    ]);
+  }
+
+  toggle(event) {
+    final button = event.target as PaperIconButton;
+    _logger.fine("Toggle edit: ${button.icon}");
+    button.icon = isEditing ? editFlip : editFlop;
 
     if (isEditing) {
-      _logger.finest("Blink stopping...");
-      if (_blinkTimer != null && _blinkTimer.isActive) _blinkTimer.cancel();
-      if (_animations != null) _animations.forEach((a) => a.cancel());
-      blink(false,
-          duration: blinkDownDuration, repeat: false, frameItem: [{'background': "white"}, {'background': "#fee"}]);
-      new Future.delayed(blinkDownDuration, () {
+      _blinker.stop();
+      new Future.delayed(_blinker.blinkStopDuration, () {
         isEditing = false;
       });
     } else {
       isEditing = true;
       new Future.delayed(new Duration(milliseconds: 10), () {
-        blink(true);
+        _addButton.clear();
+        _fishItems.clear();
+        _blinker.start();
 
-        fishItems.value.forEach((item) {
+        _fishItems.value.forEach((item) {
           item.querySelector('paper-ripple').style
             ..position = "absolute"
             ..top = '0'

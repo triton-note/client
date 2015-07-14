@@ -72,13 +72,22 @@
 				    	<div id="comment">
 				    		<div class="header">
 				    			<p>Note</p>
-				    			<p class="empty" ng-if="report.comment == null || report.comment.isEmpty">Empty</p>
+				    			<p class="empty" ng-if="comment.isEmpty">Empty</p>
 						    	<div class="edit-button">
-						    		<paper-icon-button icon="create"></paper-icon-button>
+						    		<paper-icon-button icon="create" ng-click="comment.toggle($event)"></paper-icon-button>
 						    	</div>
 				    		</div>
 				    		<div class="content">
-				    			<expandable-text text="report.comment" shrinked-lines="3"></expandable-text>
+                                <div ng-if="!comment.isEditing">
+    				    			<expandable-text text="comment.text" shrinked-lines="3"></expandable-text>
+                                </div>
+                                <div class="editor" ng-if="comment.isEditing">
+                                    <paper-input-decorator label="Empty">
+                                        <paper-autogrow-textarea>
+                                            <textarea ng-model="comment.text"></textarea>
+                                        </paper-autogrow-textarea>
+                                    </paper-input-decorator>
+                                </div>
 				    		</div>
 				    	</div>
 				    	
