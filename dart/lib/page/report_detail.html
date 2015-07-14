@@ -30,17 +30,19 @@
 				    	
 					    <div id="condition">
 					    	<div class="weather">
-					    		<p>{{conditions.weather.nominal}} / {{conditions.temperature}}</p>
+					    		<p>{{conditions.weather.nominal}} / {{conditions.weather.temperature}}</p>
 					    		<img ng-src="{{conditions.weather.iconUrl}}">
 						    	<div class="edit-button">
-						    		<paper-icon-button icon="create"></paper-icon-button>
+						    		<paper-icon-button icon="create" ng-click="conditions.dialogWeather()"></paper-icon-button>
+                                    <edit-weather-dialog value="conditions.weather" setter="conditions.weatherDialog"></edit-weather-dialog>
 						    	</div>
 					    	</div>
 					    	<div class="tide">
 					    		<p>{{conditions.tideName}}</p>
 				    			<img ng-src="{{conditions.tideImage}}">
 						    	<div class="edit-button">
-						    		<paper-icon-button icon="create"></paper-icon-button>
+						    		<paper-icon-button icon="create" ng-click="conditions.dialogTide()"></paper-icon-button>
+                                    <edit-tide-dialog value="conditions.tide" setter="conditions.tideDialog"></edit-tide-dialog>
 						    	</div>
 					    	</div>
 					    	<div class="moon">

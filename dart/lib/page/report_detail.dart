@@ -12,6 +12,8 @@ import 'package:paper_elements/paper_icon_button.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
+import 'package:triton_note/dialog/edit_tide.dart';
+import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
@@ -27,7 +29,7 @@ final _logger = new Logger('ReportDetailPage');
 
 const String editFlip = "create";
 const String editFlop = "done";
-
+const submitDuration = const Duration(minutes: 1);
 typedef void OnChanged();
 
 @Component(
@@ -58,8 +60,8 @@ class ReportDetailPage extends MainFrame {
 
     _report.then((v) async {
       report = v;
-      catches = new _Catches(root, onChanged, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
-      conditions = new _Conditions(report.condition);
+      catches = new _Catches(root, _onChanged, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
+      conditions = new _Conditions(report.condition, _onChanged);
       gmap = new _GMap(root, report.location.geoinfo);
     });
   }
@@ -68,15 +70,18 @@ class ReportDetailPage extends MainFrame {
   set timestamp(DateTime v) {
     if (report != null) {
       report.dateAt = v;
-      onChanged();
+      _onChanged();
     }
   }
 
-  void onChanged() {
+  void _onChanged() {
     if (submitTimer != null && submitTimer.isActive) submitTimer.cancel();
-    submitTimer = new Timer(new Duration(seconds: 30), () {
-      Server.update(report);
-    });
+    submitTimer = new Timer(submitDuration, _update);
+    _logger.finest("Timer to submit start.");
+  }
+
+  void _update() {
+    Server.update(report);
   }
 }
 
@@ -87,14 +92,14 @@ class _Catches {
   static const Duration blinkDownDuration = const Duration(milliseconds: 300);
 
   final ShadowRoot _root;
-  final OnChanged onChanged;
+  final OnChanged _onChanged;
   final GetterSetter<List<Fishes>> list;
   GetterSetter<EditFishDialog> dialog = new PipeValue();
   bool isEditing = false;
   Timer _blinkTimer;
   List<CoreAnimation> _animations;
 
-  _Catches(this._root, this.onChanged, this.list);
+  _Catches(this._root, this._onChanged, this.list);
 
   toggle(event) {
     final button = event.target as PaperIconButton;
@@ -159,7 +164,7 @@ class _Catches {
     final fish = new Fishes.fromMap({'count': 1});
     dialog.value.open(new GetterSetter(() => fish, (v) {
       list.value = list.value..add(v);
-      onChanged();
+      _onChanged();
     }));
   });
 
@@ -171,7 +176,7 @@ class _Catches {
       } else {
         list.value = list.value..[index] = v;
       }
-      onChanged();
+      _onChanged();
     }));
   });
 }
@@ -273,23 +278,63 @@ class _PhotoSize {
 }
 
 class _Conditions {
-  final Condition src;
+  final Condition _src;
+  final OnChanged _onChanged;
+  final _WeatherWrapper weather;
+  final Getter<EditWeatherDialog> weatherDialog = new PipeValue();
+  final Getter<EditTideDialog> tideDialog = new PipeValue();
 
-  _Conditions(this.src);
+  _Conditions(Condition src, OnChanged onChanged)
+      : this._src = src,
+        this._onChanged = onChanged,
+        this.weather = new _WeatherWrapper(src.weather, onChanged);
 
-  String get tideName => nameOfEnum(src.tide);
-  String get tideImage => Tides.iconOf(src.tide);
+  Tide get tide => _src.tide;
+  set tide(Tide v) {
+    _src.tide = v;
+    _onChanged();
+  }
+  String get tideName => nameOfEnum(_src.tide);
+  String get tideImage => Tides.iconOf(_src.tide);
 
-  int get moon => src.moon;
-  String get moonImage => MoonPhases.iconOf(src.moon);
+  int get moon => _src.moon;
+  String get moonImage => MoonPhases.iconOf(_src.moon);
 
-  Weather get weather => src.weather;
+  dialogWeather() => weatherDialog.value.open();
+  dialogTide() => tideDialog.value.open();
+}
+class _WeatherWrapper implements Weather {
+  final Weather _src;
+  final OnChanged _onChanged;
+
+  _WeatherWrapper(this._src, this._onChanged);
+
+  Map get asMap => _src.asMap;
+  String get asParam => _src.asParam;
+  set asParam(String v) => _src.asParam = v;
 
   Temperature _temperature;
   Temperature get temperature {
     if (_temperature == null) {
-      _temperature = src.weather.temperature.convertTo(UserPreferences.temperatureUnit);
+      _temperature = _src.temperature.convertTo(UserPreferences.temperatureUnit);
     }
     return _temperature;
+  }
+  set temperature(Temperature v) {
+    _src.temperature = v;
+    _temperature = null;
+    _onChanged();
+  }
+
+  String get nominal => _src.nominal;
+  set nominal(String v) {
+    _src.nominal = v;
+    _onChanged();
+  }
+
+  String get iconUrl => _src.iconUrl;
+  set iconUrl(String v) {
+    _src.iconUrl = v;
+    _onChanged();
   }
 }
