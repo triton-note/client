@@ -27,6 +27,8 @@ class ExpandableTextElement extends ShadowRootAware {
   bool hasMore = false;
   bool isExpanded = false;
 
+  List<String> get lines => text.split('\n').toList();
+
   @override
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
