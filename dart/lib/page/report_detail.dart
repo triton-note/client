@@ -28,6 +28,8 @@ final _logger = new Logger('ReportDetailPage');
 const String editFlip = "create";
 const String editFlop = "done";
 
+typedef void OnChanged();
+
 @Component(
     selector: 'report-detail',
     templateUrl: 'packages/triton_note/page/report_detail.html',
@@ -56,10 +58,18 @@ class ReportDetailPage extends MainFrame {
 
     _report.then((v) async {
       report = v;
-      catches = new _Catches(root, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
+      catches = new _Catches(root, onChanged, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
       conditions = new _Conditions(report.condition);
       gmap = new _GMap(root, report.location.geoinfo);
     });
+  }
+
+  DateTime get timestamp => report == null ? null : report.dateAt;
+  set timestamp(DateTime v) {
+    if (report != null) {
+      report.dateAt = v;
+      onChanged();
+    }
   }
 
   void onChanged() {
@@ -77,13 +87,14 @@ class _Catches {
   static const Duration blinkDownDuration = const Duration(milliseconds: 300);
 
   final ShadowRoot _root;
+  final OnChanged onChanged;
   final GetterSetter<List<Fishes>> list;
   GetterSetter<EditFishDialog> dialog = new PipeValue();
   bool isEditing = false;
   Timer _blinkTimer;
   List<CoreAnimation> _animations;
 
-  _Catches(this._root, this.list);
+  _Catches(this._root, this.onChanged, this.list);
 
   toggle(event) {
     final button = event.target as PaperIconButton;
@@ -148,6 +159,7 @@ class _Catches {
     final fish = new Fishes.fromMap({'count': 1});
     dialog.value.open(new GetterSetter(() => fish, (v) {
       list.value = list.value..add(v);
+      onChanged();
     }));
   });
 
@@ -159,6 +171,7 @@ class _Catches {
       } else {
         list.value = list.value..[index] = v;
       }
+      onChanged();
     }));
   });
 }
