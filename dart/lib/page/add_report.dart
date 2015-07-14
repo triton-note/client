@@ -11,6 +11,7 @@ import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
+import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
@@ -235,36 +236,21 @@ class _GMap {
 }
 
 class _Conditions {
-  static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
-
   final ShadowRoot _root;
   final Getter<Condition> _condition;
   final Getter<EditWeatherDialog> weatherDialog = new PipeValue();
+  final Getter<EditTideDialog> tideDialog = new PipeValue();
 
   _Conditions(this._root, this._condition);
 
-  PaperDialog _tideDialog;
-  PaperDialog get tideDialog {
-    if (_tideDialog == null) _tideDialog = _root.querySelector('#tide-dialog');
-    return _tideDialog;
-  }
+  Condition get value => _condition.value;
 
-  Weather get weather => _condition.value.weather;
-  Tide get tide => _condition.value.tide;
-  int get moon => _condition.value.moon;
-
-  dialogTide() => tideDialog.toggle();
-  changeTide(String name) {
-    final tide = enumByName(Tide.values, name);
-    if (tide != null) _condition.value.tide = tide;
-    tideDialog.toggle();
-  }
-
+  dialogTide() => tideDialog.value.open();
   dialogWeather() => weatherDialog.value.open();
 
-  List<String> get tideNames => tideList.map((t) => nameOfEnum(t));
-  String tideIcon(String name) => name == null ? null : Tides.iconBy(name);
-  String get tideName => _condition.value.tide == null ? null : nameOfEnum(_condition.value.tide);
-  String get tideImage => tideIcon(tideName);
+  String get weatherName => value.weather == null ? null : value.weather.nominal;
+  String get weatherImage => value.weather == null ? null : value.weather.iconUrl;
+  String get tideName => value.tide == null ? null : nameOfEnum(value.tide);
+  String get tideImage => tideName == null ? null : Tides.iconBy(tideName);
   String get moonImage => _condition.value.moon == null ? null : MoonPhases.iconOf(_condition.value.moon);
 }
