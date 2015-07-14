@@ -7,7 +7,6 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
-import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
@@ -44,6 +43,7 @@ class AddReportPage extends MainFrame {
   _Conditions conditions;
 
   bool isReady = false;
+  bool get isLoading => report.photo == null;
 
   AddReportPage(Router router, RouteProvider routeProvider) : super(router) {
     try {

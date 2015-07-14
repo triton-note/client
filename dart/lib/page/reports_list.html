@@ -20,8 +20,10 @@
     	</core-toolbar>
     	
     	<div>
-		    <div ng-if="reports == null" class="getting-reports">
-	            <paper-spinner active></paper-spinner>
+		    <div ng-if="reports == null" class="page-loading">
+                <div>
+    	            <paper-spinner active></paper-spinner>
+                </div>
 		    </div>
 		    <div ng-if="reports != null">
 		    	<div class="no-reports" ng-if="reports.length < 1">
