@@ -83,64 +83,7 @@
 				    		</div>
 			    			<paper-ripple fit ng-click="conditions.dialogWeather()"></paper-ripple>
 			    		</div>
-			    		<paper-dialog id="weather-dialog" transition="core-transition-center" backdrop>
-			    			<style>
-			        			#weather-dialog paper-shadow {
-			        				margin-bottom: 10px;
-			        				padding-left: 10px;
-			        				padding-right: 10px;
-			        				-moz-border-radius: 3px;
-			        				-webkit-border-radius: 3px;
-			        				border-radius: 3px;
-			        			}
-			    				#weather-dialog #temperature > div {
-			    					text-align: center;
-			    				}
-			    				#weather-dialog .row {
-			    					position: relative;
-			    					padding: 10px;
-			    				}
-			    				#weather-dialog .first {
-			    					border-bottom: solid 1px #ccc;
-			    				}
-			    				#weather-dialog .middle {
-			    					border-top: solid 1px #ccc;
-			    					border-bottom: solid 1px #ccc;
-			    				}
-			    				#weather-dialog .last {
-			    					border-top: solid 1px #ccc;
-			    				}
-			    				#weather-dialog .row > * {
-			    					display: inline-block;
-			    					vertical-align: middle;
-			    					*vertical-align: auto;
-			    					*zoom: 1;
-			    					*display: inline;
-			    				}
-			    			</style>
-			    			<div>
-				        		<paper-shadow id="temperature" z="1">
-				        			<div class="row">
-				        				<num-input value="conditions.temperatureValue"></num-input>
-				        				<p>{{conditions.temperatureUnit}}</p>
-				        			</div>
-			        			</paper-shadow>
-				        		
-				        		<br>
-				        		
-				        		<paper-shadow id="sky" z="1">
-				        			<div class="row" ng-repeat="name in conditions.weatherNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
-				    					<div class="cell">
-					    					<img width="64" height="64" ng-src="{{conditions.weatherIcon(name)}}">
-				    					</div>
-				    					<div class="cell">
-					    					<p>{{name}}</p>
-				    					</div>
-						    			<paper-ripple fit ng-click="conditions.changeWeather(name)"></paper-ripple>
-				    				</div>
-			        			</paper-shadow>
-		    				</div>
-			    		</paper-dialog>
+                        <edit-weather-dialog value="conditions.weather" setter="conditions.weatherDialog"></edit-weather-dialog>
 			    	</div>
 			    	<div class="tide">
 			    		<div class="spinning" ng-if="conditions.tideImage == null">

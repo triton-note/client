@@ -11,16 +11,15 @@ import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
+import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/upload_session.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/server.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
-import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
@@ -134,7 +133,7 @@ class AddReportPage extends MainFrame {
         if (cond.weather == null) {
           cond.weather = new Weather.fromMap({
             'nominal': 'Clear',
-            'iconUrl': conditions.weatherIcon('Clear'),
+            'iconUrl': Weather.nominalMap['Clear'],
             'temperature': {'value': 20, 'unit': 'Cels'}
           });
         }
@@ -240,6 +239,7 @@ class _Conditions {
 
   final ShadowRoot _root;
   final Getter<Condition> _condition;
+  final Getter<EditWeatherDialog> weatherDialog = new PipeValue();
 
   _Conditions(this._root, this._condition);
 
@@ -247,11 +247,6 @@ class _Conditions {
   PaperDialog get tideDialog {
     if (_tideDialog == null) _tideDialog = _root.querySelector('#tide-dialog');
     return _tideDialog;
-  }
-  PaperDialog _weatherDialog;
-  PaperDialog get weatherDialog {
-    if (_weatherDialog == null) _weatherDialog = _root.querySelector('#weather-dialog');
-    return _weatherDialog;
   }
 
   Weather get weather => _condition.value.weather;
@@ -265,36 +260,7 @@ class _Conditions {
     tideDialog.toggle();
   }
 
-  dialogWeather() => weatherDialog.toggle();
-  changeWeather(String nominal) {
-    _condition.value.weather.nominal = nominal;
-    _condition.value.weather.iconUrl = weatherIcon(nominal);
-    weatherDialog.toggle();
-  }
-
-  String get temperatureUnit => "°${nameOfEnum(UserPreferences.temperatureUnit)[0]}";
-
-  Timer _weatherDialogTimer;
-  Temperature _temperature;
-  int get temperatureValue {
-    if (_condition.value.weather.temperature == null) return null;
-    if (_temperature == null) _temperature =
-        _condition.value.weather.temperature.convertTo(UserPreferences.temperatureUnit);
-    return _temperature.value.round();
-  }
-  set temperatureValue(int v) {
-    _temperature =
-        new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(UserPreferences.temperatureUnit)});
-    _logger.fine("Set temperature: ${_temperature.asMap}");
-    _condition.value.weather.temperature = _temperature;
-    _logger.finest("Setting timer for closing weather dialog.");
-    if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
-    _weatherDialogTimer = new Timer(new Duration(seconds: 3), () {
-      if (weatherDialog.opened) weatherDialog.toggle();
-    });
-  }
-  List<String> get weatherNames => Weather.nominalMap.keys;
-  String weatherIcon(String nominal) => Weather.nominalMap[nominal];
+  dialogWeather() => weatherDialog.value.open();
 
   List<String> get tideNames => tideList.map((t) => nameOfEnum(t));
   String tideIcon(String name) => name == null ? null : Tides.iconBy(name);

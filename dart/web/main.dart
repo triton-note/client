@@ -5,6 +5,7 @@ import 'dart:html';
 import 'package:triton_note/router.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
+import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/element/calendar.dart';
 import 'package:triton_note/element/expandable_gmap.dart';
@@ -28,6 +29,7 @@ class AppModule extends Module {
   AppModule() {
     bind(EditFishDialog);
     bind(EditTimestampDialog);
+    bind(EditWeatherDialog);
 
     bind(FitImageElement);
     bind(CalendarElement);
