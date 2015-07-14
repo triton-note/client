@@ -180,13 +180,13 @@ $edit-button-padding: 8px;
     padding: 4px;
     @include font-normal(16px);
     
+    .viewer {
+      margin-top: 8px;
+    }
+    
     .editor {
       paper-input-decorator {
-        padding: 0;
-      }
-      
-      paper-autogrow-textarea {
-        margin: 0;
+        padding-top: 0;
       }
     }
   }
@@ -198,8 +198,24 @@ $edit-button-padding: 8px;
   border: solid 1px #eee;
   
   .content {
-    p {
-      margin: 4px;
+    .name {
+      margin-left: 4px;
+      margin-right: 4px;
+      
+      .viewer {
+        margin-top: 8px;
+        margin-bottom: 12px;
+      }
+      
+      .editor {
+        paper-input-decorator {
+          padding-top: 0;
+        }
+      }
+    }
+    
+    .gmap {
+      border: solid 2px white;
     }
     
     expandable-gmap {

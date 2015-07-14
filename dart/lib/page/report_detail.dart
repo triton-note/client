@@ -16,7 +16,7 @@ import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
-import 'package:triton_note/model/location.dart';
+import 'package:triton_note/model/location.dart' as Loc;
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
@@ -52,7 +52,7 @@ class ReportDetailPage extends MainFrame {
   _Comment comment;
   _Catches catches;
   _PhotoSize photo;
-  _GMap gmap;
+  _Location location;
   _Conditions conditions;
   GetterSetter<EditTimestampDialog> editTimestamp = new PipeValue();
   Timer submitTimer;
@@ -73,7 +73,7 @@ class ReportDetailPage extends MainFrame {
       comment = new _Comment(root, _onChanged, report);
       catches = new _Catches(root, _onChanged, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
       conditions = new _Conditions(report.condition, _onChanged);
-      gmap = new _GMap(root, report.location.geoinfo);
+      location = new _Location(root, report.location, _onChanged);
     });
   }
 
@@ -218,15 +218,35 @@ class _Catches {
   });
 }
 
-class _GMap {
+class _Location {
+  static const frameBorder = const [const {'border': "solid 2px #fee"}, const {'border': "solid 2px #f88"}];
+  static const frameBorderStop = const [const {'border': "solid 2px #f88"}, const {'border': "solid 2px white"}];
+
   final ShadowRoot _root;
-  final GeoInfo geoinfo;
+  final Loc.Location _location;
+  final OnChanged _onChanged;
   Getter<Element> getScroller;
   Getter<Element> getBase;
   Setter<GoogleMap> setGMap;
   GoogleMap _gmap;
 
-  _GMap(this._root, this.geoinfo) {
+  CachedValue<List<Element>> _blinkInput, _blinkBorder;
+  Blinker _blinker;
+
+  bool isEditing;
+
+  String get spotName => _location.name;
+  set spotName(String v) {
+    _location.name = v;
+    _onChanged();
+  }
+  Loc.GeoInfo get geoinfo => _location.geoinfo;
+  set geoinfo(Loc.GeoInfo v) {
+    _location.geoinfo = v;
+    _onChanged();
+  }
+
+  _Location(this._root, this._location, this._onChanged) {
     getBase = new Getter<Element>(() => _root.querySelector('#base'));
     getScroller = new Getter<Element>(() {
       final panel = _root.querySelector('core-header-panel[main]') as CoreHeaderPanel;
@@ -234,8 +254,43 @@ class _GMap {
     });
     setGMap = new Setter<GoogleMap>((v) {
       _gmap = v;
-      _gmap.putMarker(geoinfo);
+      _gmap.putMarker(_location.geoinfo);
     });
+
+    _blinkInput = new CachedValue(() => _root.querySelectorAll('#location .editor input').toList(growable: false));
+    _blinkBorder = new CachedValue(() => _root.querySelectorAll('#location .content .gmap').toList(growable: false));
+
+    _blinker = new Blinker(blinkDuration, blinkDownDuration, [
+      new BlinkTarget(_blinkInput, frameBackground),
+      new BlinkTarget(_blinkBorder, frameBorder, frameBorderStop)
+    ]);
+  }
+
+  toggle(event) {
+    final button = event.target as PaperIconButton;
+    _logger.fine("Toggle edit: ${button.icon}");
+    button.icon = isEditing ? editFlip : editFlop;
+
+    if (isEditing) {
+      _blinker.stop();
+      new Future.delayed(_blinker.blinkStopDuration, () {
+        isEditing = false;
+      });
+      _gmap.onClick = null;
+    } else {
+      _logger.finest("Start editing location.");
+      isEditing = true;
+      new Future.delayed(new Duration(milliseconds: 10), () {
+        _blinkInput.clear();
+        _blinkBorder.clear();
+        _blinker.start();
+      });
+      _gmap.onClick = (pos) {
+        _gmap.clearMarkers();
+        _gmap.putMarker(pos);
+        geoinfo = pos;
+      };
+    }
   }
 }
 
@@ -315,33 +370,33 @@ class _PhotoSize {
 }
 
 class _Conditions {
-  final Condition _src;
+  final Loc.Condition _src;
   final OnChanged _onChanged;
   final _WeatherWrapper weather;
   final Getter<EditWeatherDialog> weatherDialog = new PipeValue();
   final Getter<EditTideDialog> tideDialog = new PipeValue();
 
-  _Conditions(Condition src, OnChanged onChanged)
+  _Conditions(Loc.Condition src, OnChanged onChanged)
       : this._src = src,
         this._onChanged = onChanged,
         this.weather = new _WeatherWrapper(src.weather, onChanged);
 
-  Tide get tide => _src.tide;
-  set tide(Tide v) {
+  Loc.Tide get tide => _src.tide;
+  set tide(Loc.Tide v) {
     _src.tide = v;
     _onChanged();
   }
   String get tideName => nameOfEnum(_src.tide);
-  String get tideImage => Tides.iconOf(_src.tide);
+  String get tideImage => Loc.Tides.iconOf(_src.tide);
 
   int get moon => _src.moon;
-  String get moonImage => MoonPhases.iconOf(_src.moon);
+  String get moonImage => Loc.MoonPhases.iconOf(_src.moon);
 
   dialogWeather() => weatherDialog.value.open();
   dialogTide() => tideDialog.value.open();
 }
-class _WeatherWrapper implements Weather {
-  final Weather _src;
+class _WeatherWrapper implements Loc.Weather {
+  final Loc.Weather _src;
   final OnChanged _onChanged;
 
   _WeatherWrapper(this._src, this._onChanged);

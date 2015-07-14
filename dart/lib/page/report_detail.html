@@ -78,7 +78,7 @@
 						    	</div>
 				    		</div>
 				    		<div class="content">
-                                <div ng-if="!comment.isEditing">
+                                <div class="viewer" ng-if="!comment.isEditing">
     				    			<expandable-text text="comment.text" shrinked-lines="3"></expandable-text>
                                 </div>
                                 <div class="editor" ng-if="comment.isEditing">
@@ -95,12 +95,23 @@
 					    	<div class="header">
 				    			<p>Location</p>
 						    	<div class="edit-button">
-						    		<paper-icon-button icon="create"></paper-icon-button>
+						    		<paper-icon-button icon="create" ng-click="location.toggle($event)"></paper-icon-button>
 						    	</div>
 					    	</div>
 					    	<div class="content">
-				    			<p>{{report.location.name}}</p>
-					    		<expandable-gmap center="gmap.geoinfo" set-gmap="gmap.setGMap" get-scroller="gmap.getScroller" get-base="gmap.getBase"></expandable-gmap>
+                                <div class="name">
+                                    <div class="viewer" ng-if="!location.isEditing">
+        				    			<p>{{location.spotName}}</p>
+                                    </div>
+                                    <div class="editor" ng-if="location.isEditing">
+                                        <paper-input-decorator label="Spot Name">
+                                            <input ng-model="location.spotName">
+                                        </paper-input-decorator>
+                                    </div>
+                                </div>
+                                <div class="gmap"">
+                                    <expandable-gmap center="location.geoinfo" set-gmap="location.setGMap" get-scroller="location.getScroller" get-base="location.getBase"></expandable-gmap>
+                                </div>
 					    	</div>
 					    </div>
 					</div>
