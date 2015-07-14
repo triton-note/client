@@ -71,8 +71,8 @@ class ReportDetailPage extends MainFrame {
 }
 
 class _Catches {
-  static const buttonsFrame = const [const {'opacity': 0.05}, const {'opacity': 1}];
-  static const itemFrame = const [const {'background': "#fffcfc"}, const {'background': "#fee"}];
+  static const frameButton = const [const {'opacity': 0.05}, const {'opacity': 1}];
+  static const frameItem = const [const {'background': "#fffcfc"}, const {'background': "#fee"}];
   static const Duration blinkDuration = const Duration(seconds: 2);
   static const Duration blinkDownDuration = const Duration(milliseconds: 300);
 
@@ -90,10 +90,12 @@ class _Catches {
     _logger.fine("Toggle edit: ${button.icon}");
     button.icon = isEditing ? editFlip : editFlop;
 
-    final addButton = new CachedValue(() => _root.querySelector('#fishes paper-icon-button.add'));
-    final fishItems = new CachedValue(() => _root.querySelectorAll('#fishes div.item'));
+    final CachedValue<Element> addButton = new CachedValue(() => _root.querySelector('#fishes paper-icon-button.add'));
+    final CachedValue<ElementList<Element>> fishItems =
+        new CachedValue(() => _root.querySelectorAll('#fishes div.item'));
 
-    blink(final bool updown, [final duration = blinkDuration, final repeat = true]) {
+    blink(final bool updown,
+        {final duration: blinkDuration, final repeat: true, frameItem: frameItem, frameButton: frameButton}) {
       _animations = [];
 
       animate(Element target, List frames) {
@@ -108,9 +110,9 @@ class _Catches {
           ..play();
         _animations.add(a);
       }
-      animate(addButton.value, buttonsFrame);
+      animate(addButton.value, frameButton);
       fishItems.value.forEach((item) {
-        animate(item, itemFrame);
+        animate(item, frameItem);
       });
       if (repeat) _blinkTimer = new Timer(blinkDuration, () => blink(!updown));
     }
@@ -119,7 +121,8 @@ class _Catches {
       _logger.finest("Blink stopping...");
       if (_blinkTimer != null && _blinkTimer.isActive) _blinkTimer.cancel();
       if (_animations != null) _animations.forEach((a) => a.cancel());
-      blink(false, blinkDownDuration, false);
+      blink(false,
+          duration: blinkDownDuration, repeat: false, frameItem: [{'background': "white"}, {'background': "#fee"}]);
       new Future.delayed(blinkDownDuration, () {
         isEditing = false;
       });
