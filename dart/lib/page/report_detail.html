@@ -54,7 +54,7 @@
 				    	<div id="fishes">
 				    		<div class="header">
 				    			<p>Catches</p>
-				    			<p class="empty" ng-if="report.fishes == null || report.fishes.isEmpty">Empty</p>
+				    			<p class="empty" ng-if="!catches.isEditing && (report.fishes == null || report.fishes.isEmpty)">Empty</p>
                                 <paper-icon-button class="add" ng-if="catches.isEditing" icon="add" ng-click="catches.add()"></paper-icon-button>
 						    	<div class="edit-button">
 						    		<paper-icon-button icon="create" ng-click="catches.toggle($event)"></paper-icon-button>
