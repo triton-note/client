@@ -188,11 +188,13 @@ class AddReportPage extends MainFrame {
     final div = root.querySelector('core-toolbar div.submit');
     _logger.fine("Appearing submit button: ${div}");
     div.style.display = "block";
+    final x = document.body.clientWidth;
+    final y = (x / 5).round();
     new CoreAnimation()
       ..target = div
       ..duration = 300
       ..fill = "both"
-      ..keyframes = [{'transform': "translate(-500px, 100px)", 'opacity': '0'}, {'transform': "none", 'opacity': '1'}]
+      ..keyframes = [{'transform': "translate(-${x}px, ${y}px)", 'opacity': '0'}, {'transform': "none", 'opacity': '1'}]
       ..play();
   }
 
