@@ -18,7 +18,8 @@ class Reports {
   static bool _hasMore = true;
   static bool get hasMore => _hasMore;
 
-  static Report _inCache(String id) => _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
+  static Report _inCache(String id) =>
+      _cachedList == null ? null : _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
 
   static Future<List<Report>> refresh() async {
     _cachedList = await Server.load(pageSize);
