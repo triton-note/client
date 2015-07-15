@@ -1,0 +1,42 @@
+<paper-dialog id="tide-dialog" transition="core-transition-center" backdrop>
+    <style>
+        #tide-dialog .row {
+            position: relative;
+            padding: 10px;
+        }
+        #tide-dialog .first {
+            border-bottom: solid 1px #ccc;
+        }
+        #tide-dialog .middle {
+            border-top: solid 1px #ccc;
+            border-bottom: solid 1px #ccc;
+        }
+        #tide-dialog .last {
+            border-top: solid 1px #ccc;
+        }
+        #tide-dialog .cell {
+            display: inline-block;
+            vertical-align: middle;
+            *vertical-align: auto;
+            *zoom: 1;
+            *display: inline;
+        }
+        #tide-dialog img {
+            margin-right: 10px;
+            -moz-border-radius: 4px;
+            -webkit-border-radius: 4px;
+            border-radius: 4px;
+        }
+    </style>
+    <div>
+        <div class="row" ng-repeat="name in tideNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
+            <div class="cell">
+                <img width="48" height="48" ng-src="{{tideIcon(name)}}">
+            </div>
+            <div class="cell">
+                <p>{{name}}</p>
+            </div>
+            <paper-ripple fit ng-click="changeTide(name)"></paper-ripple>
+        </div>
+    </div>
+</paper-dialog>

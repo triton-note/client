@@ -4,12 +4,15 @@ p {
   margin: 0;
 }
 
-#pre {
-  div {
-    display: block;
-    
-    margin-top: 30%;
-    text-align: center;
+$edit-button-size: 24px;
+$edit-button-padding: 8px;
+.edit-button {
+  position: absolute;
+  bottom: -$edit-button-padding;
+  right: -$edit-button-padding;
+  
+  paper-icon-button {
+    color: green;
   }
 }
 
@@ -46,11 +49,20 @@ p {
 }
 
 #dateAt {
+  position: relative;
+  
   width: 100%;
   margin-top: 4px;
   
   text-align: right;
   @include font-bold();
+  
+  p {
+    margin-right: $edit-button-size + $edit-button-padding;
+  }
+  .edit-button {
+    bottom: -$edit-button-padding - 4px;
+  }
 }
 
 #condition {
@@ -68,6 +80,7 @@ p {
   @include border-radius(8px);
   
   &>div {
+    position: relative;
     display: table-cell;
     width: 33%;
     
@@ -85,6 +98,7 @@ p {
     img {
       width: $imgSize;
       height: $imgSize;
+      @include border-radius(4px);
     }
   }
   
@@ -106,6 +120,7 @@ p {
 }
 
 .header {
+  position: relative;
   display: table;
   width: 100%;
   vertical-align: baseline;
@@ -116,7 +131,7 @@ p {
   &>* {
     display: table-cell;
   }
-  *:first-child {
+  &>*:first-child {
     width: 30%;
     padding-left: 4px;
   }
@@ -130,9 +145,18 @@ p {
   margin-bottom: 10px;
   border: solid 1px #eee;
   
+  paper-icon-button.add {
+    position: absolute;
+    left: 100px;
+    bottom: -8px;
+    opacity: 0;
+    color: red;
+  }
+  
   .content {
     margin-top: 8px;
-    p {
+    .item {
+      position: relative;
       margin: 8px;
     }
   }
@@ -146,6 +170,16 @@ p {
   .content {
     padding: 4px;
     @include font-normal(16px);
+    
+    .viewer {
+      margin-top: 8px;
+    }
+    
+    .editor {
+      paper-input-decorator {
+        padding-top: 0;
+      }
+    }
   }
 }
 
@@ -155,8 +189,24 @@ p {
   border: solid 1px #eee;
   
   .content {
-    p {
-      margin: 4px;
+    .name {
+      margin-left: 4px;
+      margin-right: 4px;
+      
+      .viewer {
+        margin-top: 8px;
+        margin-bottom: 12px;
+      }
+      
+      .editor {
+        paper-input-decorator {
+          padding-top: 0;
+        }
+      }
+    }
+    
+    .gmap {
+      border: solid 2px white;
     }
     
     expandable-gmap {

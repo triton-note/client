@@ -18,5 +18,14 @@ core-drawer-panel {
     &>div {
       margin: 10px;
     }
+    
+    div.page-loading {
+      div {
+        display: block;
+        
+        margin-top: 30%;
+        text-align: center;
+      }
+    }
   }
 }

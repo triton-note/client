@@ -9,7 +9,7 @@ import 'package:triton_note/util/enums.dart';
 
 final _logger = new Logger('ValueUnit');
 
-String _rounded(double v, int digits) {
+String round(double v, int digits) {
   if (digits <= 0) return "${v.round()}";
   final d = pow(10, digits);
   return "${(v * d).round() / d}";
@@ -50,10 +50,16 @@ class _MeasuresImpl extends JsonSupport implements Measures {
   set length(LengthUnit v) => _length.value = v;
 }
 
-abstract class Temperature implements JsonSupport {
+abstract class ValueUnit<A, U> {
   double value;
-  final TemperatureUnit unit;
+  U get unit;
+  A convertTo(U dst);
 
+  @override
+  bool operator ==(o) => o is A && o.value == value && o.unit == unit;
+}
+
+abstract class Temperature extends ValueUnit<Temperature, TemperatureUnit> implements JsonSupport {
   factory Temperature.fromJsonString(String text) => new _TemperatureImpl(new Map.from(JSON.decode(text)));
   factory Temperature.fromMap(Map data) => new _TemperatureImpl(data);
 
@@ -66,8 +72,6 @@ abstract class Temperature implements JsonSupport {
   factory Temperature.Fahr(double value) {
     return new Temperature.of(TemperatureUnit.Fahr, value);
   }
-
-  Temperature convertTo(TemperatureUnit dst);
 }
 enum TemperatureUnit { Cels, Fahr }
 
@@ -99,16 +103,9 @@ class _TemperatureImpl extends JsonSupport implements Temperature {
       }
     }
   }
-
-  @override
-  String toString() => rounded(0);
-  String rounded(int digits) => "${_rounded(value, digits)} °${nameOfEnum(unit)[0]}";
 }
 
-abstract class Weight implements JsonSupport {
-  double value;
-  final WeightUnit unit;
-
+abstract class Weight extends ValueUnit<Weight, WeightUnit> implements JsonSupport {
   factory Weight.fromJsonString(String text) => new _WeightImpl(new Map.from(JSON.decode(text)));
   factory Weight.fromMap(Map data) => new _WeightImpl(data);
 
@@ -118,16 +115,23 @@ abstract class Weight implements JsonSupport {
   factory Weight.kg(double value) {
     return new Weight.of(WeightUnit.kg, value);
   }
-  factory Weight.pond(double value) {
-    return new Weight.of(WeightUnit.pond, value);
+  factory Weight.pound(double value) {
+    return new Weight.of(WeightUnit.pound, value);
   }
-
-  Weight convertTo(WeightUnit dst);
+  factory Weight.g(double value) {
+    return new Weight.of(WeightUnit.g, value);
+  }
+  factory Weight.oz(double value) {
+    return new Weight.of(WeightUnit.oz, value);
+  }
 }
-enum WeightUnit { kg, pond }
+enum WeightUnit { kg, g, pound, oz }
 
 class _WeightImpl extends JsonSupport implements Weight {
-  static const pondToKg = 0.4536;
+  static const kg_g = 1000;
+  static const pound_oz = 16;
+  static const oz_g = 28.349523125;
+  static const pound_kg = 0.45359237;
 
   final Map _data;
   final CachedProp<WeightUnit> _unit;
@@ -145,25 +149,60 @@ class _WeightImpl extends JsonSupport implements Weight {
 
   Weight convertTo(WeightUnit dst) {
     if (this.unit == dst) return this;
-    else {
-      switch (dst) {
-        case WeightUnit.kg:
-          return new Weight.kg(value * pondToKg);
-        case WeightUnit.pond:
-          return new Weight.pond(value / pondToKg);
-      }
+    switch (this.unit) {
+      case WeightUnit.kg: // Kg ->
+        switch (dst) {
+          case WeightUnit.kg:
+            return this;
+          case WeightUnit.g:
+            return new Weight.g(value * kg_g);
+          case WeightUnit.oz:
+            return new Weight.oz(value * kg_g / oz_g);
+          case WeightUnit.pound:
+            return new Weight.pound(value / pound_kg);
+        }
+        break;
+      case WeightUnit.g: // g ->
+        switch (dst) {
+          case WeightUnit.kg:
+            return new Weight.kg(value / kg_g);
+          case WeightUnit.g:
+            return this;
+          case WeightUnit.oz:
+            return new Weight.oz(value / oz_g);
+          case WeightUnit.pound:
+            return new Weight.pound(value / kg_g / pound_kg);
+        }
+        break;
+      case WeightUnit.pound: // Pound ->
+        switch (dst) {
+          case WeightUnit.kg:
+            return new Weight.kg(value * pound_kg);
+          case WeightUnit.g:
+            return new Weight.g(value * pound_kg * kg_g);
+          case WeightUnit.oz:
+            return new Weight.oz(value * pound_oz);
+          case WeightUnit.pound:
+            return this;
+        }
+        break;
+      case WeightUnit.oz: // oz ->
+        switch (dst) {
+          case WeightUnit.kg:
+            return new Weight.kg(value / pound_oz * pound_kg);
+          case WeightUnit.g:
+            return new Weight.g(value * oz_g);
+          case WeightUnit.oz:
+            return this;
+          case WeightUnit.pound:
+            return new Weight.pound(value / pound_oz);
+        }
+        break;
     }
   }
-
-  @override
-  String toString() => rounded(1);
-  String rounded(int digits) => "${_rounded(value, digits)} ${nameOfEnum(unit)}";
 }
 
-abstract class Length implements JsonSupport {
-  double value;
-  final LengthUnit unit;
-
+abstract class Length extends ValueUnit<Length, LengthUnit> implements JsonSupport {
   factory Length.fromJsonString(String text) => new _LengthImpl(new Map.from(JSON.decode(text)));
   factory Length.fromMap(Map data) => new _LengthImpl(data);
 
@@ -176,8 +215,6 @@ abstract class Length implements JsonSupport {
   factory Length.inch(double value) {
     return new Length.of(LengthUnit.inch, value);
   }
-
-  Length convertTo(LengthUnit dst);
 }
 
 enum LengthUnit { cm, inch }
@@ -210,8 +247,4 @@ class _LengthImpl extends JsonSupport implements Length {
       }
     }
   }
-
-  @override
-  String toString() => rounded(1);
-  String rounded(int digits) => "${_rounded(value, digits)} ${nameOfEnum(unit)}";
 }

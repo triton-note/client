@@ -1,13 +1,5 @@
 @import "../../web/styles/common";
 
-.getting-reports {
-  margin: 10px;
-  
-  paper-spinner {
-    @include spinner-color(#f88);
-  }
-}
-
 .no-reports {
   display: block;
   width: 100%;

@@ -10,7 +10,7 @@
 		<core-animated-pages transitions="hero-transition cross-fade">
 			<section id="normal">
 				<div id="base" cross-fade>
-					<div id="pre" ng-if="report == null">
+					<div class="page-loading" ng-if="report == null">
 						<div>
 							<paper-spinner active></paper-spinner>
 						</div>
@@ -22,16 +22,28 @@
 				    	
 				    	<div id="dateAt">
 				    		<p>{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
+					    	<div class="edit-button">
+					    		<paper-icon-button icon="create" ng-click="editTimestamp.value.toggle()"></paper-icon-button>
+					    		<edit-timestamp-dialog value="timestamp" setter="editTimestamp"></edit-timestamp-dialog>
+					    	</div>
 				    	</div>
 				    	
 					    <div id="condition">
 					    	<div class="weather">
-					    		<p>{{conditions.weather.nominal}} / {{conditions.temperature}}</p>
+					    		<p>{{conditions.weather.nominal}} / {{conditions.weather.temperature | temperatureFilter }}</p>
 					    		<img ng-src="{{conditions.weather.iconUrl}}">
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create" ng-click="conditions.dialogWeather()"></paper-icon-button>
+                                    <edit-weather-dialog value="conditions.weather" setter="conditions.weatherDialog"></edit-weather-dialog>
+						    	</div>
 					    	</div>
 					    	<div class="tide">
 					    		<p>{{conditions.tideName}}</p>
 				    			<img ng-src="{{conditions.tideImage}}">
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create" ng-click="conditions.dialogTide()"></paper-icon-button>
+                                    <edit-tide-dialog value="conditions.tide" setter="conditions.tideDialog"></edit-tide-dialog>
+						    	</div>
 					    	</div>
 					    	<div class="moon">
 					    		<p>Phase: {{conditions.moon}}</p>
@@ -43,29 +55,63 @@
 				    		<div class="header">
 				    			<p>Catches</p>
 				    			<p class="empty" ng-if="report.fishes == null || report.fishes.isEmpty">Empty</p>
+                                <paper-icon-button class="add" ng-if="catches.isEditing" icon="add" ng-click="catches.add()"></paper-icon-button>
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create" ng-click="catches.toggle($event)"></paper-icon-button>
+                                    <edit-fish-dialog setter="catches.dialog"></edit-fish-dialog>
+						    	</div>
 				    		</div>
 				    		<div class="content">
-			    				<p ng-repeat="fish in report.fishes">{{fish}}</p>
+                                <div class="item" ng-repeat="fish in report.fishes">
+    			    				<p>{{fish | fishFilter }}</p>
+                                    <paper-ripple ng-if="catches.isEditing" ng-click="catches.edit($index)"></paper-ripple>
+                                </div>
 				    		</div>
 				    	</div>
 				    	
 				    	<div id="comment">
 				    		<div class="header">
 				    			<p>Note</p>
-				    			<p class="empty" ng-if="report.comment == null || report.comment.isEmpty">Empty</p>
+				    			<p class="empty" ng-if="comment.isEmpty">Empty</p>
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create" ng-click="comment.toggle($event)"></paper-icon-button>
+						    	</div>
 				    		</div>
 				    		<div class="content">
-				    			<expandable-text text="report.comment" shrinked-lines="3"></expandable-text>
+                                <div class="viewer" ng-if="!comment.isEditing">
+    				    			<expandable-text text="comment.text" shrinked-lines="3"></expandable-text>
+                                </div>
+                                <div class="editor" ng-if="comment.isEditing">
+                                    <paper-input-decorator label="Empty">
+                                        <paper-autogrow-textarea>
+                                            <textarea ng-model="comment.text"></textarea>
+                                        </paper-autogrow-textarea>
+                                    </paper-input-decorator>
+                                </div>
 				    		</div>
 				    	</div>
 				    	
 				    	<div id="location">
 					    	<div class="header">
 				    			<p>Location</p>
+						    	<div class="edit-button">
+						    		<paper-icon-button icon="create" ng-click="location.toggle($event)"></paper-icon-button>
+						    	</div>
 					    	</div>
 					    	<div class="content">
-				    			<p>{{report.location.name}}</p>
-					    		<expandable-gmap center="gmap.geoinfo" set-gmap="gmap.setGMap" get-scroller="gmap.getScroller" get-base="gmap.getBase"></expandable-gmap>
+                                <div class="name">
+                                    <div class="viewer" ng-if="!location.isEditing">
+        				    			<p>{{location.spotName}}</p>
+                                    </div>
+                                    <div class="editor" ng-if="location.isEditing">
+                                        <paper-input-decorator label="Spot Name">
+                                            <input ng-model="location.spotName">
+                                        </paper-input-decorator>
+                                    </div>
+                                </div>
+                                <div class="gmap"">
+                                    <expandable-gmap center="location.geoinfo" set-gmap="location.setGMap" get-scroller="location.getScroller" get-base="location.getBase"></expandable-gmap>
+                                </div>
 					    	</div>
 					    </div>
 					</div>

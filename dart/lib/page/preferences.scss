@@ -1,0 +1,63 @@
+@import "../../web/styles/common";
+
+p {
+  margin: 0;
+}
+#unit {
+  .header {
+    margin-top: 8px;
+    padding-top: 8px;
+    padding-bottom: 16px;
+    padding-left: 4px;
+    padding-right: 4px;
+    
+    @include background-image(linear-gradient(white, #cadaf0, white));
+    @include font-bold(18px);
+  }
+  
+  .content {
+    &>div {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      width: 100%;
+      
+      padding-top: 16px;
+      padding-bottom: 8px;
+      padding-left: 4px;
+      padding-right: 4px;
+      
+      border-bottom: solid 1px #eee;
+      
+      .name {
+        flex: 2;
+      }
+      
+      .toggle {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex: 1;
+        
+        &>* {
+          flex: 1;
+        }
+        &>p:first-child {
+          text-align: right;
+        }
+        
+        paper-toggle-button {
+          margin-left: 10px;
+          margin-right: 10px;
+          
+          &::shadow .toggle {
+            background-color: red;
+          }
+          &::shadow [checked] .toggle {
+            background-color: blue;
+          }
+        }
+      }
+    }
+  }
+}

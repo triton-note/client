@@ -4,6 +4,7 @@
 	        <div>Menu</div>
 	    </core-toolbar>
 	    <core-menu>
+            <core-item icon="view-list" label="Reports List" ng-click="goReportsList()"></core-item>
 	        <core-item icon="settings" label="Preferences" ng-click="goPreferences()"></core-item>
 	    </core-menu>
 	</core-header-panel>
@@ -20,8 +21,10 @@
     	</core-toolbar>
     	
     	<div>
-		    <div ng-if="reports == null" class="getting-reports">
-	            <paper-spinner active></paper-spinner>
+		    <div ng-if="reports == null" class="page-loading">
+                <div>
+    	            <paper-spinner active></paper-spinner>
+                </div>
 		    </div>
 		    <div ng-if="reports != null">
 		    	<div class="no-reports" ng-if="reports.length < 1">
@@ -38,7 +41,7 @@
 			                	</div>
 				                <div class="fishes">
 					        		<div ng-repeat="fish in report.fishes">
-					        			<p>{{fish}}</p>
+					        			<p>{{fish | fishFilter }}</p>
 					        		</div>
 				                </div>
 			                </div>

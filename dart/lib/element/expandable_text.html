@@ -1,5 +1,7 @@
 <div id="text">
-	<p>{{text}}</p>
+	<p>
+        <span ng-repeat="line in lines">{{line}}<br/></span>
+    </p>
 </div>
 
 <div id="toggle" ng-if="hasMore">

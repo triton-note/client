@@ -3,6 +3,12 @@ library triton_note;
 import 'dart:html';
 
 import 'package:triton_note/router.dart';
+import 'package:triton_note/formatter/fish_formatter.dart';
+import 'package:triton_note/formatter/temperature_formatter.dart';
+import 'package:triton_note/dialog/edit_fish.dart';
+import 'package:triton_note/dialog/edit_timestamp.dart';
+import 'package:triton_note/dialog/edit_tide.dart';
+import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/element/calendar.dart';
 import 'package:triton_note/element/expandable_gmap.dart';
@@ -11,6 +17,7 @@ import 'package:triton_note/element/num_input.dart';
 import 'package:triton_note/page/add_report.dart';
 import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/report_detail.dart';
+import 'package:triton_note/page/preferences.dart';
 import 'package:triton_note/page/map_view.dart';
 import 'package:triton_note/decorator/listen_event.dart';
 import 'package:triton_note/decorator/google_map.dart';
@@ -24,6 +31,14 @@ import 'package:polymer/polymer.dart';
 
 class AppModule extends Module {
   AppModule() {
+    bind(FishFormatter);
+    bind(TemperatureFormatter);
+
+    bind(EditFishDialog);
+    bind(EditTimestampDialog);
+    bind(EditTideDialog);
+    bind(EditWeatherDialog);
+
     bind(FitImageElement);
     bind(CalendarElement);
     bind(ExpandableGMapElement);
@@ -33,6 +48,7 @@ class AppModule extends Module {
     bind(AddReportPage);
     bind(ReportsListPage);
     bind(ReportDetailPage);
+    bind(PreferencesPage);
     bind(MapViewPage);
 
     bind(ListenChangeValue);
