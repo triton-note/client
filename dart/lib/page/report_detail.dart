@@ -20,7 +20,6 @@ import 'package:triton_note/model/location.dart' as Loc;
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
-import 'package:triton_note/service/server.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/enums.dart';
@@ -99,7 +98,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   }
 
   void _update() {
-    Server.update(report);
+    Reports.update(report);
   }
 }
 
