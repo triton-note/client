@@ -46,7 +46,7 @@ typedef void OnChanged(newValue);
     templateUrl: 'packages/triton_note/page/report_detail.html',
     cssUrl: 'packages/triton_note/page/report_detail.css',
     useShadowDom: true)
-class ReportDetailPage extends MainFrame {
+class ReportDetailPage extends MainFrame implements DetachAware {
   Future<Report> _report;
   Report report;
   _Comment comment;
@@ -55,7 +55,7 @@ class ReportDetailPage extends MainFrame {
   _Location location;
   _Conditions conditions;
   GetterSetter<EditTimestampDialog> editTimestamp = new PipeValue();
-  Timer submitTimer;
+  Timer _submitTimer;
 
   ReportDetailPage(Router router, RouteProvider routeProvider) : super(router) {
     final String reportId = routeProvider.parameters['reportId'];
@@ -77,6 +77,13 @@ class ReportDetailPage extends MainFrame {
     });
   }
 
+  void detach() {
+    if (_submitTimer != null && _submitTimer.isActive) {
+      _submitTimer.cancel();
+      _update();
+    }
+  }
+
   DateTime get timestamp => report == null ? null : report.dateAt;
   set timestamp(DateTime v) {
     if (report != null && v != null && v != report.dateAt) {
@@ -87,8 +94,8 @@ class ReportDetailPage extends MainFrame {
 
   void _onChanged(newValue) {
     _logger.finest("Changed value(${newValue}), Start timer to submit.");
-    if (submitTimer != null && submitTimer.isActive) submitTimer.cancel();
-    submitTimer = new Timer(submitDuration, _update);
+    if (_submitTimer != null && _submitTimer.isActive) _submitTimer.cancel();
+    _submitTimer = new Timer(submitDuration, _update);
   }
 
   void _update() {
