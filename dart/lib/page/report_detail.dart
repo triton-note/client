@@ -405,14 +405,21 @@ class _WeatherWrapper implements Loc.Weather {
   String get asParam => _src.asParam;
   set asParam(String v) => _src.asParam = v;
 
+  Future<TemperatureUnit> _temperatureUnit;
   Temperature _temperature;
   Temperature get temperature {
-    if (_temperature == null) {
-      _temperature = _src.temperature.convertTo(UserPreferences.temperatureUnit);
+    if (_temperature == null && _temperatureUnit == null) {
+      _temperatureUnit = UserPreferences.measures.then((m) => m.temperature);
+      _temperatureUnit.then((unit) {
+        _temperature = _src.temperature.convertTo(unit);
+        _temperatureUnit = null;
+      });
     }
     return _temperature;
   }
   set temperature(Temperature v) {
+    if (v == null) return;
+    if (_temperature != null && v.value == _temperature.value && v.unit == _temperature.unit) return;
     _src.temperature = v;
     _temperature = null;
     _onChanged();
@@ -420,12 +427,14 @@ class _WeatherWrapper implements Loc.Weather {
 
   String get nominal => _src.nominal;
   set nominal(String v) {
+    if (v == null || _src.nominal == v) return;
     _src.nominal = v;
     _onChanged();
   }
 
   String get iconUrl => _src.iconUrl;
   set iconUrl(String v) {
+    if (v == null || _src.iconUrl == v) return;
     _src.iconUrl = v;
     _onChanged();
   }

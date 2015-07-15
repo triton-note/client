@@ -26,6 +26,11 @@ class EditWeatherDialog extends ShadowRootAware {
 
   ShadowRoot _root;
   CachedValue<PaperDialog> _dialog;
+  TemperatureUnit _tUnit;
+
+  EditWeatherDialog() {
+    UserPreferences.measures.then((m) => _tUnit = m.temperature);
+  }
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
@@ -37,22 +42,28 @@ class EditWeatherDialog extends ShadowRootAware {
     _dialog.value.toggle();
   }
 
-  String get temperatureUnit => "°${nameOfEnum(UserPreferences.temperatureUnit)[0]}";
+  String get temperatureUnit => _tUnit == null ? null : "°${nameOfEnum(_tUnit)[0]}";
   List<String> get weatherNames => Weather.nominalMap.keys;
   String weatherIcon(String nominal) => Weather.nominalMap[nominal];
 
   Timer _weatherDialogTimer;
+
   Temperature _temperature;
   int get temperatureValue {
-    if (value.temperature == null) return null;
-    if (_temperature == null) _temperature = value.temperature.convertTo(UserPreferences.temperatureUnit);
+    if (value.temperature == null || _tUnit == null) return null;
+    if (_temperature == null) {
+      _temperature = value.temperature.convertTo(_tUnit);
+    }
     return _temperature.value.round();
   }
   set temperatureValue(int v) {
-    _temperature =
-        new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(UserPreferences.temperatureUnit)});
+    if (v == null || _tUnit == null) return;
+    if (_temperature != null && _temperature.value == v) return;
+
+    _temperature = new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(_tUnit)});
     _logger.fine("Set temperature: ${_temperature.asMap}");
     value.temperature = _temperature;
+
     _logger.finest("Setting timer for closing weather dialog.");
     if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
     _weatherDialogTimer = new Timer(new Duration(seconds: 3), () {

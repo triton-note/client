@@ -22,11 +22,16 @@ final _logger = new Logger('EditFishDialog');
 class EditFishDialog extends ShadowRootAware {
   @NgOneWay('setter') Setter<EditFishDialog> setter;
 
+  Measures _measures;
   ShadowRoot _root;
   CachedValue<PaperActionDialog> _dialog;
 
   GetterSetter<Fishes> _original;
   Fishes tmpFish;
+
+  EditFishDialog() {
+    UserPreferences.measures.then((m) => _measures = m);
+  }
 
   // count
   int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
@@ -40,8 +45,8 @@ class EditFishDialog extends ShadowRootAware {
   int get tmpFishWeight => (tmpFish == null) ? null : tmpFish.weight.value.round();
   set tmpFishWeight(int v) => (tmpFish == null) ? null : tmpFish.weight.value = (v == null) ? null : v.toDouble();
 
-  String get lengthUnit => nameOfEnum(UserPreferences.lengthUnit);
-  String get weightUnit => nameOfEnum(UserPreferences.weightUnit);
+  String get lengthUnit => _measures == null ? null : nameOfEnum(_measures.length);
+  String get weightUnit => _measures == null ? null : nameOfEnum(_measures.weight);
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
@@ -50,20 +55,22 @@ class EditFishDialog extends ShadowRootAware {
   }
 
   open(GetterSetter<Fishes> value) {
-    _original = value;
-    final fish = new Fishes.fromMap(new Map.from(_original.value.asMap));
+    UserPreferences.measures.then((m) {
+      _original = value;
+      final fish = new Fishes.fromMap(new Map.from(_original.value.asMap));
 
-    if (fish.count == null || fish.count == 0) fish.count = 1;
-    fish.length = (fish.length == null)
-        ? new Length.fromMap({'value': 0, 'unit': nameOfEnum(UserPreferences.lengthUnit)})
-        : fish.length.convertTo(UserPreferences.lengthUnit);
-    fish.weight = (fish.weight == null)
-        ? new Weight.fromMap({'value': 0, 'unit': nameOfEnum(UserPreferences.weightUnit)})
-        : fish.weight.convertTo(UserPreferences.weightUnit);
-    _logger.fine("Editing fish: ${fish.asMap}");
+      if (fish.count == null || fish.count == 0) fish.count = 1;
+      fish.length = (fish.length == null)
+          ? new Length.fromMap({'value': 0, 'unit': lengthUnit})
+          : fish.length.convertTo(_measures.length);
+      fish.weight = (fish.weight == null)
+          ? new Weight.fromMap({'value': 0, 'unit': lengthUnit})
+          : fish.weight.convertTo(_measures.weight);
+      _logger.fine("Editing fish: ${fish.asMap}");
 
-    tmpFish = fish;
-    _dialog.value.toggle();
+      tmpFish = fish;
+      _dialog.value.toggle();
+    });
   }
 
   commit() {

@@ -15,9 +15,11 @@ import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/upload_session.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/server.dart';
+import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/enums.dart';
@@ -135,8 +137,11 @@ class AddReportPage extends MainFrame {
           cond.weather = new Weather.fromMap({
             'nominal': 'Clear',
             'iconUrl': Weather.nominalMap['Clear'],
-            'temperature': {'value': 20, 'unit': 'Cels'}
+            'temperature': {'value': 20, 'unit': nameOfEnum(TemperatureUnit.Cels)}
           });
+        }
+        if (cond.weather.temperature != null) {
+          cond.weather.temperature = cond.weather.temperature.convertTo((await UserPreferences.measures).temperature);
         }
         report.condition = cond;
       }
