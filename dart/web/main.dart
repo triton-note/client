@@ -3,6 +3,8 @@ library triton_note;
 import 'dart:html';
 
 import 'package:triton_note/router.dart';
+import 'package:triton_note/formatter/fish_formatter.dart';
+import 'package:triton_note/formatter/temperature_formatter.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
@@ -29,6 +31,9 @@ import 'package:polymer/polymer.dart';
 
 class AppModule extends Module {
   AppModule() {
+    bind(FishFormatter);
+    bind(TemperatureFormatter);
+
     bind(EditFishDialog);
     bind(EditTimestampDialog);
     bind(EditTideDialog);

@@ -41,7 +41,7 @@
 			                	</div>
 				                <div class="fishes">
 					        		<div ng-repeat="fish in report.fishes">
-					        			<p>{{fish}}</p>
+					        			<p>{{fish | fishFilter:0 }}</p>
 					        		</div>
 				                </div>
 			                </div>

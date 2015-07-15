@@ -30,7 +30,7 @@
 				    	
 					    <div id="condition">
 					    	<div class="weather">
-					    		<p>{{conditions.weather.nominal}} / {{conditions.weather.temperature}}</p>
+					    		<p>{{conditions.weather.nominal}} / {{conditions.weather.temperature | temperatureFilter:0 }}</p>
 					    		<img ng-src="{{conditions.weather.iconUrl}}">
 						    	<div class="edit-button">
 						    		<paper-icon-button icon="create" ng-click="conditions.dialogWeather()"></paper-icon-button>
@@ -63,7 +63,7 @@
 				    		</div>
 				    		<div class="content">
                                 <div class="item" ng-repeat="fish in report.fishes">
-    			    				<p>{{fish}}</p>
+    			    				<p>{{fish | fishFilter:1 }}</p>
                                     <paper-ripple ng-if="catches.isEditing" ng-click="catches.edit($index)"></paper-ripple>
                                 </div>
 				    		</div>

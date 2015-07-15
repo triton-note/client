@@ -59,7 +59,7 @@
 			    	</div>
 			    	<div class="list">
 			    		<div class="item" ng-repeat="fish in report.fishes">
-		    				<p>{{fish}}</p>
+		    				<p>{{fish | fishFilter:1 }}</p>
 		    				<paper-ripple fit ng-click="editFish($index)"></paper-ripple>
 			    		</div>
 			    	</div>
@@ -84,7 +84,7 @@
 				    		<p>{{conditions.weatherName}}</p>
 				    		<div class="row">
 					    		<img ng-src="{{conditions.weatherImage}}">
-					    		<p>{{conditions.value.weather.temperature}}</p>
+					    		<p>{{conditions.value.weather.temperature | temperatureFilter:0 }}</p>
 				    		</div>
 			    			<paper-ripple fit ng-click="conditions.dialogWeather()"></paper-ripple>
 			    		</div>

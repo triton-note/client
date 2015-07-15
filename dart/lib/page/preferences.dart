@@ -61,7 +61,7 @@ class PreferencesPage extends MainFrame implements DetachAware {
   void changeWeight(event) {
     final toggle = event.target as PaperToggleButton;
     _logger.fine("Toggle Weight: ${toggle.checked}");
-    measures.weight = toggle.checked ? WeightUnit.kg : WeightUnit.pond;
+    measures.weight = toggle.checked ? WeightUnit.kg : WeightUnit.pound;
     _submit();
   }
 
