@@ -15,6 +15,7 @@ import 'package:triton_note/element/num_input.dart';
 import 'package:triton_note/page/add_report.dart';
 import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/report_detail.dart';
+import 'package:triton_note/page/preferences.dart';
 import 'package:triton_note/page/map_view.dart';
 import 'package:triton_note/decorator/listen_event.dart';
 import 'package:triton_note/decorator/google_map.dart';
@@ -42,6 +43,7 @@ class AppModule extends Module {
     bind(AddReportPage);
     bind(ReportsListPage);
     bind(ReportDetailPage);
+    bind(PreferencesPage);
     bind(MapViewPage);
 
     bind(ListenChangeValue);
