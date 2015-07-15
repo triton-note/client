@@ -37,7 +37,7 @@ class PreferencesPage extends MainFrame implements DetachAware {
         root.querySelector('#unit #length paper-toggle-button') as PaperToggleButton
           ..checked = v.length == LengthUnit.cm;
         root.querySelector('#unit #weight paper-toggle-button') as PaperToggleButton
-          ..checked = v.weight == WeightUnit.kg;
+          ..checked = v.weight == WeightUnit.g;
         root.querySelector('#unit #temperature paper-toggle-button') as PaperToggleButton
           ..checked = v.temperature == TemperatureUnit.Cels;
       });
@@ -61,7 +61,7 @@ class PreferencesPage extends MainFrame implements DetachAware {
   void changeWeight(event) {
     final toggle = event.target as PaperToggleButton;
     _logger.fine("Toggle Weight: ${toggle.checked}");
-    measures.weight = toggle.checked ? WeightUnit.kg : WeightUnit.pound;
+    measures.weight = toggle.checked ? WeightUnit.g : WeightUnit.oz;
     _submit();
   }
 

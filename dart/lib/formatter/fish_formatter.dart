@@ -15,7 +15,7 @@ class FishFormatter {
     if (_measures == null) UserPreferences.measures.then((v) => _measures = v);
   }
 
-  String call(Fishes fish, int digits) {
+  String call(Fishes fish, [int digits = 0]) {
     if (_measures == null) return null;
 
     final length = fish.length == null ? null : fish.length.convertTo(_measures.length);

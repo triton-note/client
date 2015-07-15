@@ -115,11 +115,20 @@ abstract class Weight implements JsonSupport, ValueUnit<Weight, WeightUnit> {
   factory Weight.pound(double value) {
     return new Weight.of(WeightUnit.pound, value);
   }
+  factory Weight.g(double value) {
+    return new Weight.of(WeightUnit.g, value);
+  }
+  factory Weight.oz(double value) {
+    return new Weight.of(WeightUnit.oz, value);
+  }
 }
-enum WeightUnit { kg, pound }
+enum WeightUnit { kg, g, pound, oz }
 
 class _WeightImpl extends JsonSupport implements Weight {
-  static const poundToKg = 0.4536;
+  static const kg_g = 1000;
+  static const pound_oz = 16;
+  static const oz_g = 28.349523125;
+  static const pound_kg = 0.45359237;
 
   final Map _data;
   final CachedProp<WeightUnit> _unit;
@@ -137,13 +146,55 @@ class _WeightImpl extends JsonSupport implements Weight {
 
   Weight convertTo(WeightUnit dst) {
     if (this.unit == dst) return this;
-    else {
-      switch (dst) {
-        case WeightUnit.kg:
-          return new Weight.kg(value * poundToKg);
-        case WeightUnit.pound:
-          return new Weight.pound(value / poundToKg);
-      }
+    switch (this.unit) {
+      case WeightUnit.kg: // Kg ->
+        switch (dst) {
+          case WeightUnit.kg:
+            return this;
+          case WeightUnit.g:
+            return new Weight.g(value * kg_g);
+          case WeightUnit.oz:
+            return new Weight.oz(value * kg_g / oz_g);
+          case WeightUnit.pound:
+            return new Weight.pound(value / pound_kg);
+        }
+        break;
+      case WeightUnit.g: // g ->
+        switch (dst) {
+          case WeightUnit.kg:
+            return new Weight.kg(value / kg_g);
+          case WeightUnit.g:
+            return this;
+          case WeightUnit.oz:
+            return new Weight.oz(value / oz_g);
+          case WeightUnit.pound:
+            return new Weight.pound(value / kg_g / pound_kg);
+        }
+        break;
+      case WeightUnit.pound: // Pound ->
+        switch (dst) {
+          case WeightUnit.kg:
+            return new Weight.kg(value * pound_kg);
+          case WeightUnit.g:
+            return new Weight.g(value * pound_kg * kg_g);
+          case WeightUnit.oz:
+            return new Weight.oz(value * pound_oz);
+          case WeightUnit.pound:
+            return this;
+        }
+        break;
+      case WeightUnit.oz: // oz ->
+        switch (dst) {
+          case WeightUnit.kg:
+            return new Weight.kg(value / pound_oz * pound_kg);
+          case WeightUnit.g:
+            return new Weight.g(value * oz_g);
+          case WeightUnit.oz:
+            return this;
+          case WeightUnit.pound:
+            return new Weight.pound(value / pound_oz);
+        }
+        break;
     }
   }
 }

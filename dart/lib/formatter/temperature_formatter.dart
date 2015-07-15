@@ -14,7 +14,7 @@ class TemperatureFormatter {
     if (_measures == null) UserPreferences.measures.then((v) => _measures = v);
   }
 
-  String call(Temperature src, int digits) {
+  String call(Temperature src, [int digits = 0]) {
     if (_measures == null) return null;
 
     final dst = src.convertTo(_measures.temperature);
