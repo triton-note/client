@@ -64,7 +64,7 @@ class EditFishDialog extends ShadowRootAware {
           ? new Length.fromMap({'value': 0, 'unit': lengthUnit})
           : fish.length.convertTo(_measures.length);
       fish.weight = (fish.weight == null)
-          ? new Weight.fromMap({'value': 0, 'unit': lengthUnit})
+          ? new Weight.fromMap({'value': 0, 'unit': weightUnit})
           : fish.weight.convertTo(_measures.weight);
       _logger.fine("Editing fish: ${fish.asMap}");
 
