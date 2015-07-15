@@ -54,9 +54,12 @@ abstract class ValueUnit<A, U> {
   double value;
   U get unit;
   A convertTo(U dst);
+
+  @override
+  bool operator ==(o) => o is A && o.value == value && o.unit == unit;
 }
 
-abstract class Temperature implements JsonSupport, ValueUnit<Temperature, TemperatureUnit> {
+abstract class Temperature extends ValueUnit<Temperature, TemperatureUnit> implements JsonSupport {
   factory Temperature.fromJsonString(String text) => new _TemperatureImpl(new Map.from(JSON.decode(text)));
   factory Temperature.fromMap(Map data) => new _TemperatureImpl(data);
 
@@ -102,7 +105,7 @@ class _TemperatureImpl extends JsonSupport implements Temperature {
   }
 }
 
-abstract class Weight implements JsonSupport, ValueUnit<Weight, WeightUnit> {
+abstract class Weight extends ValueUnit<Weight, WeightUnit> implements JsonSupport {
   factory Weight.fromJsonString(String text) => new _WeightImpl(new Map.from(JSON.decode(text)));
   factory Weight.fromMap(Map data) => new _WeightImpl(data);
 
@@ -199,7 +202,7 @@ class _WeightImpl extends JsonSupport implements Weight {
   }
 }
 
-abstract class Length implements JsonSupport, ValueUnit<Length, LengthUnit> {
+abstract class Length extends ValueUnit<Length, LengthUnit> implements JsonSupport {
   factory Length.fromJsonString(String text) => new _LengthImpl(new Map.from(JSON.decode(text)));
   factory Length.fromMap(Map data) => new _LengthImpl(data);
 

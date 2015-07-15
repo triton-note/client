@@ -419,7 +419,7 @@ class _WeatherWrapper implements Loc.Weather {
   }
   set temperature(Temperature v) {
     if (v == null) return;
-    if (_temperature != null && v.value == _temperature.value && v.unit == _temperature.unit) return;
+    if (_temperature != null && _temperature == v) return;
     _src.temperature = v;
     _temperature = null;
     _onChanged();
