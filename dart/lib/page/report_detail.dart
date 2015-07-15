@@ -190,17 +190,25 @@ class _Catches {
         _addButton.clear();
         _fishItems.clear();
         _blinker.start();
-
-        _fishItems.value.forEach((item) {
-          item.querySelector('paper-ripple').style
-            ..position = "absolute"
-            ..top = '0'
-            ..bottom = '0'
-            ..left = '0'
-            ..right = '0';
-        });
+        _fitRipples();
       });
     }
+  }
+
+  _fitRipples() {
+    if (_fishItems != null) _fishItems.value.forEach((item) => item
+        .querySelectorAll('paper-ripple')
+        .forEach((e) => e.style
+      ..position = "absolute"
+      ..top = '0'
+      ..bottom = '0'
+      ..left = '0'
+      ..right = '0'));
+  }
+
+  _changed(List<Fishes> newValue) {
+    _onChanged(newValue);
+    new Future.delayed(new Duration(milliseconds: 10), _fitRipples);
   }
 
   add() => alfterRippling(() {
@@ -208,7 +216,7 @@ class _Catches {
     final fish = new Fishes.fromMap({'count': 1});
     dialog.value.open(new GetterSetter(() => fish, (v) {
       list.value = list.value..add(v);
-      _onChanged(list.value);
+      _changed(list.value);
     }));
   });
 
@@ -220,7 +228,7 @@ class _Catches {
       } else {
         list.value = list.value..[index] = v;
       }
-      _onChanged(list.value);
+      _changed(list.value);
     }));
   });
 }

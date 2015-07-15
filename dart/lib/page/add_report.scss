@@ -51,7 +51,6 @@ div#catches {
       *vertical-align: auto;
       
       &>p {
-        margin: 0;
         @include font-bold(20px);
       }
     }
@@ -74,7 +73,6 @@ div#catches {
       border-top: solid 1px #eee;
       
       &>p {
-        margin: 0;
         @include font-normal($fontSize);
       }
     }

@@ -18,7 +18,8 @@ class Reports {
   static bool _hasMore = true;
   static bool get hasMore => _hasMore;
 
-  static Report _inCache(String id) => _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
+  static Report _inCache(String id) =>
+      _cachedList == null ? null : _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
 
   static Future<List<Report>> refresh() async {
     _cachedList = await Server.load(pageSize);
@@ -61,10 +62,12 @@ class Reports {
   /**
    * Expected to be called by UploadSession.submit
    */
-  static Future<Null> add(Report report) async {
+  static void add(Report report) {
     _logger.finest("Adding report: ${report}");
-    (await allList)
-      ..add(report)
-      ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
+    if (_cachedList != null) {
+      _cachedList
+        ..add(report)
+        ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
+    }
   }
 }
