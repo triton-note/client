@@ -159,7 +159,7 @@ class _Catches {
 
   _Catches(this._root, this._onChanged, this.list) {
     _addButton = new CachedValue(() => _root.querySelectorAll('#fishes paper-icon-button.add').toList(growable: false));
-    _fishItems = new CachedValue(() => _root.querySelectorAll('#fishes div.item').toList(growable: false));
+    _fishItems = new CachedValue(() => _root.querySelectorAll('#fishes .content').toList(growable: false));
 
     _blinker = new Blinker(blinkDuration, blinkDownDuration, [
       new BlinkTarget(_addButton, frameButton),
