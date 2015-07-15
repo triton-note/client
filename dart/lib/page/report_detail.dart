@@ -39,7 +39,7 @@ const frameBackgroundDown = const [const {'background': "#fee"}, const {'backgro
 
 const submitDuration = const Duration(minutes: 1);
 
-typedef void OnChanged();
+typedef void OnChanged(newValue);
 
 @Component(
     selector: 'report-detail',
@@ -79,16 +79,16 @@ class ReportDetailPage extends MainFrame {
 
   DateTime get timestamp => report == null ? null : report.dateAt;
   set timestamp(DateTime v) {
-    if (report != null) {
+    if (report != null && v != null && v != report.dateAt) {
       report.dateAt = v;
-      _onChanged();
+      _onChanged(v);
     }
   }
 
-  void _onChanged() {
+  void _onChanged(newValue) {
+    _logger.finest("Changed value(${newValue}), Start timer to submit.");
     if (submitTimer != null && submitTimer.isActive) submitTimer.cancel();
     submitTimer = new Timer(submitDuration, _update);
-    _logger.finest("Timer to submit start.");
   }
 
   void _update() {
@@ -115,8 +115,9 @@ class _Comment {
 
   String get text => _report.comment;
   set text(String v) {
+    if (v == null || _report.comment == v) return;
     _report.comment = v;
-    _onChanged();
+    _onChanged(v);
   }
 
   toggle(event) {
@@ -201,7 +202,7 @@ class _Catches {
     final fish = new Fishes.fromMap({'count': 1});
     dialog.value.open(new GetterSetter(() => fish, (v) {
       list.value = list.value..add(v);
-      _onChanged();
+      _onChanged(list.value);
     }));
   });
 
@@ -213,7 +214,7 @@ class _Catches {
       } else {
         list.value = list.value..[index] = v;
       }
-      _onChanged();
+      _onChanged(list.value);
     }));
   });
 }
@@ -237,13 +238,15 @@ class _Location {
 
   String get spotName => _location.name;
   set spotName(String v) {
+    if (v == null || _location.name == v) return;
     _location.name = v;
-    _onChanged();
+    _onChanged(v);
   }
   Loc.GeoInfo get geoinfo => _location.geoinfo;
   set geoinfo(Loc.GeoInfo v) {
+    if (v == null || _location.geoinfo == v) ;
     _location.geoinfo = v;
-    _onChanged();
+    _onChanged(v);
   }
 
   _Location(this._root, this._location, this._onChanged) {
@@ -383,8 +386,9 @@ class _Conditions {
 
   Loc.Tide get tide => _src.tide;
   set tide(Loc.Tide v) {
+    if (_src.tide == v) return;
     _src.tide = v;
-    _onChanged();
+    _onChanged(v);
   }
   String get tideName => nameOfEnum(_src.tide);
   String get tideImage => Loc.Tides.iconOf(_src.tide);
@@ -422,20 +426,20 @@ class _WeatherWrapper implements Loc.Weather {
     if (_temperature != null && _temperature == v) return;
     _src.temperature = v;
     _temperature = null;
-    _onChanged();
+    _onChanged(v);
   }
 
   String get nominal => _src.nominal;
   set nominal(String v) {
     if (v == null || _src.nominal == v) return;
     _src.nominal = v;
-    _onChanged();
+    _onChanged(v);
   }
 
   String get iconUrl => _src.iconUrl;
   set iconUrl(String v) {
     if (v == null || _src.iconUrl == v) return;
     _src.iconUrl = v;
-    _onChanged();
+    _onChanged(v);
   }
 }
