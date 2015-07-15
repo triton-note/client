@@ -62,10 +62,18 @@ class Server {
 
   static String _ticket;
 
-  static Future _login() async {
-    final identity = await Cred.identity;
-    _ticket = await json("login", {'identityId': identity.id, 'logins': identity.logins});
-    return _ticket;
+  static Future<String> _ticketGetting;
+  static Future<String> _login() async {
+    Future<String> getTicket() async {
+      final identity = await Cred.identity;
+      return json("login", {'identityId': identity.id, 'logins': identity.logins});
+    }
+    if (_ticketGetting == null) _ticketGetting = getTicket()
+      ..then((v) {
+        _ticket = v;
+        _ticketGetting = null;
+      });
+    return _ticketGetting;
   }
 
   static Future _withTicket(String path, Map content) async {
