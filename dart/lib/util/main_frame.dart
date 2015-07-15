@@ -34,15 +34,12 @@ class MainFrame extends ShadowRootAware {
     rippling(window.history.back);
   }
 
-  void goPreferences() => rippling(() {
-    _logger.info("Going to preferences");
-    router.go('preferences', {});
+  void _goByMenu(String routeId) => rippling(() {
+    _logger.info("Going to ${routeId}");
+    router.go(routeId, {});
     toggleMenu();
   });
-
-  void goReportsList() => rippling(() {
-    _logger.info("Going to reports-list");
-    router.go('reports-list', {});
-    toggleMenu();
-  });
+  void goReportsList() => _goByMenu('reports-list');
+  void goPreferences() => _goByMenu('preferences');
+  void goDistributions() => _goByMenu('distributions');
 }

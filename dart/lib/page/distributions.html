@@ -1,0 +1,27 @@
+<core-drawer-panel id="mainFrame">
+    <core-header-panel drawer>
+        <core-toolbar>
+            <div>Menu</div>
+        </core-toolbar>
+        <core-menu>
+            <core-item icon="view-list" label="Reports List" ng-click="goReportsList()"></core-item>
+	        <core-item icon="settings" label="Preferences" ng-click="goPreferences()"></core-item>
+            <core-item icon="track-changes" label="Distributions" ng-click="goDistributions()"></core-item>
+        </core-menu>
+    </core-header-panel>
+
+    <core-header-panel main>
+        <core-toolbar>
+        
+            <paper-icon-button icon="menu" ng-click="toggleMenu()"></paper-icon-button>
+        
+            <span flex>Distributions</span>
+            
+            <paper-fab mini icon="add" class="red" ng-click="addReport()"></paper-fab>
+        
+        </core-toolbar>
+        
+        <div>
+        </div>
+    </core-header-panel>
+</core-drawer-panel>
