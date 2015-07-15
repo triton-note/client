@@ -47,14 +47,7 @@ class AddReportPage extends MainFrame {
   bool isReady = false;
   bool get isLoading => report.photo == null;
 
-  AddReportPage(Router router, RouteProvider routeProvider) : super(router) {
-    try {
-      report.asParam = routeProvider.parameters['report'];
-      isReady = true;
-    } catch (ex) {
-      _logger.info("Adding new report.");
-    }
-  }
+  AddReportPage(Router router) : super(router);
 
   @override
   void onShadowRoot(ShadowRoot sr) {
