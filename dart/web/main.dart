@@ -19,8 +19,6 @@ import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/report_detail.dart';
 import 'package:triton_note/page/preferences.dart';
 import 'package:triton_note/page/map_view.dart';
-import 'package:triton_note/decorator/listen_event.dart';
-import 'package:triton_note/decorator/google_map.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/resource_url_resolver_cordova.dart';
 
@@ -50,9 +48,6 @@ class AppModule extends Module {
     bind(ReportDetailPage);
     bind(PreferencesPage);
     bind(MapViewPage);
-
-    bind(ListenChangeValue);
-    bind(GoogleMap);
 
     bind(RouteInitializerFn, toValue: getTritonNoteRouteInitializer);
     bind(NgRoutingUsePushState, toValue: new NgRoutingUsePushState.value(false));
