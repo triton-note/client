@@ -22,6 +22,8 @@ final _logger = new Logger('ExpandableGMapElement');
     cssUrl: 'packages/triton_note/element/expandable_gmap.css',
     useShadowDom: true)
 class ExpandableGMapElement extends ShadowRootAware {
+  static const animationDur = const Duration(milliseconds: 300);
+
   @NgAttr('nofix-scroll') String nofixScroll; // Optional (default: false, means fix scroll on expanded)
   @NgOneWay('shrinked-height') int shrinkedHeight; // Optional (default: golden ratio of width)
   @NgOneWay('expanded-height') int expandedHeight; // Optional (default: max of base height)
@@ -76,11 +78,11 @@ class ExpandableGMapElement extends ShadowRootAware {
     final curHeight = gmap.hostElement.getBoundingClientRect().height.round();
     final curCenter = gmap.center;
 
-    Future scroll(int nextHeight, int move, [int duration = 300]) {
+    Future scroll(int nextHeight, int move) {
       final scrollTo = scroller.scrollTop + move;
 
       _logger.info(
-          "Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, scrollTo: ${scrollTo}, duration: ${duration}");
+          "Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, scrollTo: ${scrollTo}, duration: ${animationDur}");
 
       shift(String translation, int duration) => new CoreAnimation()
         ..target = base
@@ -96,11 +98,11 @@ class ExpandableGMapElement extends ShadowRootAware {
         });
       }
       if (move != 0) {
-        shift("translateY(${-move}px)", duration);
+        shift("translateY(${-move}px)", animationDur.inMilliseconds);
       }
       new CoreAnimation()
         ..target = gmap.hostElement
-        ..duration = duration
+        ..duration = animationDur.inMilliseconds
         ..fill = "forwards"
         ..customEffect = (timeFractal, target, animation) {
           final delta = (nextHeight - curHeight) * timeFractal;
@@ -111,7 +113,7 @@ class ExpandableGMapElement extends ShadowRootAware {
         }
         ..play();
 
-      return new Future.delayed(new Duration(milliseconds: duration));
+      return new Future.delayed(animationDur);
     }
 
     if (isExpanded) {

@@ -8,8 +8,10 @@ import 'package:logging/logging.dart';
 
 final _logger = new Logger('MainFrame');
 
+const ripplingDuration = const Duration(milliseconds: 250);
+
 Future alfterRippling(Proc()) {
-  return new Future.delayed(new Duration(milliseconds: 250), Proc);
+  return new Future.delayed(ripplingDuration, Proc);
 }
 
 class MainFrame extends ShadowRootAware {
