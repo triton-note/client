@@ -61,85 +61,88 @@ class ExpandableGMapElement extends ShadowRootAware {
     _root = sr;
   }
 
-  toggle() {
-    alfterRippling(() async {
-      final gmap = await _readyGMap.future;
-      if (gmap == null) return;
+  toggle() async {
+    final gmap = await _readyGMap.future;
+    if (gmap == null) return;
 
-      final fixScroll = nofixScroll == null || nofixScroll.toLowerCase() == "false";
-      final scroller = getScroller.value;
-      final base = getBase.value;
-      final curHeight = gmap.hostElement.getBoundingClientRect().height.round();
-      final curCenter = gmap.center;
+    _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
+    alfterRippling(() => _toggle(gmap));
+  }
 
-      Future scroll(int nextHeight, int move, [int duration = 300]) {
-        final scrollTo = scroller.scrollTop + move;
+  _toggle(final GoogleMap gmap) async {
+    final fixScroll = nofixScroll == null || nofixScroll.toLowerCase() == "false";
+    final scroller = getScroller.value;
+    final base = getBase.value;
+    final curHeight = gmap.hostElement.getBoundingClientRect().height.round();
+    final curCenter = gmap.center;
 
-        _logger.info(
-            "Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, scrollTo: ${scrollTo}, duration: ${duration}");
+    Future scroll(int nextHeight, int move, [int duration = 300]) {
+      final scrollTo = scroller.scrollTop + move;
 
-        shift(String translation, int duration) => new CoreAnimation()
-          ..target = base
-          ..duration = duration
-          ..fill = "both"
-          ..keyframes = [{'transform': "none"}, {'transform': translation}]
-          ..play();
+      _logger.info(
+          "Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, scrollTo: ${scrollTo}, duration: ${duration}");
 
-        onFinish() {
-          if (move != 0) new Future.delayed(new Duration(milliseconds: 10), () {
-            shift("none", 0);
-            scroller.scrollTop = scrollTo;
-          });
-        }
-        if (move != 0) {
-          shift("translateY(${-move}px)", duration);
-        }
-        new CoreAnimation()
-          ..target = gmap.hostElement
-          ..duration = duration
-          ..fill = "forwards"
-          ..customEffect = (timeFractal, target, animation) {
-            final delta = (nextHeight - curHeight) * timeFractal;
-            target.style.height = "${curHeight + delta.round()}px";
-            gmap.triggerResize();
-            gmap.panTo(curCenter);
-            if (timeFractal == 1) onFinish();
-          }
-          ..play();
+      shift(String translation, int duration) => new CoreAnimation()
+        ..target = base
+        ..duration = duration
+        ..fill = "both"
+        ..keyframes = [{'transform': "none"}, {'transform': translation}]
+        ..play();
 
-        return new Future.delayed(new Duration(milliseconds: duration));
-      }
-
-      if (isExpanded) {
-        _logger.fine("Shrink map: ${gmap}");
-        if (fixScroll != null && fixScroll) scroller.style.overflowY = "auto";
-        scroll(shrinkedHeight, 0);
-        isExpanded = false;
-      } else {
-        _logger.fine("Expand map: ${gmap}");
-        final int scrollTop = scroller.scrollTop;
-        final int top = base.getBoundingClientRect().top.round();
-        final offset = top + scrollTop;
-        _logger.finest("offset: ${offset}(${top} + ${scrollTop})");
-
-        final int curPos = gmap.hostElement.getBoundingClientRect().top.round() - offset;
-        _logger.finest("Map host pos: ${curPos}");
-
-        if (expandedHeight == null) {
-          final button = _root.querySelector('#toggle');
-          final int buttonHeight =
-              (button.getBoundingClientRect().bottom - gmap.hostElement.getBoundingClientRect().bottom).round();
-
-          _logger.finest("Window height: ${window.innerHeight}");
-          _logger.finest("Toggle area: ${button}:${buttonHeight}");
-
-          expandedHeight = window.innerHeight - offset - buttonHeight;
-        }
-        scroll(expandedHeight, Math.max(0, curPos)).then((_) {
-          if (fixScroll != null && fixScroll) scroller.style.overflowY = "hidden";
+      onFinish() {
+        if (move != 0) new Future.delayed(new Duration(milliseconds: 10), () {
+          shift("none", 0);
+          scroller.scrollTop = scrollTo;
         });
-        isExpanded = true;
       }
-    });
+      if (move != 0) {
+        shift("translateY(${-move}px)", duration);
+      }
+      new CoreAnimation()
+        ..target = gmap.hostElement
+        ..duration = duration
+        ..fill = "forwards"
+        ..customEffect = (timeFractal, target, animation) {
+          final delta = (nextHeight - curHeight) * timeFractal;
+          target.style.height = "${curHeight + delta.round()}px";
+          gmap.triggerResize();
+          gmap.panTo(curCenter);
+          if (timeFractal == 1) onFinish();
+        }
+        ..play();
+
+      return new Future.delayed(new Duration(milliseconds: duration));
+    }
+
+    if (isExpanded) {
+      _logger.fine("Shrink map: ${gmap}");
+      if (fixScroll != null && fixScroll) scroller.style.overflowY = "auto";
+      scroll(shrinkedHeight, 0);
+      isExpanded = false;
+    } else {
+      _logger.fine("Expand map: ${gmap}");
+      final int scrollTop = scroller.scrollTop;
+      final int top = base.getBoundingClientRect().top.round();
+      final offset = top + scrollTop;
+      _logger.finest("offset: ${offset}(${top} + ${scrollTop})");
+
+      final int curPos = gmap.hostElement.getBoundingClientRect().top.round() - offset;
+      _logger.finest("Map host pos: ${curPos}");
+
+      if (expandedHeight == null) {
+        final button = _root.querySelector('#toggle');
+        final int buttonHeight =
+            (button.getBoundingClientRect().bottom - gmap.hostElement.getBoundingClientRect().bottom).round();
+
+        _logger.finest("Window height: ${window.innerHeight}");
+        _logger.finest("Toggle area: ${button}:${buttonHeight}");
+
+        expandedHeight = window.innerHeight - offset - buttonHeight;
+      }
+      scroll(expandedHeight, Math.max(0, curPos)).then((_) {
+        if (fixScroll != null && fixScroll) scroller.style.overflowY = "hidden";
+      });
+      isExpanded = true;
+    }
   }
 }
