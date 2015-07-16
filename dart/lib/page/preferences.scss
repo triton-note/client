@@ -8,7 +8,7 @@
     padding-left: 4px;
     padding-right: 4px;
     
-    @include background-image(linear-gradient(white, #cadaf0, white));
+    @include background-image(linear-gradient(white, $header-color, white));
     @include font-bold(18px);
   }
   

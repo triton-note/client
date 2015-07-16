@@ -29,7 +29,7 @@
       left: 0;
       width: 100%;
       height: 32px;
-      @include background-image(linear-gradient(#cadaf0, white));
+      @include background-image(linear-gradient($header-color, white));
     }
 
     .head {
