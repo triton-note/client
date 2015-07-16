@@ -3,3 +3,33 @@
 core-toolbar {
   height: 108px;
 }
+
+.page-loading.overlay {
+  
+}
+
+section#dmap {
+  #settings {
+    .header {
+      padding-top: 4px;
+      padding-bottom: 8px;
+      padding-left: 10px;
+      padding-right: 10px;
+      
+      @include background-image(linear-gradient($header-color, white));
+      @include font-bold(16px);
+    }
+    .content {
+      maring-top: 10px;
+      
+    }
+  }
+}
+
+section#dtime {
+  
+}
+
+section#drate {
+  
+}
