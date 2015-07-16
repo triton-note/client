@@ -22,6 +22,7 @@ final _logger = new Logger('ExpandableGMapElement');
     cssUrl: 'packages/triton_note/element/expandable_gmap.css',
     useShadowDom: true)
 class ExpandableGMapElement extends ShadowRootAware {
+  @NgAttr('nofix-scroll') String nofixScroll; // Optional (default: false, means fix scroll on expanded)
   @NgOneWay('shrinked-height') int shrinkedHeight; // Optional (default: golden ratio of width)
   @NgOneWay('expanded-height') int expandedHeight; // Optional (default: max of base height)
   @NgOneWay('set-gmap') Setter<GoogleMap> setGMap; // Optional (no callback if null)
@@ -65,12 +66,13 @@ class ExpandableGMapElement extends ShadowRootAware {
       final gmap = await _readyGMap.future;
       if (gmap == null) return;
 
+      final fixScroll = nofixScroll == null || nofixScroll.toLowerCase() == "false";
       final scroller = getScroller.value;
       final base = getBase.value;
       final curHeight = gmap.hostElement.getBoundingClientRect().height.round();
       final curCenter = gmap.center;
 
-      scroll(int nextHeight, int move, [int duration = 300]) {
+      Future scroll(int nextHeight, int move, [int duration = 300]) {
         final scrollTo = scroller.scrollTop + move;
 
         _logger.info(
@@ -104,10 +106,13 @@ class ExpandableGMapElement extends ShadowRootAware {
             if (timeFractal == 1) onFinish();
           }
           ..play();
+
+        return new Future.delayed(new Duration(milliseconds: duration));
       }
 
       if (isExpanded) {
         _logger.fine("Shrink map: ${gmap}");
+        if (fixScroll != null && fixScroll) scroller.style.overflowY = "auto";
         scroll(shrinkedHeight, 0);
         isExpanded = false;
       } else {
@@ -130,7 +135,9 @@ class ExpandableGMapElement extends ShadowRootAware {
 
           expandedHeight = window.innerHeight - offset - buttonHeight;
         }
-        scroll(expandedHeight, Math.max(0, curPos));
+        scroll(expandedHeight, Math.max(0, curPos)).then((_) {
+          if (fixScroll != null && fixScroll) scroller.style.overflowY = "hidden";
+        });
         isExpanded = true;
       }
     });
