@@ -67,8 +67,10 @@ class ExpandableGMapElement extends ShadowRootAware {
     final gmap = await _readyGMap.future;
     if (gmap == null) return;
 
-    _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
-    alfterRippling(() => _toggle(gmap));
+    alfterRippling(() {
+      _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
+      _toggle(gmap);
+    });
   }
 
   _toggle(final GoogleMap gmap) async {
