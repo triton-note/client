@@ -8,7 +8,7 @@ import 'package:triton_note/model/location.dart';
 
 final _logger = new Logger('Geolocation');
 
-Future<GeoInfo> location() async {
+Future<GeoInfo> location([orElse = const {'latitude': 37.971751, 'longitude': 23.726720}]) async {
   final result = new Completer<GeoInfo>();
 
   final geo = context['navigator']['geolocation'];
@@ -21,7 +21,14 @@ Future<GeoInfo> location() async {
       },
       (error) {
         _logger.fine("Geolocation Error: ${error['message']}");
-        if (!result.isCompleted) result.completeError(error);
+        if (!result.isCompleted) {
+          if (orElse != null) {
+            _logger.info("Use default value: ${orElse}");
+            result.complete(new GeoInfo.fromMap(orElse));
+          } else {
+            result.completeError(error);
+          }
+        }
       },
       new JsObject.jsify({'maximumAge': 3000, 'timeout': 5000, 'enableHighAccuracy': true})
     ]);
