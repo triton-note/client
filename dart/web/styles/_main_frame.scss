@@ -1,7 +1,9 @@
+$toolbar-color: #00bcd4;
 
 core-drawer-panel {
   core-toolbar {
-    background-color: #cde;
+    color: white;
+    background-color: $toolbar-color;
   }
   
   core-header-panel[drawer] {
@@ -12,6 +14,25 @@ core-drawer-panel {
     core-toolbar {
       span[flex] {
         @include font-bold(24px);
+      }
+      
+      .tabs {
+        position: absolute;
+        top: 60px;
+        left: 0;
+        margin: 0;
+        width: 100%;
+        
+        paper-tabs {
+          &::shadow #selectionBar {
+            height: 4px;
+            background-color: saturate(darken($toolbar-color, 10%), 100%); 
+          }
+          
+          paper-tab::shadow #ink {
+            color: lighten($toolbar-color, 10%);
+          }
+        }
       }
     }
     
