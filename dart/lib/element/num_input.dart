@@ -13,7 +13,7 @@ final _logger = new Logger('NumInputElement');
 class NumInputElement {
   @NgTwoWay('value') int value;
   @NgAttr('digits') String digits;
-  @NgAttr('size') String size;
+  @NgAttr('font-size') String size;
   @NgAttr('max') String max;
   @NgAttr('min') String min;
 
