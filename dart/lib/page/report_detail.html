@@ -64,7 +64,7 @@
 				    		<div class="content">
                                 <div class="item" ng-repeat="fish in report.fishes">
     			    				<p>{{fish | fishFilter }}</p>
-                                    <paper-ripple ng-if="catches.isEditing" ng-click="catches.edit($index)"></paper-ripple>
+                                    <paper-ripple fit ng-if="catches.isEditing" ng-click="catches.edit($index)"></paper-ripple>
                                 </div>
 				    		</div>
 				    	</div>
