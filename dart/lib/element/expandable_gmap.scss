@@ -1,7 +1,16 @@
 @import "../../web/styles/common";
 
 #google-maps {
+  display: flex;
   width: 100%;
+  background: #f8f8f8;
+  
+  paper-spinner {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 #toggle {

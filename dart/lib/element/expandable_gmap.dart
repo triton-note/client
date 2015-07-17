@@ -8,6 +8,7 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 
 import 'package:core_elements/core_animation.dart';
+import 'package:paper_elements/paper_button.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/getter_setter.dart';
@@ -37,22 +38,25 @@ class ExpandableGMapElement extends ShadowRootAware {
 
   Completer<GoogleMap> _readyGMap;
   bool get isReady {
-    if (_root != null && center != null && _readyGMap == null) {
+    if (_root != null && _readyGMap == null) {
       final div = _root.querySelector('#google-maps');
       final w = div.clientWidth;
       _logger.finest("Checking width of host div: ${w}");
-      if (w > 0 && _readyGMap == null) {
-        _readyGMap = new Completer();
-
+      if (w > 0) {
         if (shrinkedHeight == null) shrinkedHeight = (w * 2 / (1 + Math.sqrt(5))).round();
         _logger.fine("Shrinked height: ${shrinkedHeight}");
         div.style.height = "${shrinkedHeight}px";
 
-        makeGoogleMap(div, center).then((v) {
-          _readyGMap.complete(v);
-          _logger.finest("Callback gmap: ${setGMap}");
-          if (setGMap != null) setGMap.value = v;
-        });
+        if (center != null) {
+          _readyGMap = new Completer();
+          makeGoogleMap(div, center).then((v) {
+            _readyGMap.complete(v);
+            _logger.finest("Callback gmap: ${setGMap}");
+            if (setGMap != null) setGMap.value = v;
+
+            _root.querySelector('#toggle paper-button') as PaperButton..disabled = false;
+          });
+        }
       }
     }
     return _readyGMap != null && _readyGMap.isCompleted;
