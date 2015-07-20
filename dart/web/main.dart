@@ -11,6 +11,7 @@ import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/element/calendar.dart';
+import 'package:triton_note/element/collapser.dart';
 import 'package:triton_note/element/expandable_gmap.dart';
 import 'package:triton_note/element/expandable_text.dart';
 import 'package:triton_note/element/num_input.dart';
@@ -39,6 +40,7 @@ class AppModule extends Module {
 
     bind(FitImageElement);
     bind(CalendarElement);
+    bind(CollapserElement);
     bind(ExpandableGMapElement);
     bind(ExpandableTextElement);
     bind(NumInputElement);

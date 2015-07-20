@@ -1,0 +1,16 @@
+@import "../../web/styles/common";
+
+#toggle {
+  position: relative;
+  @include display-flex();
+  @include align-items(center);
+  margin-top: 8px;
+  
+  core-icon {
+    transform: rotate(-90deg);
+  }
+}
+
+#content {
+  background: #f8f8f8;
+}
