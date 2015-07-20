@@ -18,6 +18,7 @@ final _logger = new Logger('CollapserElement');
     useShadowDom: true)
 class CollapserElement extends ShadowRootAware {
   @NgOneWay('title') String title;
+  @NgTwoWay('opened') bool opened;
 
   ShadowRoot _root;
   Getter<CoreCollapse> _collapse;
@@ -40,15 +41,17 @@ class CollapserElement extends ShadowRootAware {
       _logger.finer("Get host header: ${header}");
       _root.querySelector('#toggle div#header').replaceWith(header);
     }
+
+    opened = false;
   }
 
   toggle() {
-    _logger.finer("Toggle: ${_collapse.value}, icon: ${_arrowIcon.value}");
+    opened = !opened;
     final frames = [{'transform': "none"}, {'transform': "rotate(-90deg)"}];
     new CoreAnimation()
       ..target = _arrowIcon.value
       ..duration = _collapse.value.duration * 1000
-      ..keyframes = _collapse.value.opened ? frames : frames.reversed.toList()
+      ..keyframes = opened ? frames.reversed.toList() : frames
       ..fill = "both"
       ..play();
     _collapse.value.toggle();
