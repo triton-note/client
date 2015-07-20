@@ -6,14 +6,18 @@ import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animated_pages.dart';
+import 'package:core_elements/core_animation.dart';
+import 'package:core_elements/core_collapse.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:paper_elements/paper_tabs.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
+import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
+import 'package:triton_note/util/enums.dart';
 
 final _logger = new Logger('DistributionsPage');
 
@@ -33,6 +37,9 @@ class DistributionsPage extends MainFrame {
   int _selectedTab;
   int get _selectedIndex => _selectedTab;
   set _selectedIndex(int v) => _pages.value.selected = _tabs.value.selected = _selectedTab = v;
+
+  String get lengthUnit => nameOfEnum(CachedMeasures.lengthUnit);
+  String get weightUnit => nameOfEnum(CachedMeasures.weightUnit);
 
   _Dmap dmap;
 
@@ -65,6 +72,8 @@ class DistributionsPage extends MainFrame {
   }
 }
 
+enum _RecentUnit { days, weeks, months }
+
 class _Dmap {
   static const toolbarDuration = const Duration(milliseconds: 200);
   static GeoInfo lastPos;
@@ -76,7 +85,17 @@ class _Dmap {
   Getter<Element> _toolbar;
 
   GeoInfo pos;
-  bool get isReady => pos != null;
+  bool get isReady => pos == null;
+
+  // Options
+  int sizeMinLength;
+  int sizeMinWeight;
+  int sizeMaxLength;
+  int sizeMaxWeight;
+  int recentValue;
+  String recentUnitName = nameOfEnum(_RecentUnit.values.first);
+  _RecentUnit get recentUnit => enumByName(_RecentUnit.values, recentUnitName);
+  final List<String> recentUnitList = _RecentUnit.values.map(nameOfEnum);
 
   _Dmap(this._root) {
     if (lastPos == null) {
@@ -104,7 +123,7 @@ class _Dmap {
         _toolbar.value.style.display = "none";
       }
     }
-    _root.querySelector('#gmap expandable-gmap')
+    _root.querySelector('#dmap #gmap expandable-gmap')
       ..on['expanding'].listen((event) => toggle(false))
       ..on['shrinking'].listen((event) => toggle(true));
   });

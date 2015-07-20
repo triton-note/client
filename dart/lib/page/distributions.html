@@ -30,22 +30,93 @@
 
         <core-animated-pages transitions="slide-from-right">
             <section id="dmap">
-                <div class="page-loading" ng-if="!dmap.isReady">
-                    <div>
-                        <paper-spinner active></paper-spinner>
-                    </div>
-                </div>
-                <div ng-if="dmap.isReady">
-                    <div id="gmap" ng-if="dmap.pos != null">
+                <div>
+                    <div id="gmap">
                         <expandable-gmap center="dmap.pos" set-gmap="dmap.gmap" get-scroller="dmap.scroller" get-base="dmap.base"></expandable-gmap>
                     </div>
                     <div id="settings">
                         <div class="header">
-                            <p>Options</p>
-                        </div>
-                        <div class="content">
-                            <div>
+                            <p>Filter</p>
+                            <div id="only-mine">
+                                <p>only mine</p>
+                                <paper-toggle-button></paper-toggle-button>
+                                <p>include others</p>
                             </div>
+                        </div>
+                        <div class="body">
+                            <div id="fish-name">
+                                <paper-input-decorator floatingLabel label="FISH NAME">
+                                    <input>
+                                </paper-input-decorator>
+                            </div>
+                            
+                            <div id="fish-size">
+                                <collapser id="min">
+                                    <div id="header">
+                                        <p>MIN FISH SIZE</p>
+                                        <div class="values">
+                                            <p ng-if="dmap.sizeMinLength > 0">{{ dmap.sizeMinLength }} {{ lengthUnit }}</p>
+                                            <p ng-if="dmap.sizeMinWeight > 0">{{ dmap.sizeMinWeight }} {{ weightUnit }}</p>
+                                        </div>
+                                    </div>
+                                    <div id="content">
+                                        <div class="length">
+                                            <p>Length ({{ lengthUnit }})</p>
+                                            <div>
+                                                <num-input value="dmap.sizeMinLength" min="0" digits="4" font-size="16"></num-input>
+                                            </div>
+                                        </div>
+                                        <div class="weight">
+                                            <p>Weight ({{ weightUnit }})</p>
+                                            <div>
+                                                <num-input value="dmap.sizeMinWeight" min="0" digits="4" font-size="16"></num-input>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </collapser>
+                                <collapser id="max">
+                                    <div id="header">
+                                        <p>MAX FISH SIZE</p>
+                                        <div class="values">
+                                            <p ng-if="dmap.sizeMaxLength > 0">{{ dmap.sizeMaxLength }} {{ lengthUnit }}</p>
+                                            <p ng-if="dmap.sizeMaxWeight > 0">{{ dmap.sizeMaxWeight }} {{ weightUnit }}</p>
+                                        </div>
+                                    </div>
+                                    <div id="content">
+                                        <div class="length">
+                                            <p>Length ({{ lengthUnit }})</p>
+                                            <div>
+                                                <num-input value="dmap.sizeMaxLength" min="0" digits="4" font-size="16"></num-input>
+                                            </div>
+                                        </div>
+                                        <div class="weight">
+                                            <p>Weight ({{ weightUnit }})</p>
+                                            <div>
+                                                <num-input value="dmap.sizeMaxWeight" min="0" digits="4" font-size="16"></num-input>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </collapser>
+                            </div>
+                            
+                            <collapser id="term">
+                                <div id="header">
+                                    <p>Term</p>
+                                </div>
+                                <div id="content">
+                                    <div id="recent">
+                                        <p>Recent</p>
+                                        <num-input value="dmap.recentValue" min="0" digits="2" font-size="16"></num-input>
+                                        <choose-list value="dmap.recentUnitName" list="dmap.recentUnitList"></choose-list>
+                                    </div>
+                                    
+                                    <div id="season">
+                                    </div>
+                                    
+                                    <div id="from-to">
+                                    </div>
+                                </div>
+                            </collapser>
                         </div>
                     </div>
                 </div>

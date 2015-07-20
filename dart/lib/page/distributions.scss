@@ -4,24 +4,102 @@ core-toolbar {
   height: 108px;
 }
 
-.page-loading.overlay {
-  
-}
-
 section#dmap {
   #settings {
+    margin-top: 4px;
+    
     .header {
+      @include display-flex();
+      @include align-items(baseline);
       padding-top: 4px;
-      padding-bottom: 8px;
+      padding-bottom: 2px;
       padding-left: 10px;
       padding-right: 10px;
       
       @include background-image(linear-gradient($header-color, white));
-      @include font-bold(16px);
-    }
-    .content {
-      maring-top: 10px;
       
+      &>p {
+        @include font-bold(20px);
+        margin-right: auto;
+      }
+      
+      #only-mine {
+        @include display-flex();
+        @include align-items(baseline);
+        paper-toggle-button {
+          margin-left: 8px;
+          margin-right: 8px;
+        }
+      }
+    }
+    .body {
+      #fish-name {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      
+      #fish-size {
+        margin-top: 12px;
+        
+        #min, #max {
+          &::shadow {
+            #header {
+              @include display-flex();
+              @include align-items(baseline);
+              width: 100%;
+              
+              &>*:first-child {
+                margin-right: auto;
+              }
+              
+              .values {
+                @include display-flex();
+                @include align-items(baseline);
+                @include font-light(16px);
+                
+                p {
+                  margin-right: 10px;
+                }
+              }
+            }
+            
+            #content {
+              @include display-flex();
+              @include align-items(center);
+              @include justify-content(space-around);
+              padding-top: 8px;
+              
+              &>div {
+                &>div {
+                  @include display-flex();
+                  @include align-items(center);
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      #term {
+        margin-top: 10px;
+        
+        &::shadow {
+          #header {
+            @include font-bold(18px);
+          }
+          #content {
+            #recent {
+              @include display-flex();
+              @include align-items(center);
+              @include justify-content(space-around);
+              
+              num-input {
+                margin-right: 20px;
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
