@@ -18,14 +18,17 @@ final _logger = new Logger('EditTimestampDialog');
 class EditTimestampDialog extends ShadowRootAware {
   @NgTwoWay('value') DateTime value;
   @NgOneWay('setter') Setter<EditTimestampDialog> setter;
+  @NgAttr('without-oclock') String withoutOclock;
 
   ShadowRoot _root;
+  bool get withOclock => withoutOclock == null || withoutOclock.toLowerCase() == "false";
   int tmpOclock = 0;
   DateTime tmpDate = new DateTime.now();
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     setter.value = this;
+    _logger.finest("without Oclock: ${withoutOclock}");
   }
 
   toggle() {

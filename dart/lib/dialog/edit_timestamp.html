@@ -23,15 +23,17 @@
 		}
 	</style>
 	
-	<paper-shadow id="oclock" z="1">
-		<div>
-			<p>about</p>
-			<num-input value="tmpOclock" min="0" max="23" font-size="20"></num-input>
-			<p>O'clock</p>
-		</div>
-	</paper-shadow>
-	
-	<br>
+    <div ng-if="withOclock">
+    	<paper-shadow id="oclock" z="1">
+    		<div>
+    			<p>about</p>
+    			<num-input value="tmpOclock" min="0" max="23" font-size="20"></num-input>
+    			<p>O'clock</p>
+    		</div>
+    	</paper-shadow>
+    	
+    	<br>
+    </div>
 	
 	<paper-shadow z="1">
 		<calendar value="tmpDate" start-of-week="1"></calendar>
