@@ -6,11 +6,10 @@ import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animated_pages.dart';
-import 'package:core_elements/core_animation.dart';
-import 'package:core_elements/core_collapse.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:paper_elements/paper_tabs.dart';
 
+import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
@@ -88,14 +87,32 @@ class _Dmap {
   bool get isReady => pos == null;
 
   // Options
-  int sizeMinLength;
-  int sizeMinWeight;
-  int sizeMaxLength;
-  int sizeMaxWeight;
+
+  // size
+  int sizeMinLength = 0;
+  bool get sizeMinLengthActive => sizeMinLength > 0;
+  int sizeMaxLength = 0;
+  bool get sizeMaxLengthActive => sizeMaxLength > sizeMinLength;
+  bool get sizeLengthActive => sizeMinLengthActive || sizeMaxLengthActive;
+
+  int sizeMinWeight = 0;
+  bool get sizeMinWeightActive => sizeMinWeight > 0;
+  int sizeMaxWeight = 0;
+  bool get sizeMaxWeightActive => sizeMaxWeight > sizeMinWeight;
+  bool get sizeWeightActive => sizeMinWeightActive || sizeMaxWeightActive;
+
   int recentValue;
   String recentUnitName = nameOfEnum(_RecentUnit.values.first);
   _RecentUnit get recentUnit => enumByName(_RecentUnit.values, recentUnitName);
   final List<String> recentUnitList = _RecentUnit.values.map(nameOfEnum);
+
+  int seasonBegin = 1;
+  int seasonEnd = 2;
+
+  DateTime termFrom = new DateTime.now();
+  Getter<EditTimestampDialog> termFromDialog = new PipeValue();
+  DateTime termTo = new DateTime.now();
+  Getter<EditTimestampDialog> termToDialog = new PipeValue();
 
   _Dmap(this._root) {
     if (lastPos == null) {

@@ -50,71 +50,89 @@
                                 </paper-input-decorator>
                             </div>
                             
-                            <div id="fish-size">
-                                <collapser id="min">
-                                    <div id="header">
-                                        <p>MIN FISH SIZE</p>
-                                        <div class="values">
-                                            <p ng-if="dmap.sizeMinLength > 0">{{ dmap.sizeMinLength }} {{ lengthUnit }}</p>
-                                            <p ng-if="dmap.sizeMinWeight > 0">{{ dmap.sizeMinWeight }} {{ weightUnit }}</p>
+                            <collapser id="fish-size">
+                                <div id="header">
+                                    <p>Fish size</p>
+                                    <div class="values">
+                                        <p ng-if="dmap.sizeLengthActive">(</p>
+                                        <p ng-if="dmap.sizeMinLengthActive">{{ dmap.sizeMinLength }}</p>
+                                        <p ng-if="dmap.sizeLengthActive"> 〜 </p>
+                                        <p ng-if="dmap.sizeMaxLengthActive">{{ dmap.sizeMaxLength }}</p>
+                                        <p ng-if="dmap.sizeLengthActive"> {{ lengthUnit }} )</p>
+                                        
+                                        <p ng-if="dmap.sizeWeightActive">(</p>
+                                        <p ng-if="dmap.sizeMinWeightActive">{{ dmap.sizeMinWeight }}</p>
+                                        <p ng-if="dmap.sizeWeightActive"> 〜 </p>
+                                        <p ng-if="dmap.sizeMaxWeightActive">{{ dmap.sizeMaxWeight }}</p>
+                                        <p ng-if="dmap.sizeWeightActive"> {{ weightUnit }} )</p>
+                                    </div>
+                                </div>
+                                <div id="content">
+                                    <div class="length">
+                                        <p>Length ({{ lengthUnit }})</p>
+                                        <div>
+                                            <num-input value="dmap.sizeMinLength" min="0" digits="4" font-size="16"></num-input>
+                                            <num-input value="dmap.sizeMaxLength" min="0" digits="4" font-size="16"></num-input>
                                         </div>
                                     </div>
-                                    <div id="content">
-                                        <div class="length">
-                                            <p>Length ({{ lengthUnit }})</p>
-                                            <div>
-                                                <num-input value="dmap.sizeMinLength" min="0" digits="4" font-size="16"></num-input>
-                                            </div>
-                                        </div>
-                                        <div class="weight">
-                                            <p>Weight ({{ weightUnit }})</p>
-                                            <div>
-                                                <num-input value="dmap.sizeMinWeight" min="0" digits="4" font-size="16"></num-input>
-                                            </div>
+                                    <div class="weight">
+                                        <p>Weight ({{ weightUnit }})</p>
+                                        <div>
+                                            <num-input value="dmap.sizeMinWeight" min="0" digits="4" font-size="16"></num-input>
+                                            <num-input value="dmap.sizeMaxWeight" min="0" digits="4" font-size="16"></num-input>
                                         </div>
                                     </div>
-                                </collapser>
-                                <collapser id="max">
-                                    <div id="header">
-                                        <p>MAX FISH SIZE</p>
-                                        <div class="values">
-                                            <p ng-if="dmap.sizeMaxLength > 0">{{ dmap.sizeMaxLength }} {{ lengthUnit }}</p>
-                                            <p ng-if="dmap.sizeMaxWeight > 0">{{ dmap.sizeMaxWeight }} {{ weightUnit }}</p>
-                                        </div>
-                                    </div>
-                                    <div id="content">
-                                        <div class="length">
-                                            <p>Length ({{ lengthUnit }})</p>
-                                            <div>
-                                                <num-input value="dmap.sizeMaxLength" min="0" digits="4" font-size="16"></num-input>
-                                            </div>
-                                        </div>
-                                        <div class="weight">
-                                            <p>Weight ({{ weightUnit }})</p>
-                                            <div>
-                                                <num-input value="dmap.sizeMaxWeight" min="0" digits="4" font-size="16"></num-input>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </collapser>
-                            </div>
+                                </div>
+                            </collapser>
+                            
+                            <collapser id="condition">
+                                <div id="header">
+                                    <p>Conditions</p>
+                                </div>
+                                <div id="content">
+                                </div>
+                            </collapser>
                             
                             <collapser id="term">
                                 <div id="header">
                                     <p>Term</p>
                                 </div>
                                 <div id="content">
-                                    <div id="recent">
-                                        <p>Recent</p>
-                                        <num-input value="dmap.recentValue" min="0" digits="2" font-size="16"></num-input>
-                                        <choose-list value="dmap.recentUnitName" list="dmap.recentUnitList"></choose-list>
-                                    </div>
-                                    
-                                    <div id="season">
-                                    </div>
-                                    
-                                    <div id="from-to">
-                                    </div>
+                                    <paper-radio-group selected="recent">
+                                        <paper-radio-button name="from-to" label="From"></paper-radio-button>
+                                        <div>
+                                            <div id="from-to">
+                                                <div class="from">
+                                                    <p>{{ dmap.termFrom | date:"yyyy-MM-dd" }}</p>
+                                                    <paper-ripple fit ng-click="dmap.termFromDialog.value.toggle()"></paper-ripple>
+                                                    <edit-timestamp-dialog without-oclock value="dmap.termFrom" setter="dmap.termFromDialog"></edit-timestamp-dialog>
+                                                </div>
+                                                <p>TO</p>
+                                                <div class="to">
+                                                    <p>{{ dmap.termTo | date:"yyyy-MM-dd" }}</p>
+                                                    <paper-ripple fit ng-click="dmap.termToDialog.value.toggle()"></paper-ripple>
+                                                    <edit-timestamp-dialog without-oclock value="dmap.termTo" setter="dmap.termToDialog"></edit-timestamp-dialog>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <paper-radio-button name="recent" label="Recent"></paper-radio-button>
+                                        <div>
+                                            <div id="recent">
+                                                <num-input value="dmap.recentValue" min="0" digits="2" font-size="16"></num-input>
+                                                <choose-list value="dmap.recentUnitName" list="dmap.recentUnitList"></choose-list>
+                                            </div>
+                                        </div>
+                                        
+                                        <paper-radio-button name="season" label="Season in month"></paper-radio-button>
+                                        <div>
+                                            <div id="season">
+                                                <num-input value="dmap.seasonBegin" min="1" digits="2" font-size="16"></num-input>
+                                                <p>TO</p>
+                                                <num-input value="dmap.seasonEnd" min="1" digits="2" font-size="16"></num-input>
+                                            </div>
+                                        </div>
+                                    </paper-radio-group>
                                 </div>
                             </collapser>
                         </div>
