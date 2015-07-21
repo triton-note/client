@@ -28,7 +28,6 @@ class EditTimestampDialog extends ShadowRootAware {
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     setter.value = this;
-    _logger.finest("without Oclock: ${withoutOclock}");
   }
 
   toggle() {

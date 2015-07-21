@@ -1,0 +1,106 @@
+<div class="header">
+    <p>Filter</p>
+    <div id="only-mine">
+        <p>only mine</p>
+        <paper-toggle-button></paper-toggle-button>
+        <p>include others</p>
+    </div>
+</div>
+
+<div class="body">
+    <div id="fish-name">
+        <paper-input-decorator floatingLabel label="FISH NAME">
+            <input>
+        </paper-input-decorator>
+    </div>
+    
+    <collapser id="fish-size">
+        <div id="header">
+            <p>Fish size</p>
+            <div class="values">
+                <p ng-if="sizeLengthActive">(</p>
+                <p ng-if="sizeMinLengthActive">{{ sizeMinLength }}</p>
+                <p ng-if="sizeLengthActive"> 〜 </p>
+                <p ng-if="sizeMaxLengthActive">{{ sizeMaxLength }}</p>
+                <p ng-if="sizeLengthActive"> {{ lengthUnit }} )</p>
+                
+                <p ng-if="sizeWeightActive">(</p>
+                <p ng-if="sizeMinWeightActive">{{ sizeMinWeight }}</p>
+                <p ng-if="sizeWeightActive"> 〜 </p>
+                <p ng-if="sizeMaxWeightActive">{{ sizeMaxWeight }}</p>
+                <p ng-if="sizeWeightActive"> {{ weightUnit }} )</p>
+            </div>
+        </div>
+        <div id="content">
+            <div class="length">
+                <p>Length ({{ lengthUnit }})</p>
+                <div>
+                    <num-input value="sizeMinLength" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="sizeMaxLength" min="0" digits="4" font-size="16"></num-input>
+                </div>
+            </div>
+            <div class="weight">
+                <p>Weight ({{ weightUnit }})</p>
+                <div>
+                    <num-input value="sizeMinWeight" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="sizeMaxWeight" min="0" digits="4" font-size="16"></num-input>
+                </div>
+            </div>
+        </div>
+    </collapser>
+    
+    <collapser id="condition">
+        <div id="header">
+            <p>Conditions</p>
+        </div>
+        <div id="content">
+        </div>
+    </collapser>
+    
+    <collapser id="term">
+        <div id="header">
+            <p>Term</p>
+        </div>
+        <div id="content">
+            <paper-radio-group selected="recent">
+                <paper-radio-button name="from-to" label="From"></paper-radio-button>
+                <div>
+                    <div id="from-to">
+                        <div class="from">
+                            <p>{{ termFrom | date:"yyyy-MM-dd" }}</p>
+                            <paper-ripple fit ng-click="termFromDialog.value.toggle()"></paper-ripple>
+                            <edit-timestamp-dialog without-oclock value="termFrom" setter="termFromDialog"></edit-timestamp-dialog>
+                        </div>
+                        <p>TO</p>
+                        <div class="to">
+                            <p>{{ termTo | date:"yyyy-MM-dd" }}</p>
+                            <paper-ripple fit ng-click="termToDialog.value.toggle()"></paper-ripple>
+                            <edit-timestamp-dialog without-oclock value="termTo" setter="termToDialog"></edit-timestamp-dialog>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <paper-radio-button name="recent" label="Recent"></paper-radio-button>
+                <div>
+                    <div id="recent">
+                        <num-input value="recentValue" min="0" digits="2" font-size="16"></num-input>
+                        <choose-list value="recentUnitName" list="recentUnitList"></choose-list>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <paper-radio-button name="season" label="Season in month"></paper-radio-button>
+                <div>
+                    <div id="season">
+                        <num-input value="seasonBegin" min="1" digits="2" font-size="16"></num-input>
+                        <p>TO</p>
+                        <num-input value="seasonEnd" min="1" digits="2" font-size="16"></num-input>
+                    </div>
+                </div>
+            </paper-radio-group>
+        </div>
+    </collapser>
+</div>
