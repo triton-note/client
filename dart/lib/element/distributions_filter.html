@@ -10,7 +10,7 @@
 <div class="body">
     <div id="fish-name">
         <paper-input-decorator floatingLabel label="FISH NAME">
-            <input>
+            <input ng-model="kind.name">
         </paper-input-decorator>
     </div>
     
@@ -18,32 +18,32 @@
         <div id="header">
             <p>Fish size</p>
             <div class="values">
-                <p ng-if="sizeLengthActive">(</p>
-                <p ng-if="sizeMinLengthActive">{{ sizeMinLength }}</p>
-                <p ng-if="sizeLengthActive"> 〜 </p>
-                <p ng-if="sizeMaxLengthActive">{{ sizeMaxLength }}</p>
-                <p ng-if="sizeLengthActive"> {{ lengthUnit }} )</p>
+                <p ng-if="size.lengthActive">(</p>
+                <p ng-if="size.lengthMinActive">{{ size.lengthMin }}</p>
+                <p ng-if="size.lengthActive"> 〜 </p>
+                <p ng-if="size.lengthMaxActive">{{ size.lengthMax }}</p>
+                <p ng-if="size.lengthActive"> {{ size.lengthUnit }} )</p>
                 
-                <p ng-if="sizeWeightActive">(</p>
-                <p ng-if="sizeMinWeightActive">{{ sizeMinWeight }}</p>
-                <p ng-if="sizeWeightActive"> 〜 </p>
-                <p ng-if="sizeMaxWeightActive">{{ sizeMaxWeight }}</p>
-                <p ng-if="sizeWeightActive"> {{ weightUnit }} )</p>
+                <p ng-if="size.weightActive">(</p>
+                <p ng-if="size.weightMinActive">{{ size.weightMin }}</p>
+                <p ng-if="size.weightActive"> 〜 </p>
+                <p ng-if="size.weightMaxActive">{{ size.weightMax }}</p>
+                <p ng-if="size.weightActive"> {{ size.weightUnit }} )</p>
             </div>
         </div>
         <div id="content">
             <div class="length">
-                <p>Length ({{ lengthUnit }})</p>
+                <p>Length ({{ size.lengthUnit }})</p>
                 <div>
-                    <num-input value="sizeMinLength" min="0" digits="4" font-size="16"></num-input>
-                    <num-input value="sizeMaxLength" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="size.lengthMin" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="size.lengthMax" min="0" digits="4" font-size="16"></num-input>
                 </div>
             </div>
             <div class="weight">
-                <p>Weight ({{ weightUnit }})</p>
+                <p>Weight ({{ size.weightUnit }})</p>
                 <div>
-                    <num-input value="sizeMinWeight" min="0" digits="4" font-size="16"></num-input>
-                    <num-input value="sizeMaxWeight" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="size.weightMin" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="size.weightMax" min="0" digits="4" font-size="16"></num-input>
                 </div>
             </div>
         </div>
@@ -54,6 +54,28 @@
             <p>Conditions</p>
         </div>
         <div id="content">
+            <div id="weather">
+                <p>{{ cond.weather.nominal }}</p>
+                <div>
+                    <img ng-src="{{ cond.weather.iconUrl }}">
+                </div>
+                <edit-weather-dialog without-temperature setter="cond.weatherDialog" value="cond.weather"></edit-weather-dialog>
+                <paper-ripple fit ng-click="cond.weatherDialog.value.open()"></paper-ripple>
+            </div>
+            <div id="temperature">
+                <num-input value="cond.temperatureMin" digits="2" font-size="16"></num-input>
+                <num-input value="cond.temperatureMax" digits="2" font-size="16"></num-input>
+            </div>
+            <div id="tide">
+                <p>{{ cond.tideName }}</p>
+                <div>
+                    <img ng-src="{{ cond.tideIcon }}">
+                </div>
+                <edit-tide-dialog setter="cond.tideDialog" value="cond.tide"></edit-tide-dialog>
+                <paper-ripple fit ng-click="cond.tideDialog.value.open()"></paper-ripple>
+            </div>
+            <div id="moon">
+            </div>
         </div>
     </collapser>
     
@@ -67,15 +89,15 @@
                 <div>
                     <div id="from-to">
                         <div class="from">
-                            <p>{{ termFrom | date:"yyyy-MM-dd" }}</p>
-                            <paper-ripple fit ng-click="termFromDialog.value.toggle()"></paper-ripple>
-                            <edit-timestamp-dialog without-oclock value="termFrom" setter="termFromDialog"></edit-timestamp-dialog>
+                            <p>{{ term.intervalFrom | date:"yyyy-MM-dd" }}</p>
+                            <paper-ripple fit ng-click="term.intervalFromDialog.value.toggle()"></paper-ripple>
+                            <edit-timestamp-dialog without-oclock value="term.intervalFrom" setter="term.intervalFromDialog"></edit-timestamp-dialog>
                         </div>
                         <p>TO</p>
                         <div class="to">
-                            <p>{{ termTo | date:"yyyy-MM-dd" }}</p>
-                            <paper-ripple fit ng-click="termToDialog.value.toggle()"></paper-ripple>
-                            <edit-timestamp-dialog without-oclock value="termTo" setter="termToDialog"></edit-timestamp-dialog>
+                            <p>{{ term.intervalTo | date:"yyyy-MM-dd" }}</p>
+                            <paper-ripple fit ng-click="term.intervalToDialog.value.toggle()"></paper-ripple>
+                            <edit-timestamp-dialog without-oclock value="term.intervalTo" setter="term.intervalToDialog"></edit-timestamp-dialog>
                         </div>
                     </div>
                 </div>
@@ -85,8 +107,8 @@
                 <paper-radio-button name="recent" label="Recent"></paper-radio-button>
                 <div>
                     <div id="recent">
-                        <num-input value="recentValue" min="0" digits="2" font-size="16"></num-input>
-                        <choose-list value="recentUnitName" list="recentUnitList"></choose-list>
+                        <num-input value="term.recentValue" min="0" digits="2" font-size="16"></num-input>
+                        <choose-list value="term.recentUnitName" list="term.recentUnitList"></choose-list>
                     </div>
                 </div>
                 
@@ -95,9 +117,9 @@
                 <paper-radio-button name="season" label="Season in month"></paper-radio-button>
                 <div>
                     <div id="season">
-                        <num-input value="seasonBegin" min="1" digits="2" font-size="16"></num-input>
+                        <num-input value="term.seasonBegin" min="1" digits="2" font-size="16"></num-input>
                         <p>TO</p>
-                        <num-input value="seasonEnd" min="1" digits="2" font-size="16"></num-input>
+                        <num-input value="term.seasonEnd" min="1" digits="2" font-size="16"></num-input>
                     </div>
                 </div>
             </paper-radio-group>
