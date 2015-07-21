@@ -34,29 +34,31 @@ class ExpandableGMapElement extends ShadowRootAware {
   @NgOneWay('center') GeoInfo center;
 
   ShadowRoot _root;
+  int shrinkedHeightReal;
   bool isExpanded = false;
 
   Completer<GoogleMap> _readyGMap;
   bool get isReady {
     if (_root != null && _readyGMap == null) {
       final div = _root.querySelector('#google-maps');
-      final w = div.clientWidth;
-      _logger.finest("Checking width of host div: ${w}");
-      if (w > 0) {
-        if (shrinkedHeight == null) shrinkedHeight = (w * 2 / (1 + Math.sqrt(5))).round();
-        _logger.fine("Shrinked height: ${shrinkedHeight}");
-        div.style.height = "${shrinkedHeight}px";
-
-        if (center != null) {
-          _readyGMap = new Completer();
-          makeGoogleMap(div, center).then((v) {
-            _readyGMap.complete(v);
-            _logger.finest("Callback gmap: ${setGMap}");
-            if (setGMap != null) setGMap.value = v;
-
-            _root.querySelector('#toggle paper-button') as PaperButton..disabled = false;
-          });
+      if (shrinkedHeightReal == null) {
+        final w = div.clientWidth;
+        _logger.finest("Checking width of host div: ${w}");
+        if (w > 0) {
+          shrinkedHeightReal = (shrinkedHeight != null) ? shrinkedHeight : (w * 2 / (1 + Math.sqrt(5))).round();
+          _logger.fine("Shrinked height: ${shrinkedHeightReal}");
+          div.style.height = "${shrinkedHeightReal}px";
         }
+      }
+      if (center != null && shrinkedHeightReal != null) {
+        _readyGMap = new Completer();
+        makeGoogleMap(div, center).then((v) {
+          _readyGMap.complete(v);
+          _logger.finest("Callback gmap: ${setGMap}");
+          if (setGMap != null) setGMap.value = v;
+
+          _root.querySelector('#toggle paper-button') as PaperButton..disabled = false;
+        });
       }
     }
     return _readyGMap != null && _readyGMap.isCompleted;
@@ -125,7 +127,7 @@ class ExpandableGMapElement extends ShadowRootAware {
     if (isExpanded) {
       _logger.fine("Shrink map: ${gmap}");
       if (fixScroll != null && fixScroll) scroller.style.overflowY = "auto";
-      scroll(shrinkedHeight, 0);
+      scroll(shrinkedHeightReal, 0);
       isExpanded = false;
     } else {
       _logger.fine("Expand map: ${gmap}");
