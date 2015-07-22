@@ -7,6 +7,7 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
+import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:paper_elements/paper_tabs.dart';
 
 import 'package:triton_note/model/location.dart';
@@ -30,8 +31,9 @@ class DistributionsPage extends MainFrame {
   static const DTIME = 1;
   static const DRATE = 2;
 
-  CachedValue<CoreAnimatedPages> _pages;
-  CachedValue<PaperTabs> _tabs;
+  Getter<CoreAnimatedPages> _pages;
+  Getter<PaperTabs> _tabs;
+  Getter<PaperActionDialog> _filterDialog;
 
   int _selectedTab;
   int get _selectedIndex => _selectedTab;
@@ -62,14 +64,23 @@ class DistributionsPage extends MainFrame {
         });
       }
     });
+    _filterDialog = new CachedValue(() => root.querySelector('paper-action-dialog#distributions-filter'));
 
     dmap = new _Dmap(root);
   }
 
   Element get selectedPage => root.querySelectorAll("core-animated-pages section")[_selectedIndex];
 
-  void options() {
-    _logger.finest("Click options");
+  void openFilter(event) {
+    final button = event.target as Element;
+    _logger.finest("Open filter dialog");
+    _filterDialog.value
+      ..shadowRoot.querySelector('#scroller').style.padding = "0"
+      ..style.margin = "0"
+      ..style.top = "${button.getBoundingClientRect().bottom}px"
+      ..style.left = "0"
+      ..style.right = "0"
+      ..toggle();
   }
 }
 

@@ -17,8 +17,12 @@
         
             <span flex>Distributions</span>
             
-            <paper-icon-button icon="more-vert" ng-click="options()"></paper-icon-button>
-        
+            <paper-icon-button icon="filter-list" ng-click="openFilter($event)"></paper-icon-button>
+            <paper-action-dialog id="distributions-filter" transition="core-transition-top" backdrop>
+                <distributions-filter setter="filter"></distributions-filter>
+                <paper-button affirmative style="color: green">OK</paper-button>
+            </paper-action-dialog>
+            
             <div class="tabs">
                 <paper-tabs selected="0">
                     <paper-tab>MAP</paper-tab>
@@ -35,7 +39,8 @@
                         <expandable-gmap center="dmap.pos" set-gmap="dmap.gmap" get-scroller="dmap.scroller" get-base="dmap.base"></expandable-gmap>
                     </div>
                     <div id="settings">
-                        <distributions-filter setter="filter"></distributions-filter>
+                        <div>
+                        </div>
                     </div>
                 </div>
             </section>
