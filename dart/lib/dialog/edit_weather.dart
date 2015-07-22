@@ -23,8 +23,10 @@ final _logger = new Logger('EditWeatherDialog');
 class EditWeatherDialog extends ShadowRootAware {
   @NgOneWay('setter') Setter<EditWeatherDialog> setter;
   @NgOneWay('value') Weather value;
+  @NgAttr('without-temperature') String withoutTemperature;
 
   ShadowRoot _root;
+  bool get withTemperature => withoutTemperature == null || withoutTemperature.toLowerCase() == "false";
   CachedValue<PaperDialog> _dialog;
   TemperatureUnit _tUnit;
 

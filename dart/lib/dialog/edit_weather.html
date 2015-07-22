@@ -34,14 +34,16 @@
         }
     </style>
     <div>
-        <paper-shadow id="temperature" z="1">
-            <div class="row">
-                <num-input value="temperatureValue"></num-input>
-                <p>{{temperatureUnit}}</p>
-            </div>
-        </paper-shadow>
-        
-        <br>
+        <div ng-if="withTemperature">
+            <paper-shadow id="temperature" z="1">
+                <div class="row">
+                    <num-input value="temperatureValue"></num-input>
+                    <p>{{temperatureUnit}}</p>
+                </div>
+            </paper-shadow>
+            
+            <br>
+        </div>
         
         <paper-shadow id="sky" z="1">
             <div class="row" ng-repeat="name in weatherNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
