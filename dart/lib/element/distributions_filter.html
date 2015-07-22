@@ -8,42 +8,65 @@
 </div>
 
 <div class="body">
-    <div id="fish-name">
-        <paper-input-decorator floatingLabel label="FISH NAME">
-            <input ng-model="kind.name">
-        </paper-input-decorator>
-    </div>
-    
-    <collapser id="fish-size">
+    <collapser id="fish">
         <div id="header">
-            <p>Fish size</p>
+            <p>Fish</p>
             <div class="values">
-                <p ng-if="size.lengthActive">(</p>
-                <p ng-if="size.lengthMinActive">{{ size.lengthMin }}</p>
-                <p ng-if="size.lengthActive"> 〜 </p>
-                <p ng-if="size.lengthMaxActive">{{ size.lengthMax }}</p>
-                <p ng-if="size.lengthActive"> {{ size.lengthUnit }} )</p>
+                <div ng-if="fish.isActiveName">
+                    <span>({{ fish.name }})</span>
+                </div>
                 
-                <p ng-if="size.weightActive">(</p>
-                <p ng-if="size.weightMinActive">{{ size.weightMin }}</p>
-                <p ng-if="size.weightActive"> 〜 </p>
-                <p ng-if="size.weightMaxActive">{{ size.weightMax }}</p>
-                <p ng-if="size.weightActive"> {{ size.weightUnit }} )</p>
+                <div ng-if="fish.isActiveLength">
+                    <span>(</span>
+                    <span ng-if="fish.isActiveLengthMin">{{ fish.lengthMin }}</span>
+                    <span> 〜 </span>
+                    <span ng-if="fish.isActiveLengthMax">{{ fish.lengthMax }}</span>
+                    <span> {{ fish.lengthUnit }} )</span>
+                </div>
+                
+                <div ng-if="fish.isActiveWeight">
+                    <span>(</span>
+                    <span ng-if="fish.isActiveWeightMin">{{ fish.weightMin }}</span>
+                    <span> 〜 </span>
+                    <span ng-if="fish.isActiveWeightMax">{{ fish.weightMax }}</span>
+                    <span> {{ fish.weightUnit }} )</span>
+                </div>
             </div>
         </div>
         <div id="content">
-            <div class="length">
-                <p>Length ({{ size.lengthUnit }})</p>
+            <div id="name">
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>Name (case ignore)</p>
+                </core-label>
+                <paper-input-decorator label="A PART OF FISH NAME">
+                    <input ng-model="fish.name">
+                </paper-input-decorator>
+            </div>
+            
+            <hr>
+            
+            <div id="length">
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>Length ({{ fish.lengthUnit }})</p>
+                </core-label>
                 <div>
-                    <num-input value="size.lengthMin" min="0" digits="4" font-size="16"></num-input>
-                    <num-input value="size.lengthMax" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="fish.lengthMin" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="fish.lengthMax" min="0" digits="4" font-size="16"></num-input>
                 </div>
             </div>
-            <div class="weight">
-                <p>Weight ({{ size.weightUnit }})</p>
+            
+            <hr>
+            
+            <div id="weight">
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>Weight ({{ fish.weightUnit }})</p>
+                </core-label>
                 <div>
-                    <num-input value="size.weightMin" min="0" digits="4" font-size="16"></num-input>
-                    <num-input value="size.weightMax" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="fish.weightMin" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="fish.weightMax" min="0" digits="4" font-size="16"></num-input>
                 </div>
             </div>
         </div>
@@ -52,27 +75,62 @@
     <collapser id="condition">
         <div id="header">
             <p>Conditions</p>
+            <div class="values">
+                <div ng-if="cond.isActiveWeather">
+                    <span>({{ cond.weather.nominal }})</span>
+                </div>
+                <div ng-if="cond.isActiveTemperature">
+                    <span>(</span>
+                    <span ng-if="cond.isActiveTemperatureMin">{{ cond.temperatureMin }}</span>
+                    <span>〜</span>
+                    <span ng-if="cond.isActiveTemperatureMax">{{ cond.temperatureMax }}</span>
+                    <span>{{ cond.temperatureUnit }} )</span>
+                </div>
+                <div ng-if="cond.isActiveTide">
+                    <span>({{ cond.tideName }})</span>
+                </div>
+            </div>
         </div>
         <div id="content">
             <div id="weather">
-                <p>{{ cond.weather.nominal }}</p>
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>Weather</p>
+                </core-label>
                 <div>
+                    <p>{{ cond.weather.nominal }}</p>
                     <img ng-src="{{ cond.weather.iconUrl }}">
+                    <edit-weather-dialog without-temperature setter="cond.weatherDialog" value="cond.weather"></edit-weather-dialog>
+                    <paper-ripple fit ng-click="cond.weatherDialog.value.open()"></paper-ripple>
                 </div>
-                <edit-weather-dialog without-temperature setter="cond.weatherDialog" value="cond.weather"></edit-weather-dialog>
-                <paper-ripple fit ng-click="cond.weatherDialog.value.open()"></paper-ripple>
             </div>
+            
+            <hr>
+            
             <div id="temperature">
-                <num-input value="cond.temperatureMin" digits="2" font-size="16"></num-input>
-                <num-input value="cond.temperatureMax" digits="2" font-size="16"></num-input>
-            </div>
-            <div id="tide">
-                <p>{{ cond.tideName }}</p>
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>Temperature ({{ cond.temperatureUnit }})</p>
+                </core-label>
                 <div>
-                    <img ng-src="{{ cond.tideIcon }}">
+                    <num-input value="cond.temperatureMin" digits="2" font-size="16"></num-input>
+                    <num-input value="cond.temperatureMax" digits="2" font-size="16"></num-input>
                 </div>
-                <edit-tide-dialog setter="cond.tideDialog" value="cond.tide"></edit-tide-dialog>
-                <paper-ripple fit ng-click="cond.tideDialog.value.open()"></paper-ripple>
+            </div>
+            
+            <hr>
+            
+            <div id="tide">
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>Tide</p>
+                </core-label>
+                <div>
+                    <p>{{ cond.tideName }}</p>
+                    <img ng-src="{{ cond.tideIcon }}">
+                    <edit-tide-dialog setter="cond.tideDialog" value="cond.tide"></edit-tide-dialog>
+                    <paper-ripple fit ng-click="cond.tideDialog.value.open()"></paper-ripple>
+                </div>
             </div>
             <div id="moon">
             </div>
@@ -82,47 +140,76 @@
     <collapser id="term">
         <div id="header">
             <p>Term</p>
+            <div class="values">
+                <div ng-if="term.isActiveInterval">
+                    <span>(</span>
+                    <span>{{ term.intervalFrom | date:"yyyy-MM-dd" }}</span>
+                    <span> 〜 </span>
+                    <span>{{ term.intervalTo | date:"yyyy-MM-dd" }}</span>
+                    <span>)</span>
+                </div>
+                <div ng-if="term.isActiveRecent">
+                    <span>(</span>
+                    <span>{{ term.recentValue }}</span>
+                    <span>{{ term.recentUnitName }}</span>
+                    <span>)</span>
+                </div>
+                <div ng-if="term.isActiveSeason">
+                    <span>(</span>
+                    <span>{{ term.seasonBegin }}</span>
+                    <span> 〜 </span>
+                    <span>{{ term.seasonEnd }}</span>
+                    <span>)</span>
+                </div>
+            </div>
         </div>
         <div id="content">
-            <paper-radio-group selected="recent">
-                <paper-radio-button name="from-to" label="From"></paper-radio-button>
+            <div id="interval">
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>FROM</p>
+                </core-label>
                 <div>
-                    <div id="from-to">
-                        <div class="from">
-                            <p>{{ term.intervalFrom | date:"yyyy-MM-dd" }}</p>
-                            <paper-ripple fit ng-click="term.intervalFromDialog.value.toggle()"></paper-ripple>
-                            <edit-timestamp-dialog without-oclock value="term.intervalFrom" setter="term.intervalFromDialog"></edit-timestamp-dialog>
-                        </div>
-                        <p>TO</p>
-                        <div class="to">
-                            <p>{{ term.intervalTo | date:"yyyy-MM-dd" }}</p>
-                            <paper-ripple fit ng-click="term.intervalToDialog.value.toggle()"></paper-ripple>
-                            <edit-timestamp-dialog without-oclock value="term.intervalTo" setter="term.intervalToDialog"></edit-timestamp-dialog>
-                        </div>
+                    <div class="from">
+                        <p>{{ term.intervalFrom | date:"yyyy-MM-dd" }}</p>
+                        <paper-ripple fit ng-click="term.intervalFromDialog.value.toggle()"></paper-ripple>
+                        <edit-timestamp-dialog without-oclock value="term.intervalFrom" setter="term.intervalFromDialog"></edit-timestamp-dialog>
+                    </div>
+                    <p>TO</p>
+                    <div class="to">
+                        <p>{{ term.intervalTo | date:"yyyy-MM-dd" }}</p>
+                        <paper-ripple fit ng-click="term.intervalToDialog.value.toggle()"></paper-ripple>
+                        <edit-timestamp-dialog without-oclock value="term.intervalTo" setter="term.intervalToDialog"></edit-timestamp-dialog>
                     </div>
                 </div>
-                
-                <hr>
-                
-                <paper-radio-button name="recent" label="Recent"></paper-radio-button>
+            </div>
+            
+            <hr>
+            
+            <div id="recent">
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>Recent</p>
+                </core-label>
                 <div>
-                    <div id="recent">
-                        <num-input value="term.recentValue" min="0" digits="2" font-size="16"></num-input>
-                        <choose-list value="term.recentUnitName" list="term.recentUnitList"></choose-list>
-                    </div>
+                    <num-input value="term.recentValue" min="0" digits="2" font-size="16"></num-input>
+                    <choose-list value="term.recentUnitName" list="term.recentUnitList"></choose-list>
                 </div>
-                
-                <hr>
-                
-                <paper-radio-button name="season" label="Season in month"></paper-radio-button>
+            </div>
+            
+            <hr>
+            
+            <div id="season">
+                <core-label>
+                    <paper-checkbox for></paper-checkbox>
+                    <p>Season in month</p>
+                </core-label>
                 <div>
-                    <div id="season">
-                        <num-input value="term.seasonBegin" min="1" digits="2" font-size="16"></num-input>
-                        <p>TO</p>
-                        <num-input value="term.seasonEnd" min="1" digits="2" font-size="16"></num-input>
-                    </div>
+                    <num-input value="term.seasonBegin" min="1" digits="2" font-size="16"></num-input>
+                    <p>TO</p>
+                    <num-input value="term.seasonEnd" min="1" digits="2" font-size="16"></num-input>
                 </div>
-            </paper-radio-group>
+            </div>
         </div>
     </collapser>
 </div>

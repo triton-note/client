@@ -5,7 +5,8 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:paper_elements/paper_radio_group.dart';
+import 'package:paper_elements/paper_checkbox.dart';
+import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
@@ -17,8 +18,6 @@ import 'package:triton_note/util/enums.dart';
 
 final _logger = new Logger('DistributionsFilterElement');
 
-const _selectDur = const Duration(milliseconds: 10);
-
 @Component(
     selector: 'distributions-filter',
     templateUrl: 'packages/triton_note/element/distributions_filter.html',
@@ -28,17 +27,21 @@ class DistributionsFilterElement extends ShadowRootAware {
   @NgOneWay('setter') Setter<DistributionsFilterElement> setter;
 
   ShadowRoot _root;
-  _FishKind kind;
-  _FishSize size;
+  Getter<bool> _includeOthers;
+  _Fish fish;
   _Conditions cond;
   _Term term;
+
+  bool get isIncludeOthers => _includeOthers == null ? null : _includeOthers.value;
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     setter.value = this;
 
-    kind = new _FishKind(_root);
-    size = new _FishSize(_root);
+    _includeOthers =
+        new Getter(() => (_root.querySelector('#only-mine paper-toggle-button') as PaperToggleButton).checked);
+
+    fish = new _Fish(_root);
     cond = new _Conditions(_root);
     term = new _Term(_root);
   }
@@ -46,42 +49,70 @@ class DistributionsFilterElement extends ShadowRootAware {
 
 enum _RecentUnit { days, weeks, months }
 
-class _FishKind {
+abstract class _FilterParams {
+  static const _selectDur = const Duration(milliseconds: 10);
+
+  final String id;
   final ShadowRoot _root;
+  final Map<String, PaperCheckbox> _checkboxes = {};
 
-  String name;
+  _FilterParams(this.id, this._root) {
+    _root.querySelectorAll("#${id} core-label>paper-checkbox").forEach((box) {
+      _checkboxes[box.parent.parent.id] = box;
+    });
+  }
 
-  _FishKind(this._root);
+  bool isActive(String name) => _checkboxes[name] == null ? false : _checkboxes[name].checked;
+
+  PaperCheckbox _checkboxListen(String name, void proc(PaperCheckbox box)) {
+    Timer timer;
+    return _checkboxes[name]
+      ..on['change'].listen((event) {
+        final box = event.target;
+        if (box is PaperCheckbox) {
+          if (timer != null && timer.isActive) timer.cancel();
+          timer = new Timer(_selectDur, () => proc(box));
+        }
+      });
+  }
 }
 
-class _FishSize {
-  final ShadowRoot _root;
+class _Fish extends _FilterParams {
+  _Fish(ShadowRoot root) : super('fish', root);
 
-  _FishSize(this._root);
+  String name;
+  int lengthMin = 0;
+  int lengthMax = 0;
+  int weightMin = 0;
+  int weightMax = 0;
 
   String get lengthUnit => nameOfEnum(CachedMeasures.lengthUnit);
   String get weightUnit => nameOfEnum(CachedMeasures.weightUnit);
 
-  int lengthMin = 0;
-  bool get lengthMinActive => lengthMin > 0;
-  int lengthMax = 0;
-  bool get lengthMaxActive => lengthMax > lengthMin;
-  bool get lengthActive => lengthMinActive || lengthMaxActive;
+  bool get isActiveName => isActive('name') && name != null && name.isNotEmpty;
 
-  int weightMin = 0;
-  bool get weightMinActive => weightMin > 0;
-  int weightMax = 0;
-  bool get weightMaxActive => weightMax > weightMin;
-  bool get weightActive => weightMinActive || weightMaxActive;
+  bool get isActiveLengthMin => lengthMin > 0;
+  bool get isActiveLengthMax => lengthMax > lengthMin;
+  bool get isActiveLength => isActive('length') && (isActiveLengthMin || isActiveLengthMax);
+
+  bool get isActiveWeightMin => weightMin > 0;
+  bool get isActiveWeightMax => weightMax > weightMin;
+  bool get isActiveWeight => isActive('weight') && (isActiveWeightMin || isActiveWeightMax);
 }
 
-class _Conditions {
-  final ShadowRoot _root;
+class _Conditions extends _FilterParams {
+  _Conditions(ShadowRoot root) : super('condition', root);
 
-  Weather weather;
+  String get temperatureUnit =>
+      CachedMeasures.temperatureUnit == null ? null : "°${nameOfEnum(CachedMeasures.temperatureUnit)[0]}";
+
+  Weather weather = new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear']});
   int temperatureMin, temperatureMax;
+  bool get isActiveTemperatureMin => temperatureMin != null && 0 < temperatureMin;
+  bool get isActiveTemperatureMax =>
+      temperatureMax != null && (temperatureMin == null ? 0 : temperatureMin) < temperatureMax;
 
-  Tide tide;
+  Tide tide = Tide.Flood;
   String get tideName => nameOfEnum(tide);
   String get tideIcon => Tides.iconOf(tide);
 
@@ -89,24 +120,26 @@ class _Conditions {
   Getter<EditWeatherDialog> weatherDialog = new PipeValue();
   Getter<EditTideDialog> tideDialog = new PipeValue();
 
-  _Conditions(this._root);
+  bool get isActiveWeather => isActive('weather') && weather.nominal != null;
+  bool get isActiveTemperature => isActive('temperature') && (isActiveTemperatureMin || isActiveTemperatureMax);
+  bool get isActiveTide => isActive('tide') && tideName != null;
 }
 
-class _Term {
-  final ShadowRoot _root;
-
-  _Term(this._root) {
-    Timer timer;
-    _root.querySelector('#term paper-radio-group').on['core-select'].listen((event) {
-      final radio = event.target;
-      if (radio is PaperRadioGroup) {
-        if (timer != null && timer.isActive) timer.cancel();
-        timer = new Timer(_selectDur, () {
-          _logger.finest("Term radio selected: ${radio.selected}");
-        });
-      }
+class _Term extends _FilterParams {
+  _Term(ShadowRoot root) : super('term', root) {
+    ['interval', 'recent', 'season'].forEach((name) {
+      _checkboxListen(name, (box) {
+        if (box.checked) {
+          _checkboxes.values.forEach((a) => a.checked = false);
+          box.checked = true;
+        }
+      });
     });
   }
+
+  bool get isActiveInterval => isActive('interval');
+  bool get isActiveRecent => isActive('recent') && recentValue != null && recentValue > 0;
+  bool get isActiveSeason => isActive('season');
 
   int recentValue;
   String recentUnitName = nameOfEnum(_RecentUnit.values.first);

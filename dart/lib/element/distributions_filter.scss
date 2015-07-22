@@ -26,48 +26,81 @@
 }
 
 .body {
-  #fish-name {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-  
-  #fish-size {
-    margin-top: 12px;
-  
-    &::shadow {
-      #header {
-        @include display-flex();
-        @include align-items(baseline);
-        width: 100%;
-        
-        &>*:first-child {
-          margin-right: auto;
-        }
-        
-        .values {
-          @include display-flex();
-          @include align-items(baseline);
-          @include font-light(14px);
-          
-          p {
-            margin-right: 10px;
-          }
-        }
+  collapser::shadow {
+    #header {
+      @include display-flex();
+      @include align-items(baseline);
+      width: 100%;
+      @include font-normal(16px);
+      
+      &>*:first-child {
+        margin-right: auto;
       }
       
-      #content {
+      .values {
+        @include display-flex();
+        @include align-items(baseline);
+        @include font-light(14px);
+        
+        &>div {
+          margin-right: 10px;
+        }
+      }
+    }
+    
+    #content {
+      padding: 10px;
+      
+      &>div {
+        @include display-flex();
+        @include align-items(center);
+        
+        core-label {
+          @include display-flex();
+          @include align-items(center);
+          margin-right: auto;
+          
+          paper-checkbox {
+            margin: 4px;
+          }
+        }
+        
         &>div {
           @include display-flex();
           @include align-items(center);
-          @include justify-content(space-between);
-          
-          margin-left: 10px;
-          padding-top: 4px;
-          padding-bottom: 4px;
-          
+        }
+      }
+      
+      &>hr {
+        padding: 0;
+        border: 0;
+        height: 1px;
+        @include background-image(linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0)));
+      }
+    }
+  }
+  
+  #condition {
+    &::shadow {
+      #content {
+        &>div {
           &>div {
-            @include display-flex();
-            @include align-items(center);
+            position: relative;
+          }
+        }
+        
+        #weather, #tide {
+          &>div {
+            margin-right: auto;
+            text-align: center;
+          }
+        }
+        #tide {
+          img {
+            width: 48px;
+            height: 48px;
+            @include border-radius(4px);
+            margin-left: 8px;
           }
         }
       }
@@ -75,40 +108,25 @@
   }
   
   #term {
-    margin-top: 10px;
-    
     &::shadow {
-      #header {
-        @include font-normal(16px);
-      }
       #content {
-        paper-radio-group {
-          width: 100%;
-          
-          paper-radio-button {
-            @include inline-block();
-            
-            &::shadow {
-              #radioLabel {
-                @include font-normal(16px);
-              }
-            }
-          }
-          
+        #interval {
           &>div {
-            @include inline-block();
+            &>p {
+              margin-left: 10px;
+              margin-right: 10px;
+              @include font-light(14px);
+            }
             &>div {
-              @include display-flex();
-              @include align-items(baseline);
-              @include justify-content(space-around);
+              position: relative;
+              margin-left: 10px;
+              margin-right: 10px;
             }
           }
-          
-          &>hr {
-            padding: 0;
-            border: 0;
-            height: 1px;
-            @include background-image(linear-gradient(to right, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.25)));
+          &>p {
+            margin-left: 10px;
+            margin-right: 10px;
+            @include font-light(14px);
           }
         }
         
@@ -123,20 +141,12 @@
         }
         
         #season {
-          &>p {
-            margin-right: 10px;
-            @include font-light(14px);
-          }
-        }
-        
-        #from-to {
           &>div {
-            position: relative;
-          }
-          &>p {
-            margin-left: 10px;
-            margin-right: 10px;
-            @include font-light(14px);
+            &>p {
+              margin-left: 10px;
+              margin-right: 10px;
+              @include font-light(14px);
+            }
           }
         }
       }
