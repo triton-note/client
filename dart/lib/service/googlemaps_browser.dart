@@ -40,7 +40,7 @@ Future<GoogleMap> makeGoogleMap(Element div, GeoInfo center, {int zoom: 8, bool 
   final options = {'center': _toLatLng(center), 'zoom': zoom, 'disableDefaultUI': disableDefaultUI};
 
   final g = new JsObject(context['google']['maps']['Map'], [div, new JsObject.jsify(options)]);
-  return new GoogleMap(g, div);
+  return new GoogleMap(g, options, div);
 }
 
 JsObject _toLatLng(GeoInfo pos) => new JsObject(context['google']['maps']['LatLng'], [pos.latitude, pos.longitude]);
@@ -53,13 +53,16 @@ abstract class Wrapper {
 
 class GoogleMap implements Wrapper {
   final JsObject _src;
+  final MapOptions options;
   final Element hostElement;
 
   var _clickListener;
 
   final List<Marker> _markers = [];
 
-  GoogleMap(this._src, this.hostElement) {
+  GoogleMap(JsObject src, Map options, this.hostElement)
+      : this._src = src,
+        this.options = new MapOptions(src, options) {
     context['google']['maps']['event'].callMethod('addListener', [
       _src,
       'click',
@@ -96,6 +99,22 @@ class GoogleMap implements Wrapper {
 
   trigger(String name) => context['google']['maps']['event'].callMethod('trigger', [_src, name]);
   triggerResize() => trigger('resize');
+}
+
+class MapOptions {
+  final JsObject _gmap;
+  final Map _src;
+
+  MapOptions(this._gmap, this._src);
+
+  put(String name, value) {
+    _src[name] = value;
+    _gmap.callMethod('setOptions', [new JsObject.jsify(_src)]);
+    return value;
+  }
+
+  bool get mapTypeControl => _src['mapTypeControl'];
+  set mapTypeControl(bool v) => put('mapTypeControl', v);
 }
 
 class Marker implements Wrapper {

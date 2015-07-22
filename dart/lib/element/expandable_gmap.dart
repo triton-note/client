@@ -154,5 +154,6 @@ class ExpandableGMapElement extends ShadowRootAware {
       });
       isExpanded = true;
     }
+    gmap.options.mapTypeControl = isExpanded;
   }
 }
