@@ -14,10 +14,8 @@ import 'package:triton_note/model/location.dart';
 import 'package:triton_note/element/distributions_filter.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
-import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
-import 'package:triton_note/util/enums.dart';
 
 final _logger = new Logger('DistributionsPage');
 
@@ -31,6 +29,14 @@ class DistributionsPage extends MainFrame {
   static const DTIME = 1;
   static const DRATE = 2;
 
+  DistributionsPage(Router router) : super(router);
+
+  final Getter<DistributionsFilterElement> filter = new PipeValue();
+
+  Getter<Element> scroller;
+  Getter<Element> scrollBase;
+  Getter<Element> _toolbar;
+
   Getter<CoreAnimatedPages> _pages;
   Getter<PaperTabs> _tabs;
   Getter<PaperActionDialog> _filterDialog;
@@ -39,20 +45,16 @@ class DistributionsPage extends MainFrame {
   int get _selectedIndex => _selectedTab;
   set _selectedIndex(int v) => _pages.value.selected = _tabs.value.selected = _selectedTab = v;
 
-  Getter<DistributionsFilterElement> filter = new PipeValue();
-
-  String get lengthUnit => nameOfEnum(CachedMeasures.lengthUnit);
-  String get weightUnit => nameOfEnum(CachedMeasures.weightUnit);
-
   _Dmap dmap;
-
-  DistributionsPage(Router router) : super(router);
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
     Timer timer = null;
     _pages = new CachedValue(() => root.querySelector('core-animated-pages'));
+    scroller = new CachedValue(() => (root.querySelector('core-header-panel[main]') as CoreHeaderPanel).scroller);
+    scrollBase = _pages;
+    _toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
     _tabs = new CachedValue(() => root.querySelector('paper-tabs'));
     _tabs.value.on['core-select'].listen((event) {
       final tabs = event.target;
@@ -66,7 +68,7 @@ class DistributionsPage extends MainFrame {
     });
     _filterDialog = new CachedValue(() => root.querySelector('paper-action-dialog#distributions-filter'));
 
-    dmap = new _Dmap(root);
+    dmap = new _Dmap(this);
   }
 
   Element get selectedPage => root.querySelectorAll("core-animated-pages section")[_selectedIndex];
@@ -85,19 +87,18 @@ class DistributionsPage extends MainFrame {
 }
 
 class _Dmap {
-  static const toolbarDuration = const Duration(milliseconds: 200);
   static GeoInfo lastPos;
 
-  final ShadowRoot _root;
+  final DistributionsPage _parent;
+  final Element _section;
   final Getter<GoogleMap> gmap = new PipeValue();
-  Getter<Element> scroller;
-  Getter<Element> base;
-  Getter<Element> _toolbar;
 
   GeoInfo pos;
   bool get isReady => pos == null;
 
-  _Dmap(this._root) {
+  _Dmap(DistributionsPage parent)
+      : this._parent = parent,
+        this._section = parent.root.querySelector('core-animated-pages section#dmap') {
     if (lastPos == null) {
       Geo.location().then((v) {
         pos = lastPos = v;
@@ -109,21 +110,17 @@ class _Dmap {
         _initToolbar();
       });
     }
-
-    scroller = new CachedValue(() => (_root.querySelector('core-header-panel[main]') as CoreHeaderPanel).scroller);
-    base = new CachedValue(() => _root.querySelector('core-header-panel[main] core-animated-pages'));
-    _toolbar = new CachedValue(() => _root.querySelector('core-header-panel[main] core-toolbar'));
   }
 
   _initToolbar() => new Future.delayed(new Duration(milliseconds: 10), () {
     toggle(bool open) {
       if (open) {
-        _toolbar.value.style.display = "block";
+        _parent._toolbar.value.style.display = "block";
       } else {
-        _toolbar.value.style.display = "none";
+        _parent._toolbar.value.style.display = "none";
       }
     }
-    _root.querySelector('#dmap #gmap expandable-gmap')
+    _section.querySelector('#gmap expandable-gmap')
       ..on['expanding'].listen((event) => toggle(false))
       ..on['shrinking'].listen((event) => toggle(true));
   });
