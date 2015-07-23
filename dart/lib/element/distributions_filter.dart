@@ -1,6 +1,5 @@
 library triton_note.element.distributions_filter;
 
-import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
@@ -15,6 +14,7 @@ import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('DistributionsFilterElement');
 
@@ -49,8 +49,6 @@ class DistributionsFilterElement extends ShadowRootAware {
 enum _RecentUnit { days, weeks, months }
 
 abstract class _FilterParams {
-  static const _selectDur = const Duration(milliseconds: 10);
-
   final String id;
   final ShadowRoot _root;
   final Map<String, PaperCheckbox> _checkboxes = {};
@@ -64,15 +62,11 @@ abstract class _FilterParams {
   bool isActive(String name) => _checkboxes[name] == null ? false : _checkboxes[name].checked;
 
   PaperCheckbox _checkboxListen(String name, void proc(PaperCheckbox box)) {
-    Timer timer;
-    return _checkboxes[name]
-      ..on['change'].listen((event) {
-        final box = event.target;
-        if (box is PaperCheckbox) {
-          if (timer != null && timer.isActive) timer.cancel();
-          timer = new Timer(_selectDur, () => proc(box));
-        }
-      });
+    final box = _checkboxes[name];
+    listenOn(box, 'change', (event) {
+      proc(box);
+    });
+    return box;
   }
 }
 

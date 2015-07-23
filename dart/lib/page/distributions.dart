@@ -50,21 +50,14 @@ class DistributionsPage extends MainFrame {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    Timer timer = null;
     _pages = new CachedValue(() => root.querySelector('core-animated-pages'));
     scroller = new CachedValue(() => (root.querySelector('core-header-panel[main]') as CoreHeaderPanel).scroller);
     scrollBase = _pages;
     _toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
     _tabs = new CachedValue(() => root.querySelector('paper-tabs'));
-    _tabs.value.on['core-select'].listen((event) {
-      final tabs = event.target;
-      if (tabs is PaperTabs) {
-        if (timer != null && timer.isActive) timer.cancel();
-        timer = new Timer(new Duration(milliseconds: 100), () {
-          _pages.value.selected = _selectedTab = int.parse(tabs.selected.toString());
-          _logger.fine("Selected tab: ${_selectedTab}: ${selectedPage.id}");
-        });
-      }
+    listenOn(_tabs.value, 'core-select', (event) {
+      _pages.value.selected = _selectedTab = int.parse(_tabs.value.selected.toString());
+      _logger.fine("Selected tab: ${_selectedTab}: ${selectedPage.id}");
     });
     _filterDialog = new CachedValue(() => root.querySelector('paper-action-dialog#distributions-filter'));
 

@@ -14,6 +14,17 @@ Future alfterRippling(Proc()) {
   return new Future.delayed(ripplingDuration, Proc);
 }
 
+const listenDur = const Duration(milliseconds: 10);
+void listenOn(Element target, String eventType, void proc(Event event)) {
+  Timer timer;
+  target.on[eventType].listen((event) {
+    if (event.target == target) {
+      if (timer != null && timer.isActive) timer.cancel();
+      timer = new Timer(listenDur, () => proc(event));
+    }
+  });
+}
+
 class MainFrame extends ShadowRootAware {
   final Router router;
   ShadowRoot _root;
