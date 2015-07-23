@@ -24,7 +24,7 @@ final _logger = new Logger('DistributionsFilterElement');
     cssUrl: 'packages/triton_note/element/distributions_filter.css',
     useShadowDom: true)
 class DistributionsFilterElement extends ShadowRootAware {
-  @NgOneWay('setter') Setter<DistributionsFilterElement> setter;
+  @NgOneWayOneTime('setter') set setter(Setter<DistributionsFilterElement> v) => v == null ? null : v.value = this;
 
   ShadowRoot _root;
   Getter<bool> _includeOthers;
@@ -36,7 +36,6 @@ class DistributionsFilterElement extends ShadowRootAware {
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
-    setter.value = this;
 
     _includeOthers =
         new Getter(() => (_root.querySelector('#only-mine paper-toggle-button') as PaperToggleButton).checked);

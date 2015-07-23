@@ -20,7 +20,7 @@ final _logger = new Logger('EditTideDialog');
 class EditTideDialog extends ShadowRootAware {
   static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
 
-  @NgOneWay('setter') Setter<EditTideDialog> setter;
+  @NgOneWayOneTime('setter') set setter(Setter<EditTideDialog> v) => v == null ? null : v.value = this;
   @NgTwoWay('value') Tide value;
 
   ShadowRoot _root;
@@ -29,7 +29,6 @@ class EditTideDialog extends ShadowRootAware {
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
-    setter.value = this;
   }
 
   open() {
