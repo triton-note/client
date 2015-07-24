@@ -36,6 +36,7 @@ class ExpandableGMapElement extends ShadowRootAware {
   int shrinkedHeightReal;
   bool isExpanded = false;
   int toolbarOriginalHeight;
+  GeoInfo curCenter;
 
   Completer<GoogleMap> _readyGMap;
   bool get isReady {
@@ -55,6 +56,8 @@ class ExpandableGMapElement extends ShadowRootAware {
         makeGoogleMap(div, center).then((v) {
           _readyGMap.complete(v);
           if (setGMap != null) setGMap.value = v;
+          curCenter = v.center;
+          v.on('dragend', () => curCenter = v.center);
         });
       }
     }
@@ -120,7 +123,7 @@ class ExpandableGMapElement extends ShadowRootAware {
           final delta = (nextHeight - curHeight) * timeFractal;
           target.style.height = "${curHeight + delta.round()}px";
           gmap.triggerResize();
-          gmap.panTo(center);
+          gmap.panTo(curCenter);
           if (timeFractal == 1) onFinish();
         }
         ..play();
