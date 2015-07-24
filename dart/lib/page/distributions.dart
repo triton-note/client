@@ -9,11 +9,13 @@ import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:paper_elements/paper_tabs.dart';
+import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/element/distributions_filter.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
+import 'package:triton_note/service/catches.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 
@@ -24,18 +26,14 @@ final _logger = new Logger('DistributionsPage');
     templateUrl: 'packages/triton_note/page/distributions.html',
     cssUrl: 'packages/triton_note/page/distributions.css',
     useShadowDom: true)
-class DistributionsPage extends MainFrame {
-  static const DMAP = 0;
-  static const DTIME = 1;
-  static const DRATE = 2;
-
+class DistributionsPage extends MainFrame implements DetachAware {
   DistributionsPage(Router router) : super(router);
 
   final Getter<DistributionsFilterElement> filter = new PipeValue();
 
   Getter<Element> scroller;
   Getter<Element> scrollBase;
-  Getter<Element> _toolbar;
+  Getter<Element> toolbar;
 
   Getter<CoreAnimatedPages> _pages;
   Getter<PaperTabs> _tabs;
@@ -44,6 +42,7 @@ class DistributionsPage extends MainFrame {
   int _selectedTab;
   int get _selectedIndex => _selectedTab;
   set _selectedIndex(int v) => _pages.value.selected = _tabs.value.selected = _selectedTab = v;
+  Element get selectedPage => root.querySelectorAll("core-animated-pages section")[_selectedIndex];
 
   _Dmap dmap;
 
@@ -53,7 +52,7 @@ class DistributionsPage extends MainFrame {
     _pages = new CachedValue(() => root.querySelector('core-animated-pages'));
     scroller = new CachedValue(() => (root.querySelector('core-header-panel[main]') as CoreHeaderPanel).scroller);
     scrollBase = _pages;
-    _toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
+    toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
     _tabs = new CachedValue(() => root.querySelector('paper-tabs'));
     listenOn(_tabs.value, 'core-select', (target) {
       _pages.value.selected = _selectedTab = int.parse(target.selected.toString());
@@ -64,7 +63,9 @@ class DistributionsPage extends MainFrame {
     dmap = new _Dmap(this);
   }
 
-  Element get selectedPage => root.querySelectorAll("core-animated-pages section")[_selectedIndex];
+  void detach() {
+    dmap.detach();
+  }
 
   void openFilter(event) {
     final button = event.target as Element;
@@ -79,42 +80,68 @@ class DistributionsPage extends MainFrame {
   }
 }
 
-class _Dmap {
-  static GeoInfo lastPos;
-
+abstract class _Section {
   final DistributionsPage _parent;
   final Element _section;
-  final Getter<GoogleMap> gmap = new PipeValue();
 
-  GeoInfo pos;
-  bool get isReady => pos == null;
-
-  _Dmap(DistributionsPage parent)
+  _Section(DistributionsPage parent, String id)
       : this._parent = parent,
-        this._section = parent.root.querySelector('core-animated-pages section#dmap') {
-    if (lastPos == null) {
+        this._section = parent.root.querySelector("core-animated-pages section#${id}");
+
+  void detach();
+}
+
+class _Dmap extends _Section {
+  static const refreshDur = const Duration(seconds: 3);
+  static GeoInfo lastCenter;
+
+  _Dmap(DistributionsPage parent) : super(parent, 'dmap') {
+    _logger.fine("Creating ${this}: lastPos=${lastCenter}");
+    if (lastCenter == null) {
       Geo.location().then((v) {
-        pos = lastPos = v;
-        _initToolbar();
+        center = lastCenter = v;
       });
     } else {
-      new Future.delayed(new Duration(milliseconds: 300), () {
-        pos = lastPos;
-        _initToolbar();
-      });
+      center = lastCenter;
     }
+    gmapSetter.future.then(_initGMap);
   }
 
-  _initToolbar() => new Future.delayed(new Duration(milliseconds: 10), () {
-    toggle(bool open) {
-      if (open) {
-        _parent._toolbar.value.style.display = "block";
-      } else {
-        _parent._toolbar.value.style.display = "none";
-      }
-    }
+  final FuturedValue<GoogleMap> gmapSetter = new FuturedValue();
+
+  GeoInfo center;
+  bool get isReady => center == null;
+  List<Catches> listAround;
+  Timer refreshTimer;
+
+  _initGMap(GoogleMap gmap) {
+    _logger.info("Setting GoogeMap up");
     _section.querySelector('#gmap expandable-gmap')
-      ..on['expanding'].listen((event) => toggle(false))
-      ..on['shrinking'].listen((event) => toggle(true));
-  });
+      ..on['expanding'].listen((event) => gmap.options.mapTypeControl = true)
+      ..on['shrinking'].listen((event) => gmap.options.mapTypeControl = false);
+
+    gmap.on('dragend', () {
+      center = lastCenter = gmap.center;
+      _logger.finest("GoogleMap moved center: ${gmap.hashCode} ${center}");
+      final bounds = gmap.bounds;
+      _logger.finest("Refresh timer: ${refreshTimer == null ? null : refreshTimer.isActive}");
+      if (refreshTimer != null && refreshTimer.isActive) refreshTimer.cancel();
+      refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
+    });
+  }
+
+  _refresh(LatLngBounds bounds) async {
+    _logger.finer("Refreshing list around: ${bounds}, ${listAround}");
+    listAround = null;
+    listAround = [];
+  }
+
+  toggleDensity(Event event) {
+    final target = event.target as PaperToggleButton;
+    _logger.finer("Toggle map density: ${target.checked}");
+  }
+
+  void detach() {
+    if (refreshTimer != null && refreshTimer.isActive) refreshTimer.cancel();
+  }
 }

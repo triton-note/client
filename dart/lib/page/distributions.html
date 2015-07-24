@@ -34,13 +34,41 @@
 
         <core-animated-pages transitions="slide-from-right">
             <section id="dmap">
-                <div>
-                    <div id="gmap">
-                        <expandable-gmap center="dmap.pos" set-gmap="dmap.gmap" get-scroller="scroller" get-base="scrollBase"></expandable-gmap>
+                <div id="gmap">
+                    <expandable-gmap center="dmap.center" set-gmap="dmap.gmapSetter" get-scroller="scroller" get-base="scrollBase" get-toolbar="toolbar"></expandable-gmap>
+                    
+                    <div class="switch">
+                        <p>each</p>
+                        <paper-toggle-button ng-change="dmap.toggleDensity($event)"></paper-toggle-button>
+                        <p>density</p>
                     </div>
-                    <div id="settings">
-                        <div>
-                        </div>
+                </div>
+                <div id="around">
+                    <div class="header">
+                        <p>Catches round here</p>
+                    </div>
+                    <div ng-if="dmap.listAround == null" class="loading">
+                        <paper-spinner active class="gray"></paper-spinner>
+                    </div>
+                    <div ng-if="dmap.listAround != null" class="list">
+                        <collapser class="item" ng-repeat="catches in dmap.listAround">
+                            <div id="header">
+                                <div class="fish">
+                                    <p>{{ catches.fish | fishFilter }}</p>
+                                </div>
+                                <div class="date">
+                                    <p>{{ catches.dateAt | date:'yyyy-MM-dd' }}</p>
+                                </div>
+                            </div>
+                            <div id="content">
+                                <div class="weather">
+                                </div>
+                                <div class="tide">
+                                </div>
+                                <div class="moon">
+                                </div>
+                            </div>
+                        </collapser>
                     </div>
                 </div>
             </section>
