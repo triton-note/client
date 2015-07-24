@@ -7,6 +7,7 @@ import 'dart:js';
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/util/geometry.dart';
 import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('GoogleMaps');
@@ -43,9 +44,11 @@ Future<GoogleMap> makeGoogleMap(Element div, GeoInfo center, {int zoom: 8, bool 
   return new GoogleMap(g, options, div);
 }
 
-JsObject _toLatLng(GeoInfo pos) => new JsObject(context['google']['maps']['LatLng'], [pos.latitude, pos.longitude]);
-GeoInfo _fromLatLng(JsObject latLng) =>
-    new GeoInfo.fromMap({'latitude': latLng.callMethod('lat', []), 'longitude': latLng.callMethod('lng', [])});
+JsObject _toLatLng(GeoInfo pos) =>
+    pos == null ? null : new JsObject(context['google']['maps']['LatLng'], [pos.latitude, pos.longitude]);
+GeoInfo _fromLatLng(JsObject latLng) => latLng == null
+    ? null
+    : new GeoInfo.fromMap({'latitude': latLng.callMethod('lat', []), 'longitude': latLng.callMethod('lng', [])});
 
 abstract class Wrapper {
   JsObject get _src;
@@ -80,6 +83,11 @@ class GoogleMap implements Wrapper {
   set center(GeoInfo pos) {
     _logger.fine("Setting gmap center: ${pos}");
     _src.callMethod('setCenter', [_toLatLng(pos)]);
+  }
+
+  LatLngBounds get bounds {
+    final a = _src.callMethod('getBounds', []);
+    return a.callMethod('isEmpty', []) ? null : new LatLngBounds(a);
   }
 
   panTo(GeoInfo pos) {
@@ -143,4 +151,27 @@ class Marker implements Wrapper {
   set map(GoogleMap map) => _src.callMethod('setMap', [map == null ? null : map._src]);
 
   void remove() => map = null;
+}
+
+class LatLngBounds {
+  LatLngBounds(JsObject src) : this._src = src {
+    _sw = _fromLatLng(src.callMethod('getSouthWest', []));
+    _ne = _fromLatLng(src.callMethod('getNorthEast', []));
+    _iLat = new ClosedInterval(_sw.latitude, _ne.latitude);
+    _iLng = new ClosedInterval(_sw.longitude, _ne.longitude);
+  }
+
+  final JsObject _src;
+  GeoInfo _sw, _ne;
+  ClosedInterval _iLat, _iLng;
+
+  @override
+  String toString() => "Bounds(SouthWest: ${_sw}, NorthEast: ${_ne})";
+
+  GeoInfo get southWest => _sw;
+  GeoInfo get northEast => _ne;
+  ClosedInterval get intervalLatitude => _iLat;
+  ClosedInterval get intervalLongitude => _iLng;
+
+  bool contains(GeoInfo o) => _iLat.contains(o.latitude) && _iLng.contains(o.longitude);
 }
