@@ -15,12 +15,12 @@ Future alfterRippling(Proc()) {
 }
 
 const listenDur = const Duration(milliseconds: 10);
-void listenOn(Element target, String eventType, void proc(Event event)) {
+void listenOn(Element target, String eventType, void proc(Element target)) {
   Timer timer;
   target.on[eventType].listen((event) {
     if (event.target == target) {
       if (timer != null && timer.isActive) timer.cancel();
-      timer = new Timer(listenDur, () => proc(event));
+      timer = new Timer(listenDur, () => proc(target));
     }
   });
 }

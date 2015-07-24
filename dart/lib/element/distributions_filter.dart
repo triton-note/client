@@ -63,9 +63,7 @@ abstract class _FilterParams {
 
   PaperCheckbox _checkboxListen(String name, void proc(PaperCheckbox box)) {
     final box = _checkboxes[name];
-    listenOn(box, 'change', (event) {
-      proc(box);
-    });
+    listenOn(box, 'change', proc);
     return box;
   }
 }
