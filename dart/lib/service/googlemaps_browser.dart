@@ -59,22 +59,11 @@ class GoogleMap implements Wrapper {
   final MapOptions options;
   final Element hostElement;
 
-  var _clickListener;
-
   final List<Marker> _markers = [];
 
   GoogleMap(JsObject src, Map options, this.hostElement)
       : this._src = src,
-        this.options = new MapOptions(src, options) {
-    context['google']['maps']['event'].callMethod('addListener', [
-      _src,
-      'click',
-      (mouseEvent) {
-        _logger.finest("Clicked: ${mouseEvent}");
-        if (_clickListener != null) _clickListener(_fromLatLng(mouseEvent['latLng']));
-      }
-    ]);
-  }
+        this.options = new MapOptions(src, options) {}
 
   GeoInfo get center {
     final pos = _src.callMethod('getCenter', []);
@@ -103,7 +92,14 @@ class GoogleMap implements Wrapper {
     return marker;
   }
 
-  set onClick(void proc(GeoInfo pos)) => _clickListener = proc;
+  double get zoom => _src.callMethod('getZoom', []);
+  set zoom(double v) => _src.callMethod('setZoom', [v]);
+
+  set onClick(void proc(GeoInfo pos)) => on('click', (event) => proc(_fromLatLng(event['latLng'])));
+
+  void on(String name, proc) {
+    context['google']['maps']['event'].callMethod('addListener', [_src, name, proc]);
+  }
 
   trigger(String name) => context['google']['maps']['event'].callMethod('trigger', [_src, name]);
   triggerResize() => trigger('resize');
@@ -115,6 +111,7 @@ class MapOptions {
 
   MapOptions(this._gmap, this._src);
 
+  get(String name) => _src[name];
   put(String name, value) {
     _src[name] = value;
     _gmap.callMethod('setOptions', [new JsObject.jsify(_src)]);
