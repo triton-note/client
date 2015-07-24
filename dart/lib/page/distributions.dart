@@ -93,23 +93,21 @@ abstract class _Section {
 
 class _Dmap extends _Section {
   static const refreshDur = const Duration(seconds: 3);
-  static GeoInfo lastCenter;
+  static GeoInfo _lastCenter;
 
   _Dmap(DistributionsPage parent) : super(parent, 'dmap') {
-    _logger.fine("Creating ${this}: lastPos=${lastCenter}");
-    if (lastCenter == null) {
+    _logger.fine("Creating ${this}: lastPos=${_lastCenter}");
+    if (_lastCenter == null) {
       Geo.location().then((v) {
-        center = lastCenter = v;
+        _lastCenter = v;
       });
-    } else {
-      center = lastCenter;
     }
     gmapSetter.future.then(_initGMap);
   }
 
   final FuturedValue<GoogleMap> gmapSetter = new FuturedValue();
 
-  GeoInfo center;
+  GeoInfo get center => _lastCenter;
   bool get isReady => center == null;
   List<Catches> listAround;
   Timer refreshTimer;
@@ -121,10 +119,8 @@ class _Dmap extends _Section {
       ..on['shrinking'].listen((event) => gmap.options.mapTypeControl = false);
 
     gmap.on('dragend', () {
-      center = lastCenter = gmap.center;
-      _logger.finest("GoogleMap moved center: ${gmap.hashCode} ${center}");
+      _lastCenter = gmap.center;
       final bounds = gmap.bounds;
-      _logger.finest("Refresh timer: ${refreshTimer == null ? null : refreshTimer.isActive}");
       if (refreshTimer != null && refreshTimer.isActive) refreshTimer.cancel();
       refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
     });
