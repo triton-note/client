@@ -6,9 +6,7 @@ import 'dart:math' as Math;
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-
 import 'package:core_elements/core_animation.dart';
-import 'package:paper_elements/paper_button.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/getter_setter.dart';
@@ -31,11 +29,13 @@ class ExpandableGMapElement extends ShadowRootAware {
   @NgOneWay('set-gmap') Setter<GoogleMap> setGMap; // Optional (no callback if null)
   @NgOneWay('get-scroller') Getter<Element> getScroller;
   @NgOneWay('get-base') Getter<Element> getBase;
+  @NgOneWay('get-toolbar') Getter<Element> getToolbar; // Optional (default: null, means toolbar does not hide)
   @NgOneWay('center') GeoInfo center;
 
   ShadowRoot _root;
   int shrinkedHeightReal;
   bool isExpanded = false;
+  int toolbarOriginalHeight;
 
   Completer<GoogleMap> _readyGMap;
   bool get isReady {
@@ -54,10 +54,7 @@ class ExpandableGMapElement extends ShadowRootAware {
         _readyGMap = new Completer();
         makeGoogleMap(div, center).then((v) {
           _readyGMap.complete(v);
-          _logger.finest("Callback gmap: ${setGMap}");
           if (setGMap != null) setGMap.value = v;
-
-          _root.querySelector('#toggle paper-button') as PaperButton..disabled = false;
         });
       }
     }
@@ -69,28 +66,35 @@ class ExpandableGMapElement extends ShadowRootAware {
     _root = sr;
   }
 
-  toggle() async {
+  toggle() => alfterRippling(() {
+    _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
+    _toggle();
+  });
+
+  _toggle() async {
     final gmap = await _readyGMap.future;
-    if (gmap == null) return;
-
-    alfterRippling(() {
-      _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
-      _toggle(gmap);
-    });
-  }
-
-  _toggle(final GoogleMap gmap) async {
     final fixScroll = nofixScroll == null || nofixScroll.toLowerCase() == "false";
     final scroller = getScroller.value;
     final base = getBase.value;
     final curHeight = gmap.hostElement.getBoundingClientRect().height.round();
-    final curCenter = gmap.center;
+    final toolbar = (getToolbar == null) ? null : getToolbar.value;
 
-    Future scroll(int nextHeight, int move) {
+    void scroll(int nextHeight, int move) {
       final scrollTo = scroller.scrollTop + move;
 
       _logger.info(
           "Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, scrollTo: ${scrollTo}, duration: ${animationDur}");
+
+      moveToolbar(bool hide) {
+        final frames = [{'height': "${toolbarOriginalHeight}px"}, {'height': "0"}];
+        new CoreAnimation()
+          ..target = toolbar
+          ..duration = animationDur.inMilliseconds
+          ..keyframes = hide ? frames : frames.reversed.toList()
+          ..fill = "forwards"
+          ..play();
+      }
+      if (toolbar != null) moveToolbar(curHeight < nextHeight);
 
       shift(String translation, int duration) => new CoreAnimation()
         ..target = base
@@ -116,21 +120,22 @@ class ExpandableGMapElement extends ShadowRootAware {
           final delta = (nextHeight - curHeight) * timeFractal;
           target.style.height = "${curHeight + delta.round()}px";
           gmap.triggerResize();
-          gmap.panTo(curCenter);
+          gmap.panTo(center);
           if (timeFractal == 1) onFinish();
         }
         ..play();
-
-      return new Future.delayed(animationDur);
     }
 
     if (isExpanded) {
       _logger.fine("Shrink map: ${gmap}");
       if (fixScroll != null && fixScroll) scroller.style.overflowY = "auto";
+
       scroll(shrinkedHeightReal, 0);
       isExpanded = false;
     } else {
       _logger.fine("Expand map: ${gmap}");
+      if (fixScroll != null && fixScroll) scroller.style.overflowY = "hidden";
+
       final int scrollTop = scroller.scrollTop;
       final int top = base.getBoundingClientRect().top.round();
       final offset = top + scrollTop;
@@ -139,21 +144,20 @@ class ExpandableGMapElement extends ShadowRootAware {
       final int curPos = gmap.hostElement.getBoundingClientRect().top.round() - offset;
       _logger.finest("Map host pos: ${curPos}");
 
+      toolbarOriginalHeight = (toolbar == null) ? 0 : toolbar.getBoundingClientRect().height.round();
       if (expandedHeight == null) {
         final button = _root.querySelector('#toggle');
         final int buttonHeight =
             (button.getBoundingClientRect().bottom - gmap.hostElement.getBoundingClientRect().bottom).round();
 
+        _logger.finest("Toolbar height: ${toolbarOriginalHeight}");
         _logger.finest("Window height: ${window.innerHeight}");
         _logger.finest("Toggle area: ${button}:${buttonHeight}");
 
-        expandedHeight = window.innerHeight - offset - buttonHeight;
+        expandedHeight = window.innerHeight - offset - buttonHeight + toolbarOriginalHeight;
       }
-      scroll(expandedHeight, Math.max(0, curPos)).then((_) {
-        if (fixScroll != null && fixScroll) scroller.style.overflowY = "hidden";
-      });
+      scroll(expandedHeight, Math.max(0, curPos));
       isExpanded = true;
     }
-    gmap.options.mapTypeControl = isExpanded;
   }
 }
