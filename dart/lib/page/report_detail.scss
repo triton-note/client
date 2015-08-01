@@ -122,7 +122,7 @@ $edit-button-padding: 8px;
   vertical-align: baseline;
   
   @include font-bold(18px);
-  @include background-image(linear-gradient(#cadaf0, white));
+  @include background-image(linear-gradient($header-color, white));
   
   &>* {
     display: table-cell;

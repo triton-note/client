@@ -1,0 +1,29 @@
+@import "../../web/styles/common";
+
+#base {
+  position: relative;
+}
+
+#value {
+  position: relative;
+  @include display-flex();
+  @include align-items(center);
+}
+
+paper-dropdown {
+  top: 38px;
+  left: 0;
+  right: 0;
+  
+  .list {
+    .item {
+      position: relative;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      
+      p {
+        @include font-light(14px);
+      }
+    }
+  }
+}

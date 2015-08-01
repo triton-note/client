@@ -9,8 +9,11 @@ import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
+import 'package:triton_note/element/distributions_filter.dart';
 import 'package:triton_note/element/fit_image.dart';
 import 'package:triton_note/element/calendar.dart';
+import 'package:triton_note/element/choose_list.dart';
+import 'package:triton_note/element/collapser.dart';
 import 'package:triton_note/element/expandable_gmap.dart';
 import 'package:triton_note/element/expandable_text.dart';
 import 'package:triton_note/element/num_input.dart';
@@ -18,9 +21,7 @@ import 'package:triton_note/page/add_report.dart';
 import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/report_detail.dart';
 import 'package:triton_note/page/preferences.dart';
-import 'package:triton_note/page/map_view.dart';
-import 'package:triton_note/decorator/listen_event.dart';
-import 'package:triton_note/decorator/google_map.dart';
+import 'package:triton_note/page/distributions.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/resource_url_resolver_cordova.dart';
 
@@ -39,8 +40,11 @@ class AppModule extends Module {
     bind(EditTideDialog);
     bind(EditWeatherDialog);
 
+    bind(DistributionsFilterElement);
     bind(FitImageElement);
     bind(CalendarElement);
+    bind(ChooseListElement);
+    bind(CollapserElement);
     bind(ExpandableGMapElement);
     bind(ExpandableTextElement);
     bind(NumInputElement);
@@ -49,10 +53,7 @@ class AppModule extends Module {
     bind(ReportsListPage);
     bind(ReportDetailPage);
     bind(PreferencesPage);
-    bind(MapViewPage);
-
-    bind(ListenChangeValue);
-    bind(GoogleMap);
+    bind(DistributionsPage);
 
     bind(RouteInitializerFn, toValue: getTritonNoteRouteInitializer);
     bind(NgRoutingUsePushState, toValue: new NgRoutingUsePushState.value(false));

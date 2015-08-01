@@ -1,0 +1,90 @@
+<core-drawer-panel id="mainFrame">
+    <core-header-panel drawer>
+        <core-toolbar>
+            <div>Menu</div>
+        </core-toolbar>
+        <core-menu>
+            <core-item icon="view-list" label="Reports List" ng-click="goReportsList()"></core-item>
+	        <core-item icon="settings" label="Preferences" ng-click="goPreferences()"></core-item>
+            <core-item icon="track-changes" label="Distributions" ng-click="goDistributions()"></core-item>
+        </core-menu>
+    </core-header-panel>
+
+    <core-header-panel main mode="waterfall">
+        <core-toolbar>
+        
+            <paper-icon-button icon="menu" ng-click="toggleMenu()"></paper-icon-button>
+        
+            <span flex>Distributions</span>
+            
+            <paper-icon-button icon="filter-list" ng-click="openFilter($event)"></paper-icon-button>
+            <paper-action-dialog id="distributions-filter" transition="core-transition-top" backdrop>
+                <distributions-filter setter="filter"></distributions-filter>
+                <paper-button affirmative style="color: green">OK</paper-button>
+            </paper-action-dialog>
+            
+            <div class="tabs">
+                <paper-tabs selected="0">
+                    <paper-tab>MAP</paper-tab>
+                    <paper-tab>TIME LINE</paper-tab>
+                    <paper-tab>RANKING</paper-tab>
+                </paper-tabs>
+            </div>
+        </core-toolbar>
+
+        <core-animated-pages transitions="slide-from-right">
+            <section id="dmap">
+                <div id="gmap">
+                    <expandable-gmap center="dmap.center" set-gmap="dmap.gmapSetter" get-scroller="scroller" get-base="scrollBase" get-toolbar="toolbar"></expandable-gmap>
+                    
+                    <div class="switch">
+                        <p>each</p>
+                        <paper-toggle-button ng-change="dmap.toggleDensity($event)"></paper-toggle-button>
+                        <p>density</p>
+                    </div>
+                </div>
+                <div id="around">
+                    <div class="header">
+                        <p>Catches round here</p>
+                    </div>
+                    <div ng-if="dmap.listAround == null" class="loading">
+                        <paper-spinner active class="gray"></paper-spinner>
+                    </div>
+                    <div ng-if="dmap.listAround != null" class="list">
+                        <collapser class="item" ng-repeat="catches in dmap.listAround">
+                            <div id="header">
+                                <div class="fish">
+                                    <p>{{ catches.fish | fishFilter }}</p>
+                                </div>
+                                <div class="date">
+                                    <p>{{ catches.dateAt | date:'yyyy-MM-dd' }}</p>
+                                </div>
+                            </div>
+                            <div id="content">
+                                <div class="weather">
+                                </div>
+                                <div class="tide">
+                                </div>
+                                <div class="moon">
+                                </div>
+                            </div>
+                        </collapser>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="dtime">
+                <div>
+                    <p>Page 1</p>
+                </div>
+            </section>
+            
+            <section id="drank">
+                <div>
+                    <p>Page 2</p>
+                </div>
+            </section>
+        </core-animated-pages>
+
+    </core-header-panel>
+</core-drawer-panel>

@@ -16,16 +16,17 @@ final _logger = new Logger('EditTimestampDialog');
     cssUrl: 'packages/triton_note/dialog/edit_timestamp.css',
     useShadowDom: true)
 class EditTimestampDialog extends ShadowRootAware {
+  @NgOneWayOneTime('setter') set setter(Setter<EditTimestampDialog> v) => v == null ? null : v.value = this;
   @NgTwoWay('value') DateTime value;
-  @NgOneWay('setter') Setter<EditTimestampDialog> setter;
+  @NgAttr('without-oclock') String withoutOclock;
 
   ShadowRoot _root;
+  bool get withOclock => withoutOclock == null || withoutOclock.toLowerCase() == "false";
   int tmpOclock = 0;
   DateTime tmpDate = new DateTime.now();
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
-    setter.value = this;
   }
 
   toggle() {

@@ -1,0 +1,45 @@
+@import "../../web/styles/common";
+
+core-toolbar {
+  height: 108px;
+}
+
+section#dmap {
+  #gmap {
+    position: relative;
+    
+    .switch {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      @include display-flex();
+      @include align-items(center);
+      @include font-light(14px);
+      
+      paper-toggle-button {
+        margin: 8px;
+      }
+    }
+  }
+  
+  #around {
+    border-top: solid 3px #eee;
+    
+    .header {
+      padding: 8px;
+    }
+    
+    .loading {
+      @include display-flex();
+      @include justify-content(center);
+    }
+  }
+}
+
+section#dtime {
+  
+}
+
+section#drate {
+  
+}

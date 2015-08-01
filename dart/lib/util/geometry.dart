@@ -96,3 +96,11 @@ class Margin2d {
   @override
   String toString() => "Margin(left: ${left}, right: ${right}, bottom: ${bottom}, top: ${top})";
 }
+
+class ClosedInterval {
+  final double start, end;
+
+  const ClosedInterval(this.start, this.end);
+
+  bool contains(double o) => start <= o && o <= end;
+}

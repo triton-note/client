@@ -5,7 +5,7 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:paper_elements/paper_dialog.dart';
+import 'package:paper_elements/paper_action_dialog.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
@@ -21,11 +21,13 @@ final _logger = new Logger('EditWeatherDialog');
     cssUrl: 'packages/triton_note/dialog/edit_weather.css',
     useShadowDom: true)
 class EditWeatherDialog extends ShadowRootAware {
-  @NgOneWay('setter') Setter<EditWeatherDialog> setter;
+  @NgOneWayOneTime('setter') set setter(Setter<EditWeatherDialog> v) => v == null ? null : v.value = this;
   @NgOneWay('value') Weather value;
+  @NgAttr('without-temperature') String withoutTemperature;
 
   ShadowRoot _root;
-  CachedValue<PaperDialog> _dialog;
+  bool get withTemperature => withoutTemperature == null || withoutTemperature.toLowerCase() == "false";
+  CachedValue<PaperActionDialog> _dialog;
   TemperatureUnit _tUnit;
 
   EditWeatherDialog() {
@@ -34,8 +36,7 @@ class EditWeatherDialog extends ShadowRootAware {
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
-    _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
-    setter.value = this;
+    _dialog = new CachedValue(() => _root.querySelector('paper-action-dialog'));
   }
 
   open() {
@@ -74,6 +75,5 @@ class EditWeatherDialog extends ShadowRootAware {
   changeWeather(String nominal) {
     value.nominal = nominal;
     value.iconUrl = weatherIcon(nominal);
-    _dialog.value.toggle();
   }
 }

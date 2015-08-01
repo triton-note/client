@@ -1,4 +1,4 @@
-<paper-dialog id="weather-dialog" transition="core-transition-center" backdrop>
+<paper-action-dialog id="weather-dialog" transition="core-transition-center" backdrop>
     <style>
         #weather-dialog paper-shadow {
             margin-bottom: 10px;
@@ -34,14 +34,16 @@
         }
     </style>
     <div>
-        <paper-shadow id="temperature" z="1">
-            <div class="row">
-                <num-input value="temperatureValue"></num-input>
-                <p>{{temperatureUnit}}</p>
-            </div>
-        </paper-shadow>
-        
-        <br>
+        <div ng-if="withTemperature">
+            <paper-shadow id="temperature" z="1">
+                <div class="row">
+                    <num-input value="temperatureValue"></num-input>
+                    <p>{{temperatureUnit}}</p>
+                </div>
+            </paper-shadow>
+            
+            <br>
+        </div>
         
         <paper-shadow id="sky" z="1">
             <div class="row" ng-repeat="name in weatherNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
@@ -51,8 +53,8 @@
                 <div class="cell">
                     <p>{{name}}</p>
                 </div>
-                <paper-ripple fit ng-click="changeWeather(name)"></paper-ripple>
+                <paper-ripple fit affirmative ng-click="changeWeather(name)"></paper-ripple>
             </div>
         </paper-shadow>
     </div>
-</paper-dialog>
+</paper-action-dialog>

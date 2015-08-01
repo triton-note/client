@@ -91,12 +91,7 @@ class AddReportPage extends MainFrame {
         report.location.geoinfo = await shop.geoinfo;
       } catch (ex) {
         _logger.info("No GeoInfo in Exif: ${ex}");
-        try {
-          report.location.geoinfo = await Geo.location();
-        } catch (ex) {
-          _logger.info("Failed to get current location: ${ex}");
-          report.location.geoinfo = new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
-        }
+        report.location.geoinfo = await Geo.location();
       }
       renewConditions();
 

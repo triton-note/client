@@ -8,8 +8,21 @@ import 'package:logging/logging.dart';
 
 final _logger = new Logger('MainFrame');
 
+const ripplingDuration = const Duration(milliseconds: 250);
+
 Future alfterRippling(Proc()) {
-  return new Future.delayed(new Duration(milliseconds: 250), Proc);
+  return new Future.delayed(ripplingDuration, Proc);
+}
+
+const listenDur = const Duration(milliseconds: 10);
+void listenOn(Element target, String eventType, void proc(Element target)) {
+  Timer timer;
+  target.on[eventType].listen((event) {
+    if (event.target == target) {
+      if (timer != null && timer.isActive) timer.cancel();
+      timer = new Timer(listenDur, () => proc(target));
+    }
+  });
 }
 
 class MainFrame extends ShadowRootAware {
@@ -34,15 +47,12 @@ class MainFrame extends ShadowRootAware {
     rippling(window.history.back);
   }
 
-  void goPreferences() => rippling(() {
-    _logger.info("Going to preferences");
-    router.go('preferences', {});
+  void _goByMenu(String routeId) => rippling(() {
+    _logger.info("Going to ${routeId}");
+    router.go(routeId, {});
     toggleMenu();
   });
-
-  void goReportsList() => rippling(() {
-    _logger.info("Going to reports-list");
-    router.go('reports-list', {});
-    toggleMenu();
-  });
+  void goReportsList() => _goByMenu('reports-list');
+  void goPreferences() => _goByMenu('preferences');
+  void goDistributions() => _goByMenu('distributions');
 }

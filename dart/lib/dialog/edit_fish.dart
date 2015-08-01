@@ -20,7 +20,7 @@ final _logger = new Logger('EditFishDialog');
     cssUrl: 'packages/triton_note/dialog/edit_fish.css',
     useShadowDom: true)
 class EditFishDialog extends ShadowRootAware {
-  @NgOneWay('setter') Setter<EditFishDialog> setter;
+  @NgOneWayOneTime('setter') set setter(Setter<EditFishDialog> v) => v == null ? null : v.value = this;
 
   Measures _measures;
   ShadowRoot _root;
@@ -51,7 +51,6 @@ class EditFishDialog extends ShadowRootAware {
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     _dialog = new CachedValue(() => _root.querySelector('paper-action-dialog'));
-    setter.value = this;
   }
 
   open(GetterSetter<Fishes> value) {
