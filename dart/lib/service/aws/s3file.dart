@@ -1,4 +1,4 @@
-library triton_note.service.s3file;
+library triton_note.service.aws.s3file;
 
 import 'dart:async';
 import 'dart:js';

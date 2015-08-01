@@ -16,9 +16,7 @@ import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
-import 'package:triton_note/service/upload_session.dart';
 import 'package:triton_note/service/photo_shop.dart';
-import 'package:triton_note/service/server.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
@@ -34,7 +32,6 @@ final _logger = new Logger('AddReportPage');
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
 class AddReportPage extends MainFrame {
-  final Completer<UploadSession> _onSession = new Completer();
   final Report report =
       new Report.fromMap({'id': '', 'userId': '', 'fishes': [], 'location': {}, 'condition': {'weather': {}}});
 
