@@ -7,7 +7,6 @@ import 'package:triton_note/model/location.dart';
 
 abstract class Report implements JsonSupport {
   String id;
-  String userId;
   String comment;
   DateTime dateAt;
   Location location;
@@ -24,7 +23,6 @@ class _ReportImpl extends JsonSupport implements Report {
   final CachedProp<Photo> _photo;
   final CachedProp<Location> _location;
   final CachedProp<Condition> _condition;
-  final CachedProp<List<Fishes>> _fishes;
 
   _ReportImpl(Map data)
       : _data = data,
@@ -33,18 +31,12 @@ class _ReportImpl extends JsonSupport implements Report {
             (DateTime v) => {'N': v.toUtc().millisecondsSinceEpoch.toString()}),
         _photo = new CachedProp<Photo>(data, 'photo', (map) => new Photo.fromMap(map['M'])),
         _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map['M'])),
-        _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map['M'])),
-        _fishes = new CachedProp<List<Fishes>>(data, 'fishes',
-            (map) => map['L'].map((fs) => new Fishes.fromMap(fs)).toList(),
-            (List<Fishes> o) => {'L': o.map((a) => a.asMap).toList()});
+        _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map['M']));
 
   Map get asMap => _data;
 
   String get id => _data['id']['S'];
   set id(String v) => _data['id']['S'] = v;
-
-  String get userId => _data['userId']['S'];
-  set userId(String v) => _data['userId']['S'] = v;
 
   String get comment => _data['comment']['S'];
   set comment(String v) => _data['comment']['S'] = v;
@@ -61,11 +53,11 @@ class _ReportImpl extends JsonSupport implements Report {
   Photo get photo => _photo.value;
   set photo(Photo v) => _photo.value = v;
 
-  List<Fishes> get fishes => _fishes.value;
-  set fishes(List<Fishes> v) => _fishes.value = v;
+  List<Fishes> fishes;
 }
 
 abstract class Fishes implements JsonSupport {
+  String id;
   String name;
   int count;
   Weight weight;
@@ -85,6 +77,8 @@ class _FishesImpl extends JsonSupport implements Fishes {
         _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map['M']));
 
   Map get asMap => _data;
+
+  String id;
 
   String get name => _data['name']['S'];
   set name(String v) => _data['name']['S'] = v;
