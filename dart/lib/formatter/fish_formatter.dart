@@ -9,17 +9,11 @@ import 'package:triton_note/util/enums.dart';
 
 @Formatter(name: 'fishFilter')
 class FishFormatter {
-  static Measures _measures;
-
-  FishFormatter() {
-    if (_measures == null) UserPreferences.measures.then((v) => _measures = v);
-  }
-
   String call(Fishes fish, [int digits = 0]) {
-    if (_measures == null) return null;
+    if (CachedPreferences.measures == null) return null;
 
-    final length = fish.length == null ? null : fish.length.convertTo(_measures.length);
-    final weight = fish.weight == null ? null : fish.weight.convertTo(_measures.weight);
+    final length = fish.length == null ? null : fish.length.convertTo(CachedPreferences.measures.length);
+    final weight = fish.weight == null ? null : fish.weight.convertTo(CachedPreferences.measures.weight);
 
     String rounded(ValueUnit vu) => "${round(vu.value, digits)} ${nameOfEnum(vu.unit)}";
 
