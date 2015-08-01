@@ -30,7 +30,7 @@ class Cognito {
   }
 
   static Future<Identity> get identity =>
-      initialized.then((v) => !v ? null : new Identity(Cognito.identityId, Cognito.logins));
+      initialized.then((v) => !v ? null : new Identity(Cognito._identityId, Cognito.logins));
 
   static Future<bool> _initialize() async {
     _logger.fine("Initializing Cognito ...");
@@ -54,7 +54,7 @@ class Cognito {
     }
   }
 
-  static String get identityId => context['AWS']['config']['credentials']['identityId'];
+  static String get _identityId => context['AWS']['config']['credentials']['identityId'];
   static Map<String, String> get logins {
     final result = {};
     final map = context['AWS']['config']['credentials']['params']['Logins'];
@@ -74,7 +74,7 @@ class Cognito {
     creds['expired'] = true;
 
     final done = await _refresh();
-    if (done) _connected.complete(identityId);
+    if (done) _connected.complete(_identityId);
     return done;
   }
 
