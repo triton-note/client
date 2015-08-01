@@ -32,11 +32,11 @@ class _MeasuresImpl extends JsonSupport implements Measures {
   _MeasuresImpl(Map data)
       : _data = data,
         _temperature = new CachedProp<TemperatureUnit>(
-            data, 'temperature', (o) => enumByName(TemperatureUnit.values, o), (v) => nameOfEnum(v)),
+            data, 'temperature', (map) => enumByName(TemperatureUnit.values, map['S']), (v) => {'S': nameOfEnum(v)}),
         _weight = new CachedProp<WeightUnit>(
-            data, 'weight', (o) => enumByName(WeightUnit.values, o), (v) => nameOfEnum(v)),
+            data, 'weight', (map) => enumByName(WeightUnit.values, map['S']), (v) => {'S': nameOfEnum(v)}),
         _length = new CachedProp<LengthUnit>(
-            data, 'length', (o) => enumByName(LengthUnit.values, o), (v) => nameOfEnum(v));
+            data, 'length', (map) => enumByName(LengthUnit.values, map['S']), (v) => {'S': nameOfEnum(v)});
 
   Map get asMap => _data;
 
@@ -64,7 +64,7 @@ abstract class Temperature extends ValueUnit<Temperature, TemperatureUnit> imple
   factory Temperature.fromMap(Map data) => new _TemperatureImpl(data);
 
   factory Temperature.of(TemperatureUnit unit, double value) {
-    return new Temperature.fromMap({"unit": nameOfEnum(unit), "value": value});
+    return new Temperature.fromMap({"unit": {'S': nameOfEnum(unit)}, "value": {'N': value}});
   }
   factory Temperature.Cels(double value) {
     return new Temperature.of(TemperatureUnit.Cels, value);
@@ -82,12 +82,12 @@ class _TemperatureImpl extends JsonSupport implements Temperature {
   _TemperatureImpl(Map data)
       : _data = data,
         _unit = new CachedProp<TemperatureUnit>(
-            data, 'unit', (o) => enumByName(TemperatureUnit.values, o), (v) => nameOfEnum(v));
+            data, 'unit', (map) => enumByName(TemperatureUnit.values, map['S']), (v) => {'S': nameOfEnum(v)});
 
   Map get asMap => _data;
 
-  double get value => _data['value'];
-  set value(double v) => _data['value'] = v;
+  double get value => double.parse(_data['value']['N']);
+  set value(double v) => _data['value']['N'] = v.toString();
 
   TemperatureUnit get unit => _unit.value;
 
@@ -110,7 +110,7 @@ abstract class Weight extends ValueUnit<Weight, WeightUnit> implements JsonSuppo
   factory Weight.fromMap(Map data) => new _WeightImpl(data);
 
   factory Weight.of(WeightUnit unit, double value) {
-    return new Weight.fromMap({"unit": nameOfEnum(unit), "value": value});
+    return new Weight.fromMap({"unit": {'S': nameOfEnum(unit)}, "value": {'N': value}});
   }
   factory Weight.kg(double value) {
     return new Weight.of(WeightUnit.kg, value);
@@ -138,12 +138,13 @@ class _WeightImpl extends JsonSupport implements Weight {
 
   _WeightImpl(Map data)
       : _data = data,
-        _unit = new CachedProp<WeightUnit>(data, 'unit', (o) => enumByName(WeightUnit.values, o), (v) => nameOfEnum(v));
+        _unit = new CachedProp<WeightUnit>(
+            data, 'unit', (map) => enumByName(WeightUnit.values, map['S']), (v) => {'S': nameOfEnum(v)});
 
   Map get asMap => _data;
 
-  double get value => _data['value'];
-  set value(double v) => _data['value'] = v;
+  double get value => double.parse(_data['value']['N']);
+  set value(double v) => _data['value']['N'] = v.toString();
 
   WeightUnit get unit => _unit.value;
 
@@ -207,7 +208,7 @@ abstract class Length extends ValueUnit<Length, LengthUnit> implements JsonSuppo
   factory Length.fromMap(Map data) => new _LengthImpl(data);
 
   factory Length.of(LengthUnit unit, double value) {
-    return new Length.fromMap({"unit": nameOfEnum(unit), "value": value});
+    return new Length.fromMap({"unit": {'S': nameOfEnum(unit)}, "value": {'N': value}});
   }
   factory Length.cm(double value) {
     return new Length.of(LengthUnit.cm, value);
@@ -227,12 +228,13 @@ class _LengthImpl extends JsonSupport implements Length {
 
   _LengthImpl(Map data)
       : _data = data,
-        _unit = new CachedProp<LengthUnit>(data, 'unit', (o) => enumByName(LengthUnit.values, o), (v) => nameOfEnum(v));
+        _unit = new CachedProp<LengthUnit>(
+            data, 'unit', (map) => enumByName(LengthUnit.values, map['S']), (v) => {'S': nameOfEnum(v)});
 
   Map get asMap => _data;
 
-  double get value => _data['value'];
-  set value(double v) => _data['value'] = v;
+  double get value => double.parse(_data['value']);
+  set value(double v) => _data['value'] = v.toString();
 
   LengthUnit get unit => _unit.value;
 

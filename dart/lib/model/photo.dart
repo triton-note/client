@@ -3,7 +3,7 @@ library triton_note.model.photo;
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/_json_support.dart';
-import 'package:triton_note/service/s3file.dart';
+import 'package:triton_note/service/aws/s3file.dart';
 
 final _logger = new Logger('Photo');
 
@@ -21,8 +21,8 @@ class _PhotoImpl extends JsonSupport implements Photo {
 
   _PhotoImpl(Map data)
       : _data = data,
-        _original = new CachedProp<Image>(data, 'original', (map) => new Image.fromMap(map)),
-        _reduced = new CachedProp<ReducedImages>(data, 'reduced', (map) => new ReducedImages.fromMap(map));
+        _original = new CachedProp<Image>(data, 'original', (map) => new Image.fromMap(map['M'])),
+        _reduced = new CachedProp<ReducedImages>(data, 'reduced', (map) => new ReducedImages.fromMap(map['M']));
 
   Map get asMap => _data;
 
@@ -47,8 +47,8 @@ class _ReducedImagesImpl extends JsonSupport implements ReducedImages {
 
   _ReducedImagesImpl(Map data)
       : _data = data,
-        _mainview = new CachedProp<Image>(data, 'mainview', (map) => new Image.fromMap(map)),
-        _thumbnail = new CachedProp<Image>(data, 'thumbnail', (map) => new Image.fromMap(map));
+        _mainview = new CachedProp<Image>(data, 'mainview', (map) => new Image.fromMap(map['M'])),
+        _thumbnail = new CachedProp<Image>(data, 'thumbnail', (map) => new Image.fromMap(map['M']));
 
   Map get asMap => _data;
 
@@ -76,18 +76,18 @@ class _ImageImpl extends JsonSupport implements Image {
   _ImageImpl(this._data);
   Map get asMap => _data;
 
-  String get path => _data['path'];
-  set path(String v) => _data['path'] = v;
+  String get path => _data['path']['S'];
+  set path(String v) => _data['path']['S'] = v;
 
   String get url {
-    if (path == null) return _data['url'];
+    if (path == null) return _data['url']['S'];
     else {
       _refreshUrl();
       return _url;
     }
   }
   set url(String v) {
-    if (path == null) _data['url'] = v;
+    if (path == null) _data['url']['S'] = v;
     else {
       _url = v;
     }

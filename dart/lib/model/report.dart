@@ -29,25 +29,25 @@ class _ReportImpl extends JsonSupport implements Report {
   _ReportImpl(Map data)
       : _data = data,
         _dateAt = new CachedProp<DateTime>(data, 'dateAt',
-            (int v) => new DateTime.fromMillisecondsSinceEpoch(v, isUtc: true),
-            (DateTime v) => v.toUtc().millisecondsSinceEpoch),
-        _photo = new CachedProp<Photo>(data, 'photo', (Map map) => new Photo.fromMap(map)),
-        _location = new CachedProp<Location>(data, 'location', (Map map) => new Location.fromMap(map)),
-        _condition = new CachedProp<Condition>(data, 'condition', (Map map) => new Condition.fromMap(map)),
+            (map) => new DateTime.fromMillisecondsSinceEpoch(int.parse(map['N']), isUtc: true),
+            (DateTime v) => {'N': v.toUtc().millisecondsSinceEpoch.toString()}),
+        _photo = new CachedProp<Photo>(data, 'photo', (map) => new Photo.fromMap(map['M'])),
+        _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map['M'])),
+        _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map['M'])),
         _fishes = new CachedProp<List<Fishes>>(data, 'fishes',
-            (List list) => list.map((fs) => new Fishes.fromMap(fs)).toList(),
-            (List<Fishes> o) => o.map((a) => a.asMap).toList());
+            (map) => map['L'].map((fs) => new Fishes.fromMap(fs)).toList(),
+            (List<Fishes> o) => {'L': o.map((a) => a.asMap).toList()});
 
   Map get asMap => _data;
 
-  String get id => _data['id'];
-  set id(String v) => _data['id'] = v;
+  String get id => _data['id']['S'];
+  set id(String v) => _data['id']['S'] = v;
 
-  String get userId => _data['userId'];
-  set userId(String v) => _data['userId'] = v;
+  String get userId => _data['userId']['S'];
+  set userId(String v) => _data['userId']['S'] = v;
 
-  String get comment => _data['comment'];
-  set comment(String v) => _data['comment'] = v;
+  String get comment => _data['comment']['S'];
+  set comment(String v) => _data['comment']['S'] = v;
 
   DateTime get dateAt => _dateAt.value;
   set dateAt(DateTime v) => _dateAt.value = v;
@@ -81,16 +81,16 @@ class _FishesImpl extends JsonSupport implements Fishes {
 
   _FishesImpl(Map data)
       : _data = data,
-        _weight = new CachedProp<Weight>(data, 'weight', (map) => new Weight.fromMap(map)),
-        _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map));
+        _weight = new CachedProp<Weight>(data, 'weight', (map) => new Weight.fromMap(map['M'])),
+        _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map['M']));
 
   Map get asMap => _data;
 
-  String get name => _data['name'];
-  set name(String v) => _data['name'] = v;
+  String get name => _data['name']['S'];
+  set name(String v) => _data['name']['S'] = v;
 
-  int get count => _data['count'];
-  set count(int v) => _data['count'] = v;
+  int get count => int.parse(_data['count']['N']);
+  set count(int v) => _data['count']['N'] = v.toString();
 
   Weight get weight => _weight.value;
   set weight(Weight v) => _weight.value = v;

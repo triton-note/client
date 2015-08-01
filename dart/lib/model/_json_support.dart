@@ -12,8 +12,8 @@ abstract class JsonSupport {
   String toString() => JSON.encode(asMap);
 }
 
-typedef T _Decoder<T>(data);
-typedef _Encoder<T>(T obj);
+typedef T _Decoder<T>(Map<String, Object> data);
+typedef Map<String, Object> _Encoder<T>(T obj);
 
 class CachedProp<T> {
   final _data;
@@ -23,7 +23,7 @@ class CachedProp<T> {
   T _cache;
 
   CachedProp(this._data, this._name, this._decode, [_Encoder<T> encode = null])
-      : this._encode = (encode != null) ? encode : ((T o) => o == null ? null : (o as JsonSupport).asMap);
+      : this._encode = (encode != null) ? encode : ((T o) => o == null ? null : {'M': (o as JsonSupport).asMap});
 
   T get value => (_cache != null) ? _cache : (_data[_name] == null) ? null : _cache = _decode(_data[_name]);
   set value(T v) => _data[_name] = _encode(_cache = v);
