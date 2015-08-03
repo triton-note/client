@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/value_unit.dart';
+import 'package:triton_note/model/preferences.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/main_frame.dart';
 
@@ -31,15 +32,15 @@ class PreferencesPage extends MainFrame implements DetachAware {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    UserPreferences.measures.then((v) {
-      measures = v;
+    CachedPreferences.current.then((c) {
+      measures = c.measures;
       new Future.delayed(new Duration(milliseconds: 10), () {
         root.querySelector('#unit #length paper-toggle-button') as PaperToggleButton
-          ..checked = v.length == LengthUnit.cm;
+          ..checked = measures.length == LengthUnit.cm;
         root.querySelector('#unit #weight paper-toggle-button') as PaperToggleButton
-          ..checked = v.weight == WeightUnit.g;
+          ..checked = measures.weight == WeightUnit.g;
         root.querySelector('#unit #temperature paper-toggle-button') as PaperToggleButton
-          ..checked = v.temperature == TemperatureUnit.Cels;
+          ..checked = measures.temperature == TemperatureUnit.Cels;
       });
     });
   }
@@ -79,6 +80,9 @@ class PreferencesPage extends MainFrame implements DetachAware {
 
   void _update() {
     _logger.fine("Update preferences");
-    UserPreferences.update(measures);
+    CachedPreferences.current.then((c) {
+      c.measures = measures;
+      CachedPreferences.update(c);
+    });
   }
 }

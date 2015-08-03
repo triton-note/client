@@ -18,11 +18,11 @@ class CachedPreferences {
     if (_current == null) _current = DynamoDB.TABLE_USER.get().then((data) => new UserPreferences.fromMap(data));
     return _current;
   }
-  static update(UserPreferences v) async {
+  static Future<Null> update(UserPreferences v) async {
     (await current).asMap
       ..clear()
       ..addAll(v.asMap);
-    DynamoDB.TABLE_USER.update(v.asMap);
+    await DynamoDB.TABLE_USER.update(v.asMap);
   }
 
   static Measures _measures;

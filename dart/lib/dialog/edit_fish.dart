@@ -8,6 +8,7 @@ import 'package:paper_elements/paper_action_dialog.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/value_unit.dart';
+import 'package:triton_note/model/preferences.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/enums.dart';
@@ -22,16 +23,12 @@ final _logger = new Logger('EditFishDialog');
 class EditFishDialog extends ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<EditFishDialog> v) => v == null ? null : v.value = this;
 
-  Measures _measures;
+  Measures get _measures => CachedPreferences.measures;
   ShadowRoot _root;
   CachedValue<PaperActionDialog> _dialog;
 
   GetterSetter<Fishes> _original;
   Fishes tmpFish;
-
-  EditFishDialog() {
-    UserPreferences.measures.then((m) => _measures = m);
-  }
 
   // count
   int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
@@ -54,7 +51,7 @@ class EditFishDialog extends ShadowRootAware {
   }
 
   open(GetterSetter<Fishes> value) {
-    UserPreferences.measures.then((m) {
+    CachedPreferences.current.then((_) {
       _original = value;
       final fish = new Fishes.fromMap(new Map.from(_original.value.asMap));
 

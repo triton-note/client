@@ -126,7 +126,8 @@ class AddReportPage extends MainFrame {
           });
         }
         if (cond.weather.temperature != null) {
-          cond.weather.temperature = cond.weather.temperature.convertTo((await UserPreferences.measures).temperature);
+          cond.weather.temperature =
+              cond.weather.temperature.convertTo((await CachedPreferences.current).measures.temperature);
         }
         report.condition = cond;
       }

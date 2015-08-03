@@ -77,8 +77,8 @@ class _Fish extends _FilterParams {
   int weightMin = 0;
   int weightMax = 0;
 
-  String get lengthUnit => nameOfEnum(CachedMeasures.lengthUnit);
-  String get weightUnit => nameOfEnum(CachedMeasures.weightUnit);
+  String get lengthUnit => CachedPreferences.measures == null ? null : nameOfEnum(CachedPreferences.measures.length);
+  String get weightUnit => CachedPreferences.measures == null ? null : nameOfEnum(CachedPreferences.measures.weight);
 
   bool get isActiveName => isActive('name') && name != null && name.isNotEmpty;
 
@@ -95,7 +95,7 @@ class _Conditions extends _FilterParams {
   _Conditions(ShadowRoot root) : super('condition', root);
 
   String get temperatureUnit =>
-      CachedMeasures.temperatureUnit == null ? null : "°${nameOfEnum(CachedMeasures.temperatureUnit)[0]}";
+      CachedPreferences.measures == null ? null : "°${nameOfEnum(CachedPreferences.measures.temperature)[0]}";
 
   Weather weather = new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear']});
   int temperatureMin, temperatureMax;

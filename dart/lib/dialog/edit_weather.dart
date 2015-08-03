@@ -28,11 +28,7 @@ class EditWeatherDialog extends ShadowRootAware {
   ShadowRoot _root;
   bool get withTemperature => withoutTemperature == null || withoutTemperature.toLowerCase() == "false";
   CachedValue<PaperActionDialog> _dialog;
-  TemperatureUnit _tUnit;
-
-  EditWeatherDialog() {
-    UserPreferences.measures.then((m) => _tUnit = m.temperature);
-  }
+  TemperatureUnit get _tUnit => CachedPreferences.measures == null ? null : CachedPreferences.measures.temperature;
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
