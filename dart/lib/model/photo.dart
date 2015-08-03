@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/service/aws/s3file.dart';
+import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('Photo');
 
@@ -67,7 +68,7 @@ abstract class Image implements JsonSupport {
 }
 
 class _ImageImpl extends JsonSupport implements Image {
-  static final _urlLimit = new Duration(seconds: (S3File.urlExpires * 0.9).round());
+  static final _urlLimit = Settings.then((s) => new Duration(seconds: (s.photo.urlTimeout.inSeconds * 0.9).round()));
   DateTime _urlStamp;
   String _url;
   bool _isRefreshing = false;
@@ -93,7 +94,7 @@ class _ImageImpl extends JsonSupport implements Image {
     }
   }
 
-  _refreshUrl() {
+  _refreshUrl() async {
     _doRefresh() async {
       _isRefreshing = true;
       try {
@@ -107,7 +108,7 @@ class _ImageImpl extends JsonSupport implements Image {
     }
     if (!_isRefreshing) {
       final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
-      if (diff == null || diff.compareTo(_urlLimit) > 0) {
+      if (diff == null || diff.compareTo(await _urlLimit) > 0) {
         _logger.info("Refresh url: timestamp difference: ${diff}");
         _doRefresh();
       }

@@ -32,7 +32,7 @@ class DynamoDB {
   DynamoDB(this.tableName);
 
   Future<JsObject> invoke(String methodName, Map param) async {
-    param['TableName'] = "${await Settings.appName}.${tableName}";
+    param['TableName'] = "${(await Settings).appName}.${tableName}";
     final result = new Completer();
     client.callMethod(methodName, [
       new JsObject.jsify(param),

@@ -27,7 +27,7 @@ Future<Null> _append() async {
     final elem = document.createElement('script');
     elem.type = 'text/javascript';
     elem.src =
-        "https://maps.googleapis.com/maps/api/js?v=3&key=${await Settings.googleKey}&sensor=true&callback=${initializer}";
+        "https://maps.googleapis.com/maps/api/js?v=3&key=${(await Settings).googleKey}&sensor=true&callback=${initializer}";
 
     final first = document.getElementsByTagName('script')[0];
     first.parentNode.insertBefore(elem, first);

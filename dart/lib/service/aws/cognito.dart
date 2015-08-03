@@ -35,8 +35,8 @@ class Cognito {
   static Future<bool> _initialize() async {
     _logger.fine("Initializing Cognito ...");
 
-    final awsRegion = await Settings.awsRegion;
-    final cognitoPoolId = await Settings.cognitoPoolId;
+    final awsRegion = (await Settings).awsRegion;
+    final cognitoPoolId = (await Settings).cognitoPoolId;
 
     context['AWS']['config']['region'] = awsRegion;
     final creds = new JsObject(

@@ -1,39 +1,90 @@
 library triton_note.settings;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:html';
 
 import 'package:yaml/yaml.dart';
 
-class Settings {
-  static Map<String, String> _map;
+import 'package:triton_note/service/aws/s3file.dart';
 
-  /**
-   * This method will be invoked automatically.
-   * But you can invoke manually to setup your own map of test.
-   *
-   * @param onFail works only on failed to get settings
-   */
-  static Future<Map<String, String>> initialize([Map<String, String> onFail = null]) async {
+Completer<_Settings> _initializing;
+/**
+ * This method will be invoked automatically.
+ * But you can invoke manually to setup your own map of test.
+ *
+ * @param onFail works only on failed to get settings
+ */
+Future<_Settings> _initialize([Map<String, String> onFail = null]) async {
+  if (_initializing == null) {
+    _initializing = new Completer();
     try {
-      final text = await HttpRequest.getString("settings.yaml");
-      _map = loadYaml(text);
+      final local = loadYaml(await HttpRequest.getString("settings.yaml"));
+      final server = loadYaml(await S3File.read('unauthorized/settings.yaml', local['s3Bucket']));
+      final map = new Map.from(server)..addAll(local);
+      _initializing.complete(new _Settings(map));
     } catch (ex) {
-      _map = (onFail != null) ? new UnmodifiableMapView(onFail) : const {};
+      final local = (onFail != null) ? new Map.unmodifiable(onFail) : const {};
+      _initializing.complete(new _Settings(local));
     }
-    return _map;
   }
+  return _initializing.future;
+}
 
-  static Future<String> _get(String name) async {
-    if (_map == null) {
-      await initialize();
-    }
-    return _map == null ? null : _map[name];
+Future<_Settings> get Settings => _initialize();
+
+class _Settings {
+  _Settings(this._map);
+  final Map _map;
+
+  String get appName => _map['appName'];
+  String get awsRegion => _map['awsRegion'];
+  String get cognitoPoolId => _map['cognitoPoolId'];
+  String get s3Bucket => _map['s3Bucket'];
+  String get googleKey => _map['googleBrowserKey'];
+
+  _Photo _photo;
+  _Photo get photo {
+    if (_photo == null) _photo = new _Photo(_map['photo']);
+    return _photo;
   }
-  static Future<String> get appName => _get('appName');
-  static Future<String> get awsRegion => _get('awsRegion');
-  static Future<String> get cognitoPoolId => _get('cognitoPoolId');
-  static Future<String> get s3Bucket => _get('s3Bucket');
-  static Future<String> get googleKey => _get('googleBrowserKey');
+  _Facebook _facebook;
+  _Facebook get facebook {
+    if (_facebook == null) _facebook = new _Facebook(_map['facebook']);
+    return _facebook;
+  }
+  _OpenWeatherMap _openweathermap;
+  _OpenWeatherMap get openweathermap {
+    if (_openweathermap == null) _openweathermap = new _OpenWeatherMap(_map['openweathermap']);
+    return _openweathermap;
+  }
+}
+
+class _Photo {
+  _Photo(this._map);
+  final Map _map;
+
+  Duration get urlTimeout => new Duration(seconds: _map['urlTimeout']);
+  int get mainviewSize => _map['mainviewSize'];
+  int get thumbnailSize => _map['thumbnailSize'];
+}
+
+class _Facebook {
+  _Facebook(this._map);
+  final Map _map;
+
+  String get host => _map['host'];
+  String get appName => _map['appName'];
+  String get appId => _map['appId'];
+  Duration get imageTimeout => new Duration(seconds: _map['imageTimeout']);
+  String get actionName => _map['actionName'];
+  String get objectName => _map['objectName'];
+}
+
+class _OpenWeatherMap {
+  _OpenWeatherMap(this._map);
+  final Map _map;
+
+  String get url => _map['url'];
+  String get appId => _map['appId'];
+  String get iconUrl => _map['iconUrl'];
 }
