@@ -57,6 +57,11 @@ class _Settings {
     if (_openweathermap == null) _openweathermap = new _OpenWeatherMap(_map['openweathermap']);
     return _openweathermap;
   }
+  _LambdaMap _lambda;
+  _LambdaMap get lambda {
+    if (_lambda == null) _lambda = new _LambdaMap(_map['lambda']);
+    return _lambda;
+  }
 }
 
 class _Photo {
@@ -85,6 +90,20 @@ class _OpenWeatherMap {
   final Map _map;
 
   String get url => _map['url'];
-  String get appId => _map['appId'];
+  String get apiKey => _map['apiKey'];
   String get iconUrl => _map['iconUrl'];
+}
+
+class _LambdaMap {
+  _LambdaMap(this._map);
+  final Map _map;
+
+  _Lambda get moon => new _Lambda(_map['moon']);
+}
+class _Lambda {
+  _Lambda(this._map);
+  final Map _map;
+
+  String get url => _map['url'];
+  String get key => _map['key'];
 }

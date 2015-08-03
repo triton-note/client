@@ -119,6 +119,7 @@ class _WeatherImpl extends JsonSupport implements Weather {
   String get iconUrl => _data['iconUrl']['S'];
   set iconUrl(String v) => _data['iconUrl']['S'] = v;
 
-  Temperature get temperature => (_data['temperature'] == null) ? null : new Temperature.fromMap(_data['temperature']);
-  set temperature(Temperature v) => _data['temperature'] = v.asMap;
+  Temperature get temperature =>
+      (_data['temperature']['M'] == null) ? null : new Temperature.fromMap(_data['temperature']['M']);
+  set temperature(Temperature v) => _data['temperature']['M'] = v.asMap;
 }
