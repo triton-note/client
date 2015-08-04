@@ -40,7 +40,7 @@ class EditWeatherDialog extends ShadowRootAware {
   }
 
   String get temperatureUnit => _tUnit == null ? null : "°${nameOfEnum(_tUnit)[0]}";
-  List<String> get weatherNames => Weather.nominalMap.keys;
+  List<String> weatherNames = Weather.nominalMap.keys;
   String weatherIcon(String nominal) => Weather.nominalMap[nominal];
 
   Timer _weatherDialogTimer;
