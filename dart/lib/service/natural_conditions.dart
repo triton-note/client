@@ -30,10 +30,10 @@ class NaturalConditions {
 
     final moon = await _Moon.at(date);
     final Tide tide = _tideState(geoinfo.longitude, moon.earthLongitude);
-    final map = {'moon': {'N': moon.age.round().toString()}, 'tide': {'S': nameOfEnum(tide)}};
+    final map = {'moon': moon.age.round(), 'tide': nameOfEnum(tide)};
 
     final weather = await weatherWait;
-    if (weather != null) map['weather'] = {'M': weather};
+    if (weather != null) map['weather'] = weather;
     return new Condition.fromMap(map);
   }
 }
@@ -131,9 +131,9 @@ class _OpenWeatherMap {
     final w = json['weather'][0];
     final tv = json['main']['temp'] - 273.15;
     return new Weather.fromMap({
-      'nominal': {'S': w['main']},
-      'iconUrl': {'S': icon(w['icon'])},
-      'temperature': {'M': {'unit': {'S': nameOfEnum(TemperatureUnit.Cels)}, 'value': {'N': tv.toString()}}}
+      'nominal': w['main'],
+      'iconUrl': icon(w['icon']),
+      'temperature': {'unit': nameOfEnum(TemperatureUnit.Cels), 'value': tv.toString()}
     });
   }
 }

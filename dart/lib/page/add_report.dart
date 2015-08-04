@@ -16,13 +16,18 @@ import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
+import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
+import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
+import 'package:triton_note/service/aws/dynamodb.dart';
+import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
+import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('AddReportPage');
 
@@ -32,8 +37,7 @@ final _logger = new Logger('AddReportPage');
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
 class AddReportPage extends MainFrame {
-  final Report report =
-      new Report.fromMap({'id': '', 'userId': '', 'fishes': [], 'location': {}, 'condition': {'weather': {}}});
+  final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
   final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
   final PipeValue<EditFishDialog> fishDialog = new PipeValue();
@@ -69,11 +73,8 @@ class AddReportPage extends MainFrame {
     });
 
     new _Upload(shop).done.then((list) {
-      final original = {'M': {'path': {'S': list[0]}}};
-      final mainview = {'M': {'path': {'S': list[1]}}};
-      final thumbnail = {'M': {'path': {'S': list[2]}}};
-      report.photo =
-          new Photo.fromMap({'original': original, 'reduced': {'M': {'mainview': mainview, 'thumbnail': thumbnail}}});
+      report.photo = new Photo.fromMap(
+          {'original': {'path': list[0]}, 'reduced': {'mainview': {'path': list[1]}, 'thumbnail': {'path': list[2]}}});
       submitable();
     });
 

@@ -27,19 +27,19 @@ class _ReportImpl extends JsonSupport implements Report {
   _ReportImpl(Map data)
       : _data = data,
         _dateAt = new CachedProp<DateTime>(data, 'dateAt',
-            (map) => new DateTime.fromMillisecondsSinceEpoch(int.parse(map['N']), isUtc: true),
-            (DateTime v) => {'N': v.toUtc().millisecondsSinceEpoch.toString()}),
-        _photo = new CachedProp<Photo>(data, 'photo', (map) => new Photo.fromMap(map['M'])),
-        _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map['M'])),
-        _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map['M']));
+            (map) => new DateTime.fromMillisecondsSinceEpoch(int.parse(map), isUtc: true),
+            (DateTime v) => v.toUtc().millisecondsSinceEpoch.toString()),
+        _photo = new CachedProp<Photo>(data, 'photo', (map) => new Photo.fromMap(map)),
+        _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map)),
+        _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map));
 
   Map get asMap => _data;
 
-  String get id => _data['id']['S'];
-  set id(String v) => _data['id']['S'] = v;
+  String get id => _data['id'];
+  set id(String v) => _data['id'] = v;
 
-  String get comment => _data['comment']['S'];
-  set comment(String v) => _data['comment']['S'] = v;
+  String get comment => _data['comment'];
+  set comment(String v) => _data['comment'] = v;
 
   DateTime get dateAt => _dateAt.value;
   set dateAt(DateTime v) => _dateAt.value = v;
@@ -73,18 +73,18 @@ class _FishesImpl extends JsonSupport implements Fishes {
 
   _FishesImpl(Map data)
       : _data = data,
-        _weight = new CachedProp<Weight>(data, 'weight', (map) => new Weight.fromMap(map['M'])),
-        _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map['M']));
+        _weight = new CachedProp<Weight>(data, 'weight', (map) => new Weight.fromMap(map)),
+        _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map));
 
   Map get asMap => _data;
 
   String id;
 
-  String get name => _data['name']['S'];
-  set name(String v) => _data['name']['S'] = v;
+  String get name => _data['name'];
+  set name(String v) => _data['name'] = v;
 
-  int get count => int.parse(_data['count']['N']);
-  set count(int v) => _data['count']['N'] = v.toString();
+  int get count => _data['count'];
+  set count(int v) => _data['count'] = v;
 
   Weight get weight => _weight.value;
   set weight(Weight v) => _weight.value = v;

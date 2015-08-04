@@ -1,6 +1,7 @@
 library triton_note.service.aws.dynamodb;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js';
 import 'dart:math';
 
@@ -66,23 +67,25 @@ class DynamoDB {
     final item = data['Item'];
     if (item == null) return null;
 
-    var content = item['CONTENT'];
+    final map = _ContentDecoder.fromDynamoMap(item);
+    var content = map['CONTENT'];
     if (content == null) content = {};
-    if (id != null) content['id'] = {'S': id};
+    if (id != null) content['id'] = id;
     return content;
   }
 
   Future<Map> put(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
-    final item = await makeKey(createRandomKey());
-    item['CONTENT'] = {'M': new Map.from(content)..remove('id')};
-    item.addAll(alpha);
+    final id = createRandomKey();
+    final item = await makeKey(id);
+    item['CONTENT'] = {'M': _ContentEncoder.toDynamoMap(content)..remove('id')};
+    item.addAll(_ContentEncoder.toDynamoMap(alpha));
     await invoke('putItem', {'Item': item});
-    return new Map.from(content)..['id'] = item["${tableName}_ID"];
+    return new Map.from(content)..['id'] = id;
   }
 
   Future<Null> update(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
-    final attrs = {'CONETNT': {'Action': 'PUT', 'Value': {'M': new Map.from(content)..remove('id')}}};
-    alpha.forEach((key, valueMap) {
+    final attrs = {'CONETNT': {'Action': 'PUT', 'Value': {'M': _ContentEncoder.toDynamoMap(content)..remove('id')}}};
+    _ContentEncoder.toDynamoMap(alpha).forEach((key, valueMap) {
       attrs[key] = {'Action': 'PUT', 'Value': valueMap};
     });
     await invoke('updateItem', {'Key': await makeKey(content['id']), 'AttributeUpdates': attrs});
@@ -90,5 +93,51 @@ class DynamoDB {
 
   Future<Null> delete([String id = null]) async {
     await invoke('deleteItem', {'Key': await makeKey(id)});
+  }
+}
+
+class _ContentDecoder {
+  static decode(Map<String, Object> valueMap) {
+    assert(valueMap.length == 1);
+    final t = valueMap.keys.first;
+    final value = valueMap[t];
+    _logger.finest(() => "Decoding value: '${t}': ${value}");
+    switch (t) {
+      case 'M':
+        return fromDynamoMap(value as Map);
+      case 'L':
+        return (value as List).map((a) => decode(a));
+      case 'S':
+        return value as String;
+      case 'N':
+        return num.parse(value.toString());
+    }
+  }
+
+  static Map fromDynamoMap(dmap) {
+    _logger.finest(() => "Decoding content: ${dmap}");
+    if (dmap is JsObject) return fromDynamoMap(JSON.decode(_stringify(dmap)));
+
+    final result = {};
+    dmap.forEach((key, Map valueMap) {
+      result[key] = decode(valueMap);
+    });
+    _logger.finest(() => "Decoded map: ${result}");
+    return result;
+  }
+}
+class _ContentEncoder {
+  static encode(value) {
+    if (value is Map) return {'M': toDynamoMap(value)};
+    if (value is List) return {'L': value.map((a) => encode(a))};
+    if (value is String) return {'S': value};
+    if (value is num) return {'S': value.toString()};
+  }
+  static Map toDynamoMap(Map map) {
+    final result = {};
+    map.forEach((key, value) {
+      result[key] = encode(value);
+    });
+    return result;
   }
 }

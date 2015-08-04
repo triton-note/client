@@ -85,7 +85,7 @@ class Reports {
     final newFishes = newReport.fishes;
 
     final adding = Future.wait(newFishes.where((fish) => fish.id == null).map((fish) {
-      DynamoDB.TABLE_CATCH.put(fish.asMap, {'REPORT_ID': {'S': newReport.id}}).then((data) => new Fishes.fromMap(data));
+      DynamoDB.TABLE_CATCH.put(fish.asMap, {'REPORT_ID': newReport.id}).then((data) => new Fishes.fromMap(data));
     }));
     final notFounds = oldFishes.map((o) => o.id).toSet().difference(newFishes.map((o) => o.id).toSet());
     final deleting = Future.wait(notFounds.map(DynamoDB.TABLE_CATCH.delete));
@@ -102,7 +102,7 @@ class Reports {
     final newMap = _reducedMap(newReport);
     final updating = (oldMap == newMap)
         ? new Future.value(null)
-        : DynamoDB.TABLE_REPORT.update(newMap, {'DATE_AT': {'N': newMap['dateAt']}});
+        : DynamoDB.TABLE_REPORT.update(newMap, {'DATE_AT': newMap['dateAt']});
 
     newFishes
       ..removeWhere((fish) => fish.id == null)
@@ -114,11 +114,11 @@ class Reports {
     _logger.finest("Adding report: ${report}");
     final content = _reducedMap(report);
     final newReport = await DynamoDB.TABLE_REPORT
-        .put(content, {'DATE_AT': {'N': content['dateAt']}})
+        .put(content, {'DATE_AT': content['dateAt']})
         .then((data) => new Report.fromMap(data));
 
     final flist = Future.wait(report.fishes.map((fish) {
-      DynamoDB.TABLE_CATCH.put(fish.asMap, {'REPORT_ID': {'S': newReport.id}}).then((data) => new Fishes.fromMap(data));
+      DynamoDB.TABLE_CATCH.put(fish.asMap, {'REPORT_ID': newReport.id}).then((data) => new Fishes.fromMap(data));
     }));
 
     await flist.then((fishes) {

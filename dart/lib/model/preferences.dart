@@ -20,7 +20,7 @@ class _UserPreferencesImpl extends JsonSupport implements UserPreferences {
 
   _UserPreferencesImpl(Map data)
       : _data = data,
-        _measures = new CachedProp<Measures>(data, 'measures', (map) => new Measures.fromMap(map['M']));
+        _measures = new CachedProp<Measures>(data, 'measures', (map) => new Measures.fromMap(map));
 
   Map get asMap => _data;
 
@@ -45,11 +45,11 @@ class _MeasuresImpl extends JsonSupport implements Measures {
   _MeasuresImpl(Map data)
       : _data = data,
         _temperature = new CachedProp<TemperatureUnit>(
-            data, 'temperature', (map) => enumByName(TemperatureUnit.values, map['S']), (v) => {'S': nameOfEnum(v)}),
+            data, 'temperature', (map) => enumByName(TemperatureUnit.values, map), (v) => nameOfEnum(v)),
         _weight = new CachedProp<WeightUnit>(
-            data, 'weight', (map) => enumByName(WeightUnit.values, map['S']), (v) => {'S': nameOfEnum(v)}),
+            data, 'weight', (map) => enumByName(WeightUnit.values, map), (v) => nameOfEnum(v)),
         _length = new CachedProp<LengthUnit>(
-            data, 'length', (map) => enumByName(LengthUnit.values, map['S']), (v) => {'S': nameOfEnum(v)});
+            data, 'length', (map) => enumByName(LengthUnit.values, map), (v) => nameOfEnum(v));
 
   Map get asMap => _data;
 
