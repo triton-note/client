@@ -33,11 +33,13 @@ class DynamoDB {
 
   Future<JsObject> invoke(String methodName, Map param) async {
     param['TableName'] = "${(await Settings).appName}.${tableName}";
+    _logger.finest(() => "Invoking '${methodName}': ${param}");
     final result = new Completer();
     client.callMethod(methodName, [
       new JsObject.jsify(param),
       (error, data) {
         if (error) {
+          _logger.warning("Failed to ${methodName}: ${error}");
           result.completeError(error);
         } else {
           _logger.finest("Result(${methodName}): ${_stringify(data)}");
@@ -61,7 +63,11 @@ class DynamoDB {
 
   Future<Map> get([String id = null]) async {
     final data = await invoke('getItem', {'Key': await makeKey(id), 'ProjectionExpression': "CONTENT"});
-    final content = data['Item']['CONTENT'];
+    final item = data['Item'];
+    if (item == null) return null;
+
+    var content = item['CONTENT'];
+    if (content == null) content = {};
     if (id != null) content['id'] = {'S': id};
     return content;
   }
