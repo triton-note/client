@@ -3,9 +3,12 @@ library triton_note.settings;
 import 'dart:async';
 import 'dart:html';
 
+import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:triton_note/service/aws/s3file.dart';
+
+final _logger = new Logger('Settings');
 
 Completer<_Settings> _initializing;
 /**
@@ -18,12 +21,19 @@ Future<_Settings> _initialize([Map<String, String> onFail = null]) async {
   if (_initializing == null) {
     _initializing = new Completer();
     try {
-      final local = loadYaml(await HttpRequest.getString("settings.yaml"));
-      final server = loadYaml(await S3File.read('unauthorized/settings.yaml', local['s3Bucket']));
+      Map read(String text) {
+        _logger.finest(() => "Reading YAML: ${text}");
+        return loadYaml(text);
+      }
+      final local = read(await HttpRequest.getString("settings.yaml"));
+      final server = read(
+          await S3File.read('unauthorized/settings.yaml', local['s3Bucket'], local['accessKey'], local['secretKey']));
       final map = new Map.from(server)..addAll(local);
+      _logger.config("using: ${map}");
       _initializing.complete(new _Settings(map));
     } catch (ex) {
       final local = (onFail != null) ? new Map.unmodifiable(onFail) : const {};
+      _logger.warning("Failed to get yaml file: ${ex}, using: ${local}");
       _initializing.complete(new _Settings(local));
     }
   }

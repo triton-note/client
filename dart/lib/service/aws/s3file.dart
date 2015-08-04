@@ -3,12 +3,15 @@ library triton_note.service.aws.s3file;
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
+import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('S3File');
+
+String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
 class S3File {
   static final s3 = new JsObject(context['AWS']['S3'], []);
@@ -37,21 +40,32 @@ class S3File {
     return result.future;
   }
 
-  static Future<String> read(String path, [String bucket = null]) async {
+  static Future<String> read(String path,
+      [String bucket = null, String accessKey = null, String secretKey = null]) async {
     final result = new Completer();
     try {
-      s3.callMethod('getObject', [
-        new JsObject.jsify({'Bucket': bucket == null ? (await Settings).s3Bucket : bucket, 'Key': path}),
+      final bucketName = bucket != null ? bucket : (await Settings).s3Bucket;
+      final client = (accessKey == null || secretKey == null)
+          ? s3
+          : new JsObject(
+              context['AWS']['S3'], [new JsObject.jsify({'accessKeyId': accessKey, 'secretAccessKey': secretKey})]);
+      _logger.finest("Reading ${bucketName}/${path}");
+      client.callMethod('getObject', [
+        new JsObject.jsify({'Bucket': bucketName, 'Key': path}),
         (error, data) {
           if (error != null) {
+            _logger.fine("Error on read object(${path}): ${error}");
             result.completeError(error);
           } else {
-            final body = data['Body'].callMethod('toString', []);
-            result.complete(body);
+            _logger.finest(() => "Read object: ${_stringify(data)}");
+            final body = data['Body'];
+            final text = new String.fromCharCodes(body);
+            result.complete(text);
           }
         }
       ]);
     } catch (ex) {
+      _logger.fine("Failed to read object(${path}): ${ex}");
       result.completeError(ex);
     }
     return result.future;
