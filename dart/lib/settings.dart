@@ -28,7 +28,7 @@ Future<_Settings> _initialize([Map<String, String> onFail = null]) async {
       final local = read(await HttpRequest.getString("settings.yaml"));
       final server = read(
           await S3File.read('unauthorized/settings.yaml', local['s3Bucket'], local['accessKey'], local['secretKey']));
-      final map = new Map.from(server)..addAll(local);
+      final map = new Map.from(server);
       _logger.config("using: ${map}");
       _initializing.complete(new _Settings(map));
     } catch (ex) {
