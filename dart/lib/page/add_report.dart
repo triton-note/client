@@ -94,7 +94,7 @@ class AddReportPage extends MainFrame {
       renewConditions();
 
       try {
-        final inference = await session.infer(report.location.geoinfo, report.dateAt);
+        final inference = null;
         if (inference != null) {
           if (inference.spotName != null && inference.spotName.length > 0) {
             report.location.name = inference.spotName;
@@ -117,7 +117,7 @@ class AddReportPage extends MainFrame {
     try {
       _logger.finest("Getting conditions by report info: ${report}");
       if (report.dateAt != null && report.location.geoinfo != null) {
-        final cond = await Server.getConditions(report.dateAt, report.location.geoinfo);
+        final cond = await NaturalConditions.at(report.dateAt, report.location.geoinfo);
         _logger.fine("Get conditions: ${cond}");
         if (cond.weather == null) {
           cond.weather = new Weather.fromMap({
@@ -195,7 +195,7 @@ class AddReportPage extends MainFrame {
   submit() => rippling(() async {
     _logger.finest("Submitting report: ${report}");
     if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
-    (await _onSession.future).submit(report);
+    Reports.add(report);
     back();
   });
 }
