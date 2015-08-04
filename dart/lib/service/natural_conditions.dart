@@ -120,10 +120,15 @@ class _OpenWeatherMap {
   }
 
   Future<Weather> call(GeoInfo geoinfo, DateTime date) async {
-    if (date.toUtc().difference(new DateTime.now().toUtc()).inHours < 3) {
-      return current(geoinfo);
-    } else {
-      return past(geoinfo, date.toUtc());
+    try {
+      if (date.toUtc().difference(new DateTime.now().toUtc()).inHours < 3) {
+        return current(geoinfo);
+      } else {
+        return past(geoinfo, date.toUtc());
+      }
+    } catch (ex) {
+      _logger.warning("Failed to obtain weather info: ${ex}");
+      return null;
     }
   }
 
