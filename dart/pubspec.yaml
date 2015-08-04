@@ -3,6 +3,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
   angular: any
+  image: any
   paper_elements: any
   polymer: any
 dev_dependencies:
