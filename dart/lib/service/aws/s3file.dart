@@ -3,7 +3,6 @@ library triton_note.service.aws.s3file;
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
-import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
 
@@ -71,16 +70,18 @@ class S3File {
     return result.future;
   }
 
-  static Future<Null> upload(String path, Blob data) async {
+  static Future<Null> putObject(String path, Blob data) async {
     final result = new Completer();
     try {
       final bucket = (await Settings).s3Bucket;
-      s3.callMethod('upload', [
+      s3.callMethod('putObject', [
         new JsObject.jsify({'Bucket': bucket, 'Key': path, 'Body': data}),
         (error, data) {
           if (error != null) {
+            _logger.warning("Failed to put object: ${path}");
             result.completeError(error);
           } else {
+            _logger.finer("Success to put object: ${path}");
             result.complete();
           }
         }
