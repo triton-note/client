@@ -68,15 +68,16 @@ class AddReportPage extends MainFrame {
       report.photo = new Photo.fromMap({'reduced': {'mainview': {'url': url}}});
     });
 
+    new _Upload(shop).done.then((list) {
+      final original = {'M': {'path': {'S': list[0]}}};
+      final mainview = {'M': {'path': {'S': list[1]}}};
+      final thumbnail = {'M': {'path': {'S': list[2]}}};
+      report.photo =
+          new Photo.fromMap({'original': original, 'reduced': {'M': {'mainview': mainview, 'thumbnail': thumbnail}}});
+      submitable();
+    });
+
     shop.photo.then((photo) async {
-      final session = new UploadSession(photo);
-      _onSession.complete(session);
-
-      session.photo.then((v) async {
-        report.photo = v;
-        submitable();
-      });
-
       try {
         report.dateAt = await shop.timestamp;
       } catch (ex) {
@@ -246,4 +247,32 @@ class _Conditions {
   String get tideName => value.tide == null ? null : nameOfEnum(value.tide);
   String get tideImage => tideName == null ? null : Tides.iconBy(tideName);
   String get moonImage => _condition.value.moon == null ? null : MoonPhases.iconOf(_condition.value.moon);
+}
+
+class _Upload {
+  final PhotoShop _shop;
+  final _onOriginal = new Completer<String>();
+  final _onMainview = new Completer<String>();
+  final _onThumbnail = new Completer<String>();
+
+  _Upload(this._shop) {
+    _doUpload();
+  }
+
+  _doUpload() async {
+    final s = await Settings;
+    final sessionId = DynamoDB.createRandomKey();
+    final pathPrefix = "user/${await DynamoDB.cognitoId}/photo/${sessionId}";
+
+    _upload(String path, Future<Blob> bf, Completer<String> fin) async {
+      final data = await bf;
+      await S3File.putObject(path, data);
+      fin.complete(path);
+    }
+    _upload("${pathPrefix}/original/photo_file", _shop.photo, _onOriginal);
+    _upload("${pathPrefix}/reduced/mainview/photo_file", _shop.resize(s.photo.mainviewSize), _onMainview);
+    _upload("${pathPrefix}/reduced/thumbnail/photo_file", _shop.resize(s.photo.thumbnailSize), _onThumbnail);
+  }
+
+  Future<List<String>> get done => Future.wait([_onOriginal.future, _onMainview.future, _onThumbnail.future]);
 }
