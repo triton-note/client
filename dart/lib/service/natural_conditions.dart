@@ -30,7 +30,7 @@ class NaturalConditions {
 
     final moon = await _Moon.at(date);
     final Tide tide = _tideState(geoinfo.longitude, moon.earthLongitude);
-    final map = {'moon': {'N': moon.age.toString()}, 'tide': {'S': nameOfEnum(tide)}};
+    final map = {'moon': {'N': moon.age.round().toString()}, 'tide': {'S': nameOfEnum(tide)}};
 
     final weather = await weatherWait;
     if (weather != null) map['weather'] = {'M': weather};
@@ -59,8 +59,8 @@ class _Moon {
   _Moon(this._src);
   final Map _src;
 
-  int get age => _src['age'];
-  double get earthLongitude => _src['earthLongitude'];
+  double get age => _src['age'];
+  double get earthLongitude => _src['earth-longitude'];
 }
 
 class _OpenWeatherMap {
@@ -73,7 +73,8 @@ class _OpenWeatherMap {
   Future<String> get apiKey async => (await Settings).openweathermap.apiKey;
   Future<String> icon(String id) async => "${(await Settings).openweathermap.iconUrl}/${id}.png";
 
-  Future<Map> _get(String path, GeoInfo geoinfo, [Map<String, String> params = const {}]) async {
+  Future<Map> _get(String path, GeoInfo geoinfo, [Map<String, String> params = null]) async {
+    if (params == null) params = {};
     params['APPID'] = await apiKey;
     params['lat'] = geoinfo.latitude.toStringAsFixed(8);
     params['lon'] = geoinfo.longitude.toStringAsFixed(8);
