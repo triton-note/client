@@ -68,7 +68,7 @@ abstract class Image implements JsonSupport {
 }
 
 class _ImageImpl extends JsonSupport implements Image {
-  static final _urlLimit = Settings.then((s) => new Duration(seconds: (s.photo.urlTimeout.inSeconds * 0.9).round()));
+  Duration _urlLimit;
   DateTime _urlStamp;
   String _url;
   bool _isRefreshing = false;
@@ -94,21 +94,25 @@ class _ImageImpl extends JsonSupport implements Image {
     }
   }
 
-  _refreshUrl() async {
-    _doRefresh() async {
+  _refreshUrl() {
+    if (_urlLimit == null) Settings.then((s) {
+      final v = s.photo.urlTimeout.inSeconds * 0.9;
+      _urlLimit = new Duration(seconds: v.round());
+    });
+    _doRefresh() {
       _isRefreshing = true;
-      try {
-        url = await S3File.url(path);
+      S3File.url(path).then((v) {
+        url = v;
         _urlStamp = new DateTime.now();
-      } catch (ex) {
+      }).catchError((ex) {
         _logger.info("Failed to get url of s3file: ${ex}");
-      } finally {
+      }).whenComplete(() {
         _isRefreshing = false;
-      }
+      });
     }
     if (!_isRefreshing) {
       final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
-      if (diff == null || diff.compareTo(await _urlLimit) > 0) {
+      if (diff == null || (_urlLimit != null && _urlLimit < diff)) {
         _logger.info("Refresh url: timestamp difference: ${diff}");
         _doRefresh();
       }
