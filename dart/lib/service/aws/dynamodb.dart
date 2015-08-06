@@ -75,7 +75,7 @@ class DynamoDB {
   }
 
   Future<Map> put(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
-    final id = createRandomKey();
+    final id = alpha.containsKey('id') ? alpha['id'] : createRandomKey();
     final item = await makeKey(id);
     item['CONTENT'] = {'M': _ContentEncoder.toDynamoMap(content)..remove('id')};
     item.addAll(_ContentEncoder.toDynamoMap(alpha));

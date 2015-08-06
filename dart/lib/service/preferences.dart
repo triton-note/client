@@ -17,8 +17,8 @@ class CachedPreferences {
   static Future<UserPreferences> get current {
     if (_current == null) _current = DynamoDB.TABLE_USER.get().then((data) async {
       if (data != null) return new UserPreferences.fromMap(data);
-      final content = {'measure': {'temperature': "Cels", 'weight': "g", 'length': "cm"}};
-      final map = await DynamoDB.TABLE_USER.put(content);
+      final content = {'measures': {'temperature': "Cels", 'weight': "g", 'length': "cm"}};
+      final map = await DynamoDB.TABLE_USER.put(content, {'id': null});
       return new UserPreferences.fromMap(map);
     });
     return _current;
