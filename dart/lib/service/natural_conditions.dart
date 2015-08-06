@@ -14,8 +14,6 @@ import 'package:triton_note/settings.dart';
 final _logger = new Logger('NaturalConditions');
 
 class NaturalConditions {
-  static final _OpenWeatherMap _weather = new _OpenWeatherMap(const Duration(seconds: 30), 3);
-
   static Tide _tideState(double degOrigin, double degMoon) {
     final angle = ((degMoon - degOrigin + 15) + 180) % 180;
     _logger.fine("TideMoon origin(${degOrigin}) -> moon(${degMoon}): ${angle}");
@@ -26,34 +24,23 @@ class NaturalConditions {
   }
 
   static Future<Condition> at(DateTime date, GeoInfo geoinfo) async {
-    final weatherWait = _weather(geoinfo, date);
+    final weatherWait = _OpenWeatherMap.at(geoinfo, date);
 
     final moon = await _Moon.at(date);
     final Tide tide = _tideState(geoinfo.longitude, moon.earthLongitude);
-    final map = {'moon': moon.age.round(), 'tide': nameOfEnum(tide)};
+
+    final result = new Condition.fromMap({'moon': moon.age.round(), 'tide': nameOfEnum(tide)});
 
     final weather = await weatherWait;
-    if (weather != null) map['weather'] = weather;
-    return new Condition.fromMap(map);
+    if (weather != null) result.weather = weather;
+    return result;
   }
 }
 
 class _Moon {
-  static Future<String> get url async => (await Settings).lambda.moon.url;
   static Future<_Moon> at(DateTime date) async {
-    final result = new Completer();
-    final req = new HttpRequest()
-      ..open('POST', await url)
-      ..setRequestHeader('x-api-key', (await Settings).lambda.moon.key)
-      ..send({'date': date.toUtc().millisecondsSinceEpoch});
-    req.onLoadEnd.listen((event) {
-      final text = req.responseText;
-      _logger.finest("Response: ${text}");
-      result.complete(new _Moon(JSON.decode(text)));
-    });
-    req.onError.listen((event) => result.completeError(req.responseText));
-    req.onTimeout.listen((event) => result.completeError(event));
-    return result.future;
+    final map = await _lambda((await Settings).lambda.moon, {'date': date.toUtc().millisecondsSinceEpoch.toString()});
+    return new _Moon(map);
   }
 
   _Moon(this._src);
@@ -64,81 +51,39 @@ class _Moon {
 }
 
 class _OpenWeatherMap {
-  final Duration delay;
-  final int countMax;
+  static Future<String> icon(String id) async => "${(await Settings).openweathermap.iconUrl}/${id}.png";
 
-  _OpenWeatherMap(this.delay, this.countMax);
-
-  Future<String> get url async => (await Settings).openweathermap.url;
-  Future<String> get apiKey async => (await Settings).openweathermap.apiKey;
-  Future<String> icon(String id) async => "${(await Settings).openweathermap.iconUrl}/${id}.png";
-
-  Future<Map> _get(String path, GeoInfo geoinfo, [Map<String, String> params = null]) async {
-    if (params == null) params = {};
-    params['APPID'] = await apiKey;
-    params['lat'] = geoinfo.latitude.toStringAsFixed(8);
-    params['lon'] = geoinfo.longitude.toStringAsFixed(8);
-
-    task() async {
-      final result = new Completer();
-      final req = new HttpRequest()
-        ..open('GET', await url)
-        ..send(params);
-      req.onLoadEnd.listen((event) {
-        final text = req.responseText;
-        _logger.finest("Response: ${text}");
-        result.complete(JSON.decode(text));
-      });
-      req.onError.listen((event) => result.completeError(req.responseText));
-      req.onTimeout.listen((event) => result.completeError(event));
-      return result.future;
-    }
-
-    retry(int count) async {
-      try {
-        return await task();
-      } catch (ex) {
-        if (count > 0) return await retry(count - 1);
-        throw ex;
-      }
-    }
-    return await retry(countMax);
-  }
-
-  Future<Weather> past(GeoInfo geoinfo, DateTime date) async {
-    final res = await _get("history/city", geoinfo, {
-      'type': "hour",
-      'start': (date.millisecondsSinceEpoch / 1000).toString(),
-      'cnt': "1"
+  static Future<Weather> at(GeoInfo geoinfo, DateTime date) async {
+    final map = await _lambda((await Settings).lambda.weather, {
+      'apiKey': (await Settings).openweathermap.apiKey,
+      'date': date.toUtc().millisecondsSinceEpoch.toString(),
+      'lat': geoinfo.latitude.toStringAsFixed(8),
+      'lng': geoinfo.longitude.toStringAsFixed(8)
     });
-    if (res['cnt'] < 1) return null;
-    return _makeWeather(res['list'][0]);
-  }
-  Future<Weather> current(GeoInfo geoinfo) async {
-    final res = await _get("weather", geoinfo);
-    return _makeWeather(res);
-  }
-
-  Future<Weather> call(GeoInfo geoinfo, DateTime date) async {
-    try {
-      if (date.toUtc().difference(new DateTime.now().toUtc()).inHours < 3) {
-        return current(geoinfo);
-      } else {
-        return past(geoinfo, date.toUtc());
-      }
-    } catch (ex) {
-      _logger.warning("Failed to obtain weather info: ${ex}");
-      return null;
-    }
-  }
-
-  Weather _makeWeather(Map json) {
-    final w = json['weather'][0];
-    final tv = json['main']['temp'] - 273.15;
     return new Weather.fromMap({
-      'nominal': w['main'],
-      'iconUrl': icon(w['icon']),
-      'temperature': {'unit': nameOfEnum(TemperatureUnit.Cels), 'value': tv.toString()}
+      'nominal': map['nominal'],
+      'iconUrl': await icon(map['iconId']),
+      'temperature': {'unit': nameOfEnum(TemperatureUnit.Cels), 'value': map['temperature']}
     });
   }
+}
+
+Future<Map> _lambda(LambdaInfo lambda, Map<String, String> dataMap) async {
+  final sendData = new FormData();
+  dataMap.forEach(sendData.append);
+
+  final result = new Completer();
+  final req = new HttpRequest()
+    ..open('POST', lambda.url)
+    ..setRequestHeader('x-api-key', lambda.key)
+    ..setRequestHeader('Content-Type', 'application/json')
+    ..send(JSON.encode(dataMap));
+  req.onLoadEnd.listen((event) {
+    final text = req.responseText;
+    _logger.finest("Response of Lambda: (Status:${req.status}) ${text}");
+    if (req.status == 200) result.complete(JSON.decode(text));
+  });
+  req.onError.listen((event) => result.completeError(req.responseText));
+  req.onTimeout.listen((event) => result.completeError(event));
+  return result.future;
 }

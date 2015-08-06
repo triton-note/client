@@ -108,10 +108,11 @@ class _LambdaMap {
   _LambdaMap(this._map);
   final Map _map;
 
-  _Lambda get moon => new _Lambda(_map['moon']);
+  LambdaInfo get moon => new LambdaInfo(_map['moon']);
+  LambdaInfo get weather => new LambdaInfo(_map['weather']);
 }
-class _Lambda {
-  _Lambda(this._map);
+class LambdaInfo {
+  LambdaInfo(this._map);
   final Map _map;
 
   String get url => _map['url'];
