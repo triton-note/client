@@ -60,7 +60,9 @@ class _OpenWeatherMap {
       'lat': geoinfo.latitude.toStringAsFixed(8),
       'lng': geoinfo.longitude.toStringAsFixed(8)
     });
-    return new Weather.fromMap({
+    return (map.isEmpty)
+        ? null
+        : new Weather.fromMap({
       'nominal': map['nominal'],
       'iconUrl': await icon(map['iconId']),
       'temperature': {'unit': nameOfEnum(TemperatureUnit.Cels), 'value': map['temperature']}
