@@ -69,21 +69,24 @@ class _OpenWeatherMap {
 }
 
 Future<Map> _lambda(LambdaInfo lambda, Map<String, String> dataMap) async {
-  final sendData = new FormData();
-  dataMap.forEach(sendData.append);
-
   final result = new Completer();
-  final req = new HttpRequest()
-    ..open('POST', lambda.url)
-    ..setRequestHeader('x-api-key', lambda.key)
-    ..setRequestHeader('Content-Type', 'application/json')
-    ..send(JSON.encode(dataMap));
-  req.onLoadEnd.listen((event) {
-    final text = req.responseText;
-    _logger.finest("Response of Lambda: (Status:${req.status}) ${text}");
-    if (req.status == 200) result.complete(JSON.decode(text));
-  });
-  req.onError.listen((event) => result.completeError(req.responseText));
-  req.onTimeout.listen((event) => result.completeError(event));
+  try {
+    final name = lambda.url.split('/').last;
+
+    final req = new HttpRequest()
+      ..open('POST', lambda.url)
+      ..setRequestHeader('x-api-key', lambda.key)
+      ..setRequestHeader('Content-Type', 'application/json')
+      ..send(JSON.encode(dataMap));
+    req.onLoadEnd.listen((event) {
+      final text = req.responseText;
+      _logger.finest("Response of Lambda[${name}]: (Status:${req.status}) ${text}");
+      if (req.status == 200) result.complete(JSON.decode(text));
+    });
+    req.onError.listen((event) => result.completeError(req.responseText));
+    req.onTimeout.listen((event) => result.completeError(event));
+  } catch (ex) {
+    result.completeError(ex);
+  }
   return result.future;
 }
