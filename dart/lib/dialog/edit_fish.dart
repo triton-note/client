@@ -23,12 +23,16 @@ final _logger = new Logger('EditFishDialog');
 class EditFishDialog extends ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<EditFishDialog> v) => v == null ? null : v.value = this;
 
-  Measures get _measures => CachedPreferences.measures;
+  Measures _measures;
   ShadowRoot _root;
   CachedValue<PaperActionDialog> _dialog;
 
   GetterSetter<Fishes> _original;
   Fishes tmpFish;
+
+  EditFishDialog() {
+    CachedPreferences.current.then((c) => _measures = c.measures);
+  }
 
   // count
   int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;

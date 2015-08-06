@@ -28,7 +28,11 @@ class EditWeatherDialog extends ShadowRootAware {
   ShadowRoot _root;
   bool get withTemperature => withoutTemperature == null || withoutTemperature.toLowerCase() == "false";
   CachedValue<PaperActionDialog> _dialog;
-  TemperatureUnit get _tUnit => CachedPreferences.measures == null ? null : CachedPreferences.measures.temperature;
+  TemperatureUnit _tUnit;
+
+  EditWeatherDialog() {
+    CachedPreferences.current.then((c) => _tUnit = c.measures.temperature);
+  }
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
@@ -40,26 +44,26 @@ class EditWeatherDialog extends ShadowRootAware {
   }
 
   String get temperatureUnit => _tUnit == null ? null : "°${nameOfEnum(_tUnit)[0]}";
-  List<String> weatherNames = Weather.nominalMap.keys;
+  final List<String> weatherNames = new List.unmodifiable(Weather.nominalMap.keys);
   String weatherIcon(String nominal) => Weather.nominalMap[nominal];
 
   Timer _weatherDialogTimer;
 
-  Temperature _temperature;
+  int _temperatureValue;
   int get temperatureValue {
     if (value.temperature == null || _tUnit == null) return null;
-    if (_temperature == null) {
-      _temperature = value.temperature.convertTo(_tUnit);
+    if (_temperatureValue == null) {
+      _temperatureValue = value.temperature.convertTo(_tUnit).value.round();
     }
-    return _temperature.value.round();
+    return _temperatureValue;
   }
   set temperatureValue(int v) {
     if (v == null || _tUnit == null) return;
-    if (_temperature != null && _temperature.value == v) return;
+    if (_temperatureValue == v) return;
 
-    _temperature = new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(_tUnit)});
-    _logger.fine("Set temperature: ${_temperature.asMap}");
-    value.temperature = _temperature;
+    _temperatureValue = v;
+    value.temperature = new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(_tUnit)});
+    _logger.fine("Set temperature: ${value.temperature}");
 
     _logger.finest("Setting timer for closing weather dialog.");
     if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
