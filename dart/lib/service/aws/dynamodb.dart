@@ -15,6 +15,9 @@ final _logger = new Logger('DynamoDB');
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
 class DynamoDB {
+  static const CONTENT = "CONTENT";
+  static const COGNITO_ID = "COGNITO_ID";
+
   static Future<String> get cognitoId async => (await Cognito.identity).id;
   static final client = new JsObject(context["AWS"]["DynamoDB"], []);
 
@@ -52,7 +55,7 @@ class DynamoDB {
   }
 
   Future<Map<String, Map<String, String>>> makeKey(String id) async {
-    final key = {'COGNITO_ID': {'S': await cognitoId}};
+    final key = {COGNITO_ID: {'S': await cognitoId}};
     if (id != null) key["${tableName}_ID"] = {'S': id};
     return key;
   }
@@ -63,12 +66,12 @@ class DynamoDB {
   }
 
   Future<Map> get([String id = null]) async {
-    final data = await invoke('getItem', {'Key': await makeKey(id), 'ProjectionExpression': "CONTENT"});
+    final data = await invoke('getItem', {'Key': await makeKey(id), 'ProjectionExpression': CONTENT});
     final item = data['Item'];
     if (item == null) return null;
 
     final map = _ContentDecoder.fromDynamoMap(item);
-    var content = map['CONTENT'];
+    var content = map[CONTENT];
     if (content == null) content = {};
     if (id != null) content['id'] = id;
     return content;
@@ -77,14 +80,14 @@ class DynamoDB {
   Future<Map> put(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
     final id = alpha.containsKey('id') ? alpha['id'] : createRandomKey();
     final item = await makeKey(id);
-    item['CONTENT'] = {'M': _ContentEncoder.toDynamoMap(content)..remove('id')};
+    item[CONTENT] = {'M': _ContentEncoder.toDynamoMap(content)..remove('id')};
     item.addAll(_ContentEncoder.toDynamoMap(alpha));
     await invoke('putItem', {'Item': item});
     return new Map.from(content)..['id'] = id;
   }
 
   Future<Null> update(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
-    final attrs = {'CONETNT': {'Action': 'PUT', 'Value': {'M': _ContentEncoder.toDynamoMap(content)..remove('id')}}};
+    final attrs = {CONTENT: {'Action': 'PUT', 'Value': {'M': _ContentEncoder.toDynamoMap(content)..remove('id')}}};
     _ContentEncoder.toDynamoMap(alpha).forEach((key, valueMap) {
       attrs[key] = {'Action': 'PUT', 'Value': valueMap};
     });
