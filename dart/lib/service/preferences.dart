@@ -24,7 +24,7 @@ class CachedPreferences {
     return _current;
   }
   static Future<Null> update(UserPreferences v) async {
-    (await current).asMap
+    if (v != await current) (await current).asMap
       ..clear()
       ..addAll(v.asMap);
     await DynamoDB.TABLE_USER.update(v.asMap);
