@@ -43,7 +43,7 @@ class DynamoDB {
     client.callMethod(methodName, [
       new JsObject.jsify(param),
       (error, data) {
-        if (error) {
+        if (error != null) {
           _logger.warning("Failed to ${methodName}: ${error}");
           result.completeError(error);
         } else {

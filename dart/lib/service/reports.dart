@@ -40,13 +40,9 @@ class Reports {
       params['ExclusiveStartKey'] = _lastEvaluatedKey;
     }
     final result = await DynamoDB.TABLE_REPORT.invoke('query', params);
-    if (result != null) {
-      _lastEvaluatedKey = result['LastEvaluatedKey'];
-      return result['Items'].map((m) => new Report.fromMap(m));
-    } else {
-      _lastEvaluatedKey = const {};
-      return [];
-    }
+    _lastEvaluatedKey = result['LastEvaluatedKey'];
+    if (_lastEvaluatedKey == null) _lastEvaluatedKey = const {};
+    return result['Items'].map((m) => new Report.fromMap(m));
   }
   static Future<List<Report>> refresh() async {
     _cachedList = await _load();
