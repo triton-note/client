@@ -13,11 +13,10 @@ class Reports {
   static const DATE_AT = "DATE_AT";
   static const pageSize = 30;
 
-  static Map _lastEvaluatedKey;
   static List<Report> _cachedList;
   static Future<List<Report>> get allList async => (_cachedList != null) ? _cachedList : refresh();
 
-  static bool get hasMore => _lastEvaluatedKey == null || _lastEvaluatedKey.isNotEmpty;
+  static PagingDB pager;
 
   static Report _fromCache(String id) =>
       _cachedList == null ? null : _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
@@ -26,29 +25,19 @@ class Reports {
     ..add(adding)
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
-  static Future<List<Report>> _load() async {
-    final params = {
-      'Limit': pageSize,
-      'ScanIndexForward': false,
-      'KeyConditionExpression': "#N1 = :V1",
-      'ExpressionAttributeNames': {'#N1': DynamoDB.COGNITO_ID},
-      'ExpressionAttributeValues': {':V1': {'S': await DynamoDB.cognitoId}}
-    };
-    if (_lastEvaluatedKey != null && _lastEvaluatedKey.isNotEmpty) {
-      params['ExclusiveStartKey'] = _lastEvaluatedKey;
-    }
-    final result = await DynamoDB.TABLE_REPORT.invoke('query', params);
-    _lastEvaluatedKey = result['LastEvaluatedKey'];
-    if (_lastEvaluatedKey == null) _lastEvaluatedKey = const {};
-    return result['Items'].map((m) => new Report.fromMap(m));
-  }
   static Future<List<Report>> refresh() async {
-    _cachedList = await _load();
+    if (pager == null) {
+      pager = DynamoDB.TABLE_REPORT.createPager(false, DynamoDB.COGNITO_ID, await DynamoDB.cognitoId,
+          "COGNITO_ID-DATE_AT-index", (map) => new Report.fromMap(map));
+    } else {
+      pager.reset();
+    }
+    _cachedList = await pager.more(pageSize);
     return _cachedList;
   }
   static Future<List<Report>> more() async {
     if (_cachedList == null) return refresh();
-    if (hasMore) _cachedList.addAll(await _load());
+    _cachedList.addAll(await pager.more(pageSize));
     return _cachedList;
   }
 

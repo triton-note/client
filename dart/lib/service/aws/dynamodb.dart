@@ -61,11 +61,6 @@ class DynamoDB {
     return key;
   }
 
-  Future<List> scan(Map param) async {
-    final data = await invoke('scan', param);
-    return data['Items'];
-  }
-
   Future<Map> get([String id = null]) async {
     final data = await invoke('getItem', {'Key': await makeKey(id), 'ProjectionExpression': CONTENT});
     final item = data['Item'];
@@ -98,6 +93,50 @@ class DynamoDB {
 
   Future<Null> delete([String id = null]) async {
     await invoke('deleteItem', {'Key': await makeKey(id)});
+  }
+
+  PagingDB createPager(bool forward, String hashKeyName, String hashKeyValue, String indexName, _MapReader reader) {
+    return new PagingDB(this, reader, indexName, hashKeyName, hashKeyValue, forward);
+  }
+}
+
+typedef T _MapReader<T>(Map map);
+
+class PagingDB<T> {
+  final DynamoDB table;
+  final _MapReader<T> reader;
+  final String indexName, hashKeyName, hashKeyValue;
+  final bool isForward;
+
+  PagingDB(this.table, this.reader, this.indexName, this.hashKeyName, this.hashKeyValue, this.isForward);
+
+  Map _lastEvaluatedKey;
+  bool get hasMore => _lastEvaluatedKey == null || _lastEvaluatedKey.isNotEmpty;
+
+  void reset() {
+    _lastEvaluatedKey = null;
+  }
+
+  Future<List<T>> more(int pageSize) async {
+    if (_lastEvaluatedKey != null && _lastEvaluatedKey.isEmpty) return [];
+
+    final params = {
+      'Limit': pageSize,
+      'ScanIndexForward': isForward,
+      'KeyConditionExpression': "#N1 = :V1",
+      'ExpressionAttributeNames': {'#N1': hashKeyName},
+      'ExpressionAttributeValues': {':V1': hashKeyValue}
+    };
+    if (_lastEvaluatedKey != null) {
+      params['ExclusiveStartKey'] = _lastEvaluatedKey;
+    }
+    final data = await table.invoke('query', params);
+
+    _lastEvaluatedKey = data['LastEvaluatedKey'];
+    if (_lastEvaluatedKey == null) _lastEvaluatedKey = const {};
+
+    final list = _ContentDecoder.decode(data['Items']) as List<Map>;
+    return list.map(reader).toList();
   }
 }
 
