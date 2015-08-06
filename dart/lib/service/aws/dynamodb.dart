@@ -138,7 +138,7 @@ class _ContentEncoder {
     if (value is Map) return {'M': toDynamoMap(value)};
     if (value is List) return {'L': value.map((a) => encode(a))};
     if (value is String) return {'S': value};
-    if (value is num) return {'S': value.toString()};
+    if (value is num) return {'N': value.toString()};
   }
   static Map toDynamoMap(Map map) {
     final result = {};
