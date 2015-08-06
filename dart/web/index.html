@@ -50,6 +50,12 @@
 	</div>
 	
 	<ng-view></ng-view>
+    
+    <div id="options">
+        <paper-dialog id="fileChooser" heading="Choose file" transition="core-transition-center" backdrop autoCloseDisabled>
+            <input type="file" id="fileInput"></input>
+        </paper-dialog>
+    </div>
 
 	<script type="text/javascript" src="cordova.js"></script>
     <script type="application/dart" src="main.dart"></script>
