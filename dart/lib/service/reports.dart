@@ -33,8 +33,8 @@ class Reports {
       'Limit': pageSize,
       'ScanIndexForward': false,
       'KeyConditionExpression': "#N1 = :V1",
-      'ExpressionAttributeValues': {':V1': await DynamoDB.cognitoId}
       'ExpressionAttributeNames': {'#N1': DynamoDB.COGNITO_ID},
+      'ExpressionAttributeValues': {':V1': {'S': await DynamoDB.cognitoId}}
     };
     if (_lastEvaluatedKey != null && _lastEvaluatedKey.isNotEmpty) {
       params['ExclusiveStartKey'] = _lastEvaluatedKey;
