@@ -160,7 +160,8 @@ class AddReportPage extends MainFrame {
     if (addingFishName != null && addingFishName.isNotEmpty) {
       final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
       addingFishName = null;
-      report.fishes = report.fishes..add(fish);
+      if (report.fishes == null) report.fishes = [fish];
+      else report.fishes.add(fish);
     }
   }
 
