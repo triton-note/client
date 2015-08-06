@@ -10,6 +10,7 @@ import 'package:triton_note/service/aws/dynamodb.dart';
 final _logger = new Logger('Reports');
 
 class Reports {
+  static const DATE_AT = "DATE_AT";
   static const pageSize = 30;
 
   static Map _lastEvaluatedKey;
@@ -32,8 +33,8 @@ class Reports {
       'Limit': pageSize,
       'ScanIndexForward': false,
       'KeyConditionExpression': "#N1 = :V1",
-      'ExpressionAttributeNames': {'#N1': "CONGNITO_ID"},
       'ExpressionAttributeValues': {':V1': await DynamoDB.cognitoId}
+      'ExpressionAttributeNames': {'#N1': DynamoDB.COGNITO_ID},
     };
     if (_lastEvaluatedKey != null && _lastEvaluatedKey.isNotEmpty) {
       params['ExclusiveStartKey'] = _lastEvaluatedKey;
@@ -85,7 +86,9 @@ class Reports {
     final newFishes = newReport.fishes;
 
     final adding = Future.wait(newFishes.where((fish) => fish.id == null).map((fish) {
-      DynamoDB.TABLE_CATCH.put(fish.asMap, {'REPORT_ID': newReport.id}).then((data) => new Fishes.fromMap(data));
+      DynamoDB.TABLE_CATCH
+          .put(fish.asMap, {DynamoDB.TABLE_REPORT.ID_COLUMN: newReport.id})
+          .then((data) => new Fishes.fromMap(data));
     }));
     final notFounds = oldFishes.map((o) => o.id).toSet().difference(newFishes.map((o) => o.id).toSet());
     final deleting = Future.wait(notFounds.map(DynamoDB.TABLE_CATCH.delete));
@@ -100,9 +103,8 @@ class Reports {
 
     final oldMap = _reducedMap(oldReport);
     final newMap = _reducedMap(newReport);
-    final updating = (oldMap == newMap)
-        ? new Future.value(null)
-        : DynamoDB.TABLE_REPORT.update(newMap, {'DATE_AT': newMap['dateAt']});
+    final updating =
+        (oldMap == newMap) ? new Future.value(null) : DynamoDB.TABLE_REPORT.update(newMap, {DATE_AT: newMap['dateAt']});
 
     newFishes
       ..removeWhere((fish) => fish.id == null)
@@ -113,12 +115,13 @@ class Reports {
   static Future<Null> add(Report report) async {
     _logger.finest("Adding report: ${report}");
     final content = _reducedMap(report);
-    final newReport = await DynamoDB.TABLE_REPORT
-        .put(content, {'DATE_AT': content['dateAt']})
-        .then((data) => new Report.fromMap(data));
+    final newReport =
+        await DynamoDB.TABLE_REPORT.put(content, {DATE_AT: content['dateAt']}).then((data) => new Report.fromMap(data));
 
     final flist = Future.wait(report.fishes.map((fish) {
-      DynamoDB.TABLE_CATCH.put(fish.asMap, {'REPORT_ID': newReport.id}).then((data) => new Fishes.fromMap(data));
+      DynamoDB.TABLE_CATCH
+          .put(fish.asMap, {DynamoDB.TABLE_REPORT.ID_COLUMN: newReport.id})
+          .then((data) => new Fishes.fromMap(data));
     }));
 
     await flist.then((fishes) {

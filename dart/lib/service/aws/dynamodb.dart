@@ -27,13 +27,14 @@ class DynamoDB {
     return list.join();
   }
 
-  static final DynamoDB TABLE_CATCH = new DynamoDB("CATCH");
-  static final DynamoDB TABLE_REPORT = new DynamoDB("REPORT");
+  static final DynamoDB TABLE_CATCH = new DynamoDB("CATCH", "CATCH_ID");
+  static final DynamoDB TABLE_REPORT = new DynamoDB("REPORT", "REPORT_ID");
   static final DynamoDB TABLE_USER = new DynamoDB("USER");
 
   final String tableName;
+  final String ID_COLUMN;
 
-  DynamoDB(this.tableName);
+  DynamoDB(this.tableName, [idColumn = null]) : this.ID_COLUMN = idColumn;
 
   Future<JsObject> invoke(String methodName, Map param) async {
     param['TableName'] = "${(await Settings).appName}.${tableName}";
@@ -56,7 +57,7 @@ class DynamoDB {
 
   Future<Map<String, Map<String, String>>> makeKey(String id) async {
     final key = {COGNITO_ID: {'S': await cognitoId}};
-    if (id != null) key["${tableName}_ID"] = {'S': id};
+    if (id != null && ID_COLUMN != null) key[ID_COLUMN] = {'S': id};
     return key;
   }
 
@@ -78,12 +79,15 @@ class DynamoDB {
   }
 
   Future<Map> put(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
-    final id = alpha.containsKey('id') ? alpha['id'] : createRandomKey();
+    final id = createRandomKey();
     final item = await makeKey(id);
     item[CONTENT] = {'M': _ContentEncoder.toDynamoMap(content)..remove('id')};
     item.addAll(_ContentEncoder.toDynamoMap(alpha));
     await invoke('putItem', {'Item': item});
-    return new Map.from(content)..['id'] = id;
+
+    final result = new Map.from(content);
+    if (ID_COLUMN != null) result['id'] = id;
+    return result;
   }
 
   Future<Null> update(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
