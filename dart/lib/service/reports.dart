@@ -26,8 +26,6 @@ class Reports {
     ..add(adding)
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
-  static Map _reducedMap(Report report) => new Map.from(report.asMap)..remove('fishes');
-
   static Future<List<Report>> _load() async {
     final params = {
       'Limit': pageSize,
@@ -81,11 +79,9 @@ class Reports {
     final oldFishes = oldReport.fishes;
     final newFishes = newReport.fishes;
 
-    final adding = Future.wait(newFishes.where((fish) => fish.id == null).map((fish) {
-      DynamoDB.TABLE_CATCH
-          .put(fish.asMap, {DynamoDB.TABLE_REPORT.ID_COLUMN: newReport.id})
-          .then((data) => new Fishes.fromMap(data));
-    }));
+    final adding = Future.wait(newFishes
+        .where((fish) => fish.id == null)
+        .map((fish) => DynamoDB.TABLE_CATCH.put(fish.asMap, {DynamoDB.TABLE_REPORT.ID_COLUMN: newReport.id})));
     final notFounds = oldFishes.map((o) => o.id).toSet().difference(newFishes.map((o) => o.id).toSet());
     final deleting = Future.wait(notFounds.map(DynamoDB.TABLE_CATCH.delete));
     final marging =
@@ -97,10 +93,10 @@ class Reports {
       DynamoDB.TABLE_CATCH.update(fish.asMap);
     }));
 
-    final oldMap = _reducedMap(oldReport);
-    final newMap = _reducedMap(newReport);
-    final updating =
-        (oldMap == newMap) ? new Future.value(null) : DynamoDB.TABLE_REPORT.update(newMap, {DATE_AT: newMap['dateAt']});
+    final content = newReport.asMap;
+    final updating = (oldReport.asMap == content)
+        ? new Future.value(null)
+        : DynamoDB.TABLE_REPORT.update(content, {DATE_AT: content['dateAt']});
 
     newFishes
       ..removeWhere((fish) => fish.id == null)
@@ -110,19 +106,13 @@ class Reports {
 
   static Future<Null> add(Report report) async {
     _logger.finest("Adding report: ${report}");
-    final content = _reducedMap(report);
-    final newReport =
-        await DynamoDB.TABLE_REPORT.put(content, {DATE_AT: content['dateAt']}).then((data) => new Report.fromMap(data));
+    final content = report.asMap;
+    await DynamoDB.TABLE_REPORT.put(content, {DATE_AT: content['dateAt']});
+    _logger.finest(() => "Added report: ${report}");
 
-    final flist = Future.wait(report.fishes.map((fish) {
-      DynamoDB.TABLE_CATCH
-          .put(fish.asMap, {DynamoDB.TABLE_REPORT.ID_COLUMN: newReport.id})
-          .then((data) => new Fishes.fromMap(data));
-    }));
+    final idmap = new Map.unmodifiable({DynamoDB.TABLE_REPORT.ID_COLUMN: report.id});
+    await Future.wait(report.fishes.map((fish) => DynamoDB.TABLE_CATCH.put(fish.asMap, idmap)));
 
-    await flist.then((fishes) {
-      newReport.fishes = fishes.toList();
-      _addToCache(newReport);
-    });
+    _addToCache(report);
   }
 }

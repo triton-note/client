@@ -78,16 +78,14 @@ class DynamoDB {
     return content;
   }
 
-  Future<Map> put(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
+  Future<Null> put(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
     final id = createRandomKey();
     final item = await makeKey(id);
     item[CONTENT] = {'M': _ContentEncoder.toDynamoMap(content)..remove('id')};
     item.addAll(_ContentEncoder.toDynamoMap(alpha));
     await invoke('putItem', {'Item': item});
 
-    final result = new Map.from(content);
-    if (ID_COLUMN != null) result['id'] = id;
-    return result;
+    if (ID_COLUMN != null) content['id'] = id;
   }
 
   Future<Null> update(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
