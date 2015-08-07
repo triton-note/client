@@ -36,7 +36,7 @@ class DynamoDB {
 
   DynamoDB(this.tableName, [idColumn = null]) : this.ID_COLUMN = idColumn;
 
-  Future<JsObject> invoke(String methodName, Map param) async {
+  Future<JsObject> _invoke(String methodName, Map param) async {
     param['TableName'] = "${(await Settings).appName}.${tableName}";
     _logger.finest(() => "Invoking '${methodName}': ${param}");
     final result = new Completer();
@@ -62,7 +62,7 @@ class DynamoDB {
   }
 
   Future<Map> get([String id = null]) async {
-    final data = await invoke('getItem', {'Key': await makeKey(id), 'ProjectionExpression': CONTENT});
+    final data = await _invoke('getItem', {'Key': await makeKey(id), 'ProjectionExpression': CONTENT});
     final item = data['Item'];
     if (item == null) return null;
 
@@ -78,7 +78,7 @@ class DynamoDB {
     final item = await makeKey(id);
     item[CONTENT] = {'M': _ContentEncoder.toDynamoMap(content)..remove('id')};
     item.addAll(_ContentEncoder.toDynamoMap(alpha));
-    await invoke('putItem', {'Item': item});
+    await _invoke('putItem', {'Item': item});
 
     if (ID_COLUMN != null) content['id'] = id;
   }
@@ -88,23 +88,23 @@ class DynamoDB {
     _ContentEncoder.toDynamoMap(alpha).forEach((key, valueMap) {
       attrs[key] = {'Action': 'PUT', 'Value': valueMap};
     });
-    await invoke('updateItem', {'Key': await makeKey(content['id']), 'AttributeUpdates': attrs});
+    await _invoke('updateItem', {'Key': await makeKey(content['id']), 'AttributeUpdates': attrs});
   }
 
   Future<Null> delete([String id = null]) async {
-    await invoke('deleteItem', {'Key': await makeKey(id)});
+    await _invoke('deleteItem', {'Key': await makeKey(id)});
   }
 
-  PagingDB createPager(bool forward, String hashKeyName, String hashKeyValue, String indexName, _MapReader reader) {
+  PagingDB createPager(bool forward, String hashKeyName, String hashKeyValue, String indexName, _RecordReader reader) {
     return new PagingDB(this, reader, indexName, forward, hashKeyName, hashKeyValue);
   }
 }
 
-typedef T _MapReader<T>(Map map);
+typedef T _RecordReader<T>(Map map);
 
 class PagingDB<T> {
   final DynamoDB table;
-  final _MapReader<T> reader;
+  final _RecordReader<T> reader;
   final String indexName, hashKeyName;
   final Map hashKeyValue;
   final bool isForward;
@@ -133,7 +133,7 @@ class PagingDB<T> {
     if (_lastEvaluatedKey != null) {
       params['ExclusiveStartKey'] = _lastEvaluatedKey;
     }
-    final data = await table.invoke('query', params);
+    final data = await table._invoke('query', params);
 
     _lastEvaluatedKey = data['LastEvaluatedKey'];
     if (_lastEvaluatedKey == null) _lastEvaluatedKey = const {};
