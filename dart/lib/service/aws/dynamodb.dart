@@ -22,7 +22,7 @@ class DynamoDB {
   static const CONTENT = "CONTENT";
   static const COGNITO_ID = "COGNITO_ID";
 
-  static Future<String> get cognitoId async => (await Cognito.identity).id;
+  static Future<String> get cognitoId async => (await CognitoIdentity.identity).id;
   static final client = new JsObject(context["AWS"]["DynamoDB"], []);
 
   static String createRandomKey() {

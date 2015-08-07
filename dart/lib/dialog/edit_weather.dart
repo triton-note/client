@@ -31,7 +31,7 @@ class EditWeatherDialog extends ShadowRootAware {
   TemperatureUnit _tUnit;
 
   EditWeatherDialog() {
-    CachedPreferences.current.then((c) => _tUnit = c.measures.temperature);
+    UserPreferences.current.then((c) => _tUnit = c.measures.temperature);
   }
 
   void onShadowRoot(ShadowRoot sr) {

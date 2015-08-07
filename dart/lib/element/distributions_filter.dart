@@ -69,7 +69,10 @@ abstract class _FilterParams {
 }
 
 class _Fish extends _FilterParams {
-  _Fish(ShadowRoot root) : super('fish', root);
+  _Fish(ShadowRoot root) : super('fish', root) {
+    UserPreferences.current.then((c) => preferences = c);
+  }
+  UserPreferences preferences;
 
   String name;
   int lengthMin = 0;
@@ -77,8 +80,8 @@ class _Fish extends _FilterParams {
   int weightMin = 0;
   int weightMax = 0;
 
-  String get lengthUnit => CachedPreferences.measures == null ? null : nameOfEnum(CachedPreferences.measures.length);
-  String get weightUnit => CachedPreferences.measures == null ? null : nameOfEnum(CachedPreferences.measures.weight);
+  String get lengthUnit => preferences == null ? null : nameOfEnum(preferences.measures.length);
+  String get weightUnit => preferences == null ? null : nameOfEnum(preferences.measures.weight);
 
   bool get isActiveName => isActive('name') && name != null && name.isNotEmpty;
 
@@ -92,10 +95,12 @@ class _Fish extends _FilterParams {
 }
 
 class _Conditions extends _FilterParams {
-  _Conditions(ShadowRoot root) : super('condition', root);
+  _Conditions(ShadowRoot root) : super('condition', root) {
+    UserPreferences.current.then((c) => preferences = c);
+  }
+  UserPreferences preferences;
 
-  String get temperatureUnit =>
-      CachedPreferences.measures == null ? null : "°${nameOfEnum(CachedPreferences.measures.temperature)[0]}";
+  String get temperatureUnit => preferences == null ? null : "°${nameOfEnum(preferences.measures.temperature)[0]}";
 
   Weather weather = new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear']});
   int temperatureMin, temperatureMax;

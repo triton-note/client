@@ -8,7 +8,6 @@ import 'package:paper_elements/paper_action_dialog.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/value_unit.dart';
-import 'package:triton_note/model/preferences.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/enums.dart';
@@ -31,7 +30,7 @@ class EditFishDialog extends ShadowRootAware {
   Fishes tmpFish;
 
   EditFishDialog() {
-    CachedPreferences.current.then((c) => _measures = c.measures);
+    UserPreferences.current.then((c) => _measures = c.measures);
   }
 
   // count
@@ -55,7 +54,7 @@ class EditFishDialog extends ShadowRootAware {
   }
 
   open(GetterSetter<Fishes> value) {
-    CachedPreferences.current.then((_) {
+    UserPreferences.current.then((_) {
       _original = value;
       final fish = new Fishes.fromMap(new Map.from(_original.value.asMap));
 

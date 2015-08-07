@@ -129,7 +129,7 @@ class AddReportPage extends MainFrame {
         }
         if (cond.weather.temperature != null) {
           cond.weather.temperature =
-              cond.weather.temperature.convertTo((await CachedPreferences.current).measures.temperature);
+              cond.weather.temperature.convertTo((await UserPreferences.current).measures.temperature);
         }
         report.condition = cond;
       }

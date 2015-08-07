@@ -4,35 +4,72 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import 'package:triton_note/model/preferences.dart';
-import 'package:triton_note/service/aws/dynamodb.dart';
+import 'package:triton_note/model/value_unit.dart';
+import 'package:triton_note/service/aws/cognito.dart';
+import 'package:triton_note/util/enums.dart';
 
-final _logger = new Logger('CachedPreferences');
+final _logger = new Logger('UserPreferences');
 
-/**
- * Future で返されると HTML View で困るので、取得中なら null を返す実装。
- */
-class CachedPreferences {
-  static Future<UserPreferences> _current;
-  static Future<UserPreferences> get current {
-    if (_current == null) _current = DynamoDB.TABLE_USER.get().then((data) async {
-      if (data != null) return new UserPreferences.fromMap(data);
-      final content = {'measures': {'temperature': "Cels", 'weight': "g", 'length': "cm"}};
-      final map = await DynamoDB.TABLE_USER.put(content);
-      return new UserPreferences.fromMap(map);
-    });
-    return _current;
-  }
-  static Future<Null> update(UserPreferences v) async {
-    if (v != await current) (await current).asMap
-      ..clear()
-      ..addAll(v.asMap);
-    await DynamoDB.TABLE_USER.update(v.asMap);
+class UserPreferences {
+  static const DATASET_MEASURES = 'Measures';
+
+  static Completer<UserPreferences> _onCurrent;
+  static Future<UserPreferences> get current async {
+    if (_onCurrent == null) {
+      _onCurrent = new Completer();
+      final dataset = await CognitoSync.getDataset(DATASET_MEASURES);
+      _onCurrent.complete(new UserPreferences(new _MeasuresImpl(dataset)));
+    }
+    return _onCurrent.future;
   }
 
-  static Measures _measures;
-  static Measures get measures {
-    current.then((c) => _measures = c.measures);
-    return _measures;
+  final Measures measures;
+
+  UserPreferences(this.measures);
+}
+
+abstract class Measures {
+  LengthUnit length;
+  WeightUnit weight;
+  TemperatureUnit temperature;
+}
+
+class _MeasuresImpl implements Measures {
+  static const KEY_LENGTH = 'length';
+  static const KEY_WEIGHT = 'weight';
+  static const KEY_TEMPERATURE = 'temperature';
+
+  final CognitoSync _dataset;
+
+  String _length, _weight, _temperature;
+
+  _MeasuresImpl(this._dataset) {
+    _init();
+  }
+  _init() async {
+    String _length = await _dataset.get(KEY_LENGTH);
+    if (_length == null) length = LengthUnit.cm;
+    String _weight = await _dataset.get(KEY_WEIGHT);
+    if (_weight == null) weight = WeightUnit.g;
+    String _temperature = await _dataset.get(KEY_TEMPERATURE);
+    if (_temperature == null) temperature = TemperatureUnit.Cels;
+  }
+
+  LengthUnit get length => enumByName(LengthUnit.values, _length);
+  void set length(LengthUnit v) {
+    _length = nameOfEnum(v);
+    _dataset.put(KEY_LENGTH, _length);
+  }
+
+  WeightUnit get weight => enumByName(WeightUnit.values, _weight);
+  void set weight(WeightUnit v) {
+    _weight = nameOfEnum(v);
+    _dataset.put(KEY_WEIGHT, _weight);
+  }
+
+  TemperatureUnit get temperature => enumByName(TemperatureUnit.values, _temperature);
+  void set temperature(TemperatureUnit v) {
+    _temperature = nameOfEnum(v);
+    _dataset.put(KEY_TEMPERATURE, _temperature);
   }
 }

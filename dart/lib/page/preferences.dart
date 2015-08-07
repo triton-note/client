@@ -8,7 +8,6 @@ import 'package:logging/logging.dart';
 import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/value_unit.dart';
-import 'package:triton_note/model/preferences.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/main_frame.dart';
 
@@ -32,7 +31,7 @@ class PreferencesPage extends MainFrame implements DetachAware {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    CachedPreferences.current.then((c) {
+    UserPreferences.current.then((c) {
       measures = c.measures;
       new Future.delayed(new Duration(milliseconds: 10), () {
         root.querySelector('#unit #length paper-toggle-button') as PaperToggleButton
@@ -48,7 +47,6 @@ class PreferencesPage extends MainFrame implements DetachAware {
   void detach() {
     if (_submitTimer != null && _submitTimer.isActive) {
       _submitTimer.cancel();
-      _update();
     }
   }
 
@@ -56,33 +54,17 @@ class PreferencesPage extends MainFrame implements DetachAware {
     final toggle = event.target as PaperToggleButton;
     _logger.fine("Toggle Length: ${toggle.checked}");
     measures.length = toggle.checked ? LengthUnit.cm : LengthUnit.inch;
-    _submit();
   }
 
   void changeWeight(event) {
     final toggle = event.target as PaperToggleButton;
     _logger.fine("Toggle Weight: ${toggle.checked}");
     measures.weight = toggle.checked ? WeightUnit.g : WeightUnit.oz;
-    _submit();
   }
 
   void changeTemperature(event) {
     final toggle = event.target as PaperToggleButton;
     _logger.fine("Toggle Temperature: ${toggle.checked}");
     measures.temperature = toggle.checked ? TemperatureUnit.Cels : TemperatureUnit.Fahr;
-    _submit();
-  }
-
-  void _submit() {
-    if (_submitTimer != null && _submitTimer.isActive) _submitTimer.cancel();
-    _submitTimer = new Timer(submitDuration, _update);
-  }
-
-  void _update() {
-    _logger.fine("Update preferences");
-    CachedPreferences.current.then((c) {
-      c.measures = measures;
-      CachedPreferences.update(c);
-    });
   }
 }

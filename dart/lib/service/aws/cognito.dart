@@ -1,12 +1,12 @@
 library triton_note.service.aws.cognito;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:js';
 
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/util/cordova.dart';
+import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('Cognito');
@@ -14,47 +14,42 @@ final _logger = new Logger('Cognito');
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
 class CognitoIdentity {
-  static final Future<bool> initialized = _initialize();
-
   static final Completer<String> _connected = new Completer<String>();
   static bool get isConnected => _connected.isCompleted;
   static void onConnected(void proc(String)) {
     _connected.future.then(proc);
   }
 
-  static Future<CognitoIdentity> get identity =>
-      initialized.then((v) => !v ? null : new CognitoIdentity(_identityId, loginsParam));
+  static Completer<CognitoIdentity> _onIdentity;
+  static Future<CognitoIdentity> get identity async {
+    if (_onIdentity == null) {
+      _onIdentity = new Completer();
+      try {
+        _logger.fine("Initializing Cognito ...");
 
-  static Future<bool> _initialize() async {
-    _logger.fine("Initializing Cognito ...");
+        context['AWS']['config']['region'] = (await Settings).awsRegion;
+        final creds = new JsObject(context['AWS']['CognitoIdentityCredentials'],
+            [new JsObject.jsify({'IdentityPoolId': (await Settings).cognitoPoolId})]);
+        context['AWS']['config']['credentials'] = creds;
 
-    final awsRegion = (await Settings).awsRegion;
-    final cognitoPoolId = (await Settings).cognitoPoolId;
+        try {
+          await _refresh();
+        } catch (ex) {
+          _logger.fine("Initialize error: ${ex}");
+          creds['params']['IdentityId'] = null;
+          await _refresh();
+        } finally {
+          hideSplashScreen();
+        }
 
-    context['AWS']['config']['region'] = awsRegion;
-    final creds = new JsObject(
-        context['AWS']['CognitoIdentityCredentials'], [new JsObject.jsify({'IdentityPoolId': cognitoPoolId})]);
-    context['AWS']['config']['credentials'] = creds;
-
-    try {
-      return await _refresh();
-    } catch (ex) {
-      _logger.fine("Initialize error: ${ex}");
-      creds['params']['IdentityId'] = null;
-      return _refresh();
-    } finally {
-      hideSplashScreen();
+        _onIdentity.complete(new CognitoIdentity(context['AWS']['config']['credentials']['identityId'],
+            context['AWS']['config']['credentials']['params']['Logins']));
+      } catch (ex) {
+        _logger.warning("Error on initializing: ${ex}");
+        _onIdentity.completeError(ex);
+      }
     }
-  }
-
-  static String get _identityId => context['AWS']['config']['credentials']['identityId'];
-  static Map<String, String> get loginsParam {
-    final result = {};
-    final map = context['AWS']['config']['credentials']['params']['Logins'];
-    if (map is Map) map.forEach((key, value) {
-      result[key] = value;
-    });
-    return new UnmodifiableMapView(result);
+    return _onIdentity.future;
   }
 
   static Future<bool> _setToken(String service, String token) async {
@@ -67,11 +62,11 @@ class CognitoIdentity {
     creds['expired'] = true;
 
     final done = await _refresh();
-    if (done) _connected.complete(_identityId);
+    if (done) _connected.complete((await identity).id);
     return done;
   }
 
-  static Future<bool> _refresh() async {
+  static Future<Null> _refresh() async {
     final result = new Completer();
 
     final creds = context['AWS']['config']['credentials'];
@@ -79,7 +74,7 @@ class CognitoIdentity {
     creds.callMethod('get', [
       (error) {
         if (error == null) {
-          result.complete(true);
+          result.complete();
         } else {
           _logger.fine("Cognito Error: ${error}");
           result.completeError(error);
@@ -93,5 +88,66 @@ class CognitoIdentity {
   final String id;
   final Map<String, String> logins;
 
-  CognitoIdentity(this.id, this.logins);
+  CognitoIdentity(this.id, Map logins) : this.logins = logins == null ? const {} : new Map.unmodifiable(logins);
+}
+
+class CognitoSync {
+  static final Getter<Future<JsObject>> _client = new Getter(() async {
+    await CognitoIdentity.identity;
+    return new JsObject(context['AWS']['CognitoSyncManager'], []);
+  });
+
+  static Future<JsObject> _invoke(JsObject target, String methodName, List params) async {
+    final result = new Completer();
+    try {
+      target.callMethod(methodName, params
+        ..add((error, data) {
+          if (error != null) {
+            _logger.warning("Error on '${methodName}': ${error}");
+            result.completeError(error);
+          } else {
+            _logger.finest(() => "Result of '${methodName}': ${data}");
+            result.complete(data);
+          }
+        }));
+    } catch (ex) {
+      result.completeError(ex);
+    }
+    return result.future;
+  }
+
+  static Future<CognitoSync> getDataset(String name) async {
+    final data = await _invoke(await _client.value, 'openOrCreateDataset', [name]);
+    return new CognitoSync(data);
+  }
+
+  static const refreshDur = const Duration(seconds: 60);
+
+  final JsObject _dataset;
+  CognitoSync(this._dataset);
+
+  Timer _refreshTimer;
+
+  Future<String> get(String key) async {
+    final data = await _invoke(_dataset, 'get', [key]);
+    return data as String;
+  }
+
+  Future<Null> put(String key, String value) async {
+    await _invoke(_dataset, 'put', [key, value]);
+    if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
+    _refreshTimer = new Timer(refreshDur, synchronize);
+  }
+
+  Future<Null> synchronize() async {
+    _dataset.callMethod('synchronize', [
+      new JsObject.jsify({
+        'onSuccess': (dataset, newRecords) {},
+        'onFailure': (err) {},
+        'onConflict': (dataset, conflicts, callback) {},
+        'onDatasetDeleted': (dataset, datasetName, callback) {},
+        'onDatasetMerged': (dataset, datasetNames, callback) {}
+      })
+    ]);
+  }
 }

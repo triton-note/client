@@ -410,7 +410,7 @@ class _WeatherWrapper implements Loc.Weather {
   Temperature _temperature;
   Temperature get temperature {
     if (_temperature == null && _temperatureUnit == null) {
-      _temperatureUnit = CachedPreferences.current.then((c) => c.measures.temperature);
+      _temperatureUnit = UserPreferences.current.then((c) => c.measures.temperature);
       _temperatureUnit.then((unit) {
         _temperature = _src.temperature.convertTo(unit);
         _temperatureUnit = null;
