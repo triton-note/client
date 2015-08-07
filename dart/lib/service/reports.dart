@@ -27,8 +27,8 @@ class Reports {
 
   static Future<List<Report>> refresh() async {
     if (pager == null) {
-      pager = DynamoDB.TABLE_REPORT.createPager(false, DynamoDB.COGNITO_ID, await DynamoDB.cognitoId,
-          "COGNITO_ID-DATE_AT-index", (map) => new Report.fromMap(map));
+      pager = DynamoDB.TABLE_REPORT.createPager(
+          "COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, await DynamoDB.cognitoId, false);
     } else {
       pager.reset();
     }
@@ -46,7 +46,7 @@ class Reports {
     if (found != null) {
       return new Report.fromMap(new Map.from(found.asMap));
     } else {
-      final report = await DynamoDB.TABLE_REPORT.get(id).then((data) => new Report.fromMap(data));
+      final report = await DynamoDB.TABLE_REPORT.get(id);
       _addToCache(report);
       return report;
     }
@@ -68,9 +68,8 @@ class Reports {
     final oldFishes = oldReport.fishes;
     final newFishes = newReport.fishes;
 
-    final adding = Future.wait(newFishes
-        .where((fish) => fish.id == null)
-        .map((fish) => DynamoDB.TABLE_CATCH.put(fish.asMap, {DynamoDB.TABLE_REPORT.ID_COLUMN: newReport.id})));
+    final adding =
+        Future.wait(newFishes.where((fish) => fish.id == null).map((fish) => DynamoDB.TABLE_CATCH.put(fish)));
     final notFounds = oldFishes.map((o) => o.id).toSet().difference(newFishes.map((o) => o.id).toSet());
     final deleting = Future.wait(notFounds.map(DynamoDB.TABLE_CATCH.delete));
     final marging =
@@ -79,13 +78,11 @@ class Reports {
                 .where((newFish) => !notFounds.contains(newFish.id) &&
                     oldFishes.firstWhere((oldFish) => oldFish.id = newFish.id).asMap != newFish.asMap)
                 .map((fish) {
-      DynamoDB.TABLE_CATCH.update(fish.asMap);
+      DynamoDB.TABLE_CATCH.update(fish);
     }));
 
-    final content = newReport.asMap;
-    final updating = (oldReport.asMap == content)
-        ? new Future.value(null)
-        : DynamoDB.TABLE_REPORT.update(content, {DATE_AT: content['dateAt']});
+    final updating =
+        (oldReport.asMap == newReport.asMap) ? new Future.value(null) : DynamoDB.TABLE_REPORT.update(newReport);
 
     newFishes
       ..removeWhere((fish) => fish.id == null)
@@ -95,12 +92,10 @@ class Reports {
 
   static Future<Null> add(Report report) async {
     _logger.finest("Adding report: ${report}");
-    final content = report.asMap;
-    await DynamoDB.TABLE_REPORT.put(content, {DATE_AT: content['dateAt']});
+    await DynamoDB.TABLE_REPORT.put(report);
     _logger.finest(() => "Added report: ${report}");
 
-    final idmap = new Map.unmodifiable({DynamoDB.TABLE_REPORT.ID_COLUMN: report.id});
-    await Future.wait(report.fishes.map((fish) => DynamoDB.TABLE_CATCH.put(fish.asMap, idmap)));
+    await Future.wait(report.fishes.map((fish) => DynamoDB.TABLE_CATCH.put(fish..reportId = report.id)));
 
     _addToCache(report);
   }

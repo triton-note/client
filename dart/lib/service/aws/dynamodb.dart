@@ -7,12 +7,16 @@ import 'dart:math';
 
 import 'package:logging/logging.dart';
 
+import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('DynamoDB');
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
+
+typedef T _RecordReader<T>(Map map);
+typedef Map _RecordWriter<T>(T obj);
 
 class DynamoDB {
   static const CONTENT = "CONTENT";
@@ -27,20 +31,38 @@ class DynamoDB {
     return list.join();
   }
 
-  static final DynamoDB TABLE_CATCH = new DynamoDB("CATCH", "CATCH_ID");
-  static final DynamoDB TABLE_REPORT = new DynamoDB("REPORT", "REPORT_ID");
-  static final DynamoDB TABLE_USER = new DynamoDB("USER");
+  static final _Table TABLE_CATCH = new _Table("CATCH", "CATCH_ID", (Map map) {
+    return new Fishes.fromMap(map[CONTENT])..reportId = map['REPORT_ID'];
+  }, (Fishes obj) {
+    return {}
+      ..[CONTENT] = new Map.from(obj.asMap)
+      ..['REPORT_ID'] = obj.reportId;
+  });
+  static final _Table TABLE_REPORT = new _Table("REPORT", "REPORT_ID", (Map map) {
+    return new Report.fromMap(map[CONTENT])
+      ..id = map['REPORT_ID']
+      ..dateAt = new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true);
+  }, (Report obj) {
+    return {}
+      ..[CONTENT] = new Map.from(obj.asMap)
+      ..['REPORT_ID'] = obj.id
+      ..['DATE_AT'] = obj.dateAt.toUtc().millisecondsSinceEpoch;
+  });
+}
 
+class _Table<T extends DBRecord> {
   final String tableName;
   final String ID_COLUMN;
+  final _RecordReader<T> reader;
+  final _RecordWriter<T> writer;
 
-  DynamoDB(this.tableName, [idColumn = null]) : this.ID_COLUMN = idColumn;
+  _Table(this.tableName, this.ID_COLUMN, this.reader, this.writer);
 
   Future<JsObject> _invoke(String methodName, Map param) async {
     param['TableName'] = "${(await Settings).appName}.${tableName}";
     _logger.finest(() => "Invoking '${methodName}': ${param}");
     final result = new Completer();
-    client.callMethod(methodName, [
+    DynamoDB.client.callMethod(methodName, [
       new JsObject.jsify(param),
       (error, data) {
         if (error != null) {
@@ -55,61 +77,54 @@ class DynamoDB {
     return result.future;
   }
 
-  Future<Map<String, Map<String, String>>> makeKey(String id) async {
-    final key = {COGNITO_ID: {'S': await cognitoId}};
+  Future<Map<String, Map<String, String>>> _makeKey(String id) async {
+    final key = {DynamoDB.COGNITO_ID: {'S': await DynamoDB.cognitoId}};
     if (id != null && ID_COLUMN != null) key[ID_COLUMN] = {'S': id};
     return key;
   }
 
-  Future<Map> get([String id = null]) async {
-    final data = await _invoke('getItem', {'Key': await makeKey(id), 'ProjectionExpression': CONTENT});
+  Future<T> get(String id) async {
+    final data = await _invoke('getItem', {'Key': await _makeKey(id), 'ProjectionExpression': DynamoDB.CONTENT});
     final item = data['Item'];
     if (item == null) return null;
 
     final map = _ContentDecoder.fromDynamoMap(item);
-    var content = map[CONTENT];
-    if (content == null) content = {};
-    if (id != null) content['id'] = id;
-    return content;
+    return reader(map);
   }
 
-  Future<Null> put(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
-    final id = createRandomKey();
-    final item = await makeKey(id);
-    item[CONTENT] = {'M': _ContentEncoder.toDynamoMap(content)..remove('id')};
-    item.addAll(_ContentEncoder.toDynamoMap(alpha));
+  Future<Null> put(T obj) async {
+    final id = DynamoDB.createRandomKey();
+    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(id));
     await _invoke('putItem', {'Item': item});
 
-    if (ID_COLUMN != null) content['id'] = id;
+    obj.id = id;
   }
 
-  Future<Null> update(Map<String, Object> content, [Map<String, Object> alpha = const {}]) async {
-    final attrs = {CONTENT: {'Action': 'PUT', 'Value': {'M': _ContentEncoder.toDynamoMap(content)..remove('id')}}};
-    _ContentEncoder.toDynamoMap(alpha).forEach((key, valueMap) {
+  Future<Null> update(T obj) async {
+    final map = _ContentEncoder.toDynamoMap(writer(obj));
+    final attrs = {};
+    map.forEach((key, valueMap) {
       attrs[key] = {'Action': 'PUT', 'Value': valueMap};
     });
-    await _invoke('updateItem', {'Key': await makeKey(content['id']), 'AttributeUpdates': attrs});
+    await _invoke('updateItem', {'Key': await _makeKey(obj.id), 'AttributeUpdates': attrs});
   }
 
-  Future<Null> delete([String id = null]) async {
-    await _invoke('deleteItem', {'Key': await makeKey(id)});
+  Future<Null> delete(String id) async {
+    await _invoke('deleteItem', {'Key': await _makeKey(id)});
   }
 
-  PagingDB createPager(bool forward, String hashKeyName, String hashKeyValue, String indexName, _RecordReader reader) {
-    return new PagingDB(this, reader, indexName, forward, hashKeyName, hashKeyValue);
+  PagingDB createPager(String indexName, String hashKeyName, String hashKeyValue, bool forward) {
+    return new PagingDB(this, indexName, forward, hashKeyName, hashKeyValue);
   }
 }
 
-typedef T _RecordReader<T>(Map map);
-
 class PagingDB<T> {
-  final DynamoDB table;
-  final _RecordReader<T> reader;
+  final _Table table;
   final String indexName, hashKeyName;
   final Map hashKeyValue;
   final bool isForward;
 
-  PagingDB(this.table, this.reader, this.indexName, this.isForward, this.hashKeyName, String hashKeyValue)
+  PagingDB(this.table, this.indexName, this.isForward, this.hashKeyName, String hashKeyValue)
       : this.hashKeyValue = new Map.unmodifiable(_ContentEncoder.encode(hashKeyValue));
 
   Map _lastEvaluatedKey;
@@ -138,7 +153,7 @@ class PagingDB<T> {
     _lastEvaluatedKey = data['LastEvaluatedKey'];
     if (_lastEvaluatedKey == null) _lastEvaluatedKey = const {};
 
-    return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
+    return data['Items'].map(_ContentDecoder.fromDynamoMap).map(table.reader).toList();
   }
 }
 

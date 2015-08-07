@@ -5,8 +5,11 @@ import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
 
-abstract class Report implements JsonSupport {
+abstract class DBRecord implements JsonSupport {
   String id;
+}
+
+abstract class Report implements DBRecord {
   String comment;
   DateTime dateAt;
   Location location;
@@ -19,30 +22,23 @@ abstract class Report implements JsonSupport {
 
 class _ReportImpl extends JsonSupport implements Report {
   final Map _data;
-  final CachedProp<DateTime> _dateAt;
   final CachedProp<Photo> _photo;
   final CachedProp<Location> _location;
   final CachedProp<Condition> _condition;
 
   _ReportImpl(Map data)
       : _data = data,
-        _dateAt = new CachedProp<DateTime>(data, 'dateAt',
-            (v) => new DateTime.fromMillisecondsSinceEpoch(v, isUtc: true),
-            (DateTime v) => v.toUtc().millisecondsSinceEpoch),
         _photo = new CachedProp<Photo>(data, 'photo', (map) => new Photo.fromMap(map)),
         _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map)),
         _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map));
 
   Map get asMap => _data;
 
-  String get id => _data['id'];
-  set id(String v) => _data['id'] = v;
+  String id;
+  DateTime dateAt;
 
   String get comment => _data['comment'];
   set comment(String v) => _data['comment'] = v;
-
-  DateTime get dateAt => _dateAt.value;
-  set dateAt(DateTime v) => _dateAt.value = v;
 
   Location get location => _location.value;
   set location(Location v) => _location.value = v;
@@ -56,8 +52,8 @@ class _ReportImpl extends JsonSupport implements Report {
   List<Fishes> fishes;
 }
 
-abstract class Fishes implements JsonSupport {
-  String id;
+abstract class Fishes implements DBRecord {
+  String reportId;
   String name;
   int count;
   Weight weight;
@@ -79,6 +75,7 @@ class _FishesImpl extends JsonSupport implements Fishes {
   Map get asMap => _data;
 
   String id;
+  String reportId;
 
   String get name => _data['name'];
   set name(String v) => _data['name'] = v;
