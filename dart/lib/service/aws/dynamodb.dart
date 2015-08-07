@@ -96,7 +96,7 @@ class DynamoDB {
   }
 
   PagingDB createPager(bool forward, String hashKeyName, String hashKeyValue, String indexName, _MapReader reader) {
-    return new PagingDB(this, reader, indexName, hashKeyName, hashKeyValue, forward);
+    return new PagingDB(this, reader, indexName, forward, hashKeyName, hashKeyValue);
   }
 }
 
@@ -105,10 +105,12 @@ typedef T _MapReader<T>(Map map);
 class PagingDB<T> {
   final DynamoDB table;
   final _MapReader<T> reader;
-  final String indexName, hashKeyName, hashKeyValue;
+  final String indexName, hashKeyName;
+  final Map hashKeyValue;
   final bool isForward;
 
-  PagingDB(this.table, this.reader, this.indexName, this.hashKeyName, this.hashKeyValue, this.isForward);
+  PagingDB(this.table, this.reader, this.indexName, this.isForward, this.hashKeyName, String hashKeyValue)
+      : this.hashKeyValue = new Map.unmodifiable(_ContentEncoder.encode(hashKeyValue));
 
   Map _lastEvaluatedKey;
   bool get hasMore => _lastEvaluatedKey == null || _lastEvaluatedKey.isNotEmpty;
@@ -118,11 +120,12 @@ class PagingDB<T> {
   }
 
   Future<List<T>> more(int pageSize) async {
-    if (_lastEvaluatedKey != null && _lastEvaluatedKey.isEmpty) return [];
+    if (!hasMore) return [];
 
     final params = {
       'Limit': pageSize,
       'ScanIndexForward': isForward,
+      'IndexName': indexName,
       'KeyConditionExpression': "#N1 = :V1",
       'ExpressionAttributeNames': {'#N1': hashKeyName},
       'ExpressionAttributeValues': {':V1': hashKeyValue}
@@ -135,8 +138,7 @@ class PagingDB<T> {
     _lastEvaluatedKey = data['LastEvaluatedKey'];
     if (_lastEvaluatedKey == null) _lastEvaluatedKey = const {};
 
-    final list = _ContentDecoder.decode(data['Items']) as List<Map>;
-    return list.map(reader).toList();
+    return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
   }
 }
 
