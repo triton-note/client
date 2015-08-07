@@ -18,6 +18,7 @@ class UserPreferences {
     if (_onCurrent == null) {
       _onCurrent = new Completer();
       final dataset = await CognitoSync.getDataset(DATASET_MEASURES);
+      await dataset.synchronize();
       _onCurrent.complete(new UserPreferences(new _MeasuresImpl(dataset)));
     }
     return _onCurrent.future;
@@ -47,11 +48,11 @@ class _MeasuresImpl implements Measures {
     _init();
   }
   _init() async {
-    String _length = await _dataset.get(KEY_LENGTH);
+    _length = await _dataset.get(KEY_LENGTH);
     if (_length == null) length = LengthUnit.cm;
-    String _weight = await _dataset.get(KEY_WEIGHT);
+    _weight = await _dataset.get(KEY_WEIGHT);
     if (_weight == null) weight = WeightUnit.g;
-    String _temperature = await _dataset.get(KEY_TEMPERATURE);
+    _temperature = await _dataset.get(KEY_TEMPERATURE);
     if (_temperature == null) temperature = TemperatureUnit.Cels;
   }
 

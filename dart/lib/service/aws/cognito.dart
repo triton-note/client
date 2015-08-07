@@ -117,8 +117,8 @@ class CognitoSync {
   }
 
   static Future<CognitoSync> getDataset(String name) async {
-    final data = await _invoke(await _client.value, 'openOrCreateDataset', [name]);
-    return new CognitoSync(data);
+    final dataset = await _invoke(await _client.value, 'openOrCreateDataset', [name]);
+    return new CognitoSync(dataset);
   }
 
   static const refreshDur = const Duration(seconds: 60);
@@ -140,14 +140,41 @@ class CognitoSync {
   }
 
   Future<Null> synchronize() async {
+    final result = new Completer();
     _dataset.callMethod('synchronize', [
       new JsObject.jsify({
-        'onSuccess': (dataset, newRecords) {},
-        'onFailure': (err) {},
-        'onConflict': (dataset, conflicts, callback) {},
-        'onDatasetDeleted': (dataset, datasetName, callback) {},
-        'onDatasetMerged': (dataset, datasetNames, callback) {}
+        'onSuccess': (dataset, newRecords) {
+          _logger.finest(() => "[synchronize] onSuccess: ${dataset}, ${newRecords}");
+          result.complete();
+        },
+        'onFailure': (error) {
+          _logger.finest(() => "[synchronize] onFailure: ${error}");
+          result.complete();
+        },
+        'onConflict': (dataset, conflicts, callback) {
+          _logger.finest(() => "[synchronize] onConflict: ${dataset}, ${conflicts}, ${callback}");
+          final resolved = conflicts.map((c) => c.callMethod('resolveWithRemoteRecord', []));
+          dataset.callMethod('resolve', [
+            new JsObject.jsify(resolved),
+            () {
+              result.complete();
+              return (callback == null) ? null : callback.callMethod('call', [true]);
+            }
+          ]);
+        },
+        'onDatasetDeleted': (dataset, datasetName, callback) {
+          _logger.finest(() => "[synchronize] onDatasetDeleted: ${dataset}, ${datasetName}, ${callback}");
+          result.complete();
+          // This does not work. see: https://forums.aws.amazon.com/thread.jspa?threadID=178748
+          // return callback.callMethod('call', [false]);
+        },
+        'onDatasetMerged': (dataset, datasetNames, callback) {
+          _logger.finest(() => "[synchronize] onDatasetMerged: ${dataset}, ${datasetNames}, ${callback}");
+          result.complete();
+          return callback.callMethod('call', [true]);
+        }
       })
     ]);
+    return result.future;
   }
 }
