@@ -13,15 +13,8 @@ final _logger = new Logger('Cognito');
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
-class Identity {
-  final String id;
-  final Map<String, String> logins;
-
-  Identity(this.id, this.logins);
-}
-
-class Cognito {
-  static final Future<bool> initialized = Cognito._initialize();
+class CognitoIdentity {
+  static final Future<bool> initialized = _initialize();
 
   static final Completer<String> _connected = new Completer<String>();
   static bool get isConnected => _connected.isCompleted;
@@ -29,8 +22,8 @@ class Cognito {
     _connected.future.then(proc);
   }
 
-  static Future<Identity> get identity =>
-      initialized.then((v) => !v ? null : new Identity(Cognito._identityId, Cognito.logins));
+  static Future<CognitoIdentity> get identity =>
+      initialized.then((v) => !v ? null : new CognitoIdentity(_identityId, loginsParam));
 
   static Future<bool> _initialize() async {
     _logger.fine("Initializing Cognito ...");
@@ -55,7 +48,7 @@ class Cognito {
   }
 
   static String get _identityId => context['AWS']['config']['credentials']['identityId'];
-  static Map<String, String> get logins {
+  static Map<String, String> get loginsParam {
     final result = {};
     final map = context['AWS']['config']['credentials']['params']['Logins'];
     if (map is Map) map.forEach((key, value) {
@@ -96,4 +89,9 @@ class Cognito {
 
     return result.future;
   }
+
+  final String id;
+  final Map<String, String> logins;
+
+  CognitoIdentity(this.id, this.logins);
 }
