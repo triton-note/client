@@ -196,9 +196,9 @@ class _Catches {
 
   add() => alfterRippling(() {
     _logger.fine("Add new fish");
-    final fish = new Fishes.fromMap({'count': 1});
+    final fish = new Fishes.fromMap({'count': 1}, null, null);
     dialog.value.open(new GetterSetter(() => fish, (v) {
-      list.value = list.value..add(v);
+      list.value.add(v);
       _onChanged(list.value);
     }));
   });
@@ -207,9 +207,9 @@ class _Catches {
     _logger.fine("Edit at $index");
     dialog.value.open(new GetterSetter(() => list.value[index], (v) {
       if (v == null) {
-        list.value = list.value..removeAt(index);
+        list.value.removeAt(index);
       } else {
-        list.value = list.value..[index] = v;
+        list.value[index] = v;
       }
       _onChanged(list.value);
     }));

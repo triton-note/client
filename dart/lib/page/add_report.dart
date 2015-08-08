@@ -37,7 +37,7 @@ final _logger = new Logger('AddReportPage');
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
 class AddReportPage extends MainFrame {
-  final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
+  final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}}, null, null, []);
 
   final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
   final PipeValue<EditFishDialog> fishDialog = new PipeValue();
@@ -158,7 +158,7 @@ class AddReportPage extends MainFrame {
 
   addFish() {
     if (addingFishName != null && addingFishName.isNotEmpty) {
-      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
+      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1}, null, null);
       addingFishName = null;
       if (report.fishes == null) report.fishes = [fish];
       else report.fishes.add(fish);

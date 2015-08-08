@@ -5,11 +5,14 @@ import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
 
-abstract class DBRecord implements JsonSupport {
+abstract class DBRecord<T> implements JsonSupport {
   String id;
+
+  T clone();
+  void copyFrom(T src);
 }
 
-abstract class Report implements DBRecord {
+abstract class Report implements DBRecord<Report> {
   String comment;
   DateTime dateAt;
   Location location;
@@ -17,7 +20,8 @@ abstract class Report implements DBRecord {
   Photo photo;
   List<Fishes> fishes;
 
-  factory Report.fromMap(Map data) => new _ReportImpl(data);
+  factory Report.fromMap(Map data, String id, DateTime dateAt, List<Fishes> fishes) =>
+      new _ReportImpl(data, id, dateAt, fishes);
 }
 
 class _ReportImpl extends JsonSupport implements Report {
@@ -26,7 +30,7 @@ class _ReportImpl extends JsonSupport implements Report {
   final CachedProp<Location> _location;
   final CachedProp<Condition> _condition;
 
-  _ReportImpl(Map data)
+  _ReportImpl(Map data, this.id, this.dateAt, this.fishes)
       : _data = data,
         _photo = new CachedProp<Photo>(data, 'photo', (map) => new Photo.fromMap(map)),
         _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map)),
@@ -50,16 +54,29 @@ class _ReportImpl extends JsonSupport implements Report {
   set photo(Photo v) => _photo.value = v;
 
   List<Fishes> fishes;
+
+  @override
+  String toString() => "${super.toString()}, id=${id}, dateAt=${dateAt},  fishes=${fishes}";
+
+  Report clone() => new _ReportImpl(new Map.from(asMap), id, dateAt, fishes);
+  void copyFrom(Report src) {
+    asMap
+      ..clear()
+      ..addAll(src.asMap);
+    id = src.id;
+    dateAt = src.dateAt;
+    fishes = src.fishes.map((fish) => fish.clone()).toList();
+  }
 }
 
-abstract class Fishes implements DBRecord {
+abstract class Fishes implements DBRecord<Fishes> {
   String reportId;
   String name;
   int count;
   Weight weight;
   Length length;
 
-  factory Fishes.fromMap(Map data) => new _FishesImpl(data);
+  factory Fishes.fromMap(Map data, String id, String reportId) => new _FishesImpl(data, id, reportId);
 }
 
 class _FishesImpl extends JsonSupport implements Fishes {
@@ -67,7 +84,7 @@ class _FishesImpl extends JsonSupport implements Fishes {
   final CachedProp<Weight> _weight;
   final CachedProp<Length> _length;
 
-  _FishesImpl(Map data)
+  _FishesImpl(Map data, this.id, this.reportId)
       : _data = data,
         _weight = new CachedProp<Weight>(data, 'weight', (map) => new Weight.fromMap(map)),
         _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map));
@@ -88,4 +105,16 @@ class _FishesImpl extends JsonSupport implements Fishes {
 
   Length get length => _length.value;
   set length(Length v) => _length.value = v;
+
+  @override
+  String toString() => "${super.toString()}, id=${id}, reportId=${reportId}";
+
+  Fishes clone() => new _FishesImpl(new Map.from(asMap), id, reportId);
+  void copyFrom(Fishes src) {
+    asMap
+      ..clear()
+      ..addAll(src.asMap);
+    id = src.id;
+    reportId = src.reportId;
+  }
 }

@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/aws/cognito.dart';
+import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('DynamoDB');
@@ -32,21 +33,19 @@ class DynamoDB {
   }
 
   static final _Table TABLE_CATCH = new _Table("CATCH", "CATCH_ID", (Map map) {
-    return new Fishes.fromMap(map[CONTENT])..reportId = map['REPORT_ID'];
+    return new Fishes.fromMap(map[CONTENT], map['CATCH_ID'], map['REPORT_ID']);
   }, (Fishes obj) {
-    return {}
-      ..[CONTENT] = new Map.from(obj.asMap)
-      ..['REPORT_ID'] = obj.reportId;
+    return {CONTENT: new Map.from(obj.asMap), 'REPORT_ID': obj.reportId};
   });
   static final _Table TABLE_REPORT = new _Table("REPORT", "REPORT_ID", (Map map) {
-    return new Report.fromMap(map[CONTENT])
-      ..id = map['REPORT_ID']
-      ..dateAt = new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true);
+    return new Report.fromMap(
+        map[CONTENT], map['REPORT_ID'], new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true), []);
   }, (Report obj) {
-    return {}
-      ..[CONTENT] = new Map.from(obj.asMap)
-      ..['REPORT_ID'] = obj.id
-      ..['DATE_AT'] = obj.dateAt.toUtc().millisecondsSinceEpoch;
+    return {
+      CONTENT: new Map.from(obj.asMap),
+      'REPORT_ID': obj.id,
+      'DATE_AT': obj.dateAt.toUtc().millisecondsSinceEpoch
+    };
   });
 }
 
@@ -84,7 +83,7 @@ class _Table<T extends DBRecord> {
   }
 
   Future<T> get(String id) async {
-    final data = await _invoke('getItem', {'Key': await _makeKey(id), 'ProjectionExpression': DynamoDB.CONTENT});
+    final data = await _invoke('getItem', {'Key': await _makeKey(id)});
     final item = data['Item'];
     if (item == null) return null;
 
@@ -101,7 +100,7 @@ class _Table<T extends DBRecord> {
   }
 
   Future<Null> update(T obj) async {
-    final map = _ContentEncoder.toDynamoMap(writer(obj));
+    final map = _ContentEncoder.toDynamoMap(writer(obj)..remove(DynamoDB.COGNITO_ID)..remove(ID_COLUMN));
     final attrs = {};
     map.forEach((key, valueMap) {
       attrs[key] = {'Action': 'PUT', 'Value': valueMap};
@@ -113,6 +112,42 @@ class _Table<T extends DBRecord> {
     await _invoke('deleteItem', {'Key': await _makeKey(id)});
   }
 
+  Future<List<T>> query(String indexName, Map<String, Object> keys,
+      [bool isForward = true, int pageSize = 0, GetterSetter<Map> lastEvaluatedKey = null]) async {
+    int index = 0;
+    final expressions = [];
+    final names = {};
+    final values = {};
+    keys.keys.forEach((key) {
+      index++;
+      final value = keys[key];
+      final keyName = "#N${index}";
+      final valueName = ":V${index}";
+      expressions.add("${keyName} = ${valueName}");
+      names[keyName] = key;
+      values[valueName] = _ContentEncoder.encode(value);
+    });
+    final params = {
+      'ScanIndexForward': isForward,
+      'IndexName': indexName,
+      'KeyConditionExpression': expressions.join(" and "),
+      'ExpressionAttributeNames': names,
+      'ExpressionAttributeValues': values
+    };
+    if (0 < pageSize) params['Limit'] = pageSize;
+    if (lastEvaluatedKey != null) {
+      if (lastEvaluatedKey.value != null) params['ExclusiveStartKey'] = lastEvaluatedKey.value;
+    }
+    final data = await _invoke('query', params);
+
+    if (lastEvaluatedKey != null) {
+      lastEvaluatedKey.value = data['LastEvaluatedKey'];
+      if (lastEvaluatedKey.value == null) lastEvaluatedKey.value = const {};
+    }
+
+    return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
+  }
+
   PagingDB createPager(String indexName, String hashKeyName, String hashKeyValue, bool forward) {
     return new PagingDB(this, indexName, forward, hashKeyName, hashKeyValue);
   }
@@ -120,13 +155,14 @@ class _Table<T extends DBRecord> {
 
 class PagingDB<T> {
   final _Table table;
-  final String indexName, hashKeyName;
-  final Map hashKeyValue;
+  final String indexName, hashKeyName, hashKeyValue;
   final bool isForward;
 
-  PagingDB(this.table, this.indexName, this.isForward, this.hashKeyName, String hashKeyValue)
-      : this.hashKeyValue = new Map.unmodifiable(_ContentEncoder.encode(hashKeyValue));
+  PagingDB(this.table, this.indexName, this.isForward, this.hashKeyName, this.hashKeyValue) {
+    _lastEvaluatedKeyGS = new GetterSetter(() => _lastEvaluatedKey, (v) => _lastEvaluatedKey = v);
+  }
 
+  GetterSetter<Map> _lastEvaluatedKeyGS;
   Map _lastEvaluatedKey;
   bool get hasMore => _lastEvaluatedKey == null || _lastEvaluatedKey.isNotEmpty;
 
@@ -134,27 +170,8 @@ class PagingDB<T> {
     _lastEvaluatedKey = null;
   }
 
-  Future<List<T>> more(int pageSize) async {
-    if (!hasMore) return [];
-
-    final params = {
-      'Limit': pageSize,
-      'ScanIndexForward': isForward,
-      'IndexName': indexName,
-      'KeyConditionExpression': "#N1 = :V1",
-      'ExpressionAttributeNames': {'#N1': hashKeyName},
-      'ExpressionAttributeValues': {':V1': hashKeyValue}
-    };
-    if (_lastEvaluatedKey != null) {
-      params['ExclusiveStartKey'] = _lastEvaluatedKey;
-    }
-    final data = await table._invoke('query', params);
-
-    _lastEvaluatedKey = data['LastEvaluatedKey'];
-    if (_lastEvaluatedKey == null) _lastEvaluatedKey = const {};
-
-    return data['Items'].map(_ContentDecoder.fromDynamoMap).map(table.reader).toList();
-  }
+  Future<List<T>> more(int pageSize) =>
+      table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKeyGS);
 }
 
 class _ContentDecoder {

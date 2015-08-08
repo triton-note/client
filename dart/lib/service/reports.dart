@@ -16,7 +16,7 @@ class Reports {
   static List<Report> _cachedList;
   static Future<List<Report>> get allList async => (_cachedList != null) ? _cachedList : refresh();
 
-  static PagingDB pager;
+  static PagingDB _pager;
 
   static Report _fromCache(String id) =>
       _cachedList == null ? null : _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
@@ -25,28 +25,43 @@ class Reports {
     ..add(adding)
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
+  static Future<Null> _loadCatches(Report report) async {
+    report.fishes = await DynamoDB.TABLE_CATCH.query("COGNITO_ID-REPORT_ID-index", {
+      DynamoDB.COGNITO_ID: await DynamoDB.cognitoId,
+      DynamoDB.TABLE_REPORT.ID_COLUMN: report.id
+    });
+  }
+
   static Future<List<Report>> refresh() async {
-    if (pager == null) {
-      pager = DynamoDB.TABLE_REPORT.createPager(
+    if (_pager == null) {
+      _pager = DynamoDB.TABLE_REPORT.createPager(
           "COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, await DynamoDB.cognitoId, false);
     } else {
-      pager.reset();
+      _pager.reset();
     }
-    _cachedList = await pager.more(pageSize);
-    return _cachedList;
+    _cachedList = [];
+    return _more();
   }
   static Future<List<Report>> more() async {
     if (_cachedList == null) return refresh();
-    _cachedList.addAll(await pager.more(pageSize));
+    return _more();
+  }
+  static Future<List<Report>> _more() async {
+    final list = await _pager.more(pageSize);
+    await Future.wait(list.map(_loadCatches));
+    _logger.finer(() => "Loaded reports: ${list}");
+
+    _cachedList.addAll(list);
     return _cachedList;
   }
 
   static Future<Report> get(String id) async {
     final found = _fromCache(id);
     if (found != null) {
-      return new Report.fromMap(new Map.from(found.asMap));
+      return found.clone();
     } else {
       final report = await DynamoDB.TABLE_REPORT.get(id);
+      await _loadCatches(report);
       _addToCache(report);
       return report;
     }
@@ -62,35 +77,37 @@ class Reports {
     final oldReport = _fromCache(newReport.id);
     assert(oldReport != null);
 
-    if (oldReport.asMap == newReport.asMap) return;
     _logger.finest("Update report: old=${oldReport} new=${newReport}");
+    if (oldReport.asMap == newReport.asMap) return;
 
     final oldFishes = oldReport.fishes;
     final newFishes = newReport.fishes;
+    final oldFishesIDs = oldFishes.map((o) => o.id).toSet();
+    final newFishesIDs = newFishes.map((o) => o.id).toSet();
 
-    final adding =
-        Future.wait(newFishes.where((fish) => fish.id == null).map((fish) => DynamoDB.TABLE_CATCH.put(fish)));
-    final notFounds = oldFishes.map((o) => o.id).toSet().difference(newFishes.map((o) => o.id).toSet());
+    newFishes.forEach((fish) => fish.reportId = newReport.id);
+
+    final adding = Future.wait(newFishes.where((fish) => fish.id == null).map(DynamoDB.TABLE_CATCH.put));
+    final notFounds = oldFishesIDs.difference(newFishesIDs);
     final deleting = Future.wait(notFounds.map(DynamoDB.TABLE_CATCH.delete));
     final marging =
         Future
-            .wait(newFishes
-                .where((newFish) => !notFounds.contains(newFish.id) &&
-                    oldFishes.firstWhere((oldFish) => oldFish.id = newFish.id).asMap != newFish.asMap)
-                .map((fish) {
-      DynamoDB.TABLE_CATCH.update(fish);
-    }));
+            .wait(
+                newFishes
+                    .where((newFish) => oldFishesIDs.contains(newFish.id) &&
+                        oldFishes.firstWhere((oldFish) => oldFish.id == newFish.id).asMap != newFish.asMap)
+                    .map(DynamoDB.TABLE_CATCH.update));
 
     final updating =
         (oldReport.asMap == newReport.asMap) ? new Future.value(null) : DynamoDB.TABLE_REPORT.update(newReport);
 
-    newFishes
-      ..removeWhere((fish) => fish.id == null)
-      ..addAll(await adding);
-    await Future.wait([marging, deleting, updating]);
+    await Future.wait([adding, marging, deleting, updating]);
+    oldReport.copyFrom(newReport);
   }
 
-  static Future<Null> add(Report report) async {
+  static Future<Null> add(Report reportSrc) async {
+    final report = reportSrc.clone();
+
     _logger.finest("Adding report: ${report}");
     await DynamoDB.TABLE_REPORT.put(report);
     _logger.finest(() => "Added report: ${report}");
