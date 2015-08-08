@@ -63,7 +63,7 @@ class Reports {
       final report = await DynamoDB.TABLE_REPORT.get(id);
       await _loadCatches(report);
       _addToCache(report);
-      return report;
+      return report.clone();
     }
   }
 
@@ -77,32 +77,38 @@ class Reports {
     final oldReport = _fromCache(newReport.id);
     assert(oldReport != null);
 
-    _logger.finest("Update report: old=${oldReport} new=${newReport}");
-    if (oldReport.asMap == newReport.asMap) return;
+    _logger.finest("Update report:\n old=${oldReport}\n new=${newReport}");
 
-    final oldFishes = oldReport.fishes;
-    final newFishes = newReport.fishes;
-    final oldFishesIDs = oldFishes.map((o) => o.id).toSet();
-    final newFishesIDs = newFishes.map((o) => o.id).toSet();
+    newReport.fishes.forEach((fish) => fish.reportId = newReport.id);
 
-    newFishes.forEach((fish) => fish.reportId = newReport.id);
+    // No old, On new
+    final adding = Future.wait(newReport.fishes.where((fish) => fish.id == null).map(DynamoDB.TABLE_CATCH.put));
 
-    final adding = Future.wait(newFishes.where((fish) => fish.id == null).map(DynamoDB.TABLE_CATCH.put));
-    final notFounds = oldFishesIDs.difference(newFishesIDs);
-    final deleting = Future.wait(notFounds.map(DynamoDB.TABLE_CATCH.delete));
-    final marging =
-        Future
-            .wait(
-                newFishes
-                    .where((newFish) => oldFishesIDs.contains(newFish.id) &&
-                        oldFishes.firstWhere((oldFish) => oldFish.id == newFish.id).asMap != newFish.asMap)
-                    .map(DynamoDB.TABLE_CATCH.update));
+    // On old, No new
+    final deleting =
+        Future.wait(oldReport.fishes
+            .map((o) => o.id)
+            .where((oldId) => newReport.fishes.every((fish) => fish.id != oldId))
+            .map(DynamoDB.TABLE_CATCH.delete));
 
-    final updating =
-        (oldReport.asMap == newReport.asMap) ? new Future.value(null) : DynamoDB.TABLE_REPORT.update(newReport);
+    // On old, On new
+    final marging = Future.wait(newReport.fishes.where((newFish) {
+      final oldFish = oldReport.fishes.firstWhere((oldFish) => oldFish.id == newFish.id, orElse: () => null);
+      return oldFish != null && oldFish.asMap.toString() != newFish.asMap.toString();
+    }).map(DynamoDB.TABLE_CATCH.update));
+
+    oldReport.fishes = newReport.fishes.map((f) => f.clone()).toList();
+
+    final updating = (oldReport.asMap.toString() != newReport.asMap.toString())
+        ? DynamoDB.TABLE_REPORT.update(newReport)
+        : new Future.sync(() {
+      oldReport.asMap
+        ..clear()
+        ..addAll(newReport.asMap);
+      oldReport.dateAt = newReport.dateAt;
+    });
 
     await Future.wait([adding, marging, deleting, updating]);
-    oldReport.copyFrom(newReport);
   }
 
   static Future<Null> add(Report reportSrc) async {

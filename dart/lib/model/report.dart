@@ -9,7 +9,6 @@ abstract class DBRecord<T> implements JsonSupport {
   String id;
 
   T clone();
-  void copyFrom(T src);
 }
 
 abstract class Report implements DBRecord<Report> {
@@ -58,15 +57,7 @@ class _ReportImpl extends JsonSupport implements Report {
   @override
   String toString() => "${super.toString()}, id=${id}, dateAt=${dateAt},  fishes=${fishes}";
 
-  Report clone() => new _ReportImpl(new Map.from(asMap), id, dateAt, fishes);
-  void copyFrom(Report src) {
-    asMap
-      ..clear()
-      ..addAll(src.asMap);
-    id = src.id;
-    dateAt = src.dateAt;
-    fishes = src.fishes.map((fish) => fish.clone()).toList();
-  }
+  Report clone() => new _ReportImpl(new Map.from(asMap), id, dateAt, fishes.map((o) => o.clone()).toList());
 }
 
 abstract class Fishes implements DBRecord<Fishes> {
@@ -110,11 +101,4 @@ class _FishesImpl extends JsonSupport implements Fishes {
   String toString() => "${super.toString()}, id=${id}, reportId=${reportId}";
 
   Fishes clone() => new _FishesImpl(new Map.from(asMap), id, reportId);
-  void copyFrom(Fishes src) {
-    asMap
-      ..clear()
-      ..addAll(src.asMap);
-    id = src.id;
-    reportId = src.reportId;
-  }
 }
