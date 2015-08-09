@@ -19,7 +19,9 @@ class UserPreferences {
       _onCurrent = new Completer();
       final dataset = await CognitoSync.getDataset(DATASET_MEASURES);
       await dataset.synchronize();
-      _onCurrent.complete(new UserPreferences(new _MeasuresImpl(dataset)));
+      final m = new _MeasuresImpl(dataset);
+      await m.loaded;
+      _onCurrent.complete(new UserPreferences(m));
     }
     return _onCurrent.future;
   }
@@ -41,6 +43,8 @@ class _MeasuresImpl implements Measures {
   static const KEY_TEMPERATURE = 'temperature';
 
   final CognitoSync _dataset;
+  final Completer _onLoaded = new Completer();
+  Future get loaded => _onLoaded.future;
 
   String _length, _weight, _temperature;
 
@@ -48,12 +52,17 @@ class _MeasuresImpl implements Measures {
     _init();
   }
   _init() async {
-    _length = await _dataset.get(KEY_LENGTH);
-    if (_length == null) length = LengthUnit.cm;
-    _weight = await _dataset.get(KEY_WEIGHT);
-    if (_weight == null) weight = WeightUnit.g;
-    _temperature = await _dataset.get(KEY_TEMPERATURE);
-    if (_temperature == null) temperature = TemperatureUnit.Cels;
+    try {
+      _length = await _dataset.get(KEY_LENGTH);
+      if (_length == null) length = LengthUnit.cm;
+      _weight = await _dataset.get(KEY_WEIGHT);
+      if (_weight == null) weight = WeightUnit.g;
+      _temperature = await _dataset.get(KEY_TEMPERATURE);
+      if (_temperature == null) temperature = TemperatureUnit.Cels;
+      _onLoaded.complete();
+    } catch (ex) {
+      _onLoaded.completeError(ex);
+    }
   }
 
   LengthUnit get length => enumByName(LengthUnit.values, _length);
