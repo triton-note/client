@@ -99,14 +99,14 @@ class Reports {
 
     oldReport.fishes = newReport.fishes.map((f) => f.clone()).toList();
 
-    final updating = (oldReport.asMap.toString() != newReport.asMap.toString())
-        ? DynamoDB.TABLE_REPORT.update(newReport)
-        : new Future.sync(() {
+    final updating = (oldReport.asMap.toString() != newReport.asMap.toString() || oldReport.dateAt != newReport.dateAt)
+        ? DynamoDB.TABLE_REPORT.update(newReport).then((_) {
       oldReport.asMap
         ..clear()
         ..addAll(newReport.asMap);
       oldReport.dateAt = newReport.dateAt;
-    });
+    })
+        : new Future.value(null);
 
     await Future.wait([adding, marging, deleting, updating]);
   }
