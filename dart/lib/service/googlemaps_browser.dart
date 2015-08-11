@@ -76,7 +76,7 @@ class GoogleMap implements Wrapper {
 
   LatLngBounds get bounds {
     final a = _src.callMethod('getBounds', []);
-    return a.callMethod('isEmpty', []) ? null : new LatLngBounds(a);
+    return (a == null || a.callMethod('isEmpty', [])) ? null : new LatLngBounds(a);
   }
 
   panTo(GeoInfo pos) {
