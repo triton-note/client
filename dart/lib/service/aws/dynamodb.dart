@@ -179,7 +179,6 @@ class _ContentDecoder {
     assert(valueMap.length == 1);
     final t = valueMap.keys.first;
     final value = valueMap[t];
-    _logger.finest(() => "Decoding value: '${t}': ${value}");
     switch (t) {
       case 'M':
         return fromDynamoMap(value as Map);
@@ -193,14 +192,12 @@ class _ContentDecoder {
   }
 
   static Map fromDynamoMap(dmap) {
-    _logger.finest(() => "Decoding content: ${dmap}");
     if (dmap is JsObject) return fromDynamoMap(JSON.decode(_stringify(dmap)));
 
     final result = {};
     dmap.forEach((key, Map valueMap) {
       result[key] = decode(valueMap);
     });
-    _logger.finest(() => "Decoded map: ${result}");
     return result;
   }
 }
