@@ -112,6 +112,15 @@ class _Table<T extends DBRecord> {
     await _invoke('deleteItem', {'Key': await _makeKey(id)});
   }
 
+  Future<List<T>> scan(String expression, Map<String, String> names, Map<String, String> values) async {
+    final data = await _invoke('scan', {
+      'FilterExpression': expression,
+      'ExpressionAttributeNames': names,
+      'ExpressionAttributeValues': _ContentEncoder.toDynamoMap(values)
+    });
+    return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
+  }
+
   Future<List<T>> query(String indexName, Map<String, Object> keys,
       [bool isForward = true, int pageSize = 0, GetterSetter<Map> lastEvaluatedKey = null]) async {
     int index = 0;
