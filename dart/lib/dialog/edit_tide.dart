@@ -40,8 +40,6 @@ class EditTideDialog extends ShadowRootAware {
     if (tide != null) value = tide;
   }
 
-  List<String> get tideNames => tideList.map((t) => nameOfEnum(t));
+  List<String> tideNames = new List.unmodifiable(tideList.map((t) => nameOfEnum(t)));
   String tideIcon(String name) => name == null ? null : Tides.iconBy(name);
-  String get tideName => value == null ? null : nameOfEnum(value);
-  String get tideImage => tideIcon(tideName);
 }

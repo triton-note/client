@@ -16,15 +16,18 @@ import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
-import 'package:triton_note/service/upload_session.dart';
+import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
-import 'package:triton_note/service/server.dart';
 import 'package:triton_note/service/preferences.dart';
+import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
+import 'package:triton_note/service/aws/dynamodb.dart';
+import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
+import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('AddReportPage');
 
@@ -34,9 +37,7 @@ final _logger = new Logger('AddReportPage');
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
 class AddReportPage extends MainFrame {
-  final Completer<UploadSession> _onSession = new Completer();
-  final Report report =
-      new Report.fromMap({'id': '', 'userId': '', 'fishes': [], 'location': {}, 'condition': {'weather': {}}});
+  final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}}, null, null, []);
 
   final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
   final PipeValue<EditFishDialog> fishDialog = new PipeValue();
@@ -71,15 +72,13 @@ class AddReportPage extends MainFrame {
       report.photo = new Photo.fromMap({'reduced': {'mainview': {'url': url}}});
     });
 
+    new _Upload(shop).done.then((list) {
+      report.photo = new Photo.fromMap(
+          {'original': {'path': list[0]}, 'reduced': {'mainview': {'path': list[1]}, 'thumbnail': {'path': list[2]}}});
+      submitable();
+    });
+
     shop.photo.then((photo) async {
-      final session = new UploadSession(photo);
-      _onSession.complete(session);
-
-      session.photo.then((v) async {
-        report.photo = v;
-        submitable();
-      });
-
       try {
         report.dateAt = await shop.timestamp;
       } catch (ex) {
@@ -96,7 +95,7 @@ class AddReportPage extends MainFrame {
       renewConditions();
 
       try {
-        final inference = await session.infer(report.location.geoinfo, report.dateAt);
+        final inference = null;
         if (inference != null) {
           if (inference.spotName != null && inference.spotName.length > 0) {
             report.location.name = inference.spotName;
@@ -119,7 +118,7 @@ class AddReportPage extends MainFrame {
     try {
       _logger.finest("Getting conditions by report info: ${report}");
       if (report.dateAt != null && report.location.geoinfo != null) {
-        final cond = await Server.getConditions(report.dateAt, report.location.geoinfo);
+        final cond = await NaturalConditions.at(report.dateAt, report.location.geoinfo);
         _logger.fine("Get conditions: ${cond}");
         if (cond.weather == null) {
           cond.weather = new Weather.fromMap({
@@ -129,7 +128,8 @@ class AddReportPage extends MainFrame {
           });
         }
         if (cond.weather.temperature != null) {
-          cond.weather.temperature = cond.weather.temperature.convertTo((await UserPreferences.measures).temperature);
+          cond.weather.temperature =
+              cond.weather.temperature.convertTo((await UserPreferences.current).measures.temperature);
         }
         report.condition = cond;
       }
@@ -158,9 +158,10 @@ class AddReportPage extends MainFrame {
 
   addFish() {
     if (addingFishName != null && addingFishName.isNotEmpty) {
-      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
+      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1}, null, null);
       addingFishName = null;
-      report.fishes = report.fishes..add(fish);
+      if (report.fishes == null) report.fishes = [fish];
+      else report.fishes.add(fish);
     }
   }
 
@@ -196,7 +197,7 @@ class AddReportPage extends MainFrame {
   submit() => rippling(() async {
     _logger.finest("Submitting report: ${report}");
     if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
-    (await _onSession.future).submit(report);
+    Reports.add(report);
     back();
   });
 }
@@ -248,4 +249,32 @@ class _Conditions {
   String get tideName => value.tide == null ? null : nameOfEnum(value.tide);
   String get tideImage => tideName == null ? null : Tides.iconBy(tideName);
   String get moonImage => _condition.value.moon == null ? null : MoonPhases.iconOf(_condition.value.moon);
+}
+
+class _Upload {
+  final PhotoShop _shop;
+  final _onOriginal = new Completer<String>();
+  final _onMainview = new Completer<String>();
+  final _onThumbnail = new Completer<String>();
+
+  _Upload(this._shop) {
+    _doUpload();
+  }
+
+  _doUpload() async {
+    final s = await Settings;
+    final sessionId = DynamoDB.createRandomKey();
+    final pathPrefix = "user/${await DynamoDB.cognitoId}/photo/${sessionId}";
+
+    _upload(String path, Future<Blob> bf, Completer<String> fin) async {
+      final data = await bf;
+      await S3File.putObject(path, data);
+      fin.complete(path);
+    }
+    _upload("${pathPrefix}/original/photo_file", _shop.photo, _onOriginal);
+    _upload("${pathPrefix}/reduced/mainview/photo_file", _shop.resize(s.photo.mainviewSize), _onMainview);
+    _upload("${pathPrefix}/reduced/thumbnail/photo_file", _shop.resize(s.photo.thumbnailSize), _onThumbnail);
+  }
+
+  Future<List<String>> get done => Future.wait([_onOriginal.future, _onMainview.future, _onThumbnail.future]);
 }

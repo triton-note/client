@@ -3,7 +3,8 @@ library triton_note.model.photo;
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/_json_support.dart';
-import 'package:triton_note/service/s3file.dart';
+import 'package:triton_note/service/aws/s3file.dart';
+import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('Photo');
 
@@ -67,7 +68,7 @@ abstract class Image implements JsonSupport {
 }
 
 class _ImageImpl extends JsonSupport implements Image {
-  static final _urlLimit = new Duration(seconds: (S3File.urlExpires * 0.9).round());
+  Duration _urlLimit;
   DateTime _urlStamp;
   String _url;
   bool _isRefreshing = false;
@@ -94,20 +95,24 @@ class _ImageImpl extends JsonSupport implements Image {
   }
 
   _refreshUrl() {
-    _doRefresh() async {
+    if (_urlLimit == null) Settings.then((s) {
+      final v = s.photo.urlTimeout.inSeconds * 0.9;
+      _urlLimit = new Duration(seconds: v.round());
+    });
+    _doRefresh() {
       _isRefreshing = true;
-      try {
-        url = await S3File.url(path);
+      S3File.url(path).then((v) {
+        url = v;
         _urlStamp = new DateTime.now();
-      } catch (ex) {
+      }).catchError((ex) {
         _logger.info("Failed to get url of s3file: ${ex}");
-      } finally {
+      }).whenComplete(() {
         _isRefreshing = false;
-      }
+      });
     }
     if (!_isRefreshing) {
       final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
-      if (diff == null || diff.compareTo(_urlLimit) > 0) {
+      if (diff == null || (_urlLimit != null && _urlLimit < diff)) {
         _logger.info("Refresh url: timestamp difference: ${diff}");
         _doRefresh();
       }

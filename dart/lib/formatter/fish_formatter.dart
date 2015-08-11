@@ -12,7 +12,7 @@ class FishFormatter {
   static Measures _measures;
 
   FishFormatter() {
-    if (_measures == null) UserPreferences.measures.then((v) => _measures = v);
+    if (_measures == null) UserPreferences.current.then((c) => _measures = c.measures);
   }
 
   String call(Fishes fish, [int digits = 0]) {

@@ -5,6 +5,7 @@ import 'dart:html';
 import 'dart:js';
 
 import 'package:logging/logging.dart';
+import 'package:image/image.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/cordova.dart';
@@ -124,5 +125,35 @@ class PhotoShop {
       _logger.fine("Failed to get photo file: ${ex}");
       _onChoose.completeError(ex);
     }
+  }
+
+  Completer<Image> _original;
+  Future<Blob> resize(int maxSize) async {
+    if (_original == null) {
+      _original = new Completer();
+      try {
+        final blob = await photo;
+        final reader = new FileReader();
+        reader.onLoadEnd.listen((_) {
+          final arrayBuffer = reader.result;
+          final image = decodeImage(arrayBuffer);
+          _original.complete(image);
+        });
+        reader.readAsArrayBuffer(blob);
+      } catch (ex) {
+        _logger.warning("Failed to decode photo image: ${ex}");
+        _original.completeError(ex);
+      }
+    }
+    final original = await _original.future;
+    int width;
+    if (original.width > original.height) {
+      width = maxSize;
+    } else {
+      width = (original.width * maxSize / original.height).round();
+    }
+    final resized = copyResize(original, width);
+    final data = encodeJpg(resized);
+    return new Blob([data]);
   }
 }

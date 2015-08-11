@@ -11,7 +11,7 @@ class TemperatureFormatter {
   static Measures _measures;
 
   TemperatureFormatter() {
-    if (_measures == null) UserPreferences.measures.then((v) => _measures = v);
+    if (_measures == null) UserPreferences.current.then((c) => _measures = c.measures);
   }
 
   String call(Temperature src, [int digits = 0]) {

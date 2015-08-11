@@ -40,10 +40,10 @@ class _GeoInfoImpl extends JsonSupport implements GeoInfo {
   _GeoInfoImpl(this._data);
   Map get asMap => _data;
 
-  double get latitude => _data['latitude'].toDouble();
+  double get latitude => _data['latitude'];
   set latitude(double v) => _data['latitude'] = v;
 
-  double get longitude => _data['longitude'].toDouble();
+  double get longitude => _data['longitude'];
   set longitude(double v) => _data['longitude'] = v;
 }
 
@@ -62,7 +62,7 @@ class _ConditionImpl extends JsonSupport implements Condition {
 
   _ConditionImpl(Map data)
       : _data = data,
-        _tide = new CachedProp<Tide>(data, 'tide', (o) => enumByName(Tide.values, o), (v) => nameOfEnum(v)),
+        _tide = new CachedProp<Tide>(data, 'tide', (map) => enumByName(Tide.values, map), (v) => nameOfEnum(v)),
         _weather = new CachedProp<Weather>(data, 'weather', (map) => new Weather.fromMap(map));
 
   Map get asMap => _data;
@@ -118,6 +118,6 @@ class _WeatherImpl extends JsonSupport implements Weather {
   String get iconUrl => _data['iconUrl'];
   set iconUrl(String v) => _data['iconUrl'] = v;
 
-  Temperature get temperature => (_data['temperature'] == null) ? null : new Temperature.fromMap(_data['temperature']);
-  set temperature(Temperature v) => _data['temperature'] = v.asMap;
+  Temperature get temperature => _temperature.value;
+  set temperature(Temperature v) => _temperature.value = v;
 }

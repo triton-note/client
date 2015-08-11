@@ -30,7 +30,7 @@ class EditFishDialog extends ShadowRootAware {
   Fishes tmpFish;
 
   EditFishDialog() {
-    UserPreferences.measures.then((m) => _measures = m);
+    UserPreferences.current.then((c) => _measures = c.measures);
   }
 
   // count
@@ -54,9 +54,9 @@ class EditFishDialog extends ShadowRootAware {
   }
 
   open(GetterSetter<Fishes> value) {
-    UserPreferences.measures.then((m) {
+    UserPreferences.current.then((_) {
       _original = value;
-      final fish = new Fishes.fromMap(new Map.from(_original.value.asMap));
+      final fish = _original.value.clone();
 
       if (fish.count == null || fish.count == 0) fish.count = 1;
       fish.length = (fish.length == null)
@@ -74,7 +74,7 @@ class EditFishDialog extends ShadowRootAware {
 
   commit() {
     _logger.fine("Commit fish: ${tmpFish}");
-    final fish = new Fishes.fromMap(new Map.from(tmpFish.asMap));
+    final fish = tmpFish.clone();
 
     if (fish.length != null && fish.length.value == 0) fish.length = null;
     if (fish.weight != null && fish.weight.value == 0) fish.weight = null;
