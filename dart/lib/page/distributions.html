@@ -62,10 +62,13 @@
                             </div>
                             <div id="content">
                                 <div class="weather">
+                                    <p>{{ catches.condition.weather.nominal }} ({{ catches.condition.weather.temperature | temperatureFilter }})</p>
                                 </div>
                                 <div class="tide">
+                                    <p>Tide: {{ catches.condition.tide | tideFilter }}</p>
                                 </div>
                                 <div class="moon">
+                                    <p>Moon: {{ catches.condition.moon }}</p>
                                 </div>
                             </div>
                         </collapser>
