@@ -118,18 +118,22 @@ class _Dmap extends _Section {
       ..on['expanding'].listen((event) => gmap.options.mapTypeControl = true)
       ..on['shrinking'].listen((event) => gmap.options.mapTypeControl = false);
 
-    gmap.on('dragend', () {
+    dragend() {
       _lastCenter = gmap.center;
       final bounds = gmap.bounds;
+      _logger.finer(() => "Map moved: ${_lastCenter}, ${bounds}");
       if (refreshTimer != null && refreshTimer.isActive) refreshTimer.cancel();
       refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
-    });
+    }
+    gmap.on('dragend', dragend);
+    new Future.delayed(new Duration(seconds: 1), dragend);
   }
 
   _refresh(LatLngBounds bounds) async {
     _logger.finer("Refreshing list around: ${bounds}, ${listAround}");
     listAround = null;
-    listAround = [];
+    listAround = await Catches.inArea(bounds, _parent.filter.value.isIncludeOthers);
+    _logger.finer(() => "List in around: ${listAround}");
   }
 
   toggleDensity(Event event) {
