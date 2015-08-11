@@ -25,7 +25,7 @@ class Reports {
     ..add(adding)
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
-  static Future<Null> _loadCatches(Report report) async {
+  static Future<Null> loadFishes(Report report) async {
     report.fishes = await DynamoDB.TABLE_CATCH.query("COGNITO_ID-REPORT_ID-index", {
       DynamoDB.COGNITO_ID: await DynamoDB.cognitoId,
       DynamoDB.TABLE_REPORT.ID_COLUMN: report.id
@@ -48,7 +48,7 @@ class Reports {
   }
   static Future<List<Report>> _more() async {
     final list = await _pager.more(pageSize);
-    await Future.wait(list.map(_loadCatches));
+    await Future.wait(list.map(loadFishes));
     _logger.finer(() => "Loaded reports: ${list}");
 
     _cachedList.addAll(list);
@@ -61,7 +61,7 @@ class Reports {
       return found.clone();
     } else {
       final report = await DynamoDB.TABLE_REPORT.get(id);
-      await _loadCatches(report);
+      await loadFishes(report);
       _addToCache(report);
       return report.clone();
     }
