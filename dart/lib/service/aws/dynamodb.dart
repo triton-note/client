@@ -32,12 +32,12 @@ class DynamoDB {
     return list.join();
   }
 
-  static final _Table TABLE_CATCH = new _Table("CATCH", "CATCH_ID", (Map map) {
+  static final _Table<Fishes> TABLE_CATCH = new _Table("CATCH", "CATCH_ID", (Map map) {
     return new Fishes.fromMap(map[CONTENT], map['CATCH_ID'], map['REPORT_ID']);
   }, (Fishes obj) {
     return {CONTENT: new Map.from(obj.asMap), 'REPORT_ID': obj.reportId};
   });
-  static final _Table TABLE_REPORT = new _Table("REPORT", "REPORT_ID", (Map map) {
+  static final _Table<Report> TABLE_REPORT = new _Table("REPORT", "REPORT_ID", (Map map) {
     return new Report.fromMap(
         map[CONTENT], map['REPORT_ID'], new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true), []);
   }, (Report obj) {
@@ -148,7 +148,7 @@ class _Table<T extends DBRecord> {
     return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
   }
 
-  PagingDB createPager(String indexName, String hashKeyName, String hashKeyValue, bool forward) {
+  PagingDB<T> createPager(String indexName, String hashKeyName, String hashKeyValue, bool forward) {
     return new PagingDB(this, indexName, forward, hashKeyName, hashKeyValue);
   }
 }
