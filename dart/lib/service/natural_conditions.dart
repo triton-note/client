@@ -1,8 +1,6 @@
 library triton_note.service.natural_conditions;
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:html';
 
 import 'package:logging/logging.dart';
 
@@ -10,6 +8,7 @@ import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/settings.dart';
+import 'package:triton_note/service/aws/lambda.dart';
 
 final _logger = new Logger('NaturalConditions');
 
@@ -39,7 +38,7 @@ class NaturalConditions {
 
 class _Moon {
   static Future<_Moon> at(DateTime date) async {
-    final map = await _lambda((await Settings).lambda.moon, {'date': date.toUtc().millisecondsSinceEpoch.toString()});
+    final map = await Lambda.MOON({'date': date.toUtc().millisecondsSinceEpoch.toString()});
     return new _Moon(map);
   }
 
@@ -54,7 +53,7 @@ class _OpenWeatherMap {
   static Future<String> icon(String id) async => "${(await Settings).openweathermap.iconUrl}/${id}.png";
 
   static Future<Weather> at(GeoInfo geoinfo, DateTime date) async {
-    final map = await _lambda((await Settings).lambda.weather, {
+    final map = await Lambda.WEATHER({
       'apiKey': (await Settings).openweathermap.apiKey,
       'date': date.toUtc().millisecondsSinceEpoch.toString(),
       'lat': geoinfo.latitude.toStringAsFixed(8),
@@ -68,27 +67,4 @@ class _OpenWeatherMap {
       'temperature': {'unit': nameOfEnum(TemperatureUnit.Cels), 'value': map['temperature']}
     });
   }
-}
-
-Future<Map> _lambda(LambdaInfo lambda, Map<String, String> dataMap) async {
-  final result = new Completer();
-  try {
-    final name = lambda.url.split('/').last;
-
-    final req = new HttpRequest()
-      ..open('POST', lambda.url)
-      ..setRequestHeader('x-api-key', lambda.key)
-      ..setRequestHeader('Content-Type', 'application/json')
-      ..send(JSON.encode(dataMap));
-    req.onLoadEnd.listen((event) {
-      final text = req.responseText;
-      _logger.finest("Response of Lambda[${name}]: (Status:${req.status}) ${text}");
-      if (req.status == 200) result.complete(JSON.decode(text));
-    });
-    req.onError.listen((event) => result.completeError(req.responseText));
-    req.onTimeout.listen((event) => result.completeError(event));
-  } catch (ex) {
-    result.completeError(ex);
-  }
-  return result.future;
 }
