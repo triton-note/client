@@ -9,11 +9,12 @@ import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/reports.dart';
+import 'package:triton_note/util/distributions_filters.dart';
 
 final _logger = new Logger('Catches');
 
 class Catches {
-  static Future<List<Catches>> inArea(LatLngBounds bounds, [bool includeOthers = false]) async {
+  static Future<List<Catches>> inArea(LatLngBounds bounds, DistributionsFilter filter) async {
     final exp = ["#C.#L.#G.#LAT BETWEEN :LATD AND :LATU", "#C.#L.#G.#LNG BETWEEN :LNGD AND :LNGU"];
     final names = {"#C": "CONTENT", "#L": "location", "#G": "geoinfo", "#LAT": "latitude", "#LNG": "longitude"};
     final values = {
@@ -22,7 +23,7 @@ class Catches {
       ":LNGU": bounds.northEast.longitude,
       ":LNGD": bounds.southWest.longitude
     };
-    if (!includeOthers) {
+    if (!filter.isIncludeOthers) {
       exp.add("#U = :U");
       names["#U"] = DynamoDB.COGNITO_ID;
       values[":U"] = await DynamoDB.cognitoId;

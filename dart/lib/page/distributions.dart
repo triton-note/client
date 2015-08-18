@@ -12,10 +12,10 @@ import 'package:paper_elements/paper_tabs.dart';
 import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/element/distributions_filter.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/catches.dart';
+import 'package:triton_note/util/distributions_filters.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 
@@ -29,7 +29,7 @@ final _logger = new Logger('DistributionsPage');
 class DistributionsPage extends MainFrame implements DetachAware {
   DistributionsPage(Router router) : super(router);
 
-  final Getter<DistributionsFilterElement> filter = new PipeValue();
+  final Getter<DistributionsFilter> filter = new PipeValue();
 
   Getter<Element> scroller;
   Getter<Element> scrollBase;
@@ -132,7 +132,7 @@ class _Dmap extends _Section {
   _refresh(LatLngBounds bounds) async {
     _logger.finer("Refreshing list around: ${bounds}, ${listAround}");
     listAround = null;
-    listAround = await Catches.inArea(bounds, _parent.filter.value.isIncludeOthers);
+    listAround = await Catches.inArea(bounds, _parent.filter.value);
     _logger.finer(() => "List in around: ${listAround}");
   }
 

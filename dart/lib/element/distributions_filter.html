@@ -84,7 +84,7 @@
                     <span ng-if="cond.isActiveTemperatureMin">{{ cond.temperatureMin }}</span>
                     <span>〜</span>
                     <span ng-if="cond.isActiveTemperatureMax">{{ cond.temperatureMax }}</span>
-                    <span>{{ cond.temperatureUnit }} )</span>
+                    <span>{{ cond.temperatureUnitName }} )</span>
                 </div>
                 <div ng-if="cond.isActiveTide">
                     <span>({{ cond.tideName }})</span>
@@ -110,7 +110,7 @@
             <div id="temperature">
                 <core-label>
                     <paper-checkbox for></paper-checkbox>
-                    <p>Temperature ({{ cond.temperatureUnit }})</p>
+                    <p>Temperature ({{ cond.temperatureUnitName }})</p>
                 </core-label>
                 <div>
                     <num-input value="cond.temperatureMin" digits="2" font-size="16"></num-input>
