@@ -3,7 +3,6 @@ library triton_note.util.distributions_filters;
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/model/value_unit.dart';
 
 final _logger = new Logger('DistributionsFilters');
 
@@ -16,13 +15,22 @@ abstract class DistributionsFilter {
 
 abstract class DistributionsFilter_Fish {
   String get name;
-  int get lengthMin;
-  int get lengthMax;
-  int get weightMin;
-  int get weightMax;
-
-  String get lengthUnit;
-  String get weightUnit;
+  /**
+   * 単位は cm に統一
+   */
+  double get lengthMin;
+  /**
+   * 単位は cm に統一
+   */
+  double get lengthMax;
+  /**
+   * 単位は g に統一
+   */
+  double get weightMin;
+  /**
+   * 単位は g に統一
+   */
+  double get weightMax;
 
   bool get isActiveName;
 
@@ -38,9 +46,14 @@ abstract class DistributionsFilter_Fish {
 abstract class DistributionsFilter_Conditions {
   String get weatherNominal;
 
-  int get temperatureMin;
-  int get temperatureMax;
-  TemperatureUnit get temperatureUnit;
+  /**
+   * 単位は °C に統一
+   */
+  double get temperatureMin;
+  /**
+   * 単位は °C に統一
+   */
+  double get temperatureMax;
 
   Tide get tide;
   int get moon;

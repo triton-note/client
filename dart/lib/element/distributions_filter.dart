@@ -78,13 +78,25 @@ class _Fish extends _FilterParams implements DistributionsFilter_Fish {
   UserPreferences preferences;
 
   String name;
-  int lengthMin = 0;
-  int lengthMax = 0;
-  int weightMin = 0;
-  int weightMax = 0;
+  int lengthMinValue = 0;
+  int lengthMaxValue = 0;
+  int weightMinValue = 0;
+  int weightMaxValue = 0;
 
-  String get lengthUnit => preferences == null ? null : nameOfEnum(preferences.measures.length);
-  String get weightUnit => preferences == null ? null : nameOfEnum(preferences.measures.weight);
+  LengthUnit get _lengthUnit => preferences == null ? null : preferences.measures.length;
+  WeightUnit get _weightUnit => preferences == null ? null : preferences.measures.weight;
+
+  double get lengthMin =>
+      _lengthUnit == null ? null : new Length.of(_lengthUnit, lengthMinValue.toDouble()).convertTo(LengthUnit.cm).value;
+  double get lengthMax =>
+      _lengthUnit == null ? null : new Length.of(_lengthUnit, lengthMaxValue.toDouble()).convertTo(LengthUnit.cm).value;
+  double get weightMin =>
+      _weightUnit == null ? null : new Weight.of(_weightUnit, weightMinValue.toDouble()).convertTo(WeightUnit.g).value;
+  double get weightMax =>
+      _weightUnit == null ? null : new Weight.of(_weightUnit, weightMaxValue.toDouble()).convertTo(WeightUnit.g).value;
+
+  String get lengthUnitName => _lengthUnit == null ? null : nameOfEnum(_lengthUnit);
+  String get weightUnitName => _weightUnit == null ? null : nameOfEnum(_weightUnit);
 
   bool get isActiveName => isActive('name') && name != null && name.isNotEmpty;
 
@@ -103,16 +115,25 @@ class _Conditions extends _FilterParams implements DistributionsFilter_Condition
   }
   UserPreferences preferences;
 
-  TemperatureUnit get temperatureUnit => preferences == null ? null : preferences.measures.temperature;
-  String get temperatureUnitName => temperatureUnit == null ? null : "°${nameOfEnum(temperatureUnit)[0]}";
+  TemperatureUnit get _temperatureUnit => preferences == null ? null : preferences.measures.temperature;
+  String get temperatureUnitName => _temperatureUnit == null ? null : "°${nameOfEnum(_temperatureUnit)[0]}";
 
   Weather weather = new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear']});
   String get weatherNominal => weather.nominal;
-  set weatherNominal(String v) => weather.nominal = v;
-  int temperatureMin, temperatureMax;
-  bool get isActiveTemperatureMin => temperatureMin != null && 0 < temperatureMin;
+
+  int temperatureMinValue, temperatureMaxValue;
+
+  double get temperatureMin => _temperatureUnit == null
+      ? null
+      : new Temperature.of(_temperatureUnit, temperatureMin.toDouble()).convertTo(TemperatureUnit.Cels).value;
+
+  double get temperatureMax => _temperatureUnit == null
+      ? null
+      : new Temperature.of(_temperatureUnit, temperatureMax.toDouble()).convertTo(TemperatureUnit.Cels).value;
+
+  bool get isActiveTemperatureMin => temperatureMinValue != null;
   bool get isActiveTemperatureMax =>
-      temperatureMax != null && (temperatureMin == null ? 0 : temperatureMin) < temperatureMax;
+      temperatureMaxValue != null && (temperatureMinValue == null || temperatureMinValue < temperatureMaxValue);
 
   Tide tide = Tide.Flood;
   String get tideName => nameOfEnum(tide);
