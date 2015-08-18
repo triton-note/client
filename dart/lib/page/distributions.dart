@@ -110,7 +110,7 @@ class _Dmap extends _Section {
   GeoInfo get center => _lastCenter;
   bool get isReady => center == null;
   List<Catches> listAround;
-  Timer refreshTimer;
+  Timer _refreshTimer;
 
   _initGMap(GoogleMap gmap) {
     _logger.info("Setting GoogeMap up");
@@ -122,8 +122,8 @@ class _Dmap extends _Section {
       _lastCenter = gmap.center;
       final bounds = gmap.bounds;
       _logger.finer(() => "Map moved: ${_lastCenter}, ${bounds}");
-      if (refreshTimer != null && refreshTimer.isActive) refreshTimer.cancel();
-      refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
+      if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
+      _refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
     }
     gmap.on('dragend', dragend);
     new Future.delayed(new Duration(seconds: 1), dragend);
@@ -142,6 +142,6 @@ class _Dmap extends _Section {
   }
 
   void detach() {
-    if (refreshTimer != null && refreshTimer.isActive) refreshTimer.cancel();
+    if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
   }
 }
