@@ -12,6 +12,7 @@ final _logger = new Logger('Lambda');
 
 class Lambda {
   static const retryLimit = 3;
+  static const retryDur = const Duration(seconds: 30);
 
   static final Lambda MOON = new Lambda(Settings.then((s) => s.lambda.moon));
   static final Lambda WEATHER = new Lambda(Settings.then((s) => s.lambda.weather));
@@ -32,7 +33,7 @@ class Lambda {
       final isRetryable = count < retryLimit;
       next([bool p = true]) => (error) {
         if (isRetryable && p) {
-          retry(count + 1);
+          new Future.delayed(retryDur, () => retry(count + 1));
         } else {
           result.completeError(error);
         }
