@@ -68,7 +68,7 @@ void main() {
   Logger.root
     ..level = Level.FINEST
     ..onRecord.listen((record) {
-      window.console.log(record.toString());
+      window.console.log("${record.time} ${record}");
     });
 
   initPolymer().then((zone) => Polymer.onReady.then((_) {
