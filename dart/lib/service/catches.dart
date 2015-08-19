@@ -130,23 +130,23 @@ class _ExpressionReport extends _Expression {
       final condition = putName("condition");
 
       if (filter.cond.isActiveTemperature) {
-        final weather = putName("weather");
-        final temp = putName("temperature");
-        if (filter.cond.isActiveTemperatureMin) {
-          addCond("${content}.${condition}.${weather}.${temp} >= ${putValue(filter.cond.temperatureMin)}");
-        }
-        if (filter.cond.isActiveTemperatureMax) {
-          addCond("${content}.${condition}.${weather}.${temp} <= ${putValue(filter.cond.temperatureMax)}");
+        final path = "${content}.${condition}.${putName("weather")}.${putName("temperature")}";
+        valueMin() => putValue(filter.cond.temperatureMin);
+        valueMax() => putValue(filter.cond.temperatureMax);
+        if (filter.cond.isActiveTemperatureMin && filter.cond.isActiveTemperatureMax) {
+          addCond("${path} BETWEEN ${valueMin()} AND ${valueMax()}");
+        } else {
+          if (filter.cond.isActiveTemperatureMin) addCond("${path} >= ${valueMin()}");
+          if (filter.cond.isActiveTemperatureMax) addCond("${path} <= ${valueMax()}");
         }
       }
       if (filter.cond.isActiveWeather) {
-        final weather = putName("weather");
-        final nominal = putName("nominal");
-        addCond("${content}.${condition}.${weather}.${nominal} = ${putValue(filter.cond.weatherNominal)}");
+        final path = "${content}.${condition}.${putName("weather")}.${putName("nominal")}";
+        addCond("${path} = ${putValue(filter.cond.weatherNominal)}");
       }
       if (filter.cond.isActiveTide) {
-        final tide = putName("tide");
-        addCond("${content}.${condition}.${tide} = ${putValue(nameOfEnum(filter.cond.tide))}");
+        final path = "${content}.${condition}.${putName("tide")}";
+        addCond("${path} = ${putValue(nameOfEnum(filter.cond.tide))}");
       }
     }
 
@@ -154,8 +154,7 @@ class _ExpressionReport extends _Expression {
       final dateAt = putName("DATE_AT");
 
       if (filter.term.isActiveInterval) {
-        addCond("${dateAt} >= ${putValue(filter.term.intervalFrom)}");
-        addCond("${dateAt} <= ${putValue(filter.term.intervalTo)}");
+        addCond("${dateAt} BETWEEN ${putValue(filter.term.intervalFrom)} AND ${putValue(filter.term.intervalTo)}");
       }
       if (filter.term.isActiveRecent) {
         final from =
@@ -173,7 +172,7 @@ class _ExpressionReport extends _Expression {
 
           final begin = new DateTime(year, filter.term.seasonBegin, 1).toUtc().millisecondsSinceEpoch;
           final end = new DateTime(year + overyear, filter.term.seasonEnd + 1, 1).toUtc().millisecondsSinceEpoch;
-          terms.add("${dateAt} >= ${putValue(begin)} AND ${dateAt} <= ${putValue(end)}");
+          terms.add("${dateAt} BETWEEN ${putValue(begin)} AND ${putValue(end)}");
         }
         addCond("( ${terms.join(" OR ")} )");
       }
@@ -189,14 +188,26 @@ class _ExpressionCatches extends _Expression {
         addCond("contains(${content}.${putName("name")}, ${putValue(filter.fish.name)})");
       }
       if (filter.fish.isActiveLength) {
-        final length = putName("length");
-        if (filter.fish.isActiveLengthMin) addCond("${content}.${length} >= ${putValue(filter.fish.lengthMin)}");
-        if (filter.fish.isActiveLengthMax) addCond("${content}.${length} <= ${putValue(filter.fish.lengthMax)}");
+        final path = "${content}.${putName("length")}";
+        valueMin() => putValue(filter.fish.lengthMin);
+        valueMax() => putValue(filter.fish.lengthMax);
+        if (filter.fish.isActiveLengthMin && filter.fish.isActiveLengthMax) {
+          addCond("${path} BETWEEN ${valueMin()} AND ${valueMax()}");
+        } else {
+          if (filter.fish.isActiveLengthMin) addCond("${path} >= ${valueMin()}");
+          if (filter.fish.isActiveLengthMax) addCond("${path} <= ${valueMax()}");
+        }
       }
       if (filter.fish.isActiveWeight) {
-        final weight = putName("weight");
-        if (filter.fish.isActiveWeightMin) addCond("${content}.${weight} >= ${putValue(filter.fish.weightMin)}");
-        if (filter.fish.isActiveWeightMax) addCond("${content}.${weight} <= ${putValue(filter.fish.weightMax)}");
+        final path = "${content}.${putName("weight")}";
+        valueMin() => putValue(filter.fish.weightMin);
+        valueMax() => putValue(filter.fish.weightMax);
+        if (filter.fish.isActiveWeightMin && filter.fish.isActiveWeightMax) {
+          addCond("${path} BETWEEN ${valueMin()} AND ${valueMax()}");
+        } else {
+          if (filter.fish.isActiveWeightMin) addCond("${path} >= ${valueMin()}");
+          if (filter.fish.isActiveWeightMax) addCond("${path} <= ${valueMax()}");
+        }
       }
     }
   }
