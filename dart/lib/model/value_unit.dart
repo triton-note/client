@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:logging/logging.dart';
 
-import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/util/enums.dart';
 
 final _logger = new Logger('ValueUnit');
@@ -20,44 +19,42 @@ abstract class ValueUnit<A, U> {
   U get unit;
   A convertTo(U dst);
 
+  U get _standardUnit;
+  A asStandard() => convertTo(_standardUnit);
+
   @override
   bool operator ==(o) => o is A && o.value == value && o.unit == unit;
+
+  @override
+  String toString() => "${value}(${nameOfEnum(unit)})";
 }
 
-abstract class Temperature extends ValueUnit<Temperature, TemperatureUnit> implements JsonSupport {
-  factory Temperature.fromJsonString(String text) => new _TemperatureImpl(new Map.from(JSON.decode(text)));
-  factory Temperature.fromMap(Map data) => new _TemperatureImpl(data);
+abstract class Temperature extends ValueUnit<Temperature, TemperatureUnit> {
+  static const TemperatureUnit STANDARD_UNIT = TemperatureUnit.Cels;
 
-  factory Temperature.of(TemperatureUnit unit, double value) {
-    return new Temperature.fromMap({"unit": nameOfEnum(unit), "value": value});
-  }
-  factory Temperature.Cels(double value) {
-    return new Temperature.of(TemperatureUnit.Cels, value);
-  }
-  factory Temperature.Fahr(double value) {
-    return new Temperature.of(TemperatureUnit.Fahr, value);
-  }
+  static double convertToStandard(TemperatureUnit unit, num value) =>
+      (unit == null || value == null) ? null : new Temperature.of(unit, value).convertTo(STANDARD_UNIT).value;
+
+  final _standardUnit = STANDARD_UNIT;
+
+  Temperature();
+
+  factory Temperature.of(TemperatureUnit unit, num value) => new _TemperatureImpl(value.toDouble(), unit);
+  factory Temperature.standard(num value) => new Temperature.of(STANDARD_UNIT, value);
+
+  factory Temperature.Cels(num value) => new Temperature.of(TemperatureUnit.Cels, value);
+  factory Temperature.Fahr(num value) => new Temperature.of(TemperatureUnit.Fahr, value);
 }
 enum TemperatureUnit { Cels, Fahr }
 
-class _TemperatureImpl extends JsonSupport implements Temperature {
-  final Map _data;
-  final CachedProp<TemperatureUnit> _unit;
+class _TemperatureImpl extends Temperature {
+  double value;
+  final TemperatureUnit unit;
 
-  _TemperatureImpl(Map data)
-      : _data = data,
-        _unit = new CachedProp<TemperatureUnit>(
-            data, 'unit', (map) => enumByName(TemperatureUnit.values, map), (v) => nameOfEnum(v));
-
-  Map get asMap => _data;
-
-  double get value => _data['value'];
-  set value(double v) => _data['value'] = v;
-
-  TemperatureUnit get unit => _unit.value;
+  _TemperatureImpl(this.value, this.unit);
 
   Temperature convertTo(TemperatureUnit dst) {
-    _logger.finest("Converting ${this.asMap} to '${dst}'");
+    _logger.finest("Converting ${this} to '${dst}'");
     if (this.unit == dst) return this;
     else {
       switch (dst) {
@@ -70,48 +67,36 @@ class _TemperatureImpl extends JsonSupport implements Temperature {
   }
 }
 
-abstract class Weight extends ValueUnit<Weight, WeightUnit> implements JsonSupport {
-  factory Weight.fromJsonString(String text) => new _WeightImpl(new Map.from(JSON.decode(text)));
-  factory Weight.fromMap(Map data) => new _WeightImpl(data);
+abstract class Weight extends ValueUnit<Weight, WeightUnit> {
+  static const WeightUnit STANDARD_UNIT = WeightUnit.g;
 
-  factory Weight.of(WeightUnit unit, double value) {
-    return new Weight.fromMap({"unit": nameOfEnum(unit), "value": value});
-  }
-  factory Weight.kg(double value) {
-    return new Weight.of(WeightUnit.kg, value);
-  }
-  factory Weight.pound(double value) {
-    return new Weight.of(WeightUnit.pound, value);
-  }
-  factory Weight.g(double value) {
-    return new Weight.of(WeightUnit.g, value);
-  }
-  factory Weight.oz(double value) {
-    return new Weight.of(WeightUnit.oz, value);
-  }
+  static double convertToStandard(WeightUnit unit, num value) =>
+      (unit == null || value == null) ? null : new Weight.of(unit, value).convertTo(STANDARD_UNIT).value;
+
+  final _standardUnit = STANDARD_UNIT;
+
+  Weight();
+
+  factory Weight.of(WeightUnit unit, num value) => new _WeightImpl(value.toDouble(), unit);
+  factory Weight.standard(num value) => new Weight.of(STANDARD_UNIT, value);
+
+  factory Weight.kg(num value) => new Weight.of(WeightUnit.kg, value);
+  factory Weight.pound(num value) => new Weight.of(WeightUnit.pound, value);
+  factory Weight.g(num value) => new Weight.of(WeightUnit.g, value);
+  factory Weight.oz(num value) => new Weight.of(WeightUnit.oz, value);
 }
 enum WeightUnit { kg, g, pound, oz }
 
-class _WeightImpl extends JsonSupport implements Weight {
+class _WeightImpl extends Weight {
   static const kg_g = 1000;
   static const pound_oz = 16;
   static const oz_g = 28.349523125;
   static const pound_kg = 0.45359237;
 
-  final Map _data;
-  final CachedProp<WeightUnit> _unit;
+  double value;
+  final WeightUnit unit;
 
-  _WeightImpl(Map data)
-      : _data = data,
-        _unit = new CachedProp<WeightUnit>(
-            data, 'unit', (map) => enumByName(WeightUnit.values, map), (v) => nameOfEnum(v));
-
-  Map get asMap => _data;
-
-  double get value => _data['value'];
-  set value(double v) => _data['value'] = v;
-
-  WeightUnit get unit => _unit.value;
+  _WeightImpl(this.value, this.unit);
 
   Weight convertTo(WeightUnit dst) {
     if (this.unit == dst) return this;
@@ -168,40 +153,32 @@ class _WeightImpl extends JsonSupport implements Weight {
   }
 }
 
-abstract class Length extends ValueUnit<Length, LengthUnit> implements JsonSupport {
-  factory Length.fromJsonString(String text) => new _LengthImpl(new Map.from(JSON.decode(text)));
-  factory Length.fromMap(Map data) => new _LengthImpl(data);
+abstract class Length extends ValueUnit<Length, LengthUnit> {
+  static const LengthUnit STANDARD_UNIT = LengthUnit.cm;
 
-  factory Length.of(LengthUnit unit, double value) {
-    return new Length.fromMap({"unit": nameOfEnum(unit), "value": value});
-  }
-  factory Length.cm(double value) {
-    return new Length.of(LengthUnit.cm, value);
-  }
-  factory Length.inch(double value) {
-    return new Length.of(LengthUnit.inch, value);
-  }
+  static double convertToStandard(LengthUnit unit, num value) =>
+      (unit == null || value == null) ? null : new Length.of(unit, value).convertTo(STANDARD_UNIT).value;
+
+  final _standardUnit = STANDARD_UNIT;
+
+  Length();
+
+  factory Length.of(LengthUnit unit, num value) => new _LengthImpl(value.toDouble(), unit);
+  factory Length.standard(num value) => new Length.of(STANDARD_UNIT, value);
+
+  factory Length.cm(num value) => new Length.of(LengthUnit.cm, value);
+  factory Length.inch(num value) => new Length.of(LengthUnit.inch, value);
 }
 
 enum LengthUnit { cm, inch }
 
-class _LengthImpl extends JsonSupport implements Length {
+class _LengthImpl extends Length {
   static const inchToCm = 2.54;
 
-  final Map _data;
-  final CachedProp<LengthUnit> _unit;
+  double value;
+  final LengthUnit unit;
 
-  _LengthImpl(Map data)
-      : _data = data,
-        _unit = new CachedProp<LengthUnit>(
-            data, 'unit', (map) => enumByName(LengthUnit.values, map), (v) => nameOfEnum(v));
-
-  Map get asMap => _data;
-
-  double get value => _data['value'];
-  set value(double v) => _data['value'] = v;
-
-  LengthUnit get unit => _unit.value;
+  _LengthImpl(this.value, this.unit);
 
   Length convertTo(LengthUnit dst) {
     if (this.unit == dst) return this;

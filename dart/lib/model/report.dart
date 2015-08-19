@@ -77,8 +77,10 @@ class _FishesImpl extends JsonSupport implements Fishes {
 
   _FishesImpl(Map data, this.id, this.reportId)
       : _data = data,
-        _weight = new CachedProp<Weight>(data, 'weight', (map) => new Weight.fromMap(map)),
-        _length = new CachedProp<Length>(data, 'length', (map) => new Length.fromMap(map));
+        _weight = new CachedProp<Weight>(
+            data, 'weight', (value) => new Weight.standard(value), (Weight obj) => obj.asStandard().value),
+        _length = new CachedProp<Length>(
+            data, 'length', (value) => new Length.standard(value), (Length obj) => obj.asStandard().value);
 
   Map get asMap => _data;
 

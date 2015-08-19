@@ -62,7 +62,7 @@ class EditWeatherDialog extends ShadowRootAware {
     if (_temperatureValue == v) return;
 
     _temperatureValue = v;
-    value.temperature = new Temperature.fromMap({'value': v.toDouble(), 'unit': nameOfEnum(_tUnit)});
+    value.temperature = new Temperature.of(_tUnit, v);
     _logger.fine("Set temperature: ${value.temperature}");
 
     _logger.finest("Setting timer for closing weather dialog.");

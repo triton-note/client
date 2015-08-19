@@ -86,14 +86,10 @@ class _Fish extends _FilterParams implements DistributionsFilter_Fish {
   LengthUnit get _lengthUnit => preferences == null ? null : preferences.measures.length;
   WeightUnit get _weightUnit => preferences == null ? null : preferences.measures.weight;
 
-  double get lengthMin =>
-      _lengthUnit == null ? null : new Length.of(_lengthUnit, lengthMinValue.toDouble()).convertTo(LengthUnit.cm).value;
-  double get lengthMax =>
-      _lengthUnit == null ? null : new Length.of(_lengthUnit, lengthMaxValue.toDouble()).convertTo(LengthUnit.cm).value;
-  double get weightMin =>
-      _weightUnit == null ? null : new Weight.of(_weightUnit, weightMinValue.toDouble()).convertTo(WeightUnit.g).value;
-  double get weightMax =>
-      _weightUnit == null ? null : new Weight.of(_weightUnit, weightMaxValue.toDouble()).convertTo(WeightUnit.g).value;
+  double get lengthMin => Length.convertToStandard(_lengthUnit, lengthMinValue);
+  double get lengthMax => Length.convertToStandard(_lengthUnit, lengthMaxValue);
+  double get weightMin => Weight.convertToStandard(_weightUnit, weightMinValue);
+  double get weightMax => Weight.convertToStandard(_weightUnit, weightMaxValue);
 
   String get lengthUnitName => _lengthUnit == null ? null : nameOfEnum(_lengthUnit);
   String get weightUnitName => _weightUnit == null ? null : nameOfEnum(_weightUnit);
@@ -123,13 +119,8 @@ class _Conditions extends _FilterParams implements DistributionsFilter_Condition
 
   int temperatureMinValue, temperatureMaxValue;
 
-  double get temperatureMin => _temperatureUnit == null
-      ? null
-      : new Temperature.of(_temperatureUnit, temperatureMin.toDouble()).convertTo(TemperatureUnit.Cels).value;
-
-  double get temperatureMax => _temperatureUnit == null
-      ? null
-      : new Temperature.of(_temperatureUnit, temperatureMax.toDouble()).convertTo(TemperatureUnit.Cels).value;
+  double get temperatureMin => Temperature.convertToStandard(_temperatureUnit, temperatureMinValue);
+  double get temperatureMax => Temperature.convertToStandard(_temperatureUnit, temperatureMaxValue);
 
   bool get isActiveTemperatureMin => temperatureMinValue != null;
   bool get isActiveTemperatureMax =>

@@ -108,7 +108,8 @@ class _WeatherImpl extends JsonSupport implements Weather {
 
   _WeatherImpl(Map data)
       : _data = data,
-        _temperature = new CachedProp<Temperature>(data, 'temperature', (map) => new Temperature.fromMap(map));
+        _temperature = new CachedProp<Temperature>(data, 'temperature', (value) => new Temperature.standard(value),
+            (Temperature obj) => obj.asStandard().value);
 
   Map get asMap => _data;
 
