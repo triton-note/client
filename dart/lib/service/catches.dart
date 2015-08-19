@@ -10,30 +10,27 @@ import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/util/distributions_filters.dart';
+import 'package:triton_note/util/enums.dart';
 
 final _logger = new Logger('Catches');
 
 class Catches {
-  static Future<List<Catches>> inArea(LatLngBounds bounds, DistributionsFilter filter) async {
-    final exp = ["#C.#L.#G.#LAT BETWEEN :LATD AND :LATU", "#C.#L.#G.#LNG BETWEEN :LNGD AND :LNGU"];
-    final names = {"#C": "CONTENT", "#L": "location", "#G": "geoinfo", "#LAT": "latitude", "#LNG": "longitude"};
-    final values = {
-      ":LATU": bounds.northEast.latitude,
-      ":LATD": bounds.southWest.latitude,
-      ":LNGU": bounds.northEast.longitude,
-      ":LNGD": bounds.southWest.longitude
-    };
-    if (!filter.isIncludeOthers) {
-      exp.add("#U = :U");
-      names["#U"] = DynamoDB.COGNITO_ID;
-      values[":U"] = await DynamoDB.cognitoId;
-    }
-    final reports = await DynamoDB.TABLE_REPORT.scan(exp.join(" AND "), names, values);
-    final list = await Future.wait(reports.map((report) async {
-      await Reports.loadFishes(report);
-      return report.fishes.map((fish) => new Catches(fish, report.dateAt, report.location, report.condition));
-    }));
-    return list.expand((a) => a).toList();
+  static Future<CatchesPager> inArea(LatLngBounds bounds, DistributionsFilter filter) async {
+    final exp = new _Expression();
+    final content = exp.putName("CONTENT");
+    final location = exp.putName("location");
+    final geoinfo = exp.putName("geoinfo");
+    final latitude = exp.putName("latitude");
+    final longitude = exp.putName("longitude");
+    final vLatU = exp.putValue(bounds.northEast.latitude);
+    final vLatD = exp.putValue(bounds.southWest.latitude);
+    final vLngU = exp.putValue(bounds.northEast.longitude);
+    final vLngD = exp.putValue(bounds.southWest.longitude);
+    exp.addCond("${content}.${location}.${geoinfo}.${latitude} BETWEEN ${vLatD} AND ${vLatU}");
+    exp.addCond("${content}.${location}.${geoinfo}.${longitude} BETWEEN ${vLngD} AND ${vLngU}");
+    await exp.add(filter);
+
+    return new CatchesPager(Reports.TABLE_REPORT.scanPager(exp.expression, exp.names, exp.values), filter);
   }
 
   final Fishes fish;
@@ -90,5 +87,90 @@ class CatchesPager {
     final result = _left.take(pageSize);
     _left = _left.sublist(result.length);
     return result.toList();
+  }
+}
+
+class _Expression {
+  final List<String> conds = [];
+  final Map<String, String> _names = {};
+  final Map<dynamic, String> _values = {};
+
+  String get expression => conds.join(" AND ");
+  Map<String, String> get names => _reverse(_names);
+  Map<String, dynamic> get values => _reverse(_values);
+  Map _reverse(Map src) {
+    final result = {};
+    src.forEach((key, value) {
+      result[value] = key;
+    });
+    return result;
+  }
+
+  String _put(Map<dynamic, String> map, String pre, value) {
+    if (map.containsKey(value)) return map[value];
+    return map[value] = "${pre}${map.length + 1}";
+  }
+  String putName(String name) => _put(names, "#N", name);
+  String putValue(value) => _put(values, ":V", value);
+  void addCond(String cond) => conds.add(cond);
+
+  Future<Null> add(DistributionsFilter filter) async {
+    if (!filter.isIncludeOthers) {
+      addCond("${putName(DynamoDB.COGNITO_ID)} = ${putValue(await DynamoDB.cognitoId)}");
+    }
+
+    if (filter.cond.isActiveTemperature || filter.cond.isActiveWeather || filter.cond.isActiveTide) {
+      final content = putName("CONTENT");
+      final condition = putName("condition");
+
+      if (filter.cond.isActiveTemperature) {
+        final weather = putName("weather");
+        final temp = putName("temperature");
+        if (filter.cond.isActiveTemperatureMin) {
+          addCond("${content}.${condition}.${weather}.${temp} >= ${putValue(filter.cond.temperatureMin)}");
+        }
+        if (filter.cond.isActiveTemperatureMax) {
+          addCond("${content}.${condition}.${weather}.${temp} <= ${putValue(filter.cond.temperatureMax)}");
+        }
+      }
+      if (filter.cond.isActiveWeather) {
+        final weather = putName("weather");
+        final nominal = putName("nominal");
+        addCond("${content}.${condition}.${weather}.${nominal} = ${putValue(filter.cond.weatherNominal)}");
+      }
+      if (filter.cond.isActiveTide) {
+        final tide = putName("tide");
+        addCond("${content}.${condition}.${tide} = ${putValue(nameOfEnum(filter.cond.tide))}");
+      }
+    }
+
+    if (filter.term.isActiveInterval) {
+      final dateAt = putName("DATE_AT");
+      addCond("${dateAt} >= ${putValue(filter.term.intervalFrom)}");
+      addCond("${dateAt} <= ${putValue(filter.term.intervalTo)}");
+    }
+    if (filter.term.isActiveRecent) {
+      final dateAt = putName("DATE_AT");
+      final from =
+          new DateTime.now().toUtc().millisecondsSinceEpoch - (filter.term.recentValue * filter.term.recentUnitValue);
+      addCond("${dateAt} >= ${putValue(from)}");
+    }
+    if (filter.term.isActiveSeason) {
+      final dateAt = putName("DATE_AT");
+
+      List<String> terms = [];
+      final thisYear = new DateTime.now().year;
+      int pastYears = 10;
+      while (pastYears > 0) {
+        pastYears = pastYears - 1;
+        final year = thisYear - pastYears;
+        final overyear = (filter.term.seasonBegin < filter.term.seasonEnd) ? 0 : 1;
+
+        final begin = new DateTime(year, filter.term.seasonBegin, 1).toUtc().millisecondsSinceEpoch;
+        final end = new DateTime(year + overyear, filter.term.seasonEnd + 1, 1).toUtc().millisecondsSinceEpoch;
+        terms.add("${dateAt} >= ${putValue(begin)} AND ${dateAt} <= ${putValue(end)}");
+      }
+      addCond("( ${terms.join(" OR ")} )");
+    }
   }
 }
