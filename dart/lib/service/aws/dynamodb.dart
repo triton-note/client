@@ -112,7 +112,7 @@ class _Table<T extends DBRecord> {
     await _invoke('deleteItem', {'Key': await _makeKey(id)});
   }
 
-  Future<List<T>> scan(String expression, Map<String, String> names, Map<String, String> values) async {
+  Future<List<T>> scan(String expression, Map<String, String> names, Map<String, dynamic> values) async {
     final data = await _invoke('scan', {
       'FilterExpression': expression,
       'ExpressionAttributeNames': names,
