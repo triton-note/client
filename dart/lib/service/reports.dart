@@ -33,7 +33,7 @@ class Reports {
   static List<Report> _cachedList;
   static Future<List<Report>> get allList async => (_cachedList != null) ? _cachedList : refresh();
 
-  static PagingDB _pager;
+  static PagingDB<Report> _pager;
 
   static Report _fromCache(String id) =>
       _cachedList == null ? null : _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
@@ -52,7 +52,7 @@ class Reports {
   static Future<List<Report>> refresh() async {
     if (_pager == null) {
       _pager =
-          TABLE_REPORT.createPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, await DynamoDB.cognitoId, false);
+          TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, await DynamoDB.cognitoId, false);
     } else {
       _pager.reset();
     }

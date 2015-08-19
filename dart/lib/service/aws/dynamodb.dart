@@ -96,13 +96,29 @@ class DynamoDB_Table<T extends DBRecord> {
     await _invoke('deleteItem', {'Key': await _makeKey(id)});
   }
 
-  Future<List<T>> scan(String expression, Map<String, String> names, Map<String, dynamic> values) async {
-    final data = await _invoke('scan', {
+  Future<List<T>> scan(String expression, Map<String, String> names, Map<String, dynamic> values,
+      [int pageSize = 0, GetterSetter<Map> lastEvaluatedKey = null]) async {
+    final params = {
       'FilterExpression': expression,
       'ExpressionAttributeNames': names,
       'ExpressionAttributeValues': _ContentEncoder.toDynamoMap(values)
-    });
+    };
+    if (0 < pageSize) params['Limit'] = pageSize;
+    if (lastEvaluatedKey != null) {
+      if (lastEvaluatedKey.value != null) params['ExclusiveStartKey'] = lastEvaluatedKey.value;
+    }
+    final data = await _invoke('scan', params);
+
+    if (lastEvaluatedKey != null) {
+      lastEvaluatedKey.value = data['LastEvaluatedKey'];
+      if (lastEvaluatedKey.value == null) lastEvaluatedKey.value = const {};
+    }
+
     return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
+  }
+
+  PagingDB<T> scanPager(String expression, Map<String, String> names, Map<String, dynamic> values) {
+    return new _PagingScan(this, expression, names, values);
   }
 
   Future<List<T>> query(String indexName, Map<String, Object> keys,
@@ -141,17 +157,24 @@ class DynamoDB_Table<T extends DBRecord> {
     return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
   }
 
-  PagingDB<T> createPager(String indexName, String hashKeyName, String hashKeyValue, bool forward) {
-    return new PagingDB(this, indexName, forward, hashKeyName, hashKeyValue);
+  PagingDB<T> queryPager(String indexName, String hashKeyName, String hashKeyValue, bool forward) {
+    return new _PagingQuery(this, indexName, forward, hashKeyName, hashKeyValue);
   }
 }
 
-class PagingDB<T> {
-  final DynamoDB_Table table;
+abstract class PagingDB<T extends DBRecord> {
+  DynamoDB_Table<T> get table;
+  bool get hasMore;
+  Future<List<T>> more(int pageSize);
+  void reset();
+}
+
+class _PagingQuery<T extends DBRecord> implements PagingDB<T> {
+  final DynamoDB_Table<T> table;
   final String indexName, hashKeyName, hashKeyValue;
   final bool isForward;
 
-  PagingDB(this.table, this.indexName, this.isForward, this.hashKeyName, this.hashKeyValue) {
+  _PagingQuery(this.table, this.indexName, this.isForward, this.hashKeyName, this.hashKeyValue) {
     _lastEvaluatedKeyGS = new GetterSetter(() => _lastEvaluatedKey, (v) => _lastEvaluatedKey = v);
   }
 
@@ -165,6 +188,27 @@ class PagingDB<T> {
 
   Future<List<T>> more(int pageSize) =>
       table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKeyGS);
+}
+
+class _PagingScan<T extends DBRecord> implements PagingDB<T> {
+  final DynamoDB_Table<T> table;
+  final String expression;
+  final Map<String, String> names;
+  final Map<String, dynamic> values;
+
+  _PagingScan(this.table, this.expression, this.names, this.values) {
+    _lastEvaluatedKeyGS = new GetterSetter(() => _lastEvaluatedKey, (v) => _lastEvaluatedKey = v);
+  }
+
+  GetterSetter<Map> _lastEvaluatedKeyGS;
+  Map _lastEvaluatedKey;
+  bool get hasMore => _lastEvaluatedKey == null || _lastEvaluatedKey.isNotEmpty;
+
+  void reset() {
+    _lastEvaluatedKey = null;
+  }
+
+  Future<List<T>> more(int pageSize) => table.scan(expression, names, values, pageSize, _lastEvaluatedKeyGS);
 }
 
 class _ContentDecoder {
