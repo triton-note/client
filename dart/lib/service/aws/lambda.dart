@@ -14,9 +14,6 @@ class Lambda {
   static const retryLimit = 3;
   static const retryDur = const Duration(seconds: 30);
 
-  static final Lambda MOON = new Lambda(Settings.then((s) => s.lambda.moon));
-  static final Lambda WEATHER = new Lambda(Settings.then((s) => s.lambda.weather));
-
   final Future<LambdaInfo> info;
 
   Lambda(this.info);

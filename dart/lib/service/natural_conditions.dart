@@ -37,8 +37,10 @@ class NaturalConditions {
 }
 
 class _Moon {
+  static final Lambda MOON = new Lambda(Settings.then((s) => s.lambda.moon));
+
   static Future<_Moon> at(DateTime date) async {
-    final map = await Lambda.MOON({'date': date.toUtc().millisecondsSinceEpoch.toString()});
+    final map = await MOON({'date': date.toUtc().millisecondsSinceEpoch.toString()});
     return new _Moon(map);
   }
 
@@ -50,10 +52,12 @@ class _Moon {
 }
 
 class _OpenWeatherMap {
+  static final Lambda WEATHER = new Lambda(Settings.then((s) => s.lambda.weather));
+
   static Future<String> icon(String id) async => "${(await Settings).openweathermap.iconUrl}/${id}.png";
 
   static Future<Weather> at(GeoInfo geoinfo, DateTime date) async {
-    final map = await Lambda.WEATHER({
+    final map = await WEATHER({
       'apiKey': (await Settings).openweathermap.apiKey,
       'date': date.toUtc().millisecondsSinceEpoch.toString(),
       'lat': geoinfo.latitude.toStringAsFixed(8),

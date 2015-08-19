@@ -31,31 +31,15 @@ class DynamoDB {
     final list = new List.generate(32, (i) => random.nextInt(35).toRadixString(36));
     return list.join();
   }
-
-  static final _Table<Fishes> TABLE_CATCH = new _Table("CATCH", "CATCH_ID", (Map map) {
-    return new Fishes.fromMap(map[CONTENT], map['CATCH_ID'], map['REPORT_ID']);
-  }, (Fishes obj) {
-    return {CONTENT: new Map.from(obj.asMap), 'REPORT_ID': obj.reportId};
-  });
-  static final _Table<Report> TABLE_REPORT = new _Table("REPORT", "REPORT_ID", (Map map) {
-    return new Report.fromMap(
-        map[CONTENT], map['REPORT_ID'], new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true), []);
-  }, (Report obj) {
-    return {
-      CONTENT: new Map.from(obj.asMap),
-      'REPORT_ID': obj.id,
-      'DATE_AT': obj.dateAt.toUtc().millisecondsSinceEpoch
-    };
-  });
 }
 
-class _Table<T extends DBRecord> {
+class DynamoDB_Table<T extends DBRecord> {
   final String tableName;
   final String ID_COLUMN;
   final _RecordReader<T> reader;
   final _RecordWriter<T> writer;
 
-  _Table(this.tableName, this.ID_COLUMN, this.reader, this.writer);
+  DynamoDB_Table(this.tableName, this.ID_COLUMN, this.reader, this.writer);
 
   Future<JsObject> _invoke(String methodName, Map param) async {
     param['TableName'] = "${(await Settings).appName}.${tableName}";
@@ -163,7 +147,7 @@ class _Table<T extends DBRecord> {
 }
 
 class PagingDB<T> {
-  final _Table table;
+  final DynamoDB_Table table;
   final String indexName, hashKeyName, hashKeyValue;
   final bool isForward;
 
