@@ -41,6 +41,8 @@ abstract class DistributionsFilter_Fish {
   bool get isActiveWeightMin;
   bool get isActiveWeightMax;
   bool get isActiveWeight;
+
+  bool get isActive_Any => isActiveWeight || isActiveLength || isActiveName;
 }
 
 abstract class DistributionsFilter_Conditions {
@@ -64,9 +66,13 @@ abstract class DistributionsFilter_Conditions {
   bool get isActiveWeather;
   bool get isActiveTemperature;
   bool get isActiveTide;
+
+  bool get isActive_Any => isActiveWeather || isActiveTemperature || isActiveTide;
 }
 
 abstract class DistributionsFilter_Term {
+  bool get isActive_Any => isActiveInterval || isActiveRecent || isActiveSeason;
+
   bool get isActiveInterval;
   bool get isActiveRecent;
   bool get isActiveSeason;
