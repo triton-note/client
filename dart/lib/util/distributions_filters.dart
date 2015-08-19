@@ -79,7 +79,7 @@ abstract class DistributionsFilter_Term {
 
   int get recentValue;
   DistributionsFilter_Term_RecentUnit get recentUnit;
-  int get recentUnitValue {
+  int get _recentUnitValue {
     switch (recentUnit) {
       case DistributionsFilter_Term_RecentUnit.days:
         return 1000 * 60 * 60 * 24;
@@ -89,6 +89,7 @@ abstract class DistributionsFilter_Term {
         return 1000 * 60 * 60 * 24 * 30;
     }
   }
+  int get recentValueMilliseconds => recentValue * _recentUnitValue;
 
   int get seasonBegin;
   int get seasonEnd;

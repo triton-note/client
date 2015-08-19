@@ -120,6 +120,8 @@ abstract class _Expression {
 }
 
 class _ExpressionReport extends _Expression {
+  static const oneDay = const Duration(days: 1);
+
   Future<Null> _doInit(DistributionsFilter filter) async {
     if (!filter.isIncludeOthers) {
       addCond("${putName(DynamoDB.COGNITO_ID)} = ${putValue(await DynamoDB.cognitoId)}");
@@ -152,13 +154,13 @@ class _ExpressionReport extends _Expression {
 
     if (filter.term.isActive_Any) {
       final dateAt = putName("DATE_AT");
+      int epoch(DateTime d) => d.toUtc().millisecondsSinceEpoch;
 
       if (filter.term.isActiveInterval) {
         addCond("${dateAt} BETWEEN ${putValue(filter.term.intervalFrom)} AND ${putValue(filter.term.intervalTo)}");
       }
       if (filter.term.isActiveRecent) {
-        final from =
-            new DateTime.now().toUtc().millisecondsSinceEpoch - (filter.term.recentValue * filter.term.recentUnitValue);
+        final from = epoch(new DateTime.now()) - filter.term.recentValueMilliseconds;
         addCond("${dateAt} >= ${putValue(from)}");
       }
       if (filter.term.isActiveSeason) {
@@ -170,9 +172,9 @@ class _ExpressionReport extends _Expression {
           final year = thisYear - pastYears;
           final overyear = (filter.term.seasonBegin < filter.term.seasonEnd) ? 0 : 1;
 
-          final begin = new DateTime(year, filter.term.seasonBegin, 1).toUtc().millisecondsSinceEpoch;
-          final end = new DateTime(year + overyear, filter.term.seasonEnd + 1, 1).toUtc().millisecondsSinceEpoch;
-          terms.add("${dateAt} BETWEEN ${putValue(begin)} AND ${putValue(end)}");
+          final begin = new DateTime(year, filter.term.seasonBegin, 1);
+          final end = new DateTime(year + overyear, filter.term.seasonEnd + 1, 1).subtract(oneDay);
+          terms.add("${dateAt} BETWEEN ${putValue(epoch(begin))} AND ${putValue(epoch(end))}");
         }
         addCond("( ${terms.join(" OR ")} )");
       }
