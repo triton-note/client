@@ -73,6 +73,16 @@ abstract class DistributionsFilter_Term {
 
   int get recentValue;
   DistributionsFilter_Term_RecentUnit get recentUnit;
+  int get recentUnitValue {
+    switch (recentUnit) {
+      case DistributionsFilter_Term_RecentUnit.days:
+        return 1000 * 60 * 60 * 24;
+      case DistributionsFilter_Term_RecentUnit.weeks:
+        return 1000 * 60 * 60 * 24 * 7;
+      case DistributionsFilter_Term_RecentUnit.months:
+        return 1000 * 60 * 60 * 24 * 30;
+    }
+  }
 
   int get seasonBegin;
   int get seasonEnd;

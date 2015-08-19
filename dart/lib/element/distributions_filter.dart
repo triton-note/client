@@ -25,7 +25,7 @@ final _logger = new Logger('DistributionsFilterElement');
     templateUrl: 'packages/triton_note/element/distributions_filter.html',
     cssUrl: 'packages/triton_note/element/distributions_filter.css',
     useShadowDom: true)
-class DistributionsFilterElement extends ShadowRootAware implements DistributionsFilter {
+class DistributionsFilterElement extends ShadowRootAware with DistributionsFilter {
   @NgOneWayOneTime('setter') set setter(Setter<DistributionsFilter> v) => v == null ? null : v.value = this;
 
   ShadowRoot _root;
@@ -71,7 +71,7 @@ abstract class _FilterParams {
   }
 }
 
-class _Fish extends _FilterParams implements DistributionsFilter_Fish {
+class _Fish extends _FilterParams with DistributionsFilter_Fish {
   _Fish(ShadowRoot root) : super('fish', root) {
     UserPreferences.current.then((c) => preferences = c);
   }
@@ -105,7 +105,7 @@ class _Fish extends _FilterParams implements DistributionsFilter_Fish {
   bool get isActiveWeight => isActive('weight') && (isActiveWeightMin || isActiveWeightMax);
 }
 
-class _Conditions extends _FilterParams implements DistributionsFilter_Conditions {
+class _Conditions extends _FilterParams with DistributionsFilter_Conditions {
   _Conditions(ShadowRoot root) : super('condition', root) {
     UserPreferences.current.then((c) => preferences = c);
   }
@@ -139,7 +139,7 @@ class _Conditions extends _FilterParams implements DistributionsFilter_Condition
   bool get isActiveTide => isActive('tide') && tideName != null;
 }
 
-class _Term extends _FilterParams implements DistributionsFilter_Term {
+class _Term extends _FilterParams with DistributionsFilter_Term {
   _Term(ShadowRoot root) : super('term', root) {
     ['interval', 'recent', 'season'].forEach((name) {
       _checkboxListen(name, (box) {
