@@ -11,11 +11,12 @@ import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/util/distributions_filters.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('Catches');
 
 class Catches {
-  static Future<CatchesPager> inArea(LatLngBounds bounds, DistributionsFilter filter) async {
+  static Future<_CatchesPager> inArea(LatLngBounds bounds, DistributionsFilter filter) async {
     final exp = new _Expression.report(filter);
     final content = exp.putName("CONTENT");
     final location = exp.putName("location");
@@ -30,7 +31,7 @@ class Catches {
     exp.addCond("${content}.${location}.${geoinfo}.${longitude} BETWEEN ${vLngD} AND ${vLngU}");
     await exp.ready();
 
-    return new CatchesPager(Reports.TABLE_REPORT.scanPager(exp.expression, exp.names, exp.values), filter);
+    return new _CatchesPager(Reports.TABLE_REPORT.scanPager(exp.expression, exp.names, exp.values), filter);
   }
 
   final Fishes fish;
@@ -44,19 +45,17 @@ class Catches {
   String toString() => "Catches(${dateAt}, ${location}, ${condition}, ${fish})";
 }
 
-class CatchesPager {
-  static const int pageSize = 100;
-
-  final PagingDB<Report> _pager;
+class _CatchesPager extends Pager<Catches> {
+  final Pager<Report> _pager;
   final DistributionsFilter filter;
 
-  CatchesPager(this._pager, this.filter);
+  _CatchesPager(this._pager, this.filter);
 
   bool get hasMore => _pager.hasMore;
 
   List<Fishes> _left = [];
 
-  Future<List<Fishes>> more() async {
+  Future<List<Catches>> more(final int pageSize) async {
     Future<List<Fishes>> doMore() async {
       final reports = await _pager.more(pageSize);
 
@@ -82,6 +81,11 @@ class CatchesPager {
     final result = _left.take(pageSize);
     _left = _left.sublist(result.length);
     return result.toList();
+  }
+
+  void reset() {
+    _left = [];
+    _pager.reset();
   }
 }
 

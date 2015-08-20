@@ -11,6 +11,7 @@ import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/settings.dart';
+import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('DynamoDB');
 
@@ -117,7 +118,7 @@ class DynamoDB_Table<T extends DBRecord> {
     return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
   }
 
-  PagingDB<T> scanPager(String expression, Map<String, String> names, Map<String, dynamic> values) {
+  Pager<T> scanPager(String expression, Map<String, String> names, Map<String, dynamic> values) {
     return new _PagingScan(this, expression, names, values);
   }
 
@@ -157,19 +158,12 @@ class DynamoDB_Table<T extends DBRecord> {
     return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
   }
 
-  PagingDB<T> queryPager(String indexName, String hashKeyName, String hashKeyValue, bool forward) {
+  Pager<T> queryPager(String indexName, String hashKeyName, String hashKeyValue, bool forward) {
     return new _PagingQuery(this, indexName, forward, hashKeyName, hashKeyValue);
   }
 }
 
-abstract class PagingDB<T extends DBRecord> {
-  DynamoDB_Table<T> get table;
-  bool get hasMore;
-  Future<List<T>> more(int pageSize);
-  void reset();
-}
-
-class _PagingQuery<T extends DBRecord> implements PagingDB<T> {
+class _PagingQuery<T extends DBRecord> implements Pager<T> {
   final DynamoDB_Table<T> table;
   final String indexName, hashKeyName, hashKeyValue;
   final bool isForward;
@@ -190,7 +184,7 @@ class _PagingQuery<T extends DBRecord> implements PagingDB<T> {
       table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKeyGS);
 }
 
-class _PagingScan<T extends DBRecord> implements PagingDB<T> {
+class _PagingScan<T extends DBRecord> implements Pager<T> {
   final DynamoDB_Table<T> table;
   final String expression;
   final Map<String, String> names;

@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
+import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('Reports');
 
@@ -33,7 +34,7 @@ class Reports {
   static List<Report> _cachedList;
   static Future<List<Report>> get allList async => (_cachedList != null) ? _cachedList : refresh();
 
-  static PagingDB<Report> _pager;
+  static Pager<Report> _pager;
 
   static Report _fromCache(String id) =>
       _cachedList == null ? null : _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
