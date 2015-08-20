@@ -8,10 +8,12 @@ import 'package:paper_elements/paper_checkbox.dart';
 import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/service/preferences.dart';
+import 'package:triton_note/util/distributions_filters.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
@@ -23,16 +25,19 @@ final _logger = new Logger('DistributionsFilterElement');
     templateUrl: 'packages/triton_note/element/distributions_filter.html',
     cssUrl: 'packages/triton_note/element/distributions_filter.css',
     useShadowDom: true)
-class DistributionsFilterElement extends ShadowRootAware {
-  @NgOneWayOneTime('setter') set setter(Setter<DistributionsFilterElement> v) => v == null ? null : v.value = this;
+class DistributionsFilterElement extends ShadowRootAware with DistributionsFilter {
+  @NgOneWayOneTime('setter') set setter(Setter<DistributionsFilter> v) => v == null ? null : v.value = this;
 
   ShadowRoot _root;
   Getter<bool> _includeOthers;
-  _Fish fish;
-  _Conditions cond;
-  _Term term;
+  _Fish _fish;
+  _Conditions _cond;
+  _Term _term;
 
   bool get isIncludeOthers => _includeOthers == null ? null : _includeOthers.value;
+  DistributionsFilter_Fish get fish => _fish;
+  DistributionsFilter_Conditions get cond => _cond;
+  DistributionsFilter_Term get term => _term;
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
@@ -40,13 +45,11 @@ class DistributionsFilterElement extends ShadowRootAware {
     _includeOthers =
         new Getter(() => (_root.querySelector('#only-mine paper-toggle-button') as PaperToggleButton).checked);
 
-    fish = new _Fish(_root);
-    cond = new _Conditions(_root);
-    term = new _Term(_root);
+    _fish = new _Fish(_root);
+    _cond = new _Conditions(_root);
+    _term = new _Term(_root);
   }
 }
-
-enum _RecentUnit { days, weeks, months }
 
 abstract class _FilterParams {
   final String id;
@@ -68,20 +71,28 @@ abstract class _FilterParams {
   }
 }
 
-class _Fish extends _FilterParams {
+class _Fish extends _FilterParams with DistributionsFilter_Fish {
   _Fish(ShadowRoot root) : super('fish', root) {
     UserPreferences.current.then((c) => preferences = c);
   }
   UserPreferences preferences;
 
   String name;
-  int lengthMin = 0;
-  int lengthMax = 0;
-  int weightMin = 0;
-  int weightMax = 0;
+  int lengthMinValue = 0;
+  int lengthMaxValue = 0;
+  int weightMinValue = 0;
+  int weightMaxValue = 0;
 
-  String get lengthUnit => preferences == null ? null : nameOfEnum(preferences.measures.length);
-  String get weightUnit => preferences == null ? null : nameOfEnum(preferences.measures.weight);
+  LengthUnit get _lengthUnit => preferences == null ? null : preferences.measures.length;
+  WeightUnit get _weightUnit => preferences == null ? null : preferences.measures.weight;
+
+  double get lengthMin => Length.convertToStandard(_lengthUnit, lengthMinValue);
+  double get lengthMax => Length.convertToStandard(_lengthUnit, lengthMaxValue);
+  double get weightMin => Weight.convertToStandard(_weightUnit, weightMinValue);
+  double get weightMax => Weight.convertToStandard(_weightUnit, weightMaxValue);
+
+  String get lengthUnitName => _lengthUnit == null ? null : nameOfEnum(_lengthUnit);
+  String get weightUnitName => _weightUnit == null ? null : nameOfEnum(_weightUnit);
 
   bool get isActiveName => isActive('name') && name != null && name.isNotEmpty;
 
@@ -94,19 +105,26 @@ class _Fish extends _FilterParams {
   bool get isActiveWeight => isActive('weight') && (isActiveWeightMin || isActiveWeightMax);
 }
 
-class _Conditions extends _FilterParams {
+class _Conditions extends _FilterParams with DistributionsFilter_Conditions {
   _Conditions(ShadowRoot root) : super('condition', root) {
     UserPreferences.current.then((c) => preferences = c);
   }
   UserPreferences preferences;
 
-  String get temperatureUnit => preferences == null ? null : "°${nameOfEnum(preferences.measures.temperature)[0]}";
+  TemperatureUnit get _temperatureUnit => preferences == null ? null : preferences.measures.temperature;
+  String get temperatureUnitName => _temperatureUnit == null ? null : "°${nameOfEnum(_temperatureUnit)[0]}";
 
   Weather weather = new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear']});
-  int temperatureMin, temperatureMax;
-  bool get isActiveTemperatureMin => temperatureMin != null && 0 < temperatureMin;
+  String get weatherNominal => weather.nominal;
+
+  int temperatureMinValue, temperatureMaxValue;
+
+  double get temperatureMin => Temperature.convertToStandard(_temperatureUnit, temperatureMinValue);
+  double get temperatureMax => Temperature.convertToStandard(_temperatureUnit, temperatureMaxValue);
+
+  bool get isActiveTemperatureMin => temperatureMinValue != null;
   bool get isActiveTemperatureMax =>
-      temperatureMax != null && (temperatureMin == null ? 0 : temperatureMin) < temperatureMax;
+      temperatureMaxValue != null && (temperatureMinValue == null || temperatureMinValue < temperatureMaxValue);
 
   Tide tide = Tide.Flood;
   String get tideName => nameOfEnum(tide);
@@ -121,7 +139,7 @@ class _Conditions extends _FilterParams {
   bool get isActiveTide => isActive('tide') && tideName != null;
 }
 
-class _Term extends _FilterParams {
+class _Term extends _FilterParams with DistributionsFilter_Term {
   _Term(ShadowRoot root) : super('term', root) {
     ['interval', 'recent', 'season'].forEach((name) {
       _checkboxListen(name, (box) {
@@ -138,9 +156,10 @@ class _Term extends _FilterParams {
   bool get isActiveSeason => isActive('season');
 
   int recentValue;
-  String recentUnitName = nameOfEnum(_RecentUnit.values.first);
-  _RecentUnit get recentUnit => enumByName(_RecentUnit.values, recentUnitName);
-  final List<String> recentUnitList = _RecentUnit.values.map(nameOfEnum);
+  String recentUnitName = nameOfEnum(DistributionsFilter_Term_RecentUnit.values.first);
+  DistributionsFilter_Term_RecentUnit get recentUnit =>
+      enumByName(DistributionsFilter_Term_RecentUnit.values, recentUnitName);
+  final List<String> recentUnitList = DistributionsFilter_Term_RecentUnit.values.map(nameOfEnum);
 
   int seasonBegin = 1;
   int seasonEnd = 2;

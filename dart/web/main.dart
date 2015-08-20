@@ -5,6 +5,7 @@ import 'dart:html';
 import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
 import 'package:triton_note/formatter/temperature_formatter.dart';
+import 'package:triton_note/formatter/tide_formatter.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
@@ -34,6 +35,7 @@ class AppModule extends Module {
   AppModule() {
     bind(FishFormatter);
     bind(TemperatureFormatter);
+    bind(TideFormatter);
 
     bind(EditFishDialog);
     bind(EditTimestampDialog);
@@ -66,7 +68,7 @@ void main() {
   Logger.root
     ..level = Level.FINEST
     ..onRecord.listen((record) {
-      window.console.log(record.toString());
+      window.console.log("${record.time} ${record}");
     });
 
   initPolymer().then((zone) => Polymer.onReady.then((_) {

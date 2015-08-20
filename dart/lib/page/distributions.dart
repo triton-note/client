@@ -12,12 +12,13 @@ import 'package:paper_elements/paper_tabs.dart';
 import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/element/distributions_filter.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/catches.dart';
+import 'package:triton_note/util/distributions_filters.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
+import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('DistributionsPage');
 
@@ -29,7 +30,7 @@ final _logger = new Logger('DistributionsPage');
 class DistributionsPage extends MainFrame implements DetachAware {
   DistributionsPage(Router router) : super(router);
 
-  final Getter<DistributionsFilterElement> filter = new PipeValue();
+  final Getter<DistributionsFilter> filter = new PipeValue();
 
   Getter<Element> scroller;
   Getter<Element> scrollBase;
@@ -92,6 +93,7 @@ abstract class _Section {
 }
 
 class _Dmap extends _Section {
+  static const int pageSize = 100;
   static const refreshDur = const Duration(seconds: 3);
   static GeoInfo _lastCenter;
 
@@ -109,8 +111,9 @@ class _Dmap extends _Section {
 
   GeoInfo get center => _lastCenter;
   bool get isReady => center == null;
+  Pager<Catches> _pager;
   List<Catches> listAround;
-  Timer refreshTimer;
+  Timer _refreshTimer;
 
   _initGMap(GoogleMap gmap) {
     _logger.info("Setting GoogeMap up");
@@ -118,18 +121,23 @@ class _Dmap extends _Section {
       ..on['expanding'].listen((event) => gmap.options.mapTypeControl = true)
       ..on['shrinking'].listen((event) => gmap.options.mapTypeControl = false);
 
-    gmap.on('dragend', () {
+    dragend() {
       _lastCenter = gmap.center;
       final bounds = gmap.bounds;
-      if (refreshTimer != null && refreshTimer.isActive) refreshTimer.cancel();
-      refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
-    });
+      _logger.finer(() => "Map moved: ${_lastCenter}, ${bounds}");
+      if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
+      _refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
+    }
+    gmap.on('dragend', dragend);
+    new Future.delayed(new Duration(seconds: 1), dragend);
   }
 
   _refresh(LatLngBounds bounds) async {
     _logger.finer("Refreshing list around: ${bounds}, ${listAround}");
     listAround = null;
-    listAround = [];
+    _pager = await Catches.inArea(bounds, _parent.filter.value);
+    listAround = await _pager.more(pageSize);
+    _logger.finer(() => "List in around: ${listAround}");
   }
 
   toggleDensity(Event event) {
@@ -138,6 +146,6 @@ class _Dmap extends _Section {
   }
 
   void detach() {
-    if (refreshTimer != null && refreshTimer.isActive) refreshTimer.cancel();
+    if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
   }
 }

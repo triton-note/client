@@ -18,18 +18,18 @@
                 
                 <div ng-if="fish.isActiveLength">
                     <span>(</span>
-                    <span ng-if="fish.isActiveLengthMin">{{ fish.lengthMin }}</span>
+                    <span ng-if="fish.isActiveLengthMin">{{ fish.lengthMinValue }}</span>
                     <span> 〜 </span>
-                    <span ng-if="fish.isActiveLengthMax">{{ fish.lengthMax }}</span>
-                    <span> {{ fish.lengthUnit }} )</span>
+                    <span ng-if="fish.isActiveLengthMax">{{ fish.lengthMaxValue }}</span>
+                    <span> {{ fish.lengthUnitName }} )</span>
                 </div>
                 
                 <div ng-if="fish.isActiveWeight">
                     <span>(</span>
-                    <span ng-if="fish.isActiveWeightMin">{{ fish.weightMin }}</span>
+                    <span ng-if="fish.isActiveWeightMin">{{ fish.weightMinValue }}</span>
                     <span> 〜 </span>
-                    <span ng-if="fish.isActiveWeightMax">{{ fish.weightMax }}</span>
-                    <span> {{ fish.weightUnit }} )</span>
+                    <span ng-if="fish.isActiveWeightMax">{{ fish.weightMaxValue }}</span>
+                    <span> {{ fish.weightUnitName }} )</span>
                 </div>
             </div>
         </div>
@@ -49,11 +49,11 @@
             <div id="length">
                 <core-label>
                     <paper-checkbox for></paper-checkbox>
-                    <p>Length ({{ fish.lengthUnit }})</p>
+                    <p>Length ({{ fish.lengthUnitName }})</p>
                 </core-label>
                 <div>
-                    <num-input value="fish.lengthMin" min="0" digits="4" font-size="16"></num-input>
-                    <num-input value="fish.lengthMax" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="fish.lengthMinValue" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="fish.lengthMaxValue" min="0" digits="4" font-size="16"></num-input>
                 </div>
             </div>
             
@@ -62,11 +62,11 @@
             <div id="weight">
                 <core-label>
                     <paper-checkbox for></paper-checkbox>
-                    <p>Weight ({{ fish.weightUnit }})</p>
+                    <p>Weight ({{ fish.weightUnitName }})</p>
                 </core-label>
                 <div>
-                    <num-input value="fish.weightMin" min="0" digits="4" font-size="16"></num-input>
-                    <num-input value="fish.weightMax" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="fish.weightMinValue" min="0" digits="4" font-size="16"></num-input>
+                    <num-input value="fish.weightMaxValue" min="0" digits="4" font-size="16"></num-input>
                 </div>
             </div>
         </div>
@@ -81,10 +81,10 @@
                 </div>
                 <div ng-if="cond.isActiveTemperature">
                     <span>(</span>
-                    <span ng-if="cond.isActiveTemperatureMin">{{ cond.temperatureMin }}</span>
+                    <span ng-if="cond.isActiveTemperatureMin">{{ cond.temperatureMinValue }}</span>
                     <span>〜</span>
-                    <span ng-if="cond.isActiveTemperatureMax">{{ cond.temperatureMax }}</span>
-                    <span>{{ cond.temperatureUnit }} )</span>
+                    <span ng-if="cond.isActiveTemperatureMax">{{ cond.temperatureMaxValue }}</span>
+                    <span>{{ cond.temperatureUnitName }} )</span>
                 </div>
                 <div ng-if="cond.isActiveTide">
                     <span>({{ cond.tideName }})</span>
@@ -110,11 +110,11 @@
             <div id="temperature">
                 <core-label>
                     <paper-checkbox for></paper-checkbox>
-                    <p>Temperature ({{ cond.temperatureUnit }})</p>
+                    <p>Temperature ({{ cond.temperatureUnitName }})</p>
                 </core-label>
                 <div>
-                    <num-input value="cond.temperatureMin" digits="2" font-size="16"></num-input>
-                    <num-input value="cond.temperatureMax" digits="2" font-size="16"></num-input>
+                    <num-input value="cond.temperatureMinValue" digits="2" font-size="16"></num-input>
+                    <num-input value="cond.temperatureMaxValue" digits="2" font-size="16"></num-input>
                 </div>
             </div>
             

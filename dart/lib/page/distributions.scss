@@ -33,6 +33,21 @@ section#dmap {
       @include display-flex();
       @include justify-content(center);
     }
+    
+    .list {
+      collapser::shadow {
+        #header {
+          @include display-flex();
+          @include justify-content(space-between);
+          @include flex-wrap(wrap-reverse);
+          width: 100%;
+        }
+        #content {
+          @include display-flex();
+          @include justify-content(space-around);
+        }
+      }
+    }
   }
 }
 
