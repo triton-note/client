@@ -99,11 +99,10 @@ class DynamoDB_Table<T extends DBRecord> {
 
   Future<List<T>> scan(String expression, Map<String, String> names, Map<String, dynamic> values,
       [int pageSize = 0, GetterSetter<Map> lastEvaluatedKey = null]) async {
-    final params = {
-      'FilterExpression': expression,
-      'ExpressionAttributeNames': names,
-      'ExpressionAttributeValues': _ContentEncoder.toDynamoMap(values)
-    };
+    final params = {};
+    if (expression != null && expression.isNotEmpty) params['FilterExpression'] = expression;
+    if (names != null && names.isNotEmpty) params['ExpressionAttributeNames'] = names;
+    if (values != null && values.isNotEmpty) params['ExpressionAttributeValues'] = _ContentEncoder.toDynamoMap(values);
     if (0 < pageSize) params['Limit'] = pageSize;
     if (lastEvaluatedKey != null) {
       if (lastEvaluatedKey.value != null) params['ExclusiveStartKey'] = lastEvaluatedKey.value;
