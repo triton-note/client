@@ -109,8 +109,8 @@ abstract class _Expression {
     if (map.containsKey(value)) return map[value];
     return map[value] = "${pre}${map.length + 1}";
   }
-  String putName(String name) => _put(names, "#N", name);
-  String putValue(value) => _put(values, ":V", value);
+  String putName(String name) => _put(_names, "#N", name);
+  String putValue(value) => _put(_values, ":V", value);
   void addCond(String cond) => conds.add(cond);
 
   final Completer _onReady = new Completer();
