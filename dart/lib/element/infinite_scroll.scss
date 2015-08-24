@@ -1,0 +1,10 @@
+@import "../../web/styles/common";
+
+div#scroller {
+  overflow: auto;
+  
+  div#spinner {
+    @include display-flex();
+    @include justify-content(center);
+  }
+}
