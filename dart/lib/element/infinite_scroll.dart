@@ -24,8 +24,10 @@ class InfiniteScrollElement extends ShadowRootAware {
   @NgOneWay('pager') set pager(Pager v) {
     _pager = v;
     _logger.finest(() => "Set pager: ${v}");
-    _checkMore();
+    _onReady.future.then((_) => _checkMore());
   }
+
+  Completer<Null> _onReady = new Completer();
 
   int get pageSizeValue => (pageSize == null || pageSize.isEmpty) ? 10 : int.parse(pageSize);
 
@@ -45,6 +47,8 @@ class InfiniteScrollElement extends ShadowRootAware {
 
     _spinnerDiv = _scroller.querySelector('div#spinner');
     _scroller.onScroll.listen((event) => _checkMore());
+
+    _onReady.complete();
   }
 
   void _checkMore() {
