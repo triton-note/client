@@ -132,8 +132,8 @@ class _Dmap extends _Section {
 
   _refresh(LatLngBounds bounds) async {
     _logger.finer("Refreshing list around: ${bounds}, ${aroundHere}");
-    aroundHere = null;
     aroundHere = new InfiniteList(await Catches.inArea(bounds, _parent.filter.value));
+    _section.click();
     _logger.finer(() => "List in around: ${aroundHere}");
   }
 
