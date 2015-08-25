@@ -93,7 +93,6 @@ abstract class _Section {
 }
 
 class _Dmap extends _Section {
-  static const int pageSize = 100;
   static const refreshDur = const Duration(seconds: 3);
   static GeoInfo _lastCenter;
 
@@ -111,8 +110,7 @@ class _Dmap extends _Section {
 
   GeoInfo get center => _lastCenter;
   bool get isReady => center == null;
-  Pager<Catches> _pager;
-  List<Catches> listAround;
+  InfiniteList<Catches> aroundHere;
   Timer _refreshTimer;
 
   _initGMap(GoogleMap gmap) {
@@ -133,11 +131,10 @@ class _Dmap extends _Section {
   }
 
   _refresh(LatLngBounds bounds) async {
-    _logger.finer("Refreshing list around: ${bounds}, ${listAround}");
-    listAround = null;
-    _pager = await Catches.inArea(bounds, _parent.filter.value);
-    listAround = await _pager.more(pageSize);
-    _logger.finer(() => "List in around: ${listAround}");
+    _logger.finer("Refreshing list around: ${bounds}, ${aroundHere}");
+    aroundHere = null;
+    aroundHere = new InfiniteList(await Catches.inArea(bounds, _parent.filter.value));
+    _logger.finer(() => "List in around: ${aroundHere}");
   }
 
   toggleDensity(Event event) {

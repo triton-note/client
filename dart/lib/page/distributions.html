@@ -47,32 +47,31 @@
                     <div class="header">
                         <p>Catches round here</p>
                     </div>
-                    <div ng-if="dmap.listAround == null" class="loading">
-                        <paper-spinner active class="gray"></paper-spinner>
-                    </div>
-                    <div ng-if="dmap.listAround != null" class="list">
-                        <collapser class="item" ng-repeat="catches in dmap.listAround">
-                            <div id="header">
-                                <div class="fish">
-                                    <p>{{ catches.fish | fishFilter }}</p>
+                    <infinite-scroll pager="dmap.aroundHere" page-size="10">
+                        <div id="content">
+                            <collapser class="item" ng-repeat="catches in dmap.aroundHere.list">
+                                <div id="header">
+                                    <div class="fish">
+                                        <p>{{ catches.fish | fishFilter }}</p>
+                                    </div>
+                                    <div class="date">
+                                        <p>{{ catches.dateAt | date:'yyyy-MM-dd' }}</p>
+                                    </div>
                                 </div>
-                                <div class="date">
-                                    <p>{{ catches.dateAt | date:'yyyy-MM-dd' }}</p>
+                                <div id="content">
+                                    <div class="weather">
+                                        <p>{{ catches.condition.weather.nominal }} ({{ catches.condition.weather.temperature | temperatureFilter }})</p>
+                                    </div>
+                                    <div class="tide">
+                                        <p>Tide: {{ catches.condition.tide | tideFilter }}</p>
+                                    </div>
+                                    <div class="moon">
+                                        <p>Moon: {{ catches.condition.moon }}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div id="content">
-                                <div class="weather">
-                                    <p>{{ catches.condition.weather.nominal }} ({{ catches.condition.weather.temperature | temperatureFilter }})</p>
-                                </div>
-                                <div class="tide">
-                                    <p>Tide: {{ catches.condition.tide | tideFilter }}</p>
-                                </div>
-                                <div class="moon">
-                                    <p>Moon: {{ catches.condition.moon }}</p>
-                                </div>
-                            </div>
-                        </collapser>
-                    </div>
+                            </collapser>
+                        </div>
+                    </infinite-scroll>
                 </div>
             </section>
             
