@@ -1,17 +1,17 @@
 @import "../../web/styles/common";
 
-.no-reports {
-  display: block;
-  width: 100%;
-  text-align: center;
-  
-  paper-button {
-    background-color: red;
-    color: white;
+infinite-scroll::shadow div#content {
+  .no-reports {
+    display: block;
+    width: 100%;
+    text-align: center;
+    
+    paper-button {
+      background-color: red;
+      color: white;
+    }
   }
-}
 
-.report-table {
   .report-row {
     margin-bottom: 10px;
     padding-top: 0px;

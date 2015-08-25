@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/util/main_frame.dart';
+import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('ReportsListPage');
 
@@ -15,15 +16,10 @@ final _logger = new Logger('ReportsListPage');
     cssUrl: 'packages/triton_note/page/reports_list.css',
     useShadowDom: true)
 class ReportsListPage extends MainFrame {
-  List<Report> reports;
+  PagingList<Report> reports;
 
   ReportsListPage(Router router) : super(router) {
-    Reports.allList.then((v) => reports = v);
-  }
-
-  refresh() {
-    reports = null;
-    Reports.refresh().then((list) {
+    Reports.paging.then((list) {
       reports = list;
     });
   }
