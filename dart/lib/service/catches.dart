@@ -51,12 +51,17 @@ class _CatchesPager extends Pager<Catches> {
 
   _CatchesPager(this._pager, this.filter);
 
-  bool get hasMore => _pager.hasMore;
+  bool get hasMore => _pager.hasMore || _left.isNotEmpty;
 
-  List<Fishes> _left = [];
+  List<Catches> _left = [];
 
   Future<List<Catches>> more(final int pageSize) async {
-    Future<List<Fishes>> doMore() async {
+    if (!hasMore) {
+      _logger.info("No more catches.");
+      return [];
+    }
+
+    Future<List<Catches>> doMore() async {
       final reports = await _pager.more(pageSize);
 
       final exp = new _Expression.catches(filter);
