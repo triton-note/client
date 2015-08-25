@@ -9,7 +9,6 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/aws/cognito.dart';
-import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/util/pager.dart';
 
@@ -98,21 +97,17 @@ class DynamoDB_Table<T extends DBRecord> {
   }
 
   Future<List<T>> scan(String expression, Map<String, String> names, Map<String, dynamic> values,
-      [int pageSize = 0, GetterSetter<Map> lastEvaluatedKey = null]) async {
+      [int pageSize = 0, LastEvaluatedKey lastEvaluatedKey = null]) async {
     final params = {};
     if (expression != null && expression.isNotEmpty) params['FilterExpression'] = expression;
     if (names != null && names.isNotEmpty) params['ExpressionAttributeNames'] = names;
     if (values != null && values.isNotEmpty) params['ExpressionAttributeValues'] = _ContentEncoder.toDynamoMap(values);
     if (0 < pageSize) params['Limit'] = pageSize;
-    if (lastEvaluatedKey != null) {
-      if (lastEvaluatedKey.value != null) params['ExclusiveStartKey'] = lastEvaluatedKey.value;
-    }
+    if (lastEvaluatedKey != null) lastEvaluatedKey.putToParam(params);
+
     final data = await _invoke('scan', params);
 
-    if (lastEvaluatedKey != null) {
-      lastEvaluatedKey.value = data['LastEvaluatedKey'];
-      if (lastEvaluatedKey.value == null) lastEvaluatedKey.value = const {};
-    }
+    if (lastEvaluatedKey != null) lastEvaluatedKey.loadFromResult(data);
 
     return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
   }
@@ -122,7 +117,7 @@ class DynamoDB_Table<T extends DBRecord> {
   }
 
   Future<List<T>> query(String indexName, Map<String, Object> keys,
-      [bool isForward = true, int pageSize = 0, GetterSetter<Map> lastEvaluatedKey = null]) async {
+      [bool isForward = true, int pageSize = 0, LastEvaluatedKey lastEvaluatedKey = null]) async {
     int index = 0;
     final expressions = [];
     final names = {};
@@ -144,15 +139,11 @@ class DynamoDB_Table<T extends DBRecord> {
       'ExpressionAttributeValues': values
     };
     if (0 < pageSize) params['Limit'] = pageSize;
-    if (lastEvaluatedKey != null) {
-      if (lastEvaluatedKey.value != null) params['ExclusiveStartKey'] = lastEvaluatedKey.value;
-    }
+    if (lastEvaluatedKey != null) lastEvaluatedKey.putToParam(params);
+
     final data = await _invoke('query', params);
 
-    if (lastEvaluatedKey != null) {
-      lastEvaluatedKey.value = data['LastEvaluatedKey'];
-      if (lastEvaluatedKey.value == null) lastEvaluatedKey.value = const {};
-    }
+    if (lastEvaluatedKey != null) lastEvaluatedKey.loadFromResult(data);
 
     return data['Items'].map(_ContentDecoder.fromDynamoMap).map(reader).toList();
   }
@@ -162,25 +153,42 @@ class DynamoDB_Table<T extends DBRecord> {
   }
 }
 
+class LastEvaluatedKey {
+  Map _value;
+
+  bool get isOver => _value != null && _value.isEmpty;
+
+  void reset() {
+    _value = null;
+  }
+
+  void loadFromResult(JsObject data) {
+    final obj = data['LastEvaluatedKey'];
+    _value = (obj == null) ? const {} : JSON.decode(_stringify(obj));
+    _logger.finer("LastEvaluatedKey loaded: ${_value}");
+  }
+
+  void putToParam(Map params) {
+    if (_value != null && _value.isNotEmpty) {
+      params['ExclusiveStartKey'] = new Map.unmodifiable(_value);
+    }
+  }
+}
+
 class _PagingQuery<T extends DBRecord> implements Pager<T> {
   final DynamoDB_Table<T> table;
   final String indexName, hashKeyName, hashKeyValue;
   final bool isForward;
+  final LastEvaluatedKey _lastEvaluatedKey = new LastEvaluatedKey();
 
-  _PagingQuery(this.table, this.indexName, this.isForward, this.hashKeyName, this.hashKeyValue) {
-    _lastEvaluatedKeyGS = new GetterSetter(() => _lastEvaluatedKey, (v) => _lastEvaluatedKey = v);
-  }
+  _PagingQuery(this.table, this.indexName, this.isForward, this.hashKeyName, this.hashKeyValue);
 
-  GetterSetter<Map> _lastEvaluatedKeyGS;
-  Map _lastEvaluatedKey;
-  bool get hasMore => _lastEvaluatedKey == null || _lastEvaluatedKey.isNotEmpty;
+  bool get hasMore => !_lastEvaluatedKey.isOver;
 
-  void reset() {
-    _lastEvaluatedKey = null;
-  }
+  void reset() => _lastEvaluatedKey.reset();
 
   Future<List<T>> more(int pageSize) =>
-      table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKeyGS);
+      table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKey);
 }
 
 class _PagingScan<T extends DBRecord> implements Pager<T> {
@@ -188,20 +196,15 @@ class _PagingScan<T extends DBRecord> implements Pager<T> {
   final String expression;
   final Map<String, String> names;
   final Map<String, dynamic> values;
+  final LastEvaluatedKey _lastEvaluatedKey = new LastEvaluatedKey();
 
-  _PagingScan(this.table, this.expression, this.names, this.values) {
-    _lastEvaluatedKeyGS = new GetterSetter(() => _lastEvaluatedKey, (v) => _lastEvaluatedKey = v);
-  }
+  _PagingScan(this.table, this.expression, this.names, this.values);
 
-  GetterSetter<Map> _lastEvaluatedKeyGS;
-  Map _lastEvaluatedKey;
-  bool get hasMore => _lastEvaluatedKey == null || _lastEvaluatedKey.isNotEmpty;
+  bool get hasMore => !_lastEvaluatedKey.isOver;
 
-  void reset() {
-    _lastEvaluatedKey = null;
-  }
+  void reset() => _lastEvaluatedKey.reset();
 
-  Future<List<T>> more(int pageSize) => table.scan(expression, names, values, pageSize, _lastEvaluatedKeyGS);
+  Future<List<T>> more(int pageSize) => table.scan(expression, names, values, pageSize, _lastEvaluatedKey);
 }
 
 class _ContentDecoder {
