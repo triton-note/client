@@ -110,7 +110,7 @@ class _Dmap extends _Section {
 
   GeoInfo get center => _lastCenter;
   bool get isReady => center == null;
-  InfiniteList<Catches> aroundHere;
+  PagingList<Catches> aroundHere;
   Timer _refreshTimer;
 
   _initGMap(GoogleMap gmap) {
@@ -132,7 +132,7 @@ class _Dmap extends _Section {
 
   _refresh(LatLngBounds bounds) async {
     _logger.finer("Refreshing list around: ${bounds}, ${aroundHere}");
-    aroundHere = new InfiniteList(await Catches.inArea(bounds, _parent.filter.value));
+    aroundHere = new PagingList(await Catches.inArea(bounds, _parent.filter.value));
     _section.click();
     _logger.finer(() => "List in around: ${aroundHere}");
   }
