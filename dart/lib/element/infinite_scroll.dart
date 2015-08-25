@@ -1,5 +1,6 @@
 library triton_note.element.infinite_scroll;
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
@@ -15,13 +16,22 @@ final _logger = new Logger('InfiniteScrollElement');
     cssUrl: 'packages/triton_note/element/infinite_scroll.css',
     useShadowDom: true)
 class InfiniteScrollElement extends ShadowRootAware {
-  @NgOneWay('page-size') String pageSize;
-  @NgOneWay('pager') Pager pager;
+  static const moreDur = const Duration(milliseconds: 800);
+
+  @NgAttr('page-size') String pageSize;
+  Pager _pager;
+  Pager get pager => _pager;
+  @NgOneWay('pager') set pager(Pager v) {
+    _pager = v;
+    _logger.finest(() => "Set pager: ${v}");
+    _checkMore();
+  }
 
   int get pageSizeValue => (pageSize == null || pageSize.isEmpty) ? 10 : int.parse(pageSize);
 
   ShadowRoot _root;
   Element _scroller, _spinnerDiv;
+  Timer _moreTimer;
 
   @override
   void onShadowRoot(ShadowRoot sr) {
@@ -34,16 +44,24 @@ class InfiniteScrollElement extends ShadowRootAware {
     _scroller.querySelector('div#content').replaceWith(content);
 
     _spinnerDiv = _scroller.querySelector('div#spinner');
-    _scroller.onScroll.listen(onScroll);
+    _scroller.onScroll.listen((event) => _checkMore());
   }
 
-  void onScroll(event) {
+  void _checkMore() {
+    if (pager == null) return;
+
     final bottom = _scroller.scrollTop + _scroller.clientHeight;
     final spinnerPos = _spinnerDiv.offsetTop - _scroller.offsetTop;
-    if (spinnerPos < bottom) {
-      if (pager.hasMore) {
-        pager.more(pageSizeValue);
-      }
+
+    _logger.finer(() => "Check more: ${pager.hasMore}, bottom=${bottom}, spinner pos=${spinnerPos}");
+    if (spinnerPos <= bottom && pager.hasMore) {
+      if (_moreTimer != null && _moreTimer.isActive) _moreTimer.cancel();
+      _moreTimer = new Timer(moreDur, () {
+        pager.more(pageSizeValue).then((list) {
+          // spinner がスクロールの外に見えなくなるまで続ける
+          _checkMore();
+        });
+      });
     }
   }
 }
