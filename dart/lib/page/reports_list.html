@@ -28,33 +28,35 @@
                 </div>
 		    </div>
 		    <div ng-if="reports != null">
-		    	<div class="no-reports" ng-if="reports.length < 1">
-		    		<paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
-		    	</div>
-		    	<div class="report-table" ng-if="reports.length > 0">
-			        <div class="report-row" ng-repeat="report in reports">
-		        		<div class="border-top"></div>
-			        	<div class="head">
-		                	<fit-image width="100" height="100" shrink="true" url="report.photo.reduced.thumbnail.url"></fit-image>
-				        	<div class="desc">
-			                	<div class="spot">
-			                		<p>{{report.location.name}}, {{report.dateAt | date:"yyyy-MM-dd" }}</p>
-			                	</div>
-				                <div class="fishes">
-					        		<div ng-repeat="fish in report.fishes">
-					        			<p>{{fish | fishFilter }}</p>
-					        		</div>
-				                </div>
-			                </div>
-		                </div>
-		                <div class="comment">
-		                	<p>{{report.comment}}</p>
-		                </div>
-		                
-	    				<paper-ripple fit ng-click="goReport(report.id)"></paper-ripple>
-			        </div>
-		        </div>
-		    </div>
-    	</div>
+                <infinite-scroll pager="reports" page-size="20">
+                    <div id="content">
+                        <div class="no-reports" ng-if="reports.list.isEmpty && !reports.hasMore">
+                            <paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
+                        </div>
+        		        <div class="report-row" ng-repeat="report in reports.list">
+        	        		<div class="border-top"></div>
+        		        	<div class="head">
+        	                	<fit-image width="100" height="100" shrink="true" url="report.photo.reduced.thumbnail.url"></fit-image>
+        			        	<div class="desc">
+        		                	<div class="spot">
+        		                		<p>{{report.location.name}}, {{report.dateAt | date:"yyyy-MM-dd" }}</p>
+        		                	</div>
+        			                <div class="fishes">
+        				        		<div ng-repeat="fish in report.fishes">
+        				        			<p>{{fish | fishFilter }}</p>
+        				        		</div>
+        			                </div>
+        		                </div>
+        	                </div>
+        	                <div class="comment">
+        	                	<p>{{report.comment}}</p>
+        	                </div>
+        	                
+            				<paper-ripple fit ng-click="goReport(report.id)"></paper-ripple>
+        		        </div>
+                    </div>
+                </infinite-scroll>
+            </div>
+        </div>
     </core-header-panel>
 </core-drawer-panel>
