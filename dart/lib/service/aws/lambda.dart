@@ -28,11 +28,15 @@ class Lambda {
     retry(final int count) {
       if (0 < count) _logger.warning(() => "retry count: ${count}");
       final isRetryable = count < retryLimit;
+      bool isRetring = false;
       next([bool p = true]) => (error) {
-        if (isRetryable && p) {
-          new Future.delayed(retryDur, () => retry(count + 1));
-        } else {
-          result.completeError(error);
+        if (!isRetring) {
+          isRetring = true;
+          if (isRetryable && p) {
+            new Future.delayed(retryDur, () => retry(count + 1));
+          } else {
+            result.completeError(error);
+          }
         }
       };
       try {
@@ -46,6 +50,7 @@ class Lambda {
           final text = req.responseText;
           _logger.finest(() => "Response of ${name}: (Status:${req.status}) ${text}");
           if (req.status == 200) result.complete(JSON.decode(text));
+          else next(500 <= req.status && req.status < 600)(req.responseText);
         });
         req.onError.listen((event) {
           next(500 <= req.status && req.status < 600)(req.responseText);
