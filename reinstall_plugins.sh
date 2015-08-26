@@ -5,6 +5,8 @@ mkdir -vp plugins
 cordova platform add android
 [ -n "$(uname | grep 'Darwin')" ] && cordova platform add ios
 
+cordova plugin add cordova-plugin-crosswalk-webview
+
 # Default plugins
 cordova plugin add cordova-plugin-device
 cordova plugin add cordova-plugin-console
