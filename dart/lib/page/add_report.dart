@@ -15,7 +15,6 @@ import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
@@ -121,11 +120,8 @@ class AddReportPage extends MainFrame {
         final cond = await NaturalConditions.at(report.dateAt, report.location.geoinfo);
         _logger.fine("Get conditions: ${cond}");
         if (cond.weather == null) {
-          cond.weather = new Weather.fromMap({
-            'nominal': 'Clear',
-            'iconUrl': Weather.nominalMap['Clear'],
-            'temperature': {'value': 20, 'unit': nameOfEnum(TemperatureUnit.Cels)}
-          });
+          cond.weather =
+              new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear'], 'temperature': 20});
         }
         if (cond.weather.temperature != null) {
           cond.weather.temperature =

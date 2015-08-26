@@ -5,7 +5,6 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/lambda.dart';
@@ -65,10 +64,7 @@ class _OpenWeatherMap {
     });
     return (map.isEmpty)
         ? null
-        : new Weather.fromMap({
-      'nominal': map['nominal'],
-      'iconUrl': await icon(map['iconId']),
-      'temperature': {'unit': nameOfEnum(TemperatureUnit.Cels), 'value': map['temperature']}
-    });
+        : new Weather.fromMap(
+            {'nominal': map['nominal'], 'iconUrl': await icon(map['iconId']), 'temperature': map['temperature']});
   }
 }
