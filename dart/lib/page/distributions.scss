@@ -34,7 +34,7 @@ section#dmap {
       @include justify-content(center);
     }
     
-    .list {
+    infinite-scroll::shadow div#content {
       collapser::shadow {
         #header {
           @include display-flex();
