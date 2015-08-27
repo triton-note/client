@@ -133,13 +133,28 @@ class PhotoShop {
       _original = new Completer();
       try {
         final blob = await photo;
-        final reader = new FileReader();
-        reader.onLoadEnd.listen((_) {
-          final arrayBuffer = reader.result;
-          final image = decodeImage(arrayBuffer);
-          _original.complete(image);
-        });
-        reader.readAsArrayBuffer(blob);
+        final reader = new JsObject(context['FileReader'], []);
+        reader['onloadend'] = (event) {
+          try {
+            final arrayBuffer = reader['result'];
+            final array = new JsObject(context['Uint8Array'], [arrayBuffer]);
+            _logger.finest(() => "Reading image file data: ${arrayBuffer} => ${array}");
+            final list = new List<int>.generate(array['length'], (index) => array[index]);
+            _logger.finest(() => "Decoding image data: ${list.length}");
+            final image = decodeImage(list);
+            _logger.finest(() => "Decoded image: ${image}");
+            _original.complete(image);
+          } catch (ex) {
+            _logger.warning("Failed to decode photo image: ${ex}");
+            _original.completeError(ex);
+          }
+        };
+        reader['onerror'] = (event) {
+          final error = reader['error'];
+          _logger.warning("Failed to decode photo image: ${error}");
+          _original.completeError(error);
+        };
+        reader.callMethod('readAsArrayBuffer', [blob]);
       } catch (ex) {
         _logger.warning("Failed to decode photo image: ${ex}");
         _original.completeError(ex);
