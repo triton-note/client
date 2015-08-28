@@ -36,35 +36,37 @@ class NaturalConditions {
 }
 
 class _Moon {
-  static final Lambda MOON = new Lambda(Settings.then((s) => s.lambda.moon));
+  static final Future<Lambda<_Moon>> _lambda = Settings.then((s) {
+    loader(Map map) => new _Moon(map['age'].toDouble(), map['earth-longitude'].toDouble());
 
-  static Future<_Moon> at(DateTime date) async {
-    final map = await MOON({'date': date.toUtc().millisecondsSinceEpoch.toString()});
-    return new _Moon(map);
-  }
+    return new Lambda<_Moon>(s.lambda.moon, loader);
+  });
 
-  _Moon(this._src);
-  final Map _src;
+  static Future<_Moon> at(DateTime date) async =>
+      (await _lambda)({'date': date.toUtc().millisecondsSinceEpoch.toString()});
 
-  double get age => _src['age'];
-  double get earthLongitude => _src['earth-longitude'];
+  _Moon(this.age, this.earthLongitude);
+
+  final double age;
+  final double earthLongitude;
 }
 
 class _OpenWeatherMap {
-  static final Lambda WEATHER = new Lambda(Settings.then((s) => s.lambda.weather));
-
-  static Future<String> icon(String id) async => "${(await Settings).openweathermap.iconUrl}/${id}.png";
-
-  static Future<Weather> at(GeoInfo geoinfo, DateTime date) async {
-    final map = await WEATHER({
-      'apiKey': (await Settings).openweathermap.apiKey,
-      'date': date.toUtc().millisecondsSinceEpoch.toString(),
-      'lat': geoinfo.latitude.toStringAsFixed(8),
-      'lng': geoinfo.longitude.toStringAsFixed(8)
-    });
-    return (map.isEmpty)
+  static final Future<Lambda<Weather>> _lambda = Settings.then((s) {
+    loader(Map map) => (map.isEmpty)
         ? null
-        : new Weather.fromMap(
-            {'nominal': map['nominal'], 'iconUrl': await icon(map['iconId']), 'temperature': map['temperature']});
-  }
+        : new Weather.fromMap({
+      'nominal': map['nominal'].toString(),
+      'iconUrl': "${s.openweathermap.iconUrl}/${map['iconId'].toString()}.png",
+      'temperature': map['temperature'].toDouble()
+    });
+    return new Lambda(s.lambda.weather, loader);
+  });
+
+  static Future<Weather> at(GeoInfo geoinfo, DateTime date) async => (await _lambda)({
+    'apiKey': (await Settings).openweathermap.apiKey,
+    'date': date.toUtc().millisecondsSinceEpoch.toString(),
+    'lat': geoinfo.latitude.toStringAsFixed(8),
+    'lng': geoinfo.longitude.toStringAsFixed(8)
+  });
 }

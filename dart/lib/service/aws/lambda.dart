@@ -10,19 +10,22 @@ import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('Lambda');
 
-class Lambda {
+typedef T _LoadResult<T>(Map map);
+
+class Lambda<R> {
   static const retryLimit = 3;
   static const retryDur = const Duration(seconds: 30);
 
-  final Future<LambdaInfo> info;
+  final LambdaInfo info;
+  final _LoadResult<R> _loader;
 
-  Lambda(this.info);
+  Lambda(this.info, this._loader);
 
-  Future<Map> call(Map<String, String> dataMap) async {
-    final result = new Completer();
+  Future<R> call(Map<String, String> dataMap) async {
+    final result = new Completer<R>();
 
-    final url = (await info).url;
-    final apiKey = (await info).key;
+    final url = info.url;
+    final apiKey = info.key;
 
     final name = url.split('/').last;
     retry(final int count) {
@@ -49,8 +52,15 @@ class Lambda {
         req.onLoadEnd.listen((event) {
           final text = req.responseText;
           _logger.finest(() => "Response of ${name}: (Status:${req.status}) ${text}");
-          if (req.status == 200) result.complete(JSON.decode(text));
-          else next(500 <= req.status && req.status < 600)(req.responseText);
+          if (req.status == 200) {
+            try {
+              final map = JSON.decode(text);
+              final r = _loader(map);
+              result.complete(r);
+            } catch (ex) {
+              next()(ex);
+            }
+          } else next(500 <= req.status && req.status < 600)(req.responseText);
         });
         req.onError.listen((event) {
           next(500 <= req.status && req.status < 600)(req.responseText);
