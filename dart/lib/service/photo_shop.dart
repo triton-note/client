@@ -5,7 +5,6 @@ import 'dart:html';
 import 'dart:js';
 
 import 'package:logging/logging.dart';
-import 'package:image/image.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/cordova.dart';
@@ -128,33 +127,5 @@ class PhotoShop {
       _logger.fine("Failed to get photo file: ${ex}");
       _onChoose.completeError(ex);
     }
-  }
-
-  Completer<Image> _original;
-  Future<Blob> resize(int maxSize) async {
-    if (_original == null) {
-      _original = new Completer();
-      try {
-        final blob = await photo;
-        _logger.finer(() => "Decoding photo data: ${blob}");
-        final image = decodeImage(await readAsList(blob));
-        _logger.finer(() => "Decoded photo image: ${image}");
-        _original.complete(image);
-      } catch (ex) {
-        _logger.warning("Failed to decode photo image: ${ex}");
-        _original.completeError(ex);
-      }
-    }
-    final original = await _original.future;
-    int width;
-    if (original.width > original.height) {
-      width = maxSize;
-    } else {
-      width = (original.width * maxSize / original.height).round();
-    }
-    _logger.finest(() => "Resizing photo image: ${width}");
-    final resized = copyResize(original, width);
-    final data = encodeJpg(resized);
-    return new Blob([data], CONTENT_TYPE);
   }
 }

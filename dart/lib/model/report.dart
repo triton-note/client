@@ -16,7 +16,7 @@ abstract class Report implements DBRecord<Report> {
   DateTime dateAt;
   Location location;
   Condition condition;
-  Photo photo;
+  final Photo photo;
   List<Fishes> fishes;
 
   factory Report.fromMap(Map data, String id, DateTime dateAt, List<Fishes> fishes) =>
@@ -25,13 +25,14 @@ abstract class Report implements DBRecord<Report> {
 
 class _ReportImpl extends JsonSupport implements Report {
   final Map _data;
-  final CachedProp<Photo> _photo;
+  final Photo photo;
   final CachedProp<Location> _location;
   final CachedProp<Condition> _condition;
 
-  _ReportImpl(Map data, this.id, this.dateAt, this.fishes)
+  _ReportImpl(Map data, String id, this.dateAt, this.fishes)
       : _data = data,
-        _photo = new CachedProp<Photo>(data, 'photo', (map) => new Photo.fromMap(map)),
+        this.id = id,
+        photo = new Photo(id),
         _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map)),
         _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map));
 
@@ -48,9 +49,6 @@ class _ReportImpl extends JsonSupport implements Report {
 
   Condition get condition => _condition.value;
   set condition(Condition v) => _condition.value = v;
-
-  Photo get photo => _photo.value;
-  set photo(Photo v) => _photo.value = v;
 
   List<Fishes> fishes;
 
