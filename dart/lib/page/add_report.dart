@@ -63,7 +63,7 @@ class AddReportPage extends MainFrame {
   choosePhoto(bool take) => rippling(() {
     final shop = new PhotoShop(take);
 
-    report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}}, null, null, []);
+    report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}}, DynamoDB.createRandomKey(), null, []);
 
     shop.photoUrl.then((url) {
       report.photo.reduced.mainview.url = url;
@@ -71,7 +71,6 @@ class AddReportPage extends MainFrame {
     });
 
     shop.photo.then((photo) async {
-      report.id = DynamoDB.createRandomKey();
       _upload(photo);
 
       try {
