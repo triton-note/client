@@ -41,7 +41,7 @@ class Image {
   Image(this._reportId, this.relativePath);
 
   Future<String> get storagePath =>
-      DynamoDB.cognitoId.then((cognitoId) => "user/${cognitoId}/photo/${_reportId}/${relativePath}/photo_file.jpg");
+      DynamoDB.cognitoId.then((cognitoId) => "photo/${relativePath}/${cognitoId}/${_reportId}/photo_file.jpg");
 
   String get url {
     _refreshUrl();
