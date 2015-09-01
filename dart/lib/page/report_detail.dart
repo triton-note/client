@@ -70,7 +70,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
     _report.then((v) async {
       report = v;
       comment = new _Comment(root, _onChanged, report);
-      catches = new _Catches(root, _onChanged, new GetterSetter(() => report.fishes, (v) => report.fishes = v));
+      catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
       conditions = new _Conditions(report.condition, _onChanged);
       location = new _Location(root, report.location, _onChanged);
     });
@@ -155,7 +155,7 @@ class _Catches {
 
   final ShadowRoot _root;
   final OnChanged _onChanged;
-  final GetterSetter<List<Fishes>> list;
+  final Getter<List<Fishes>> list;
   final GetterSetter<EditFishDialog> dialog = new PipeValue();
 
   CachedValue<List<Element>> _addButton;
@@ -196,7 +196,7 @@ class _Catches {
 
   add() => alfterRippling(() {
     _logger.fine("Add new fish");
-    final fish = new Fishes.fromMap({'count': 1}, null, null);
+    final fish = new Fishes.fromMap({'count': 1});
     dialog.value.open(new GetterSetter(() => fish, (v) {
       list.value.add(v);
       _onChanged(list.value);

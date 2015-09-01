@@ -76,11 +76,8 @@ class DynamoDB_Table<T extends DBRecord> {
   }
 
   Future<Null> put(T obj) async {
-    final id = obj.id != null ? obj.id : DynamoDB.createRandomKey();
-    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(id));
+    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(obj.id));
     await _invoke('putItem', {'Item': item});
-
-    if (obj.id == null) obj.id = id;
   }
 
   Future<Null> update(T obj) async {

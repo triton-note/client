@@ -19,7 +19,6 @@ import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
-import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
@@ -63,7 +62,7 @@ class AddReportPage extends MainFrame {
   choosePhoto(bool take) => rippling(() {
     final shop = new PhotoShop(take);
 
-    report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}}, DynamoDB.createRandomKey(), null, []);
+    report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
     shop.photoUrl.then((url) {
       report.photo.reduced.mainview.url = url;
@@ -77,7 +76,6 @@ class AddReportPage extends MainFrame {
         report.dateAt = await shop.timestamp;
       } catch (ex) {
         _logger.info("No Timestamp in Exif: ${ex}");
-        report.dateAt = new DateTime.now();
       }
 
       try {
@@ -95,8 +93,7 @@ class AddReportPage extends MainFrame {
             report.location.name = inference.spotName;
           }
           if (inference.fishes != null && inference.fishes.length > 0) {
-            if (report.fishes == null) report.fishes = inference.fishes;
-            else report.fishes.addAll(inference.fishes);
+            report.fishes.addAll(inference.fishes);
           }
         }
       } catch (ex) {
@@ -159,10 +156,9 @@ class AddReportPage extends MainFrame {
 
   addFish() {
     if (addingFishName != null && addingFishName.isNotEmpty) {
-      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1}, null, null);
+      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
       addingFishName = null;
-      if (report.fishes == null) report.fishes = [fish];
-      else report.fishes.add(fish);
+      report.fishes.add(fish);
     }
   }
 
@@ -170,9 +166,9 @@ class AddReportPage extends MainFrame {
     if (0 <= index && index < report.fishes.length) {
       fishDialog.value.open(new GetterSetter(() => report.fishes[index], (v) {
         if (v == null) {
-          report.fishes = report.fishes..removeAt(index);
+          report.fishes..removeAt(index);
         } else {
-          report.fishes = report.fishes..[index] = v;
+          report.fishes..[index] = v;
         }
       }));
     }

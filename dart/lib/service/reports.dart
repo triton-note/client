@@ -14,14 +14,14 @@ class Reports {
   static const DATE_AT = "DATE_AT";
 
   static final DynamoDB_Table<Fishes> TABLE_CATCH = new DynamoDB_Table("CATCH", "CATCH_ID", (Map map) {
-    return new Fishes.fromMap(map[DynamoDB.CONTENT], map['CATCH_ID'], map['REPORT_ID']);
+    return new Fishes.fromData(map[DynamoDB.CONTENT], map['CATCH_ID'], map['REPORT_ID']);
   }, (Fishes obj) {
     return {DynamoDB.CONTENT: new Map.from(obj.asMap), 'REPORT_ID': obj.reportId};
   });
 
   static final DynamoDB_Table<Report> TABLE_REPORT = new DynamoDB_Table("REPORT", "REPORT_ID", (Map map) {
-    return new Report.fromMap(map[DynamoDB.CONTENT], map['REPORT_ID'],
-        new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true), []);
+    return new Report.fromData(
+        map[DynamoDB.CONTENT], map['REPORT_ID'], new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true));
   }, (Report obj) {
     return {
       DynamoDB.CONTENT: new Map.from(obj.asMap),
@@ -42,10 +42,13 @@ class Reports {
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
   static Future<Null> _loadFishes(Report report) async {
-    report.fishes = await TABLE_CATCH.query("COGNITO_ID-REPORT_ID-index", {
+    final list = await TABLE_CATCH.query("COGNITO_ID-REPORT_ID-index", {
       DynamoDB.COGNITO_ID: await DynamoDB.cognitoId,
       TABLE_REPORT.ID_COLUMN: report.id
     });
+    report.fishes
+      ..clear()
+      ..addAll(list);
   }
 
   static Future<Report> get(String id) async {

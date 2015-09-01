@@ -4,9 +4,10 @@ import 'package:triton_note/model/_json_support.dart';
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/service/aws/dynamodb.dart';
 
 abstract class DBRecord<T> implements JsonSupport {
-  String id;
+  String get id;
 
   T clone();
 }
@@ -17,10 +18,11 @@ abstract class Report implements DBRecord<Report> {
   Location location;
   Condition condition;
   final Photo photo;
-  List<Fishes> fishes;
+  final List<Fishes> fishes;
 
-  factory Report.fromMap(Map data, String id, DateTime dateAt, List<Fishes> fishes) =>
-      new _ReportImpl(data, id, dateAt, fishes);
+  factory Report.fromMap(Map data) => new _ReportImpl(data, DynamoDB.createRandomKey(), new DateTime.now(), []);
+
+  factory Report.fromData(Map data, String id, DateTime dateAt) => new _ReportImpl(data, id, dateAt, []);
 }
 
 class _ReportImpl extends JsonSupport implements Report {
@@ -38,7 +40,7 @@ class _ReportImpl extends JsonSupport implements Report {
 
   Map get asMap => _data;
 
-  String id;
+  final String id;
   DateTime dateAt;
 
   String get comment => _data['comment'];
@@ -50,7 +52,7 @@ class _ReportImpl extends JsonSupport implements Report {
   Condition get condition => _condition.value;
   set condition(Condition v) => _condition.value = v;
 
-  List<Fishes> fishes;
+  final List<Fishes> fishes;
 
   @override
   String toString() => "${super.toString()}, id=${id}, dateAt=${dateAt},  fishes=${fishes}";
@@ -65,7 +67,9 @@ abstract class Fishes implements DBRecord<Fishes> {
   Weight weight;
   Length length;
 
-  factory Fishes.fromMap(Map data, String id, String reportId) => new _FishesImpl(data, id, reportId);
+  factory Fishes.fromMap(Map data) => new _FishesImpl(data, DynamoDB.createRandomKey(), null);
+
+  factory Fishes.fromData(Map data, String id, String reportId) => new _FishesImpl(data, id, reportId);
 }
 
 class _FishesImpl extends JsonSupport implements Fishes {
@@ -82,7 +86,7 @@ class _FishesImpl extends JsonSupport implements Fishes {
 
   Map get asMap => _data;
 
-  String id;
+  final String id;
   String reportId;
 
   String get name => _data['name'];
