@@ -32,12 +32,13 @@ class ReducedImages {
 
 class Image {
   static const _localTimeout = const Duration(minutes: 10);
+  static const _refreshInterval = const Duration(minutes: 1);
 
+  final _IntervalKeeper _refresher = new _IntervalKeeper(_refreshInterval);
   final String _reportId;
   final String relativePath;
   DateTime _urlLimit;
   String _url;
-  bool _isRefreshing = false;
 
   Image(this._reportId, this.relativePath);
 
@@ -62,22 +63,37 @@ class Image {
   }
 
   _refreshUrl() {
-    _doRefresh() {
-      _isRefreshing = true;
-      storagePath.then((path) {
-        S3File.url(path).then((v) {
-          url = v;
-        }).catchError((ex) {
+    if (_url == null || (_urlLimit != null && _urlLimit.isBefore(new DateTime.now()))) {
+      _refresher.go(() async {
+        final path = await storagePath;
+        _logger.info("Refresh url of s3file: ${path}");
+        try {
+          url = await S3File.url(path);
+        } catch (ex) {
           _logger.info("Failed to get url of s3file: ${ex}");
-        }).whenComplete(() {
-          _isRefreshing = false;
-        });
+        }
       });
     }
-    if (!_isRefreshing && (_url == null || _urlLimit != null)) {
-      if (_urlLimit == null || _urlLimit.isBefore(new DateTime.now())) {
-        _logger.info("Refresh url: expired: ${_urlLimit}");
-        _doRefresh();
+  }
+}
+
+class _IntervalKeeper {
+  final Duration interval;
+  DateTime _limit;
+  bool _isGoing = false;
+
+  _IntervalKeeper(this.interval);
+
+  bool get canGo => !_isGoing && (_limit == null || _limit.isBefore(new DateTime.now()));
+
+  go(Future something()) async {
+    if (canGo) {
+      _isGoing = true;
+      try {
+        await something();
+      } finally {
+        _isGoing = false;
+        _limit = new DateTime.now().add(interval);
       }
     }
   }
