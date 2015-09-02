@@ -49,7 +49,7 @@ class _ReportImpl implements Report {
   final List<Fishes> fishes;
 
   @override
-  String toString() => "${super.toString()}, id=${id}, dateAt=${dateAt},  fishes=${fishes}";
+  String toString() => "${_data}, id=${id}, dateAt=${dateAt},  fishes=${fishes}";
 
   bool isNeedUpdate(Report other) {
     if (other is _ReportImpl) {
@@ -113,7 +113,7 @@ class _FishesImpl implements Fishes {
   set length(Length v) => _length.value = v;
 
   @override
-  String toString() => "${super.toString()}, id=${id}, reportId=${reportId}";
+  String toString() => "${_data}, id=${id}, reportId=${reportId}";
 
   bool isNeedUpdate(Fishes other) {
     if (other is _FishesImpl) {
