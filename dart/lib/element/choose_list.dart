@@ -1,6 +1,5 @@
 library triton_note.element.choose_list;
 
-import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
