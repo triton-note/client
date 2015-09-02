@@ -87,7 +87,11 @@ class FuturedValue<T> implements Setter<T> {
   Future<T> get future => _completer.future;
 }
 
-class StreamedValue<T> implements Setter<T> {
+abstract class StreamedUpdate<T> {
+  Stream<T> get onUpdate;
+}
+
+class StreamedValue<T> implements Setter<T>, StreamedUpdate<T> {
   Function _setter;
   final StreamController<T> sc = new StreamController();
 
@@ -99,5 +103,5 @@ class StreamedValue<T> implements Setter<T> {
 
   void set value(T v) => _setter(v);
 
-  Stream<T> get stream => sc.stream;
+  Stream<T> get onUpdate => sc.stream;
 }

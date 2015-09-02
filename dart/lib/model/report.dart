@@ -29,8 +29,8 @@ class _ReportImpl implements Report {
       : _data = data,
         this.id = id,
         photo = new Photo(id),
-        _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map)),
-        _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map));
+        _location = new CachedProp<Location>.forMap(data, 'location', (map) => new Location.fromMap(map)),
+        _condition = new CachedProp<Condition>.forMap(data, 'condition', (map) => new Condition.fromMap(map));
 
   Map toMap() => new Map.from(_data);
 
@@ -92,10 +92,8 @@ class _FishesImpl implements Fishes {
 
   _FishesImpl(Map data, this.id, this.reportId)
       : _data = data,
-        _weight = new CachedProp<Weight>(
-            data, 'weight', (value) => new Weight.standard(value), (Weight obj) => obj.asStandard().value),
-        _length = new CachedProp<Length>(
-            data, 'length', (value) => new Length.standard(value), (Length obj) => obj.asStandard().value);
+        _weight = new CachedProp<Weight>.forValueUnit(data, 'weight', (value) => new Weight.standard(value)),
+        _length = new CachedProp<Length>.forValueUnit(data, 'length', (value) => new Length.standard(value));
 
   Map toMap() => new Map.from(_data);
 
