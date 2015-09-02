@@ -5,8 +5,6 @@ export 'dart:convert';
 
 abstract class JsonSupport {
   Map get asMap;
-  String get asParam => Uri.encodeQueryComponent(JSON.encode(asMap));
-  set asParam(String text) => asMap.addAll(JSON.decode(Uri.decodeQueryComponent(text)));
 
   @override
   String toString() => JSON.encode(asMap);

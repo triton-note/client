@@ -403,8 +403,6 @@ class _WeatherWrapper implements Loc.Weather {
   _WeatherWrapper(this._src, this._onChanged);
 
   Map get asMap => _src.asMap;
-  String get asParam => _src.asParam;
-  set asParam(String v) => _src.asParam = v;
 
   Future<TemperatureUnit> _temperatureUnit;
   Temperature _temperature;
