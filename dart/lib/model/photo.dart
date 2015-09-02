@@ -31,10 +31,11 @@ class ReducedImages {
 }
 
 class Image {
+  static const _localTimeout = const Duration(minutes: 10);
+
   final String _reportId;
   final String relativePath;
-  Duration _urlLimit;
-  DateTime _urlStamp;
+  DateTime _urlLimit;
   String _url;
   bool _isRefreshing = false;
 
@@ -49,14 +50,18 @@ class Image {
   }
   set url(String v) {
     _url = v;
-    _urlStamp = new DateTime.now();
+    if (v.startsWith('http')) {
+      Settings.then((s) {
+        final v = s.photo.urlTimeout.inSeconds * 0.9;
+        final dur = new Duration(seconds: v.round());
+        _urlLimit = new DateTime.now().add(dur);
+      });
+    } else {
+      _urlLimit = new DateTime.now().add(_localTimeout);
+    }
   }
 
   _refreshUrl() {
-    if (_urlLimit == null) Settings.then((s) {
-      final v = s.photo.urlTimeout.inSeconds * 0.9;
-      _urlLimit = new Duration(seconds: v.round());
-    });
     _doRefresh() {
       _isRefreshing = true;
       storagePath.then((path) {
@@ -69,10 +74,9 @@ class Image {
         });
       });
     }
-    if (!_isRefreshing) {
-      final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
-      if (diff == null || (_urlLimit != null && _urlLimit < diff)) {
-        _logger.info("Refresh url: timestamp difference: ${diff}");
+    if (!_isRefreshing && (_url == null || _urlLimit != null)) {
+      if (_urlLimit == null || _urlLimit.isBefore(new DateTime.now())) {
+        _logger.info("Refresh url: expired: ${_urlLimit}");
         _doRefresh();
       }
     }
