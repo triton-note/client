@@ -16,18 +16,14 @@ class Reports {
   static final DynamoDB_Table<Fishes> TABLE_CATCH = new DynamoDB_Table("CATCH", "CATCH_ID", (Map map) {
     return new Fishes.fromData(map[DynamoDB.CONTENT], map['CATCH_ID'], map['REPORT_ID']);
   }, (Fishes obj) {
-    return {DynamoDB.CONTENT: new Map.from(obj.asMap), 'REPORT_ID': obj.reportId};
+    return {DynamoDB.CONTENT: obj.toMap(), 'REPORT_ID': obj.reportId};
   });
 
   static final DynamoDB_Table<Report> TABLE_REPORT = new DynamoDB_Table("REPORT", "REPORT_ID", (Map map) {
     return new Report.fromData(
         map[DynamoDB.CONTENT], map['REPORT_ID'], new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true));
   }, (Report obj) {
-    return {
-      DynamoDB.CONTENT: new Map.from(obj.asMap),
-      'REPORT_ID': obj.id,
-      'DATE_AT': obj.dateAt.toUtc().millisecondsSinceEpoch
-    };
+    return {DynamoDB.CONTENT: obj.toMap(), 'REPORT_ID': obj.id, 'DATE_AT': obj.dateAt.toUtc().millisecondsSinceEpoch};
   });
 
   static Future<PagingList<Report>> paging =
@@ -90,17 +86,16 @@ class Reports {
     // On old, On new
     final marging = Future.wait(newReport.fishes.where((newFish) {
       final oldFish = oldReport.fishes.firstWhere((oldFish) => oldFish.id == newFish.id, orElse: () => null);
-      return oldFish != null && oldFish.asMap.toString() != newFish.asMap.toString();
+      return oldFish != null && oldFish.isNeedUpdate(newFish);
     }).map(TABLE_CATCH.update));
 
-    oldReport.fishes = newReport.fishes.map((f) => f.clone()).toList();
+    oldReport.fishes
+      ..clear()
+      ..addAll(newReport.fishes.map((f) => f.clone()).toList());
 
-    final updating = (oldReport.asMap.toString() != newReport.asMap.toString() || oldReport.dateAt != newReport.dateAt)
+    final updating = oldReport.isNeedUpdate(newReport)
         ? TABLE_REPORT.update(newReport).then((_) {
-      oldReport.asMap
-        ..clear()
-        ..addAll(newReport.asMap);
-      oldReport.dateAt = newReport.dateAt;
+      oldReport.update(newReport);
     })
         : new Future.value(null);
 

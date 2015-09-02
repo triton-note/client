@@ -6,12 +6,6 @@ import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
 
-abstract class DBRecord<T> implements JsonSupport {
-  String get id;
-
-  T clone();
-}
-
 abstract class Report implements DBRecord<Report> {
   String comment;
   DateTime dateAt;
@@ -25,7 +19,7 @@ abstract class Report implements DBRecord<Report> {
   factory Report.fromData(Map data, String id, DateTime dateAt) => new _ReportImpl(data, id, dateAt, []);
 }
 
-class _ReportImpl extends JsonSupport implements Report {
+class _ReportImpl implements Report {
   final Map _data;
   final Photo photo;
   final CachedProp<Location> _location;
@@ -38,7 +32,7 @@ class _ReportImpl extends JsonSupport implements Report {
         _location = new CachedProp<Location>(data, 'location', (map) => new Location.fromMap(map)),
         _condition = new CachedProp<Condition>(data, 'condition', (map) => new Condition.fromMap(map));
 
-  Map get asMap => _data;
+  Map toMap() => new Map.from(_data);
 
   final String id;
   DateTime dateAt;
@@ -57,7 +51,26 @@ class _ReportImpl extends JsonSupport implements Report {
   @override
   String toString() => "${super.toString()}, id=${id}, dateAt=${dateAt},  fishes=${fishes}";
 
-  Report clone() => new _ReportImpl(new Map.from(asMap), id, dateAt, fishes.map((o) => o.clone()).toList());
+  bool isNeedUpdate(Report other) {
+    if (other is _ReportImpl) {
+      return this._data.toString() != other._data.toString() || this.dateAt != other.dateAt;
+    } else {
+      throw "Unrecognized obj: ${other}";
+    }
+  }
+
+  void update(Report other) {
+    if (other is _ReportImpl) {
+      this._data
+        ..clear()
+        ..addAll(other._data);
+      this.dateAt = other.dateAt;
+    } else {
+      throw "Unrecognized obj: ${other}";
+    }
+  }
+
+  Report clone() => new _ReportImpl(toMap(), id, dateAt, fishes.map((o) => o.clone()).toList());
 }
 
 abstract class Fishes implements DBRecord<Fishes> {
@@ -72,7 +85,7 @@ abstract class Fishes implements DBRecord<Fishes> {
   factory Fishes.fromData(Map data, String id, String reportId) => new _FishesImpl(data, id, reportId);
 }
 
-class _FishesImpl extends JsonSupport implements Fishes {
+class _FishesImpl implements Fishes {
   final Map _data;
   final CachedProp<Weight> _weight;
   final CachedProp<Length> _length;
@@ -84,7 +97,7 @@ class _FishesImpl extends JsonSupport implements Fishes {
         _length = new CachedProp<Length>(
             data, 'length', (value) => new Length.standard(value), (Length obj) => obj.asStandard().value);
 
-  Map get asMap => _data;
+  Map toMap() => new Map.from(_data);
 
   final String id;
   String reportId;
@@ -104,5 +117,24 @@ class _FishesImpl extends JsonSupport implements Fishes {
   @override
   String toString() => "${super.toString()}, id=${id}, reportId=${reportId}";
 
-  Fishes clone() => new _FishesImpl(new Map.from(asMap), id, reportId);
+  bool isNeedUpdate(Fishes other) {
+    if (other is _FishesImpl) {
+      return this._data.toString() != other._data.toString() || this.reportId != other.reportId;
+    } else {
+      throw "Unrecognized obj: ${other}";
+    }
+  }
+
+  void update(Fishes other) {
+    if (other is _FishesImpl) {
+      this._data
+        ..clear()
+        ..addAll(other._data);
+      this.reportId = other.reportId;
+    } else {
+      throw "Unrecognized obj: ${other}";
+    }
+  }
+
+  Fishes clone() => new _FishesImpl(toMap(), id, reportId);
 }
