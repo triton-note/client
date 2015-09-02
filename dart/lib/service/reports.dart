@@ -31,7 +31,7 @@ class Reports {
   static Future<List<Report>> get _cachedList async => (await paging).list;
 
   static Future<Report> _fromCache(String id) async =>
-      (await _cachedList).isEmpty ? null : (await _cachedList).firstWhere((r) => r.id == id, orElse: () => null);
+      (await _cachedList).firstWhere((r) => r.id == id, orElse: () => null);
 
   static Future<List<Report>> _addToCache(Report adding) async => (await _cachedList)
     ..add(adding)
@@ -73,15 +73,13 @@ class Reports {
 
     newReport.fishes.forEach((fish) => fish.reportId = newReport.id);
 
+    List<Fishes> distinct(List<Fishes> src, List<Fishes> dst) => src.where((a) => dst.every((b) => b.id != a.id));
+
     // No old, On new
-    final adding = Future.wait(newReport.fishes.where((fish) => fish.id == null).map(TABLE_CATCH.put));
+    final adding = Future.wait(distinct(newReport.fishes, oldReport.fishes).map(TABLE_CATCH.put));
 
     // On old, No new
-    final deleting =
-        Future.wait(oldReport.fishes
-            .map((o) => o.id)
-            .where((oldId) => newReport.fishes.every((fish) => fish.id != oldId))
-            .map(TABLE_CATCH.delete));
+    final deleting = Future.wait(distinct(oldReport.fishes, newReport.fishes).map((o) => TABLE_CATCH.delete(o.id)));
 
     // On old, On new
     final marging = Future.wait(newReport.fishes.where((newFish) {
@@ -91,27 +89,27 @@ class Reports {
 
     oldReport.fishes
       ..clear()
-      ..addAll(newReport.fishes.map((f) => f.clone()).toList());
+      ..addAll(newReport.fishes.map((f) => f.clone()));
 
     final updating = oldReport.isNeedUpdate(newReport)
-        ? TABLE_REPORT.update(newReport).then((_) {
-      oldReport.update(newReport);
-    })
+        ? TABLE_REPORT.update(newReport).then((_) => oldReport.update(newReport))
         : new Future.value(null);
 
     await Future.wait([adding, marging, deleting, updating]);
+    _logger.finest("Count of cached list: ${(await _cachedList).length}");
   }
 
   static Future<Null> add(Report reportSrc) async {
     final report = reportSrc.clone();
-
     _logger.finest("Adding report: ${report}");
-    await TABLE_REPORT.put(report);
+
+    await Future.wait([
+      TABLE_REPORT.put(report),
+      Future.wait(report.fishes.map((fish) => TABLE_CATCH.put(fish..reportId = report.id)))
+    ]);
+    await _addToCache(report);
+
     _logger.finest(() => "Added report: ${report}");
-
-    await Future.wait(report.fishes.map((fish) => TABLE_CATCH.put(fish..reportId = report.id)));
-
-    _addToCache(report);
   }
 }
 
