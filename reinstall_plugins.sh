@@ -21,7 +21,6 @@ cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --var
 
 # Customized org.apache.cordova.file for GOOGLE_PHOTOS
 cordova plugin add https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos
-cordova plugin add https://github.com/sawatani/Cordova-plugin-photo
 # Crash Report
 cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable TOAST_TEXT='Crash Report Sent' --variable URL="$ACRA_URL" --variable USERNAME="$ACRA_USERNAME" --variable PASSWORD="$ACRA_PASSWORD"
 

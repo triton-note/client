@@ -21,12 +21,7 @@
 					<paper-button id="choose" raised ng-click="choosePhoto(false)">CHOOSE</paper-button>
 				</div>
     		</div>
-            <div class="page-loading" ng-if="isReady && isLoading">
-                <div>
-                    <paper-spinner active></paper-spinner>
-                </div>
-            </div>
-	   		<div id="input" ng-if="!isLoading">
+	   		<div id="input" ng-if="isReady">
 		    	<div id="date">
 		    		<div class="buttons">
 		        		<paper-button ng-click="dateOclock.value.toggle()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
@@ -41,7 +36,12 @@
 					</paper-input-decorator>
 				</div>
 			    <div id="photo">
-			        <fit-image url="report.photo.reduced.mainview.url" width="photoWidth" height="photoHeight" shrink="true"></fit-image>
+                    <div ng-if="isLoading">
+                        <paper-spinner active></paper-spinner>
+                    </div>
+                    <div ng-if="!isLoading">
+    			        <fit-image url="report.photo.reduced.mainview.url" width="photoWidth" height="photoHeight" shrink="true"></fit-image>
+                    </div> 
 			    </div>
 			    <div id="catches">
 			    	<div class="control">

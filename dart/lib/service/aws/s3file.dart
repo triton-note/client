@@ -74,8 +74,14 @@ class S3File {
     final result = new Completer();
     try {
       final bucket = (await Settings).s3Bucket;
+      final params = {'Bucket': bucket, 'Key': path, 'Body': data};
+      if (data.type != null) {
+        params['ContentType'] = data.type;
+      }
+      _logger.finest(() => "putObject: ${params}");
+
       s3.callMethod('putObject', [
-        new JsObject.jsify({'Bucket': bucket, 'Key': path, 'Body': data}),
+        new JsObject.jsify(params),
         (error, data) {
           if (error != null) {
             _logger.warning("Failed to put object: ${path}");

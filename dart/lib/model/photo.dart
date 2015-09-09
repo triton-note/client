@@ -1,120 +1,99 @@
 library triton_note.model.photo;
 
+import 'dart:async';
+
 import 'package:logging/logging.dart';
 
-import 'package:triton_note/model/_json_support.dart';
+import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('Photo');
 
-abstract class Photo implements JsonSupport {
-  Image original;
-  ReducedImages reduced;
+class Photo {
+  final Image original;
+  final ReducedImages reduced;
 
-  factory Photo.fromMap(Map data) => new _PhotoImpl(data);
+  Photo(String id)
+      : original = new Image(id, 'original'),
+        reduced = new ReducedImages(id);
 }
 
-class _PhotoImpl extends JsonSupport implements Photo {
-  final Map _data;
-  final CachedProp<Image> _original;
-  final CachedProp<ReducedImages> _reduced;
+class ReducedImages {
+  static const _PATH_REDUCED = 'reduced';
 
-  _PhotoImpl(Map data)
-      : _data = data,
-        _original = new CachedProp<Image>(data, 'original', (map) => new Image.fromMap(map)),
-        _reduced = new CachedProp<ReducedImages>(data, 'reduced', (map) => new ReducedImages.fromMap(map));
+  final Image mainview;
+  final Image thumbnail;
 
-  Map get asMap => _data;
-
-  Image get original => _original.value;
-  set original(Image v) => _original.value = v;
-
-  ReducedImages get reduced => _reduced.value;
-  set reduced(ReducedImages v) => _reduced.value = v;
+  ReducedImages(String id)
+      : mainview = new Image(id, "${_PATH_REDUCED}/mainview"),
+        thumbnail = new Image(id, "${_PATH_REDUCED}/thumbnail");
 }
 
-abstract class ReducedImages implements JsonSupport {
-  Image mainview;
-  Image thumbnail;
+class Image {
+  static const _localTimeout = const Duration(minutes: 10);
+  static const _refreshInterval = const Duration(minutes: 1);
 
-  factory ReducedImages.fromMap(Map data) => new _ReducedImagesImpl(data);
-}
-
-class _ReducedImagesImpl extends JsonSupport implements ReducedImages {
-  final Map _data;
-  final CachedProp<Image> _mainview;
-  final CachedProp<Image> _thumbnail;
-
-  _ReducedImagesImpl(Map data)
-      : _data = data,
-        _mainview = new CachedProp<Image>(data, 'mainview', (map) => new Image.fromMap(map)),
-        _thumbnail = new CachedProp<Image>(data, 'thumbnail', (map) => new Image.fromMap(map));
-
-  Map get asMap => _data;
-
-  Image get mainview => _mainview.value;
-  set mainview(Image v) => _mainview.value = v;
-
-  Image get thumbnail => _thumbnail.value;
-  set thumbnail(Image v) => _thumbnail.value = v;
-}
-
-abstract class Image implements JsonSupport {
-  String path;
-  String url;
-
-  factory Image.fromMap(Map data) => new _ImageImpl(data);
-}
-
-class _ImageImpl extends JsonSupport implements Image {
-  Duration _urlLimit;
-  DateTime _urlStamp;
+  final _IntervalKeeper _refresher = new _IntervalKeeper(_refreshInterval);
+  final String _reportId;
+  final String relativePath;
+  DateTime _urlLimit;
   String _url;
-  bool _isRefreshing = false;
 
-  final Map _data;
-  _ImageImpl(this._data);
-  Map get asMap => _data;
+  Image(this._reportId, this.relativePath);
 
-  String get path => _data['path'];
-  set path(String v) => _data['path'] = v;
+  Future<String> get storagePath =>
+      DynamoDB.cognitoId.then((cognitoId) => "photo/${relativePath}/${cognitoId}/${_reportId}/photo_file.jpg");
 
   String get url {
-    if (path == null) return _data['url'];
-    else {
-      _refreshUrl();
-      return _url;
-    }
+    _refreshUrl();
+    return _url;
   }
   set url(String v) {
-    if (path == null) _data['url'] = v;
-    else {
-      _url = v;
+    _url = v;
+    if (v.startsWith('http')) {
+      Settings.then((s) {
+        final v = s.photo.urlTimeout.inSeconds * 0.9;
+        final dur = new Duration(seconds: v.round());
+        _urlLimit = new DateTime.now().add(dur);
+      });
+    } else {
+      _urlLimit = new DateTime.now().add(_localTimeout);
     }
   }
 
   _refreshUrl() {
-    if (_urlLimit == null) Settings.then((s) {
-      final v = s.photo.urlTimeout.inSeconds * 0.9;
-      _urlLimit = new Duration(seconds: v.round());
-    });
-    _doRefresh() {
-      _isRefreshing = true;
-      S3File.url(path).then((v) {
-        url = v;
-        _urlStamp = new DateTime.now();
-      }).catchError((ex) {
-        _logger.info("Failed to get url of s3file: ${ex}");
-      }).whenComplete(() {
-        _isRefreshing = false;
+    if (_url == null || (_urlLimit != null && _urlLimit.isBefore(new DateTime.now()))) {
+      _refresher.go(() async {
+        final path = await storagePath;
+        _logger.info("Refresh url of s3file: ${path}");
+        try {
+          url = await S3File.url(path);
+        } catch (ex) {
+          _logger.info("Failed to get url of s3file: ${ex}");
+        }
       });
     }
-    if (!_isRefreshing) {
-      final diff = (_urlStamp == null) ? null : new DateTime.now().difference(_urlStamp);
-      if (diff == null || (_urlLimit != null && _urlLimit < diff)) {
-        _logger.info("Refresh url: timestamp difference: ${diff}");
-        _doRefresh();
+  }
+}
+
+class _IntervalKeeper {
+  final Duration interval;
+  DateTime _limit;
+  bool _isGoing = false;
+
+  _IntervalKeeper(this.interval);
+
+  bool get canGo => !_isGoing && (_limit == null || _limit.isBefore(new DateTime.now()));
+
+  go(Future something()) async {
+    if (canGo) {
+      _isGoing = true;
+      try {
+        await something();
+      } finally {
+        _isGoing = false;
+        _limit = new DateTime.now().add(interval);
       }
     }
   }

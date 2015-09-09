@@ -70,12 +70,13 @@ void main() {
   Logger.root
     ..level = Level.FINEST
     ..onRecord.listen((record) {
-      window.console.log("${record.time} ${record}");
+      final timestamp = isCordova ? '' : "${record.time} ";
+      window.console.log("${timestamp}${record}");
     });
 
   initPolymer().then((zone) => Polymer.onReady.then((_) {
-    onDeviceReady((event) {
-      applicationFactory().addModule(new AppModule()).run();
-    });
-  }));
+        onDeviceReady((event) {
+          applicationFactory().addModule(new AppModule()).run();
+        });
+      }));
 }

@@ -1,10 +1,12 @@
 library triton_note.model.value_unit;
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/getter_setter.dart';
 
 final _logger = new Logger('ValueUnit');
 
@@ -14,9 +16,21 @@ String round(double v, int digits) {
   return "${(v * d).round() / d}";
 }
 
-abstract class ValueUnit<A, U> {
-  double value;
-  U get unit;
+abstract class ValueUnit<A extends ValueUnit<A, U>, U> implements StreamedUpdate<A> {
+  ValueUnit(this._value, this.unit);
+
+  final StreamController<A> _updateStream = new StreamController();
+  Stream<A> get onUpdate => _updateStream.stream;
+
+  double _value;
+  double get value => _value;
+  set value(double value) {
+    _value = value;
+    _logger.finest("Updated ${this} => ${value}");
+    _updateStream.add(this);
+  }
+
+  final U unit;
   A convertTo(U dst);
 
   U get _standardUnit;
@@ -29,7 +43,8 @@ abstract class ValueUnit<A, U> {
   String toString() => "${value}(${nameOfEnum(unit)})";
 }
 
-abstract class Temperature extends ValueUnit<Temperature, TemperatureUnit> {
+enum TemperatureUnit { Cels, Fahr }
+class Temperature extends ValueUnit<Temperature, TemperatureUnit> {
   static const TemperatureUnit STANDARD_UNIT = TemperatureUnit.Cels;
 
   static double convertToStandard(TemperatureUnit unit, num value) =>
@@ -37,21 +52,13 @@ abstract class Temperature extends ValueUnit<Temperature, TemperatureUnit> {
 
   final _standardUnit = STANDARD_UNIT;
 
-  Temperature();
-
-  factory Temperature.of(TemperatureUnit unit, num value) => new _TemperatureImpl(value.toDouble(), unit);
+  factory Temperature.of(TemperatureUnit unit, num value) => new Temperature(value.toDouble(), unit);
   factory Temperature.standard(num value) => new Temperature.of(STANDARD_UNIT, value);
 
   factory Temperature.Cels(num value) => new Temperature.of(TemperatureUnit.Cels, value);
   factory Temperature.Fahr(num value) => new Temperature.of(TemperatureUnit.Fahr, value);
-}
-enum TemperatureUnit { Cels, Fahr }
 
-class _TemperatureImpl extends Temperature {
-  double value;
-  final TemperatureUnit unit;
-
-  _TemperatureImpl(this.value, this.unit);
+  Temperature(double value, TemperatureUnit unit) : super(value, unit);
 
   Temperature convertTo(TemperatureUnit dst) {
     _logger.finest("Converting ${this} to '${dst}'");
@@ -67,7 +74,8 @@ class _TemperatureImpl extends Temperature {
   }
 }
 
-abstract class Weight extends ValueUnit<Weight, WeightUnit> {
+enum WeightUnit { kg, g, pound, oz }
+class Weight extends ValueUnit<Weight, WeightUnit> {
   static const WeightUnit STANDARD_UNIT = WeightUnit.g;
 
   static double convertToStandard(WeightUnit unit, num value) =>
@@ -75,28 +83,20 @@ abstract class Weight extends ValueUnit<Weight, WeightUnit> {
 
   final _standardUnit = STANDARD_UNIT;
 
-  Weight();
-
-  factory Weight.of(WeightUnit unit, num value) => new _WeightImpl(value.toDouble(), unit);
+  factory Weight.of(WeightUnit unit, num value) => new Weight(value.toDouble(), unit);
   factory Weight.standard(num value) => new Weight.of(STANDARD_UNIT, value);
 
   factory Weight.kg(num value) => new Weight.of(WeightUnit.kg, value);
   factory Weight.pound(num value) => new Weight.of(WeightUnit.pound, value);
   factory Weight.g(num value) => new Weight.of(WeightUnit.g, value);
   factory Weight.oz(num value) => new Weight.of(WeightUnit.oz, value);
-}
-enum WeightUnit { kg, g, pound, oz }
 
-class _WeightImpl extends Weight {
   static const kg_g = 1000;
   static const pound_oz = 16;
   static const oz_g = 28.349523125;
   static const pound_kg = 0.45359237;
 
-  double value;
-  final WeightUnit unit;
-
-  _WeightImpl(this.value, this.unit);
+  Weight(double value, WeightUnit unit) : super(value, unit);
 
   Weight convertTo(WeightUnit dst) {
     if (this.unit == dst) return this;
@@ -153,7 +153,8 @@ class _WeightImpl extends Weight {
   }
 }
 
-abstract class Length extends ValueUnit<Length, LengthUnit> {
+enum LengthUnit { cm, inch }
+class Length extends ValueUnit<Length, LengthUnit> {
   static const LengthUnit STANDARD_UNIT = LengthUnit.cm;
 
   static double convertToStandard(LengthUnit unit, num value) =>
@@ -161,24 +162,15 @@ abstract class Length extends ValueUnit<Length, LengthUnit> {
 
   final _standardUnit = STANDARD_UNIT;
 
-  Length();
-
-  factory Length.of(LengthUnit unit, num value) => new _LengthImpl(value.toDouble(), unit);
+  factory Length.of(LengthUnit unit, num value) => new Length(value.toDouble(), unit);
   factory Length.standard(num value) => new Length.of(STANDARD_UNIT, value);
 
   factory Length.cm(num value) => new Length.of(LengthUnit.cm, value);
   factory Length.inch(num value) => new Length.of(LengthUnit.inch, value);
-}
 
-enum LengthUnit { cm, inch }
-
-class _LengthImpl extends Length {
   static const inchToCm = 2.54;
 
-  double value;
-  final LengthUnit unit;
-
-  _LengthImpl(this.value, this.unit);
+  Length(double value, LengthUnit unit) : super(value, unit);
 
   Length convertTo(LengthUnit dst) {
     if (this.unit == dst) return this;

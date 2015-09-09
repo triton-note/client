@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:logging/logging.dart';
 
-import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/util/pager.dart';
@@ -18,6 +17,17 @@ String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]
 
 typedef T _RecordReader<T>(Map map);
 typedef Map _RecordWriter<T>(T obj);
+
+abstract class DBRecord<T> {
+  String get id;
+
+  Map toMap();
+
+  bool isNeedUpdate(T other);
+  void update(T other);
+
+  T clone();
+}
 
 class DynamoDB {
   static const CONTENT = "CONTENT";
@@ -76,11 +86,8 @@ class DynamoDB_Table<T extends DBRecord> {
   }
 
   Future<Null> put(T obj) async {
-    final id = DynamoDB.createRandomKey();
-    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(id));
+    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(obj.id));
     await _invoke('putItem', {'Item': item});
-
-    obj.id = id;
   }
 
   Future<Null> update(T obj) async {

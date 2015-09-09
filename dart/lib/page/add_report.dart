@@ -1,6 +1,5 @@
 library triton_note.page.reports_add;
 
-import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
@@ -13,21 +12,17 @@ import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
-import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
-import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
-import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('AddReportPage');
 
@@ -37,7 +32,7 @@ final _logger = new Logger('AddReportPage');
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
 class AddReportPage extends MainFrame {
-  final Report report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}}, null, null, []);
+  Report report;
 
   final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
   final PipeValue<EditFishDialog> fishDialog = new PipeValue();
@@ -45,7 +40,7 @@ class AddReportPage extends MainFrame {
   _GMap gmap;
   _Conditions conditions;
 
-  bool isReady = false;
+  bool get isReady => report != null;
   bool get isLoading => report.photo == null;
 
   AddReportPage(Router router) : super(router);
@@ -66,24 +61,21 @@ class AddReportPage extends MainFrame {
    */
   choosePhoto(bool take) => rippling(() {
     final shop = new PhotoShop(take);
-    isReady = true;
+
+    report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
 
     shop.photoUrl.then((url) {
-      report.photo = new Photo.fromMap({'reduced': {'mainview': {'url': url}}});
-    });
-
-    new _Upload(shop).done.then((list) {
-      report.photo = new Photo.fromMap(
-          {'original': {'path': list[0]}, 'reduced': {'mainview': {'path': list[1]}, 'thumbnail': {'path': list[2]}}});
-      submitable();
+      report.photo.reduced.mainview.url = url;
+      _logger.finest(() => "Selected photo's local reference: ${report.photo},  (isLoading=${isLoading})");
     });
 
     shop.photo.then((photo) async {
+      _upload(photo);
+
       try {
         report.dateAt = await shop.timestamp;
       } catch (ex) {
         _logger.info("No Timestamp in Exif: ${ex}");
-        report.dateAt = new DateTime.now();
       }
 
       try {
@@ -101,8 +93,7 @@ class AddReportPage extends MainFrame {
             report.location.name = inference.spotName;
           }
           if (inference.fishes != null && inference.fishes.length > 0) {
-            if (report.fishes == null) report.fishes = inference.fishes;
-            else report.fishes.addAll(inference.fishes);
+            report.fishes.addAll(inference.fishes);
           }
         }
       } catch (ex) {
@@ -110,6 +101,16 @@ class AddReportPage extends MainFrame {
       }
     });
   });
+
+  _upload(Blob photo) async {
+    try {
+      final path = await report.photo.original.storagePath;
+      await S3File.putObject(path, photo);
+      submitable();
+    } catch (ex) {
+      _logger.warning("Failed to upload: ${ex}");
+    }
+  }
 
   /**
    * Refresh conditions, on changing location or timestamp.
@@ -121,11 +122,8 @@ class AddReportPage extends MainFrame {
         final cond = await NaturalConditions.at(report.dateAt, report.location.geoinfo);
         _logger.fine("Get conditions: ${cond}");
         if (cond.weather == null) {
-          cond.weather = new Weather.fromMap({
-            'nominal': 'Clear',
-            'iconUrl': Weather.nominalMap['Clear'],
-            'temperature': {'value': 20, 'unit': nameOfEnum(TemperatureUnit.Cels)}
-          });
+          cond.weather =
+              new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear'], 'temperature': 20});
         }
         if (cond.weather.temperature != null) {
           cond.weather.temperature =
@@ -158,10 +156,9 @@ class AddReportPage extends MainFrame {
 
   addFish() {
     if (addingFishName != null && addingFishName.isNotEmpty) {
-      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1}, null, null);
+      final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
       addingFishName = null;
-      if (report.fishes == null) report.fishes = [fish];
-      else report.fishes.add(fish);
+      report.fishes.add(fish);
     }
   }
 
@@ -169,9 +166,9 @@ class AddReportPage extends MainFrame {
     if (0 <= index && index < report.fishes.length) {
       fishDialog.value.open(new GetterSetter(() => report.fishes[index], (v) {
         if (v == null) {
-          report.fishes = report.fishes..removeAt(index);
+          report.fishes..removeAt(index);
         } else {
-          report.fishes = report.fishes..[index] = v;
+          report.fishes..[index] = v;
         }
       }));
     }
@@ -249,32 +246,4 @@ class _Conditions {
   String get tideName => value.tide == null ? null : nameOfEnum(value.tide);
   String get tideImage => tideName == null ? null : Tides.iconBy(tideName);
   String get moonImage => _condition.value.moon == null ? null : MoonPhases.iconOf(_condition.value.moon);
-}
-
-class _Upload {
-  final PhotoShop _shop;
-  final _onOriginal = new Completer<String>();
-  final _onMainview = new Completer<String>();
-  final _onThumbnail = new Completer<String>();
-
-  _Upload(this._shop) {
-    _doUpload();
-  }
-
-  _doUpload() async {
-    final s = await Settings;
-    final sessionId = DynamoDB.createRandomKey();
-    final pathPrefix = "user/${await DynamoDB.cognitoId}/photo/${sessionId}";
-
-    _upload(String path, Future<Blob> bf, Completer<String> fin) async {
-      final data = await bf;
-      await S3File.putObject(path, data);
-      fin.complete(path);
-    }
-    _upload("${pathPrefix}/original/photo_file", _shop.photo, _onOriginal);
-    _upload("${pathPrefix}/reduced/mainview/photo_file", _shop.resize(s.photo.mainviewSize), _onMainview);
-    _upload("${pathPrefix}/reduced/thumbnail/photo_file", _shop.resize(s.photo.thumbnailSize), _onThumbnail);
-  }
-
-  Future<List<String>> get done => Future.wait([_onOriginal.future, _onMainview.future, _onThumbnail.future]);
 }

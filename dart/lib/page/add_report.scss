@@ -20,9 +20,10 @@ div#pre {
 }
 
 div#photo {
-  display: block;
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
   width: 100%;
-  text-align: center;
 }
 
 div#catches {

@@ -17,7 +17,7 @@ class _LocationImpl extends JsonSupport implements Location {
 
   _LocationImpl(Map data)
       : _data = data,
-        _geoinfo = new CachedProp<GeoInfo>(data, 'geoinfo', (map) => new GeoInfo.fromMap(map));
+        _geoinfo = new CachedProp<GeoInfo>.forMap(data, 'geoinfo', (map) => new GeoInfo.fromMap(map));
 
   Map get asMap => _data;
 
@@ -63,7 +63,7 @@ class _ConditionImpl extends JsonSupport implements Condition {
   _ConditionImpl(Map data)
       : _data = data,
         _tide = new CachedProp<Tide>(data, 'tide', (map) => enumByName(Tide.values, map), (v) => nameOfEnum(v)),
-        _weather = new CachedProp<Weather>(data, 'weather', (map) => new Weather.fromMap(map));
+        _weather = new CachedProp<Weather>.forMap(data, 'weather', (map) => new Weather.fromMap(map));
 
   Map get asMap => _data;
 
@@ -80,11 +80,11 @@ class _ConditionImpl extends JsonSupport implements Condition {
 enum Tide { Flood, High, Ebb, Low }
 abstract class Tides {
   static String iconOf(Tide v) => iconBy(nameOfEnum(v));
-  static String iconBy(String name) => name == null ? null : "/img/tide/${name.toLowerCase()}.png";
+  static String iconBy(String name) => name == null ? null : "img/tide/${name.toLowerCase()}.png";
 }
 
 abstract class MoonPhases {
-  static String iconOf(int v) => v == null ? null : "/img/moon/phase-${v.toString().padLeft(2, '0')}.png";
+  static String iconOf(int v) => v == null ? null : "img/moon/phase-${v.toString().padLeft(2, '0')}.png";
 }
 
 abstract class Weather implements JsonSupport {
@@ -108,8 +108,8 @@ class _WeatherImpl extends JsonSupport implements Weather {
 
   _WeatherImpl(Map data)
       : _data = data,
-        _temperature = new CachedProp<Temperature>(data, 'temperature', (value) => new Temperature.standard(value),
-            (Temperature obj) => obj.asStandard().value);
+        _temperature = new CachedProp<Temperature>.forValueUnit(
+            data, 'temperature', (value) => new Temperature.standard(value));
 
   Map get asMap => _data;
 
