@@ -12,14 +12,14 @@ final _logger = new Logger('Lambda');
 
 typedef T _LoadResult<T>(Map map);
 
-class Lambda<R> {
+class ApiGateway<R> {
   static const retryLimit = 3;
   static const retryDur = const Duration(seconds: 30);
 
-  final LambdaInfo info;
+  final ApiInfo info;
   final _LoadResult<R> _loader;
 
-  Lambda(this.info, this._loader);
+  ApiGateway(this.info, this._loader);
 
   Future<R> call(Map<String, String> dataMap) async {
     final result = new Completer<R>();

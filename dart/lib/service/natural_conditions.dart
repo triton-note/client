@@ -7,7 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/settings.dart';
-import 'package:triton_note/service/aws/lambda.dart';
+import 'package:triton_note/service/aws/api_gateway.dart';
 
 final _logger = new Logger('NaturalConditions');
 
@@ -36,14 +36,14 @@ class NaturalConditions {
 }
 
 class _Moon {
-  static final Future<Lambda<_Moon>> _lambda = Settings.then((s) {
+  static final Future<ApiGateway<_Moon>> _server = Settings.then((s) {
     loader(Map map) => new _Moon(map['age'].toDouble(), map['earth-longitude'].toDouble());
 
-    return new Lambda<_Moon>(s.lambda.moon, loader);
+    return new ApiGateway<_Moon>(s.server.moon, loader);
   });
 
   static Future<_Moon> at(DateTime date) async =>
-      (await _lambda)({'date': date.toUtc().millisecondsSinceEpoch.toString()});
+      (await _server)({'date': date.toUtc().millisecondsSinceEpoch.toString()});
 
   _Moon(this.age, this.earthLongitude);
 
@@ -52,21 +52,21 @@ class _Moon {
 }
 
 class _OpenWeatherMap {
-  static final Future<Lambda<Weather>> _lambda = Settings.then((s) {
+  static final Future<ApiGateway<Weather>> _server = Settings.then((s) {
     loader(Map map) => (map.isEmpty)
         ? null
         : new Weather.fromMap({
-      'nominal': map['nominal'].toString(),
-      'iconUrl': "${s.openweathermap.iconUrl}/${map['iconId'].toString()}.png",
-      'temperature': map['temperature'].toDouble()
-    });
-    return new Lambda(s.lambda.weather, loader);
+            'nominal': map['nominal'].toString(),
+            'iconUrl': map['iconUrl'].toString(),
+            'temperature': map['temperature'].toDouble()
+          });
+    return new ApiGateway(s.server.weather, loader);
   });
 
-  static Future<Weather> at(GeoInfo geoinfo, DateTime date) async => (await _lambda)({
-    'apiKey': (await Settings).openweathermap.apiKey,
-    'date': date.toUtc().millisecondsSinceEpoch.toString(),
-    'lat': geoinfo.latitude.toStringAsFixed(8),
-    'lng': geoinfo.longitude.toStringAsFixed(8)
-  });
+  static Future<Weather> at(GeoInfo geoinfo, DateTime date) async => (await _server)({
+        'bucketName': (await Settings).s3Bucket,
+        'date': date.toUtc().millisecondsSinceEpoch.toString(),
+        'latitude': geoinfo.latitude.toStringAsFixed(8),
+        'longitude': geoinfo.longitude.toStringAsFixed(8)
+      });
 }
