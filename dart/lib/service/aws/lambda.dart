@@ -29,20 +29,22 @@ class Lambda<R> {
 
     final name = url.split('/').last;
     retry(final int count) {
-      if (0 < count) _logger.warning(() => "retry count: ${count}");
       final isRetryable = count < retryLimit;
       bool isRetring = false;
       next([bool p = true]) => (error) {
-        if (!isRetring) {
-          isRetring = true;
-          if (isRetryable && p) {
-            new Future.delayed(retryDur, () => retry(count + 1));
-          } else {
-            result.completeError(error);
-          }
-        }
-      };
+            if (!isRetring) {
+              isRetring = true;
+              if (isRetryable && p) {
+                final next = count + 1;
+                _logger.warning(() => "retring(${next}) after ${retryDur}");
+                new Future.delayed(retryDur, () => retry(next));
+              } else {
+                result.completeError(error);
+              }
+            }
+          };
       try {
+        _logger.finest(() => "Posting to ${name}: ${url}");
         final req = new HttpRequest()
           ..open('POST', url)
           ..setRequestHeader('x-api-key', apiKey)
@@ -51,7 +53,7 @@ class Lambda<R> {
 
         req.onLoadEnd.listen((event) {
           final text = req.responseText;
-          _logger.finest(() => "Response of ${name}: (Status:${req.status}) ${text}");
+          _logger.fine(() => "Response of ${name}(${url}): (Status:${req.status}) ${text}");
           if (req.status == 200) {
             try {
               final map = JSON.decode(text);
