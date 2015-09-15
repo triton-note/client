@@ -1,0 +1,6 @@
+packages
+/pubspec.lock
+/build/
+/test/results.xml
+/web/settings.yaml
+/web/js/
