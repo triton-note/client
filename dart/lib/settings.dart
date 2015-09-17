@@ -1,11 +1,11 @@
 library triton_note.settings;
 
 import 'dart:async';
-import 'dart:html';
 
 import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
 
+import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/util/cordova.dart';
 
@@ -18,24 +18,18 @@ Completer<_Settings> _initializing;
  *
  * @param onFail works only on failed to get settings
  */
-Future<_Settings> _initialize([Map<String, String> onFail = null]) async {
+Future<_Settings> _initialize() async {
   if (_initializing == null) {
     _initializing = new Completer();
     try {
-      Map read(String text) {
-        _logger.finest(() => "Reading YAML: ${text}");
-        return loadYaml(text);
-      }
-      final local = read(await HttpRequest.getString("settings.yaml"));
-      final server = read(
-          await S3File.read('unauthorized/client.yaml', local['s3Bucket'], local['accessKey'], local['secretKey']));
+      final local = await CognitoSettings.value;
+      final server = loadYaml(await S3File.read('unauthorized/client.yaml', local.s3Bucket));
       final map = new Map.from(server);
       _logger.config("using: ${map}");
-      _initializing.complete(new _Settings(map));
+      _initializing.complete(new _Settings(local, map));
     } catch (ex) {
-      final local = (onFail != null) ? new Map.unmodifiable(onFail) : const {};
-      _logger.warning("Failed to get yaml file: ${ex}, using: ${local}");
-      _initializing.complete(new _Settings(local));
+      _logger.warning("Failed to read settings file: ${ex}");
+      _initializing.completeError(ex);
     }
   }
   return _initializing.future;
@@ -44,16 +38,17 @@ Future<_Settings> _initialize([Map<String, String> onFail = null]) async {
 Future<_Settings> get Settings => _initialize();
 
 class _Settings {
-  _Settings(this._map);
+  _Settings(this._local, this._map);
+  final CognitoSettings _local;
   final Map _map;
 
   String get appName => _map['appName'];
-  String get awsRegion => _map['awsRegion'];
-  String get cognitoPoolId => _map['cognitoPoolId'];
-  String get s3Bucket => _map['s3Bucket'];
-  String get googleKey => _map['googleBrowserKey'];
   String get googleProjectNumber => _map['googleProjectNumber'];
-  String get platformArn => _map['snsPlatformArn'][isAndroid ? 'google' : 'apple'];
+  String get googleKey => _map['googleBrowserKey'];
+  String get snsPlatformArn => _map['snsPlatformArn'][isAndroid ? 'google' : 'apple'];
+  String get awsRegion => _local.region;
+  String get s3Bucket => _local.s3Bucket;
+  String get cognitoPoolId => _local.poolId;
 
   _Photo _photo;
   _Photo get photo {

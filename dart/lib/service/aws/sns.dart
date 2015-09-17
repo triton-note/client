@@ -27,7 +27,7 @@ class SNS {
   static Future<String> _registerEndpoint(final String regId) async {
     final Completer<String> result = new Completer();
 
-    final params = {'PlatformApplicationArn': (await Settings).platformArn, 'Token': regId};
+    final params = {'PlatformApplicationArn': (await Settings).snsPlatformArn, 'Token': regId};
     _logger.finest(() => "Creating Endpoint: ${params}");
 
     final sns = new JsObject(context['AWS']['SNS'], []);
