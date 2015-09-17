@@ -68,7 +68,7 @@ class CognitoIdentity {
     return _onInitialize.future;
   }
 
-  static Future<Null> _setToken(String service, String token) async {
+  static Future<CognitoIdentity> _setToken(String service, String token) async {
     _logger.fine("Google Signin Token: ${token}");
 
     final creds = context['AWS']['config']['credentials'];
@@ -78,7 +78,7 @@ class CognitoIdentity {
     creds['expired'] = true;
 
     await _refresh();
-    await credential;
+    return await credential;
   }
 
   static Future<Null> _refresh() async {
