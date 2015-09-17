@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:triton_note/service/aws/s3file.dart';
+import 'package:triton_note/util/cordova.dart';
 
 final _logger = new Logger('Settings');
 
@@ -51,6 +52,8 @@ class _Settings {
   String get cognitoPoolId => _map['cognitoPoolId'];
   String get s3Bucket => _map['s3Bucket'];
   String get googleKey => _map['googleBrowserKey'];
+  String get googleProjectNumber => _map['googleProjectNumber'];
+  String get platformArn => _map['platformArn'][isAndroid ? 'google' : 'apple'];
 
   _Photo _photo;
   _Photo get photo {
