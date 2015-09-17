@@ -16,6 +16,8 @@ cordova plugin add cordova-plugin-statusbar
 cordova plugin add cordova-plugin-geolocation
 cordova plugin add cordova-plugin-whitelist
 
+cordova plugin add phonegap-plugin-push
+
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
 
@@ -32,6 +34,14 @@ mod_ANDROID_XML() {
 	)
 }
 mod_ANDROID_XML '/<application/ { sub(">", " android:name=\"org.fathens.cordova.acra.AcraApplication\">") } { print $0 }'
+
+# Use android-support*.jar under platforms/android/libs/ only
+PRIMARY=$(find platforms/android/libs/ -name 'android-support*.jar' | head -n1)
+find platforms/android/ -name 'android-support*.jar' | grep -v "$(dirname $PRIMARY)" | while read line
+do
+	cp -vf "$PRIMARY" "$line"
+done
+
 
 # Create Icons and Splash Screens
 ionic resources

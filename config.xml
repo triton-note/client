@@ -14,7 +14,7 @@
   <preference name="webviewbounce" value="false"/>
   <preference name="UIWebViewBounce" value="false"/>
   <preference name="DisallowOverscroll" value="false"/>
-  <preference name="BackupWebStorage" value="none"/>
+  <preference name="BackupWebStorage" value="local"/>
   <preference name="android-minSdkVersion" value="21"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
   <preference name="iosPersistentFileLocation" value="Library"/>
