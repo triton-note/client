@@ -7,6 +7,7 @@ import 'package:yaml/yaml.dart';
 
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/s3file.dart';
+import 'package:triton_note/service/aws/sns.dart';
 import 'package:triton_note/util/cordova.dart';
 
 final _logger = new Logger('Settings');
@@ -38,17 +39,24 @@ Future<_Settings> _initialize() async {
 Future<_Settings> get Settings => _initialize();
 
 class _Settings {
-  _Settings(this._local, this._map);
+  _Settings(this._local, this._map) {
+    snsEndpointArn.then((arn) {
+      _logger.info(() => "Registered SNS Endpoint: ${arn}");
+    });
+  }
   final CognitoSettings _local;
   final Map _map;
+
+  String get awsRegion => _local.region;
+  String get s3Bucket => _local.s3Bucket;
+  String get cognitoPoolId => _local.poolId;
 
   String get appName => _map['appName'];
   String get googleProjectNumber => _map['googleProjectNumber'];
   String get googleKey => _map['googleBrowserKey'];
   String get snsPlatformArn => _map['snsPlatformArn'][isAndroid ? 'google' : 'apple'];
-  String get awsRegion => _local.region;
-  String get s3Bucket => _local.s3Bucket;
-  String get cognitoPoolId => _local.poolId;
+
+  Future<String> get snsEndpointArn => SNS.endpointArn;
 
   _Photo _photo;
   _Photo get photo {
