@@ -53,7 +53,7 @@ class _Settings {
   String get s3Bucket => _map['s3Bucket'];
   String get googleKey => _map['googleBrowserKey'];
   String get googleProjectNumber => _map['googleProjectNumber'];
-  String get platformArn => _map['platformArn'][isAndroid ? 'google' : 'apple'];
+  String get platformArn => _map['snsPlatformArn'][isAndroid ? 'google' : 'apple'];
 
   _Photo _photo;
   _Photo get photo {

@@ -16,7 +16,10 @@ class SNS {
   static Future<String> get endpointArn {
     if (_onInit == null) {
       _onInit = new Completer();
-      _PushPlugin.init().then(_registerEndpoint).then(_onInit.complete);
+      _PushPlugin.init().then(_registerEndpoint).then(_onInit.complete).catchError((error) {
+        _logger.warning(() => "Error on initilizing: ${error}");
+        _onInit.completeError(error);
+      });
     }
     return _onInit.future;
   }
@@ -24,13 +27,18 @@ class SNS {
   static Future<String> _registerEndpoint(final String regId) async {
     final Completer<String> result = new Completer();
 
+    final params = {'PlatformApplicationArn': (await Settings).platformArn, 'Token': regId};
+    _logger.finest(() => "Creating Endpoint: ${params}");
+
     final sns = new JsObject(context['AWS']['SNS'], []);
     sns.callMethod('createPlatformEndpoint', [
-      new JsObject.jsify({'PlatformApplicationArn': (await Settings).platformArn, 'Token': regId}),
+      new JsObject.jsify(params),
       (error, data) {
         if (error != null) {
+          _logger.warning(() => "Error on creating Endpoint: ${error}");
           result.completeError(error);
         } else {
+          _logger.info(() => "Created Endpoint: ${_stringify(data)}");
           result.complete(data['EndpointArn']);
         }
       }
