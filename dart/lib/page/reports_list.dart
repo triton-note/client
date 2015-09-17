@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/reports.dart';
+import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/pager.dart';
 
@@ -21,12 +22,13 @@ class ReportsListPage extends MainFrame {
   ReportsListPage(Router router) : super(router) {
     Reports.paging.then((list) {
       reports = list;
+      hideSplashScreen();
     });
   }
 
   goReport(String id) => rippling(() {
-    router.go('report-detail', {'reportId': id});
-  });
+        router.go('report-detail', {'reportId': id});
+      });
 
   addReport() {
     router.go('add', {});

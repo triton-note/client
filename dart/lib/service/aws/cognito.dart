@@ -1,58 +1,74 @@
 library triton_note.service.aws.cognito;
 
 import 'dart:async';
+import 'dart:html';
 import 'dart:js';
 
 import 'package:logging/logging.dart';
+import 'package:yaml/yaml.dart';
 
-import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/getter_setter.dart';
-import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('Cognito');
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 
-class CognitoIdentity {
-  static final Completer<String> _connected = new Completer<String>();
-  static bool get isConnected => _connected.isCompleted;
-  static void onConnected(void proc(String)) {
-    _connected.future.then(proc);
+class CognitoSettings {
+  static CognitoSettings _instance = null;
+  static Future<CognitoSettings> get value async {
+    if (_instance == null) {
+      Map map = loadYaml(await HttpRequest.getString("settings.yaml"));
+      _instance = new CognitoSettings(map['awsRegion'], map['cognitoPoolId'], map['s3Bucket']);
+    }
+    return _instance;
   }
 
-  static Completer<CognitoIdentity> _onIdentity;
-  static Future<CognitoIdentity> get identity async {
-    if (_onIdentity == null) {
-      _onIdentity = new Completer();
+  final String region, poolId, s3Bucket;
+  CognitoSettings(this.region, this.poolId, this.s3Bucket);
+}
+
+class CognitoIdentity {
+  static Future<CognitoIdentity> get credential async {
+    await _initialize();
+
+    final credId = context['AWS']['config']['credentials']['identityId'];
+    final logins = context['AWS']['config']['credentials']['params']['Logins'];
+
+    _logger.finer(() => "CognitoIdentity(${_stringify(credId)}):${_stringify(logins)}");
+    return new CognitoIdentity(credId, logins);
+  }
+
+  static Completer _onInitialize = null;
+  static _initialize() async {
+    if (_onInitialize == null) {
+      _onInitialize = new Completer();
       try {
         _logger.fine("Initializing Cognito ...");
+        final settings = await CognitoSettings.value;
 
-        context['AWS']['config']['region'] = (await Settings).awsRegion;
-        final creds = new JsObject(context['AWS']['CognitoIdentityCredentials'],
-            [new JsObject.jsify({'IdentityPoolId': (await Settings).cognitoPoolId})]);
+        context['AWS']['config']['region'] = settings.region;
+        final creds = new JsObject(context['AWS']['CognitoIdentityCredentials'], [
+          new JsObject.jsify({'IdentityPoolId': settings.poolId})
+        ]);
         context['AWS']['config']['credentials'] = creds;
 
         try {
           await _refresh();
         } catch (ex) {
-          _logger.fine("Initialize error: ${ex}");
+          _logger.fine("Initialize error (reset and try again): ${ex}");
           creds['params']['IdentityId'] = null;
           await _refresh();
-        } finally {
-          hideSplashScreen();
         }
-
-        _onIdentity.complete(new CognitoIdentity(context['AWS']['config']['credentials']['identityId'],
-            context['AWS']['config']['credentials']['params']['Logins']));
+        _onInitialize.complete();
       } catch (ex) {
         _logger.warning("Error on initializing: ${ex}");
-        _onIdentity.completeError(ex);
+        _onInitialize.completeError(ex);
       }
     }
-    return _onIdentity.future;
+    return _onInitialize.future;
   }
 
-  static Future<bool> _setToken(String service, String token) async {
+  static Future<CognitoIdentity> _setToken(String service, String token) async {
     _logger.fine("Google Signin Token: ${token}");
 
     final creds = context['AWS']['config']['credentials'];
@@ -61,9 +77,8 @@ class CognitoIdentity {
     creds['params']['Logins'] = new JsObject.jsify(logins);
     creds['expired'] = true;
 
-    final done = await _refresh();
-    if (done) _connected.complete((await identity).id);
-    return done;
+    await _refresh();
+    return await credential;
   }
 
   static Future<Null> _refresh() async {
@@ -93,23 +108,25 @@ class CognitoIdentity {
 
 class CognitoSync {
   static final Getter<Future<JsObject>> _client = new Getter(() async {
-    await CognitoIdentity.identity;
+    await CognitoIdentity.credential;
     return new JsObject(context['AWS']['CognitoSyncManager'], []);
   });
 
   static Future<JsObject> _invoke(JsObject target, String methodName, List params) async {
     final result = new Completer();
     try {
-      target.callMethod(methodName, params
-        ..add((error, data) {
-          if (error != null) {
-            _logger.warning("Error on '${methodName}': ${error}");
-            result.completeError(error);
-          } else {
-            _logger.finest(() => "Result of '${methodName}': ${data}");
-            result.complete(data);
-          }
-        }));
+      target.callMethod(
+          methodName,
+          params
+            ..add((error, data) {
+              if (error != null) {
+                _logger.warning("Error on '${methodName}': ${error}");
+                result.completeError(error);
+              } else {
+                _logger.finest(() => "Result of '${methodName}': ${data}");
+                result.complete(data);
+              }
+            }));
     } catch (ex) {
       result.completeError(ex);
     }

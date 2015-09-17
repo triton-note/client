@@ -33,7 +33,7 @@ class DynamoDB {
   static const CONTENT = "CONTENT";
   static const COGNITO_ID = "COGNITO_ID";
 
-  static Future<String> get cognitoId async => (await CognitoIdentity.identity).id;
+  static Future<String> get cognitoId async => (await CognitoIdentity.credential).id;
   static final client = new JsObject(context["AWS"]["DynamoDB"], []);
 
   static String createRandomKey() {
@@ -71,7 +71,9 @@ class DynamoDB_Table<T extends DBRecord> {
   }
 
   Future<Map<String, Map<String, String>>> _makeKey(String id) async {
-    final key = {DynamoDB.COGNITO_ID: {'S': await DynamoDB.cognitoId}};
+    final key = {
+      DynamoDB.COGNITO_ID: {'S': await DynamoDB.cognitoId}
+    };
     if (id != null && ID_COLUMN != null) key[ID_COLUMN] = {'S': id};
     return key;
   }
@@ -241,6 +243,7 @@ class _ContentDecoder {
     return result;
   }
 }
+
 class _ContentEncoder {
   static encode(value) {
     if (value is Map) return {'M': toDynamoMap(value)};
@@ -248,6 +251,7 @@ class _ContentEncoder {
     if (value is String) return {'S': value};
     if (value is num) return {'N': value.toString()};
   }
+
   static Map toDynamoMap(Map map) {
     final result = {};
     map.forEach((key, value) {

@@ -39,17 +39,12 @@ class S3File {
     return result.future;
   }
 
-  static Future<String> read(String path,
-      [String bucket = null, String accessKey = null, String secretKey = null]) async {
+  static Future<String> read(String path, [String bucket = null]) async {
     final result = new Completer();
     try {
       final bucketName = bucket != null ? bucket : (await Settings).s3Bucket;
-      final client = (accessKey == null || secretKey == null)
-          ? s3
-          : new JsObject(
-              context['AWS']['S3'], [new JsObject.jsify({'accessKeyId': accessKey, 'secretAccessKey': secretKey})]);
       _logger.finest("Reading ${bucketName}/${path}");
-      client.callMethod('getObject', [
+      s3.callMethod('getObject', [
         new JsObject.jsify({'Bucket': bucketName, 'Key': path}),
         (error, data) {
           if (error != null) {
