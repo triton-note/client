@@ -6,4 +6,4 @@ script:
   - travis-scripts/biuld_mode.sh
   - echo "$BUILD_MODE"
   - travis-scripts/dart.sh
-  - travis-scripts/prepare-cordova.sh
+  - travis-scripts/cordova-prepare.sh
