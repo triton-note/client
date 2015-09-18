@@ -3,5 +3,7 @@ language: objective-c
 script:
   - uname -a
   - pwd
+  - travis-scripts/biuld_mode.sh
+  - echo "$BUILD_MODE"
   - travis-scripts/dart.sh
   - travis-scripts/prepare-cordova.sh
