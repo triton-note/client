@@ -4,5 +4,5 @@ script:
   - uname -a
   - pwd
   - travis-scripts/install-tools.sh
-  - pub build
+  - (cd dart && pub build)
   - reinstall_plugins.sh
