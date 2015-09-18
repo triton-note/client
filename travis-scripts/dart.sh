@@ -4,9 +4,11 @@ set -eu
 brew tap dart-lang/dart
 brew install dart
 
-sudo gem install compass
-type sass
-type compass
+gem install compass
+cat pubspec.yaml | awk '
+	{print $0}
+	/- sass/ { print "    executable: "$(type sass | awk '{print $NF}') }
+'
 
 cd dart
 pub get
