@@ -8,7 +8,8 @@ gem install compass
 cat pubspec.yaml | awk '
 	{print $0}
 	/- sass/ { print "    executable: "$(type sass | awk '{print $NF}') }
-'
+' > pubspec.yaml.tmp
+mv -vf pubspec.yaml.tmp pubspec.yaml
 
 cd dart
 pub get
