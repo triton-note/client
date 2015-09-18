@@ -26,4 +26,4 @@ then
 fi
 
 export BUILD_MODE
-echo "BUILD_MODE=$MODE"
+echo "BUILD_MODE=$BUILD_MODE"
