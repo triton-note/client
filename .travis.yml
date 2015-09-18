@@ -1,4 +1,6 @@
 language: objective-c
 script:
+  - uname -a
   - brew update
+  - brew tap dart-lang/dart
   - brew install dart
