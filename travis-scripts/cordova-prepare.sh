@@ -2,7 +2,6 @@
 set -eu
 
 pwd
-. $(dirname $0)/check-mode
 
 npm install cordova ionic
 
