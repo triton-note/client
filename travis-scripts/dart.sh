@@ -9,9 +9,11 @@ brew install dart
 gem install compass
 cat pubspec.yaml | awk '
 	{print $0}
-	/- sass/ { print "    executable: "$(type sass | awk '{print $NF}') }
+	/- sass/ { print "    executable: "system("type sass | awk '{print $NF}'") }
 ' > pubspec.yaml.tmp
 mv -vf pubspec.yaml.tmp pubspec.yaml
+echo "Using pubspec.yaml"
+cat pubspec.yaml
 
 pub get
 pub build
