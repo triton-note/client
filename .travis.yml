@@ -2,4 +2,4 @@ language: objective-c
 script:
   - uname -a
   - pwd
-  - travis-script/install-tools.sh
+  - travis-scripts/install-tools.sh
