@@ -3,7 +3,7 @@ set -eu
 
 brew tap dart-lang/dart
 brew install dart
-gem install sass
+gem install compass
 
 cd dart
 pub get
