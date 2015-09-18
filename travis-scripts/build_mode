@@ -18,12 +18,7 @@ isInclude() {
 
 BUILD_MODE="test"
 
+isInclude $BRANCH_RELEASE && BUILD_MODE="release"
 isInclude $BRANCH_DEBUG && BUILD_MODE="debug"
 
-if [ "$MODE" != "debug" ]
-then
-	isInclude $BRANCH_RELEASE && BUILD_MODE="release"
-fi
-
 export BUILD_MODE
-echo "BUILD_MODE=$BUILD_MODE"
