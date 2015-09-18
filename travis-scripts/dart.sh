@@ -2,6 +2,7 @@
 set -eu
 
 cd dart
+pwd
 
 brew tap dart-lang/dart
 brew install dart
