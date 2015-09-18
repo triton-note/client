@@ -1,19 +1,17 @@
 #!/bin/bash
 set -eu
 
-echo
+echo "$ANDROID_KEYSTORE_BASE64" | base64 -D > platforms/android/keystore
 
-java -version
-brew install sbt
+echo <<EOF > platforms/android/ant.properties
+key.store=keystore
+key.alias=$ANDROID_KEYSTORE_ALIAS
+key.store.password=$ANDROID_KEYSTORE_PASSWORD
+key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD
+EOF
 
-if [ "$BUILD_MODE" == "release" ]
-then
-	echo "Building Android (release mode)..."
-else
-	echo "Building Android (test mode)..."
-	if [ "$BUILD_MODE" == "debug" ]
-	then
-		echo "Deploying Android (debug mode)..."
-	fi
-fi
+echo "Building Android..."
+cordova build android --release
+
+$(dirname $0)/android-deploy/run.sh
 
