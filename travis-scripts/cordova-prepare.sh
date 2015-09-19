@@ -2,8 +2,12 @@
 set -eu
 
 pwd
+ls -la
 
 npm install cordova ionic
+
+type cordova
+type ionic
 
 if [ "$BUILD_MODE" == "release" ]
 then
