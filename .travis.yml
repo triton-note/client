@@ -1,5 +1,22 @@
 osx_image: xcode7
 language: objective-c
+jdk:
+  - oraclejdk8
+dart: stable
+node_js: 0.12
+
+cache:
+  bundler: true
+  directories:
+    - node_modules
+    - plugins
+    - $HOME/.pub-cache
+    - $HOME/.ivy2
+
+install:
+  - npm install
+  - for dir in node_modules/*/bin; do export PATH=$PATH:$dir; done
+
 script:
   - uname -a
   - pwd

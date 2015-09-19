@@ -2,10 +2,6 @@
 set -eu
 
 cd dart
-pwd
-
-brew tap dart-lang/dart
-brew install dart
 
 gem install compass
 cat pubspec.yaml | awk ' {print $0}
