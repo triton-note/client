@@ -15,7 +15,7 @@ cache:
 
 install:
   - rvm reset
-  - brew tab dart-lang/dart && brew install dart
+  - brew tap dart-lang/dart && brew install dart
   - npm install
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
