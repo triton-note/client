@@ -15,7 +15,7 @@ cache:
 
 install:
   - npm install
-  - for dir in node_modules/*/bin; do export PATH=$PATH:$dir; done
+  - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
 script:
   - uname -a
