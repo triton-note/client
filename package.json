@@ -9,5 +9,8 @@
   },
   "scripts": {
     "test": "node_modules/karma/bin/karma start"
+  },
+  "dependencies": {
+    "ionic": "^1.6.4"
   }
 }

@@ -1,10 +1,8 @@
 #!/bin/bash
 set -eu
 
-pwd
-ls -la
-
-npm install cordova ionic
+npm install
+export PATH=$PATH:~/node_modules/cordova/bin:~/node_modules/ionic/bin
 
 type cordova
 type ionic
