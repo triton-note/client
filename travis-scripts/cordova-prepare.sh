@@ -2,7 +2,7 @@
 set -eu
 
 npm install
-export PATH=$PATH:~/node_modules/cordova/bin:~/node_modules/ionic/bin
+export PATH=$PATH:$(pwd)/node_modules/cordova/bin:$(pwd)/node_modules/ionic/bin
 
 type cordova
 type ionic
