@@ -16,8 +16,8 @@ cache:
 install:
   - brew tap dart-lang/dart && brew install dart
   - npm install
-  - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
   - gem install compass
+  - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
 script:
   - uname -a
