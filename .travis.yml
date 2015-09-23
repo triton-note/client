@@ -14,10 +14,10 @@ cache:
     - $HOME/.ivy2
 
 install:
-  - rvm reset
   - brew tap dart-lang/dart && brew install dart
   - npm install
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
+  - gem install compass
 
 script:
   - uname -a

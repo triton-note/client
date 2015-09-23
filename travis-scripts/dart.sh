@@ -3,7 +3,6 @@ set -eu
 
 cd dart
 
-gem install compass
 cat pubspec.yaml | awk ' {print $0}
 	/- sass/ {
 		"type -p sass" | getline path
