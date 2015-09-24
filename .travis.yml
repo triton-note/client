@@ -12,6 +12,7 @@ cache:
     - plugins
     - $HOME/.pub-cache
     - $HOME/.ivy2
+    - $HOME/.gradle
 
 install:
   - brew tap dart-lang/dart && brew install dart
