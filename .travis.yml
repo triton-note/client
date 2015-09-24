@@ -32,3 +32,6 @@ script:
   - travis-scripts/cordova-prepare.sh
   - travis-scripts/android-build.sh
   - travis-scripts/ios-build.sh
+
+deploy:
+  - travis-scripts/android-deploy.sh
