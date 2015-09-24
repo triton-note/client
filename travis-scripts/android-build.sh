@@ -10,6 +10,21 @@ key.store.password=$ANDROID_KEYSTORE_PASSWORD
 key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD
 EOF
 
+update() {
+	echo "Updating Android SDK $1 ..."
+	echo y | android update sdk --no-ui --filter $1 || exit 1
+}
+
+cat <<EOF | while read name; do update "$name"; done
+tools
+platform-tools
+android-21
+android-22
+extra-google-m2repository
+extra-android-support
+extra-android-m2repository
+EOF
+
 echo "Building Android..."
 cordova build android --release --stacktrace
 
