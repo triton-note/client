@@ -11,8 +11,7 @@ key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD
 EOF
 
 update() {
-	echo "Updating Android SDK $1 ..."
-	echo y | android update sdk --no-ui -a --filter $1 || exit 1
+	echo y | android update sdk --no-ui --all --filter $1 || exit 1
 }
 
 cat <<EOF | while read name; do update "$name"; done
@@ -30,4 +29,6 @@ EOF
 echo "Building Android..."
 cordova build android --release --stacktrace
 
+[ "$BUILD_MODE" == "release" ] && export ANDROID_GOOGLEPLAY_TRACK_NAME=production
+[ "$BUILD_MODE" == "debug" ] && export ANDROID_GOOGLEPLAY_TRACK_NAME=alpha
 $(dirname $0)/android-deploy/run.sh
