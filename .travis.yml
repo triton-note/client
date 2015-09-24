@@ -16,12 +16,6 @@ cache:
 install:
   - brew tap dart-lang/dart && brew install dart
   - brew install android
-  - echo y | android update sdk --no-ui --filter tools
-  - echo y | android update sdk --no-ui --filter platform-tools
-  - echo y | android update sdk --no-ui --filter android-22
-  - echo y | android update sdk --no-ui --filter addon-google_apis-google-22
-  - echo y | android update sdk --no-ui --filter extra-google-m2repository
-  - echo y | android update sdk --no-ui --filter extra-android-support
   - npm install
   - gem install compass
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
