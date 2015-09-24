@@ -23,12 +23,7 @@ cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --var
 
 find platforms/android/ -name 'build.gradle' | while read file
 do
-	cat <<EOF > $(dirname $file)/build-extras.gradle
-configurations {
-    all*.exclude group: 'com.android.support', module: 'support-v4'
-    all*.exclude group: 'com.android.support', module: 'support-v13'
-}
-EOF
+	cat "configurations { all*.exclude group: 'com.android.support', module: 'support-v13' }" > $(dirname $file)/build-extras.gradle
 done
 
 # Customized org.apache.cordova.file for GOOGLE_PHOTOS
