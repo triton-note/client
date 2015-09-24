@@ -52,7 +52,8 @@ track_name() {
 name=$(track_name)
 if [ ! -z "$name" ]
 then
+	cd $(dirname $0)
 	git clone https://github.com/sawatani/CI-STEP-Deploy-GooglePlay.git android-deploy
-	cd $(dirname $0)/android-deploy
+	cd android-deploy
 	./run.sh $name
 fi
