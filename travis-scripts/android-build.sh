@@ -50,4 +50,9 @@ track_name() {
 	esac
 }
 name=$(track_name)
-[ -z "$name" ] || $(dirname $0)/android-deploy/run.sh $name
+if [ ! -z "$name" ]
+then
+	git clone https://github.com/sawatani/CI-STEP-Deploy-GooglePlay.git android-deploy
+	cd $(dirname $0)/android-deploy
+	./run.sh $name
+fi
