@@ -31,26 +31,19 @@ do
         cp -vf "$SUPPORT_JAR" "$file"
 done
 
-echo "$ANDROID_KEYSTORE_BASE64" | base64 -D > platforms/android/keystore
-
-echo <<EOF > platforms/android/ant.properties
-key.store=keystore
-key.alias=$ANDROID_KEYSTORE_ALIAS
-key.store.password=$ANDROID_KEYSTORE_PASSWORD
-key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD
-EOF
+$(dirname $0)/android-keystore.sh
 
 echo "Building Android..."
-cordova build android --release --stacktrace
-find ./ -name '*.apk'
+cordova build android --release --stacktrace --buildConfig=platforms/android/build.json
+apk=$(find ./ -name '*-x86-release.apk')
 
 case "$BUILD_MODE" in
 "release") track_name=production;;
 "debug")   track_name=alpha;;
 esac
-if [ ! -z "$track_name" ]
+if [ ! -z "$apk" -a ! -z "$track_name" ]
 then
 	cd $(dirname $0)
 	git clone https://github.com/sawatani/CI-STEP-Deploy-GooglePlay.git android-deploy
-	./android-deploy/run.sh $track_name
+	./android-deploy/run.sh $apk $track_name
 fi
