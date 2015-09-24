@@ -27,8 +27,10 @@ build-tools-22.0.1
 EOF
 
 echo "Building Android..."
-#cordova build android --release --stacktrace
+cordova build android --release --stacktrace
 
-[ "$BUILD_MODE" == "release" ] && export ANDROID_GOOGLEPLAY_TRACK_NAME=production
-[ "$BUILD_MODE" == "debug" ] && export ANDROID_GOOGLEPLAY_TRACK_NAME=alpha
-#$(dirname $0)/android-deploy/run.sh
+case "$BUILD_MODE" in
+"release") export ANDROID_GOOGLEPLAY_TRACK_NAME=production;;
+"debug")   export ANDROID_GOOGLEPLAY_TRACK_NAME=alpha;;
+esac
+$(dirname $0)/android-deploy/run.sh
