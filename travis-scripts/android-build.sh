@@ -35,15 +35,15 @@ $(dirname $0)/android-keystore.sh
 
 echo "Building Android..."
 cordova build android --release --stacktrace --buildConfig=platforms/android/build.json
-apk=$(find ./ -name '*-x86-release.apk')
+
 
 case "$BUILD_MODE" in
 "release") track_name=production;;
 "debug")   track_name=alpha;;
 esac
-if [ ! -z "$apk" -a ! -z "$track_name" ]
+if [ -z "$track_name" ]
 then
 	cd $(dirname $0)
 	git clone https://github.com/sawatani/CI-STEP-Deploy-GooglePlay.git android-deploy
-	./android-deploy/run.sh $apk $track_name
+	./android-deploy/run.sh $track_name $(find platforms/android/build/ -name '*-release.apk')
 fi

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-cd $(dirname $0)/platforms/android
+cd $(dirname $0)/../platforms/android
 
 echo "$ANDROID_KEYSTORE_BASE64" | base64 -D > keystore
 
