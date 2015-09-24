@@ -21,14 +21,6 @@ cordova plugin add phonegap-plugin-push
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
 
-SUPPORT_JAR=$(find $ANDROID_HOME -name 'android-support-v13.jar' | head -n1)
-echo "SUPPORT_JAR=$SUPPORT_JAR"
-
-find platforms/android/ -name 'android-support*.jar' | while read file
-do
-	cp -vf "$SUPPORT_JAR" "$file"
-done
-
 find platforms/android/ -name 'build.gradle' | while read file
 do
 	cat <<EOF > $(dirname $file)/build-extras.gradle

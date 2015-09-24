@@ -26,11 +26,22 @@ build-tools-21.1.2
 build-tools-22.0.1
 EOF
 
+SUPPORT_JAR=$(find $ANDROID_HOME -name 'android-support-v13.jar' | head -n1)
+echo "SUPPORT_JAR=$SUPPORT_JAR"
+
+find platforms/android/ -name 'android-support*.jar' | while read file
+do
+        cp -vf "$SUPPORT_JAR" "$file"
+done
+
 echo "Building Android..."
 cordova build android --release --stacktrace
 
-case "$BUILD_MODE" in
-"release") export ANDROID_GOOGLEPLAY_TRACK_NAME=production;;
-"debug")   export ANDROID_GOOGLEPLAY_TRACK_NAME=alpha;;
-esac
-$(dirname $0)/android-deploy/run.sh
+track_name() {
+	case "$BUILD_MODE" in
+	"release") echo production;;
+	"debug")   echo alpha;;
+	esac
+}
+name=$(track_name)
+[ -z "$name" ] || $(dirname $0)/android-deploy/run.sh $name
