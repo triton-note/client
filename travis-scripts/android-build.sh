@@ -22,15 +22,7 @@ build-tools-21.1.2
 build-tools-22.0.1
 EOF
 
-echo "$ANDROID_KEYSTORE_BASE64" | base64 -D > platforms/android/keystore
-
-echo <<EOF > platforms/android/ant.properties
-key.store=keystore
-key.alias=$ANDROID_KEYSTORE_ALIAS
-key.store.password=$ANDROID_KEYSTORE_PASSWORD
-key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD
-EOF
-
+ls -la $ANDROID_HOME
 find $ANDROID_HOME -type f
 SUPPORT_JAR=$(find $ANDROID_HOME -name 'android-support-v13.jar' | head -n1)
 echo "SUPPORT_JAR=$SUPPORT_JAR"
@@ -39,6 +31,15 @@ find platforms/android/ -name 'android-support*.jar' | while read file
 do
         cp -vf "$SUPPORT_JAR" "$file"
 done
+
+echo "$ANDROID_KEYSTORE_BASE64" | base64 -D > platforms/android/keystore
+
+echo <<EOF > platforms/android/ant.properties
+key.store=keystore
+key.alias=$ANDROID_KEYSTORE_ALIAS
+key.store.password=$ANDROID_KEYSTORE_PASSWORD
+key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD
+EOF
 
 echo "Building Android..."
 cordova build android --release --stacktrace
