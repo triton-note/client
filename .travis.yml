@@ -18,9 +18,13 @@ install:
   - brew install android
   - echo y | android update sdk --no-ui --filter tools
   - echo y | android update sdk --no-ui --filter platform-tools
-  - echo y | android update sdk --no-ui --filter build-tools
-  - echo y | android update sdk --no-ui --filter android-22
   - echo y | android update sdk --no-ui --filter android-21
+  - echo y | android update sdk --no-ui --filter android-22
+  - echo y | android update sdk --no-ui --filter build-tools-21.1.2
+  - echo y | android update sdk --no-ui --filter build-tools-22
+  - echo y | android update sdk --no-ui --filter extra-google-m2repository
+  - echo y | android update sdk --no-ui --filter extra-android-m2repository
+  - echo y | android update sdk --no-ui --filter extra-android-support
   - npm install
   - gem install compass
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH

@@ -1,9 +1,6 @@
 #!/bin/bash
 set -eu
 
-type cordova
-type ionic
-
 if [ "$BUILD_MODE" == "release" ]
 then
 	export FACEBOOK_APP_ID="$FACEBOOK_APP_ID_RELEASE"
