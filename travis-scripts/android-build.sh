@@ -23,9 +23,7 @@ build-tools-21.1.2
 build-tools-22.0.1
 EOF
 
-ls -la $ANDROID_HOME/
-find $ANDROID_HOME/ -type f
-SUPPORT_JAR=$(find $ANDROID_HOME -name 'android-support-v13.jar' | head -n1)
+SUPPORT_JAR=$(find $ANDROID_HOME/ -name 'android-support-v13.jar' | head -n1)
 echo "SUPPORT_JAR=$SUPPORT_JAR"
 
 find platforms/android/ -name 'android-support*.jar' | while read file
