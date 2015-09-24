@@ -17,6 +17,7 @@ cache:
 install:
   - brew tap dart-lang/dart && brew install dart
   - brew install android
+  - export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
   - brew install sbt
   - npm install
   - gem install compass
