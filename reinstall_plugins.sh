@@ -22,7 +22,7 @@ cordova plugin add phonegap-plugin-push
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
 
 type -p android
-ANDROID_SDK=$(dirname $(dirname type -p android))
+ANDROID_SDK=$(dirname $(dirname $(type -p android)))
 SUPPORT_JAR=$(find $ANDROID_SDK -name 'android-support-v13.jar' | head -n1)
 echo "SUPPORT_JAR=$SUPPORT_JAR"
 
