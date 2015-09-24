@@ -6,6 +6,7 @@ update() {
 	echo y | android update sdk --no-ui --all --filter $1 | awk '
 BEGIN { go = 0 }
 /Do you accept the license/ { go = 1 }
+/Warning/ { go = 1 }
 { if (go == 1) print $0 }
 '
 }
@@ -22,8 +23,8 @@ build-tools-21.1.2
 build-tools-22.0.1
 EOF
 
-ls -la $ANDROID_HOME
-find $ANDROID_HOME -type f
+ls -la $ANDROID_HOME/
+find $ANDROID_HOME/ -type f
 SUPPORT_JAR=$(find $ANDROID_HOME -name 'android-support-v13.jar' | head -n1)
 echo "SUPPORT_JAR=$SUPPORT_JAR"
 
