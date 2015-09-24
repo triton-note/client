@@ -20,6 +20,8 @@ cordova plugin add phonegap-plugin-push
 
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
+
+env | sort
 find platforms/android/ -name 'build.gradle' | while read file
 do
 	cat <<EOF > $(dirname $file)/build-extras.gradle

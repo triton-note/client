@@ -27,7 +27,7 @@ script:
   - pwd
   - . travis-scripts/build_mode
   - echo "BUILD_MODE=$BUILD_MODE"
-  - travis-scripts/dart.sh
+  - mkdir -pv dart/build/web || travis-scripts/dart.sh
   - travis-scripts/cordova-prepare.sh
   - travis-scripts/android-build.sh
   - travis-scripts/ios-build.sh
