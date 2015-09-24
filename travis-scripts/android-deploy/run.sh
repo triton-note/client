@@ -11,5 +11,5 @@ export ANDROID_GOOGLEPLAY_APK_FILE_PATH="${TRAVIS_BUILD_DIR}/platforms/android/a
 
 echo $ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_KEY_BASE64 | base64 -D > "$ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_KEY_FILE_PATH"
 
-export SBT_OPTS="-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M"
+export SBT_OPTS="-XX:+CMSClassUnloadingEnabled"
 sbt run
