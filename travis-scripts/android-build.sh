@@ -12,8 +12,8 @@ BEGIN { go = 0 }
 }
 
 cat <<EOF | while read name; do update "$name"; done
-tools
 platform-tools
+tools
 android-21
 android-22
 extra-google-m2repository
