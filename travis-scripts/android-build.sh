@@ -19,6 +19,7 @@ cat <<EOF | while read name; do update "$name"; done
 tools
 platform-tools
 android-21
+android-22
 extra-google-m2repository
 extra-android-support
 extra-android-m2repository
