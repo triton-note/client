@@ -1,17 +1,13 @@
 #!/bin/bash
 set -eu
 
-echo "$ANDROID_KEYSTORE_BASE64" | base64 -D > platforms/android/keystore
-
-echo <<EOF > platforms/android/ant.properties
-key.store=keystore
-key.alias=$ANDROID_KEYSTORE_ALIAS
-key.store.password=$ANDROID_KEYSTORE_PASSWORD
-key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD
-EOF
-
 update() {
-	echo y | android update sdk --no-ui --all --filter $1 || exit 1
+	echo "Updating $1..."
+	echo y | android update sdk --no-ui --all --filter $1 | awk '
+BEGIN { go = 0 }
+/Do you accept the license/ { go = 1 }
+{ if (go == 1) print $0 }
+'
 }
 
 cat <<EOF | while read name; do update "$name"; done
@@ -24,6 +20,15 @@ extra-android-support
 extra-android-m2repository
 build-tools-21.1.2
 build-tools-22.0.1
+EOF
+
+echo "$ANDROID_KEYSTORE_BASE64" | base64 -D > platforms/android/keystore
+
+echo <<EOF > platforms/android/ant.properties
+key.store=keystore
+key.alias=$ANDROID_KEYSTORE_ALIAS
+key.store.password=$ANDROID_KEYSTORE_PASSWORD
+key.alias.password=$ANDROID_KEYSTORE_ALIAS_PASSWORD
 EOF
 
 find $ANDROID_HOME -type f
