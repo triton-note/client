@@ -12,7 +12,7 @@ EOF
 
 update() {
 	echo "Updating Android SDK $1 ..."
-	echo y | android update sdk --no-ui --filter $1 || exit 1
+	echo y | android update sdk --no-ui -a --filter $1 || exit 1
 }
 
 cat <<EOF | while read name; do update "$name"; done
