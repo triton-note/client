@@ -4,6 +4,20 @@ jdk:
   - oraclejdk8
 dart: stable
 node_js: 0.12
+android:
+  components:
+    - platform-tools
+    - tools
+    - build-tools-22
+    - build-tools-21.1.2
+    - android-22
+    - android-21
+    - extra-google-google_play_services
+    - extra-google-m2repository
+    - extra-android-m2repository
+    - addon-google_apis-google-22
+    - addon-google_apis-google-21
+    - extra-android-support
 
 cache:
   bundler: true
@@ -15,7 +29,6 @@ cache:
 
 install:
   - brew tap dart-lang/dart && brew install dart
-  - brew install android
   - npm install
   - gem install compass
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
