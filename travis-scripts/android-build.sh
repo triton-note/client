@@ -42,18 +42,15 @@ EOF
 
 echo "Building Android..."
 cordova build android --release --stacktrace
+find ./ -name '*.apk'
 
-track_name() {
-	case "$BUILD_MODE" in
-	"release") echo production;;
-	"debug")   echo alpha;;
-	esac
-}
-name=$(track_name)
-if [ ! -z "$name" ]
+case "$BUILD_MODE" in
+"release") track_name=production;;
+"debug")   track_name=alpha;;
+esac
+if [ ! -z "$track_name" ]
 then
 	cd $(dirname $0)
 	git clone https://github.com/sawatani/CI-STEP-Deploy-GooglePlay.git android-deploy
-	cd android-deploy
-	./run.sh $name
+	./android-deploy/run.sh $track_name
 fi
