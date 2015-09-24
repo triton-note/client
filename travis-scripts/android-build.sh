@@ -23,6 +23,8 @@ android-22
 extra-google-m2repository
 extra-android-support
 extra-android-m2repository
+build-tools-21.1.2
+build-tools-22.0.1
 EOF
 
 echo "Building Android..."
