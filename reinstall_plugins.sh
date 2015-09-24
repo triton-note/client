@@ -20,7 +20,15 @@ cordova plugin add phonegap-plugin-push
 
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
-echo "configurations { all*.exclude group: 'com.android.support', module: 'support-v4' }" >> $(dirname $(find platforms/android/ -name 'build.gradle' | grep facebook))/build-extras.gradle
+find platforms/android/ -name 'build.gradle' | while read file
+do
+	cat <<EOF > $(dirname $file)/build-extras.gradle
+configurations {
+    all*.exclude group: 'com.android.support', module: 'support-v4'
+    all*.exclude group: 'com.android.support', module: 'support-v13'
+}
+EOF
+done
 
 # Customized org.apache.cordova.file for GOOGLE_PHOTOS
 cordova plugin add https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos
