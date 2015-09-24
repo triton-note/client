@@ -23,11 +23,11 @@ install:
   - gem install compass
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
-script:
-  - uname -a
-  - pwd
+before_script:
   - . travis-scripts/build_mode
   - echo "BUILD_MODE=$BUILD_MODE"
+
+script:
   - mkdir -pv dart/build/web || travis-scripts/dart.sh
   - travis-scripts/cordova-prepare.sh
   - travis-scripts/android-build.sh
