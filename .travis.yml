@@ -10,6 +10,9 @@ cache:
     - $HOME/.ivy2
     - $HOME/.gradle
 
+before_install:
+  - brew update
+
 install:
   - brew tap dart-lang/dart && brew install dart
   - brew install android
@@ -24,7 +27,7 @@ before_script:
   - echo "BUILD_MODE=$BUILD_MODE"
 
 script:
-  - mkdir -pv dart/build/web || travis-scripts/dart.sh
+  - travis-scripts/dart.sh
   - travis-scripts/cordova-prepare.sh
   - travis-scripts/android-build.sh
   - travis-scripts/ios-build.sh
