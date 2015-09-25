@@ -33,5 +33,6 @@ script:
   - travis-scripts/android-build.sh
   - travis-scripts/ios-build.sh
 
-after_success:
-  - travis-scripts/android-deploy.sh
+deploy:
+  - provider: script
+    script: travis-scripts/android-deploy.sh
