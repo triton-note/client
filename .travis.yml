@@ -19,7 +19,7 @@ install:
   - export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
   - brew install sbt
   - npm install
-  - gem install compass
+  - gem install compass cupertino shenzhen
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
 before_script:
@@ -30,6 +30,7 @@ script:
   - travis-scripts/dart.sh
   - travis-scripts/cordova-prepare.sh
   - travis-scripts/android-build.sh
+  - travis-scripts/ios-prepare-update-bunble-version.sh "${TRAVIS_BUILD_NUMBER}"
   - travis-scripts/ios-build.sh
 
 after_success:
