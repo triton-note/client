@@ -20,7 +20,7 @@ install:
   - brew install sbt
   - brew install ruby
   - npm install
-  - gem install compass cupertino shenzhen
+  - gem install compass cupertino gym
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
 before_script:
