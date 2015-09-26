@@ -19,6 +19,7 @@ isInclude() {
 BUILD_MODE="test"
 
 isInclude $BRANCH_RELEASE && BUILD_MODE="release"
+isInclude $BRANCH_BETA && BUILD_MODE="beta"
 isInclude $BRANCH_DEBUG && BUILD_MODE="debug"
 
 export BUILD_MODE

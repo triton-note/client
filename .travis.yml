@@ -11,6 +11,13 @@ cache:
     - $HOME/.ivy2
     - $HOME/.gradle
 
+env:
+  global:
+    - BUILD_NUM="$TRAVIS_BUILD_NUMBER"
+  matrix:
+    - platform=android
+    - platform=ios
+
 before_install:
   - brew update
 
@@ -28,13 +35,3 @@ before_script:
 
 script:
   - travis-scripts/build.sh
-
-env:
-  global:
-    - BUILD_NUM="$TRAVIS_BUILD_NUMBER"
-  matrix:
-    - platform=android
-    - platform=ios
-
-after_success:
-  - travis-scripts/android-deploy.sh
