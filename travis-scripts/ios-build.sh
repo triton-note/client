@@ -3,6 +3,8 @@ set -eu
 
 cd "$(dirname $0)/../platforms/ios"
 
+gem install cupertino gym
+
 $(dirname $0)/ios-prepare-import-keychain.sh
 $(dirname $0)/ios-prepare-update-bunble-version.sh
 
