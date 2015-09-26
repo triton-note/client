@@ -1,12 +1,11 @@
 #!/bin/bash
 set -eu
 
-if [ "$BUILD_MODE" == "release" ]
-then
-	export FACEBOOK_APP_ID="$FACEBOOK_APP_ID_RELEASE"
-else
-	export FACEBOOK_APP_ID="$FACEBOOK_APP_ID_DEBUG"
-fi
+case "$BUILD_MODE" in
+"release") export FACEBOOK_APP_ID="$FACEBOOK_APP_ID_RELEASE";;
+"beta")
+"debug") export FACEBOOK_APP_ID="$FACEBOOK_APP_ID_DEBUG";;
+esac
 ./reinstall_plugins.sh
 
 cordova prepare
