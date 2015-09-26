@@ -3,6 +3,9 @@ set -eu
 
 cd "$(dirname $0)/../platforms/ios"
 
+echo
+echo "Building iOS for AdHoc on $(pwd)"
+
 ipa build \
   --workspace "${IOS_APPNAME}.xcwordspace" \
   --scheme "${IOS_APPNAME}" \
