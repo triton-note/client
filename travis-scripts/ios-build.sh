@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-cd "$(dirname $0)"
+cd "$(dirname $0)/../platforms/ios"
 
 ./ios-prepare-import-keychain.sh
 ./ios-prepare-update-bunble-version.sh
@@ -10,8 +10,6 @@ case "$BUILD_MODE" in
 "release") TARGET="Release";;
 "debug") TARGET="AdHoc";;
 esac
-
-cd "$(dirname $0)/../platforms/ios"
 
 echo
 echo "Building iOS for ${TARGET} on $(pwd)"
