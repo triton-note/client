@@ -8,13 +8,13 @@ cd "$(dirname $0)"
 if [ "$BUILD_MODE" == "release" ]
 then
 	echo "Building iOS (release mode)..."
-	cordova build ios --release --device
+	./ios-build-release.sh
 else
 	echo "Building iOS (test mode)..."
 	if [ "$BUILD_MODE" == "debug" ]
 	then
 		echo "Deploying iOS (debug mode)..."
-		cordova build ios --device
+		./ios-build-adhoc.sh
 	fi
 fi
 
