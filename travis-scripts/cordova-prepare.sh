@@ -8,3 +8,5 @@ else
 	export FACEBOOK_APP_ID="$FACEBOOK_APP_ID_DEBUG"
 fi
 ./reinstall_plugins.sh
+
+cordova prepare
