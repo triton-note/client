@@ -18,6 +18,7 @@ install:
   - brew install android
   - export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
   - brew install sbt
+  - brew install ruby
   - npm install
   - gem install compass cupertino shenzhen
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
