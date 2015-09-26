@@ -39,7 +39,7 @@ security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN
 rm -rf $DIR
 
 echo "Downloading profiles"
-bundle exec ios profiles:download:all --type distribution -u "$IOS_ITUNES_CONNECT_ACCOUNT" -p "$IOS_ITUNES_CONNECT_PASSWORD" >/dev/null 2>&1
+ios profiles:download:all --type distribution -u "$IOS_ITUNES_CONNECT_ACCOUNT" -p "$IOS_ITUNES_CONNECT_PASSWORD"
 echo "Done"
 mkdir MobileProvisionings
 echo "Moving mobileprovision"
