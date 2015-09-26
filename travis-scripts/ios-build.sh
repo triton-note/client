@@ -1,19 +1,19 @@
 #!/bin/bash
 set -eu
 
-cd "$(dirname $0)/../platforms/ios"
-
 gem install cupertino gym
 
-$(dirname $0)/ios-prepare-import-keychain.sh
-$(dirname $0)/ios-prepare-update-bunble-version.sh
+cd "$(dirname $0)"
+
+./ios-prepare-import-keychain.sh
+./ios-prepare-update-bunble-version.sh
 
 case "$BUILD_MODE" in
 "release") TARGET="Release";;
 "debug") TARGET="AdHoc";;
 esac
 
-echo
+cd "../platforms/ios"
 echo "Building iOS for ${TARGET} on $(pwd)"
 
 export GYM_CLEAN=true
