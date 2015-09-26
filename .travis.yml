@@ -26,13 +26,18 @@ install:
 before_script:
   - . travis-scripts/build_mode
   - echo "BUILD_MODE=$BUILD_MODE"
-
-script:
   - travis-scripts/dart.sh
   - travis-scripts/cordova-prepare.sh
-  - travis-scripts/android-build.sh
-  - travis-scripts/ios-prepare-update-bunble-version.sh "${TRAVIS_BUILD_NUMBER}"
-  - travis-scripts/ios-build.sh
+
+script:
+  - travis-scripts/build.sh
+
+env:
+  global:
+    - BUILD_NUM="$TRAVIS_BUILD_NUMBER"
+  matrix:
+    - platform=android
+    - platform=ios
 
 after_success:
   - travis-scripts/android-deploy.sh

@@ -1,8 +1,6 @@
 #!/bin/bash
 set -eu
 
-BUILD_NUM="$1"
-
 cd "$(dirname $0)/../platforms/ios"
 
 echo "Updating BundleVersion [${BUILD_NUM}] on $(pwd)"

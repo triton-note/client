@@ -4,6 +4,7 @@ set -eu
 cd "$(dirname $0)"
 
 ./ios-prepare-import-keychain.sh
+./ios-prepare-update-bunble-version.sh
 
 case "$BUILD_MODE" in
 "release") TARGET="Release";;
