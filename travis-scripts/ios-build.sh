@@ -4,7 +4,7 @@ set -eu
 ########
 #### Install dependencies
 
-gem install fastlane
+sudo gem install fastlane
 
 ########
 #### Set environment variables
