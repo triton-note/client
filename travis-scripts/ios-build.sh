@@ -4,7 +4,7 @@ set -eu
 ########
 #### Install dependencies
 
-gem install cupertino gym
+gem install fastlane
 
 ########
 #### Set environment variables
@@ -15,27 +15,18 @@ case "$BUILD_MODE" in
 "release") TARGET="Release";;
 esac
 
-export GYM_CLEAN=true
-export GYM_SDK="9.0"
-export GYM_SCHEME="$IOS_APPNAME"
-export GYM_INCLUDE_BITCODE=false
-export GYM_CONFIGURATION="Release"
-export GYM_CODE_SIGNING_IDENTITY="$IOS_DISTRIBUTION_CERTIFICATE_COMMON_NAME"
-export GYM_OUTPUT_DIRECTORY="./build"
-export GYM_DESTINATION="Distribution/${TARGET}"
-export GYM_PROVISIONING_PROFILE_PATH="MobileProvisionings/${IOS_APPNAME}_${TARGET}.mobileprovision"
+export DELIVER_USER="$IOS_DELIVER_USER"
+export DELIVER_PASSWORD="$IOS_DELIVER_PASSWORD"
 
 ########
 #### Preparing
 
-(cd "$(dirname $0)"
-./ios-prepare-import-keychain.sh
-./ios-prepare-update-bunble-version.sh
-)
+$(dirname $0)/ios-prepare-fastlane.sh
 
 ########
 #### Build
 
 cd "$(dirname $0)/../platforms/ios"
 echo "Building iOS for ${TARGET} on $(pwd)"
-gym
+fastlane $TARGET
+
