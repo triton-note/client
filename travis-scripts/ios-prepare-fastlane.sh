@@ -22,7 +22,6 @@ platform :ios do
 
     sigh(
       app_identifier: "$IOS_BUNDLE_ID",
-      provisioning_name: "${IOS_APPNAME} Release",
       username: "$DELIVER_USER"
     )
     gym(
