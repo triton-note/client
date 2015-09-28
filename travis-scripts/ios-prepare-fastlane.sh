@@ -23,8 +23,9 @@ platform :ios do
   before_all do
     cocoapods
 
-    # increment_build_number
-
+    increment_build_number(
+      build_number: "$BUILD_NUM"
+    )
     cert
     sigh
     gym(
