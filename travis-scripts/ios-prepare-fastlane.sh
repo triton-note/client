@@ -10,6 +10,11 @@ EOF
 
 mkdir -vp fastlane
 
+(mkdir -vp certs && cd certs
+echo $IOS_DISTRIBUTION_CERTIFICATE_BASE64 | base64 -D > Distribution.cer
+echo $IOS_DISTRIBUTION_KEY_BASE64 | base64 -D > Distribution.p12
+)
+
 cat <<EOF > fastlane/Appfile
 app_identifier ENV["IOS_BUNDLE_ID"]
 EOF
@@ -26,6 +31,16 @@ platform :ios do
     increment_build_number(
       build_number: "$BUILD_NUM"
     )
+    create_keychain(
+      name: "Distribution",
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeps: true
+    )
+    import_certificate certificate_path: "certs/Distribution.cer"
+    import_certificate certificate_path: "certs/Distribution.p12" certificate_password: ENV['IOS_DISTRIBUTION_KEY_PASSWORD']
+
     cert
     sigh
     gym(
