@@ -4,7 +4,8 @@ set -eu
 ########
 #### Install dependencies
 
-sudo gem install fastlane cocoapods
+[ -z "$(type fastlane)" ] && sudo gem install fastlane
+[ -z "$(type pod)" ] && sudo gem install cocoapods
 
 ########
 #### Set environment variables
