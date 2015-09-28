@@ -34,4 +34,4 @@ before_script:
   - travis-scripts/cordova-prepare.sh
 
 script:
-  - travis-scripts/build.sh
+  - travis-scripts/${platform}-build.sh
