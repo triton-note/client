@@ -5,6 +5,9 @@ set -eu
 #### Install dependencies
 
 sudo gem install fastlane
+sudo gem install cocoapods
+sudo gem uninstall psych
+sudo gem install psych -v 2.0.0
 
 ########
 #### Set environment variables
