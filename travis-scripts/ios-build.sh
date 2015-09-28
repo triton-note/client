@@ -17,7 +17,6 @@ export DELIVER_PASSWORD="$IOS_DELIVER_PASSWORD"
 #### Preparing
 
 (cd $(dirname $0)
-./ios-prepare-import-keychain.sh
 ./ios-prepare-fastlane.sh
 )
 

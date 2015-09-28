@@ -9,6 +9,11 @@ pod 'Crashlytics'
 EOF
 
 mkdir -vp fastlane
+
+cat <<EOF > fastlane/Appfile
+app_identifier ENV["IOS_BUNDLE_ID"]
+EOF
+
 cat <<EOF > fastlane/Fastfile
 fastlane_version "1.29.2"
 
@@ -20,15 +25,11 @@ platform :ios do
 
     # increment_build_number
 
-    sigh(
-      app_identifier: "$IOS_BUNDLE_ID",
-      username: "$DELIVER_USER"
-    )
+    cert
+    sigh
     gym(
       clean: true,
       scheme: "$IOS_APPNAME",
-      codesigning_identity: "$IOS_DISTRIBUTION_CERTIFICATE_COMMON_NAME",
-      provisioning_profile_path: "AppStore_${IOS_BUNDLE_ID}.mobileprovision",
       configuration: "Release",
       include_bitcode: false
     )
