@@ -6,11 +6,6 @@ set -eu
 
 sudo gem install fastlane
 sudo gem install cocoapods
-sudo gem install psych -v 2.0.0
-sudo gem list psych | tail -n1 | sed 's/.*(\(.*\)).*/\1/' | tr -d , | awk '{for (i=1; i<=NF; i++) print $i}' | while read version
-do
-	[ $version == '2.0.0' ] || sudo gem uninstall psych -v $version
-done
 
 ########
 #### Set environment variables
