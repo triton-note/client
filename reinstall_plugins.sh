@@ -39,3 +39,6 @@ mod_ANDROID_XML '/<application/ { sub(">", " android:name=\"org.fathens.cordova.
 
 # Create Icons and Splash Screens
 ionic resources
+
+# Preparing cordova
+cordova prepare

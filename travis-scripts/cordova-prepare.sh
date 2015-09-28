@@ -6,5 +6,3 @@ case "$BUILD_MODE" in
 "beta" | "debug") export FACEBOOK_APP_ID="$FACEBOOK_APP_ID_DEBUG";;
 esac
 ./reinstall_plugins.sh
-
-cordova prepare
