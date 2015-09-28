@@ -28,5 +28,5 @@ $(dirname $0)/ios-prepare-fastlane.sh
 
 cd "$(dirname $0)/../platforms/ios"
 echo "Building iOS for ${TARGET} on $(pwd)"
-fastlane $TARGET
+fastlane $BUILD_MODE
 
