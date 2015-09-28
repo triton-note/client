@@ -19,7 +19,7 @@ env:
     - platform=ios
 
 before_install:
-  - echo "gem: --no-document" > $HOME/.gemrc
+  - (echo -n 'gem'; echo -n ':'; echo ' --no-document') > $HOME/.gemrc
   - brew update
 
 install:
