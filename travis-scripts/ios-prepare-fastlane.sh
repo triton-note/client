@@ -45,7 +45,7 @@ platform :ios do
     )
 
     gym(
-      scheme: "$IOS_APPNAME",
+      scheme: "__PROJECT_NAME__",
       configuration: "Release"
     )
 
