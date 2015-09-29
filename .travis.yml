@@ -1,0 +1,38 @@
+osx_image: xcode7
+language: objective-c
+rvm: 2.2.3
+
+cache:
+  bundler: true
+  directories:
+    - node_modules
+    - plugins
+    - $HOME/.pub-cache
+    - $HOME/.ivy2
+    - $HOME/.gradle
+
+env:
+  global:
+    - BUILD_NUM="$TRAVIS_BUILD_NUMBER"
+  matrix:
+    - platform=android
+    - platform=ios
+
+before_install:
+  - (echo -n 'gem'; echo -n ':'; echo ' --no-document') > $HOME/.gemrc
+  - brew update
+
+install:
+  - brew tap dart-lang/dart && brew install dart
+  - sudo gem install compass
+  - npm install
+  - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
+
+before_script:
+  - . travis-scripts/build_mode
+  - echo "BUILD_MODE=$BUILD_MODE"
+  - travis-scripts/dart.sh
+  - travis-scripts/cordova-prepare.sh
+
+script:
+  - travis-scripts/${platform}-build.sh

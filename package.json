@@ -9,5 +9,9 @@
   },
   "scripts": {
     "test": "node_modules/karma/bin/karma start"
+  },
+  "dependencies": {
+    "cordova": "^5.3.1",
+    "ionic": "^1.6.4"
   }
 }

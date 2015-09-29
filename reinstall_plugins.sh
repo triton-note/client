@@ -23,25 +23,9 @@ cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --var
 
 # Customized org.apache.cordova.file for GOOGLE_PHOTOS
 cordova plugin add https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos
-# Crash Report
-cordova plugin add https://github.com/sawatani/Cordova-plugin-acra.git --variable TOAST_TEXT='Crash Report Sent' --variable URL="$ACRA_URL" --variable USERNAME="$ACRA_USERNAME" --variable PASSWORD="$ACRA_PASSWORD"
-
-mod_ANDROID_XML() {
-	file=platforms/android/AndroidManifest.xml
-	cat $file | awk "$1" > $file.tmp && (
-		diff $file $file.tmp
-		mv -vf $file.tmp $file
-	)
-}
-mod_ANDROID_XML '/<application/ { sub(">", " android:name=\"org.fathens.cordova.acra.AcraApplication\">") } { print $0 }'
-
-# Use android-support*.jar under platforms/android/libs/ only
-PRIMARY=$(find platforms/android/libs/ -name 'android-support*.jar' | head -n1)
-find platforms/android/ -name 'android-support*.jar' | grep -v "$(dirname $PRIMARY)" | while read line
-do
-	cp -vf "$PRIMARY" "$line"
-done
-
 
 # Create Icons and Splash Screens
 ionic resources
+
+# Preparing cordova
+cordova prepare
