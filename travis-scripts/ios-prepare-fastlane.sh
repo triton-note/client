@@ -59,7 +59,7 @@ platform :ios do
       crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",
       api_token: "$FABRIC_API_KEY",
       build_secret: "$FABRIC_BUILD_SECRET",
-      ipa_path: "./app.ipa"
+      ipa_path: "./${IOS_APPNAME}.ipa"
     )
   end
 
