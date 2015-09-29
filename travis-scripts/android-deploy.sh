@@ -4,9 +4,11 @@ set -eu
 cd $(dirname $0)
 target_dir=$(cd ../platforms/android; pwd)
 
+(cd "$target_dir" && ./gradlew crashlyticsUploadDistributionArmv7Debug)
+
 case "$BUILD_MODE" in
-"debug")   track_name=alpha;;
-"beta") track_name=beta;;
+"debug")   track_name="";;
+"beta")    track_name=beta;;
 "release") track_name=production;;
 esac
 
