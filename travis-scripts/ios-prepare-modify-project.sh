@@ -17,6 +17,7 @@ def build_settings(project, params)
 end
 
 project = Xcodeproj::Project.open "${IOS_APPNAME}.xcodeproj"
+project.recreate_user_schemes
 build_settings(project,
 	"ENABLE_BITCODE" => "NO",
 	"PROVISIONING_PROFILE" => "\$(PROFILE_UDID)"

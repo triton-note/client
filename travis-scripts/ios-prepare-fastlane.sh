@@ -3,11 +3,6 @@ set -eu
 
 cd "$(dirname $0)/../platforms/ios"
 
-cat <<EOF > Podfile
-pod 'Fabric'
-pod 'Crashlytics'
-EOF
-
 mkdir -vp fastlane
 
 (mkdir -vp certs && cd certs
@@ -38,14 +33,12 @@ platform :ios do
     sigh
     ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
 
-    cocoapods
-
     increment_build_number(
       build_number: "$BUILD_NUM"
     )
 
     gym(
-      scheme: "__PROJECT_NAME__",
+      scheme: "$IOS_APPNAME",
       configuration: "Release"
     )
 
