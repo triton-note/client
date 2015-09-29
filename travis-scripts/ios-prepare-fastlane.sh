@@ -26,18 +26,27 @@ default_platform :ios
 
 platform :ios do
   before_all do
+    if is_ci?
+      keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
+      puts "Using keychain: #{keychainName}"
+      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
+      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: "$IOS_DISTRIBUTION_KEY_PASSWORD"
+    else
+      puts "On human pc"
+    end
+
+    sigh
+    ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
+
     cocoapods
 
     increment_build_number(
       build_number: "$BUILD_NUM"
     )
-    cert
-    sigh
+
     gym(
-      clean: true,
       scheme: "$IOS_APPNAME",
-      configuration: "Release",
-      include_bitcode: false
+      configuration: "Release"
     )
 
     # xctool # run the tests of your app
