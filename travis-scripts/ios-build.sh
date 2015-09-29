@@ -12,7 +12,11 @@ set -eu
 
 export DELIVER_USER="$IOS_DELIVER_USER"
 export DELIVER_PASSWORD="$IOS_DELIVER_PASSWORD"
-[ "$BUILD_MODE" == "release" ] || export SIGH_AD_HOC=true
+if [ "$BUILD_MODE" != "release" ]
+then
+	export SIGH_AD_HOC=true
+	export GYM_USE_LEGACY_BUILD_API=true
+fi
 
 ########
 #### Preparing
