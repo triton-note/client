@@ -12,6 +12,7 @@ set -eu
 
 export DELIVER_USER="$IOS_DELIVER_USER"
 export DELIVER_PASSWORD="$IOS_DELIVER_PASSWORD"
+[ "$BUILD_MODE" == "release" ] || export SIGH_AD_HOC=true
 
 ########
 #### Preparing
