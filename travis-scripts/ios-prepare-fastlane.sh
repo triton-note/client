@@ -48,13 +48,15 @@ platform :ios do
 
   desc "Runs all the tests"
   lane :debug do
-    crashlytics(
-      crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",
-      api_token: "$FABRIC_API_KEY",
-      build_secret: "$FABRIC_BUILD_SECRET",
-      groups: "$CRASHLYTICS_GROUPS",
-      ipa_path: "./${IOS_APPNAME}.ipa"
-    )
+    if is_ci?
+      crashlytics(
+        crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",
+        api_token: "$FABRIC_API_KEY",
+        build_secret: "$FABRIC_BUILD_SECRET",
+        groups: "$CRASHLYTICS_GROUPS",
+        ipa_path: "./${IOS_APPNAME}.ipa"
+      )
+    end
   end
 
   desc "Submit a new Beta Build to Apple TestFlight"
