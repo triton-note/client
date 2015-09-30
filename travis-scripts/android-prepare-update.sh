@@ -2,7 +2,9 @@
 set -eu
 
 update() {
-	echo "Updating $1..."
+	echo "Checking $1..."
+	[ -z "$(android list sdk --extended | grep $1)" ] && return 0
+	echo "Installing $1..."
 	echo y | android update sdk --no-ui --all --filter $1 | awk '
 BEGIN { go = 0 }
 /Do you accept the license/ { go = 1 }
