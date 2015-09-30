@@ -34,3 +34,20 @@ append_script(project, "./Pods/Fabric/Fabric.framework/run $FABRIC_API_KEY $FABR
 project.save
 EOF
 
+file=$(find . -name 'AppDelegate.m')
+cat "$file" | awk '
+	/didFinishLaunchingWithOptions/ { did=1 }
+	/return/ {
+		if (did == 1) {
+			print "    [Fabric with:@[CrashlyticsKit]];"
+			did=0
+		}
+	}
+	{ print $0 }
+	/#import </ {
+		print "#import <Fabric/Fabric.h>"
+		print "#import <Crashlytics/Crashlytics.h>"
+	}
+' > "${file}.tmp"
+mv -vf "${file}.tmp" "$file"
+
