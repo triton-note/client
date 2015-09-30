@@ -39,7 +39,8 @@ platform :ios do
 
     gym(
       scheme: "$IOS_APPNAME",
-      configuration: "Release"
+      configuration: "Release",
+      silent: true
     )
 
     # xctool # run the tests of your app
