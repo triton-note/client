@@ -15,6 +15,7 @@ export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
 ./android-prepare-keystore.sh
 ./android-prepare-supportjar.sh
 ./android-prepare-fabric.sh
+./android-prepare-build_num.sh
 )
 
 ########
