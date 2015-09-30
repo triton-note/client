@@ -11,7 +11,7 @@ export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
 #### Preparing
 
 (cd $(dirname $0)
-./android-prepare-update.sh
+[ -z "${IS_CI:-}" ] || ./android-prepare-update.sh
 ./android-prepare-keystore.sh
 ./android-prepare-supportjar.sh
 ./android-prepare-fabric.sh
@@ -33,4 +33,4 @@ cordova build android $(build_opts) --buildConfig=platforms/android/build.json
 ########
 #### Deploy
 
-$(dirname $0)/android-deploy.sh
+[ -z "${IS_CI:-}" ] || $(dirname $0)/android-deploy.sh

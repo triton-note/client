@@ -29,8 +29,9 @@ install:
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
 before_script:
+  - . travis-scripts/is_ci
   - . travis-scripts/build_mode
-  - echo "BUILD_MODE=$BUILD_MODE"
+  - echo "BUILD_MODE=$BUILD_MODE, IS_CI=$IS_CI"
   - travis-scripts/dart.sh
   - travis-scripts/cordova-prepare.sh
 
