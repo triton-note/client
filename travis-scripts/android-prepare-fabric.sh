@@ -34,6 +34,7 @@ mv -vf "${file}.tmp" "$file"
 cat <<EOF > fabric.properties
 apiSecret=$FABRIC_BUILD_SECRET
 apiKey=$FABRIC_API_KEY
+ext.betaDistributionGroupAliases="Programmers"
 EOF
 
 find src -name 'MainActivity.java' | while read file
