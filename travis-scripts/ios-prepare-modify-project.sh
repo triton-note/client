@@ -40,7 +40,7 @@ cat "$file" | awk '
 	/didFinishLaunchingWithOptions/ { did=1 }
 	/return/ {
 		if (did == 1) {
-			print "    [Fabric with:@[CrashlyticsKit]];"
+			print "    //[Fabric with:@[CrashlyticsKit]];"
 			did=0
 		}
 	}
