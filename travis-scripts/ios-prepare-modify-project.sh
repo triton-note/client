@@ -40,7 +40,7 @@ cat "$file" | awk '
 	/didFinishLaunchingWithOptions/ { did=1 }
 	/return/ {
 		if (did == 1) {
-			print "    //[Fabric with:@[CrashlyticsKit]];"
+			print "    [Fabric with:@[CrashlyticsKit]];"
 			did=0
 		}
 	}
@@ -50,5 +50,26 @@ cat "$file" | awk '
 		print "#import <Crashlytics/Crashlytics.h>"
 	}
 ' > "${file}.tmp"
+mv -vf "${file}.tmp" "$file"
+
+file="${IOS_APPNAME}/${IOS_APPNAME}-Info.plist"
+head -n $(($(wc -l "$file" | awk '{print $1}') - 2)) > "${file}.tmp"
+cat <<EOF >> "${file}.tmp"
+<key>Fabric</key>
+<dict>
+    <key>APIKey</key>
+    <string>$FABRIC_API_KEY</string>
+    <key>Kits</key>
+    <array>
+        <dict>
+            <key>KitInfo</key>
+            <dict/>
+            <key>KitName</key>
+            <string>Crashlytics</string>
+        </dict>
+    </array>
+</dict>
+EOF
+tail -n2 "$file" >> "${file}.tmp"
 mv -vf "${file}.tmp" "$file"
 
