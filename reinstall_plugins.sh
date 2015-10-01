@@ -17,6 +17,7 @@ cordova plugin add cordova-plugin-geolocation
 cordova plugin add cordova-plugin-whitelist
 
 cordova plugin add phonegap-plugin-push
+cordova plugin add https://github.com/sarriaroman/FabricPlugin
 
 # Facebook connect
 cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
