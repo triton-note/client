@@ -31,7 +31,7 @@ install:
 before_script:
   - . travis-scripts/is_ci
   - . travis-scripts/build_mode
-  - export RELEASE_NOTE_PATH=$(travis-script/release_note.sh $TRAVIS_COMMIT)
+  - export RELEASE_NOTE_PATH=$(travis-scripts/release_note.sh $TRAVIS_COMMIT)
   - echo "BUILD_MODE=$BUILD_MODE, IS_CI=$IS_CI"
   - travis-scripts/dart.sh
   - travis-scripts/cordova-prepare.sh
