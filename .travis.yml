@@ -32,7 +32,6 @@ install:
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
 before_script:
-  - env | sort
   - build-scripts/dart.sh
   - build-scripts/cordova-prepare.sh
 
