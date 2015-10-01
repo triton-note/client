@@ -45,7 +45,7 @@ do
 		/super.onCreate/ {
 			sub("super.*", "io.fabric.sdk.android.Fabric.with(this, new com.crashlytics.android.Crashlytics());");
 			print $0
-			print "new Thread(new Runnable() { public run() { try { Thread.sleep(5000);\
+			print "new Thread(new Runnable() { public void run() { try { Thread.sleep(5000);\
 com.crashlytics.android.Crashlytics.getInstance().core.log(3, \"TestLog\", \"Gondla fire at:\" + new java.util.Date());\
 } catch (Exception ex) { ex.printStackTrace(); } } }).start();"
 		}
