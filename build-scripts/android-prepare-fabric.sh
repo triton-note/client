@@ -44,9 +44,9 @@ do
 			sub("super.*", "io.fabric.sdk.android.Fabric.with(this, new com.crashlytics.android.Crashlytics());");
 			print $0
 			print "new Thread(new Runnable() { public void run() { try { Thread.sleep(5000);\
-// com.crashlytics.android.Crashlytics.getInstance().core.log(3, \"TestLog\", \"Gondla fire at:\" + new java.util.Date());\
-// Thread.sleep(10 * 1000);\
-//com.crashlytics.android.Crashlytics.getInstance().core.log(2, \"TestLog\", \"Gondla gone at:\" + new java.util.Date());\
+com.crashlytics.android.Crashlytics.log(3, \"TestLog\", \"Gondla fire at:\" + new java.util.Date());\
+Thread.sleep(10 * 1000);\
+com.crashlytics.android.Crashlytics.log(2, \"TestLog\", \"Gondla gone at:\" + new java.util.Date());\
 com.crashlytics.android.Crashlytics.logException(new Exception(\"Gondla not here\"));\
 } catch (Exception ex) { ex.printStackTrace(); } } }).start();"
 		}
