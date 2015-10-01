@@ -34,6 +34,7 @@ build_settings(project,
 	"ENABLE_BITCODE" => "NO",
 	"PROVISIONING_PROFILE" => "\$(PROFILE_UDID)"
 )
+append_script(project, "./Pods/Fabric/Fabric.framework/run $FABRIC_API_KEY $FABRIC_BUILD_SECRET")
 project.save
 EOF
 
