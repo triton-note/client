@@ -76,6 +76,8 @@ void main() {
 
   initPolymer().then((zone) => Polymer.onReady.then((_) {
         onDeviceReady((event) {
+          //window.fabric.Answers.sendLogIn();
+          context['fabric']['Answers'].callMethod('sendLogIn', []);
           applicationFactory().addModule(new AppModule()).run();
         });
       }));
