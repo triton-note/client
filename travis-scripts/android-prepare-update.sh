@@ -7,7 +7,7 @@ update() {
 BEGIN { go = 0 }
 /Do you accept the license/ { go = 1 }
 /Warning/ { go = 1 }
-{ if (go == 1) print $0 }
+go == 1 { print $0 }
 '
 }
 

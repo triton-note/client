@@ -5,13 +5,11 @@ cd "$(dirname $0)/../platforms/android"
 
 file=build.gradle
 cat "$file" | awk '
-	{
+	{ print $0 }
+	compile == 1 {
+		sub("[^ ].*", "compile('\''com.crashlytics.sdk.android:crashlytics:2.5.2@aar'\'') { transitive = true }")
 		print $0
-		if (compile == 1) {
-			sub("[^ ].*", "compile('\''com.crashlytics.sdk.android:crashlytics:2.5.2@aar'\'') { transitive = true }")
-			print $0
-			compile=0
-		}
+		compile=0
 	}
 	/apply plugin:/ {
 		sub("[^ ].*", "apply plugin: '\''io.fabric'\''")
@@ -47,7 +45,7 @@ do
 			print $0
 			print "new Thread(new Runnable() { public void run() { try { Thread.sleep(5000);\
 com.crashlytics.android.Crashlytics.getInstance().core.log(3, \"TestLog\", \"Gondla fire at:\" + new java.util.Date());\
-Thread.sleep(10 * 1000);
+Thread.sleep(10 * 1000);\
 com.crashlytics.android.Crashlytics.getInstance().core.log(2, \"TestLog\", \"Gondla gone at:\" + new java.util.Date());\
 com.crashlytics.android.Crashlytics.logException(new Exception(\"Gondla not here\"));\
 } catch (Exception ex) { ex.printStackTrace(); } } }).start();"
