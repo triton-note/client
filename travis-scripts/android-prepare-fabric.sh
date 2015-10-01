@@ -31,17 +31,10 @@ cat "$file" | awk '
 ' > "${file}.tmp"
 mv -vf "${file}.tmp" "$file"
 
-release_note=fabric-release.note
-if [ -z "${IS_CI:-}" ]
-then
-	echo "Send from local PC" > $release_note
-else
-	git log --format=%B -n 1 $TRAVIS_COMMIT > $release_note
-fi
 cat <<EOF > fabric.properties
 apiSecret=$FABRIC_BUILD_SECRET
 apiKey=$FABRIC_API_KEY
-betaDistributionReleaseNotesFilePath=$release_note
+betaDistributionReleaseNotesFilePath=$RELEASE_NOTE_PATH
 betaDistributionGroupAliases=$CRASHLYTICS_GROUPS
 EOF
 
