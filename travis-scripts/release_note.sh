@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-release_note="$(cd $(dirname $0); pwd)/release.note"
+release_note="$(cd $(dirname $0); pwd)/.release_note"
 
 if [ -z "${1:-}" ]
 then
