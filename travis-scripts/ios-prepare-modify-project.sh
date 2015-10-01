@@ -3,6 +3,9 @@ set -eu
 
 cd "$(dirname $0)/../platforms/ios"
 
+echo "################################"
+echo "#### Fix project.pbxproj"
+
 cat <<EOF | ruby
 require 'xcodeproj'
 
@@ -35,14 +38,17 @@ append_script(project, "./Pods/Fabric/Fabric.framework/run $FABRIC_API_KEY $FABR
 project.save
 EOF
 
-file=$(find . -name 'AppDelegate.m')
+echo "################################"
+echo "#### Fabric initialization"
+
+file="$(find . -name 'AppDelegate.m')"
+echo "Edit $file"
+
 cat "$file" | awk '
 	/didFinishLaunchingWithOptions/ { did=1 }
-	/return/ {
-		if (did == 1) {
-			print "    [Fabric with:@[CrashlyticsKit]];"
-			did=0
-		}
+	/return/ && (did == 1) {
+		print "    [Fabric with:@[CrashlyticsKit]];"
+		did=0
 	}
 	{ print $0 }
 	/#import </ {
@@ -52,8 +58,13 @@ cat "$file" | awk '
 ' > "${file}.tmp"
 mv -vf "${file}.tmp" "$file"
 
-file="${IOS_APPNAME}/${IOS_APPNAME}-Info.plist"
-head -n $(($(wc -l "$file" | awk '{print $1}') - 2)) > "${file}.tmp"
+echo "################################"
+echo "#### Fabric API_KEY"
+
+file="$(find . -name '*-Info.plist')"
+echo "Edit $file"
+
+head -n$(($(wc -l "$file" | awk '{print $1}') - 1)) "$file" > "${file}.tmp"
 cat <<EOF >> "${file}.tmp"
 <key>Fabric</key>
 <dict>
