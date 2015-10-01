@@ -13,7 +13,7 @@ esac
 if [ -z "$track_name" ]
 then
 	cd "$target_dir"
-	./gradlew crashlyticsUploadDistributionArmv7Debug crashlyticsUploadDistributionX86Debug
+	./gradlew assembleRelease crashlyticsUploadDistributionRelease
 else
 	git clone https://github.com/sawatani/CI-STEP-Deploy-GooglePlay.git android-deploy
 	./android-deploy/run.sh $track_name $(find $target_dir/build/ -name '*-release.apk')
