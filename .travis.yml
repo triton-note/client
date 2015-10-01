@@ -14,6 +14,9 @@ cache:
 env:
   global:
     - BUILD_NUM="$TRAVIS_BUILD_NUMBER"
+    - RELEASE_NOTE_PATH="$(build-scripts/env-release_note.sh $TRAVIS_COMMIT)"
+    - IS_CI="$(build-scripts/env-is_ci.sh)"
+    - BUILD_MODE="$(build-scripts/env-build_mode.sh)"
   matrix:
     - platform=android
     - platform=ios
@@ -29,12 +32,9 @@ install:
   - for dir in $(pwd)/node_modules/*/bin; do export PATH=$PATH:$dir; done; echo $PATH
 
 before_script:
-  - . travis-scripts/is_ci
-  - . travis-scripts/build_mode
-  - export RELEASE_NOTE_PATH=$(travis-scripts/release_note.sh $TRAVIS_COMMIT)
-  - echo "BUILD_MODE=$BUILD_MODE, IS_CI=$IS_CI"
-  - travis-scripts/dart.sh
-  - travis-scripts/cordova-prepare.sh
+  - env | sort
+  - build-scripts/dart.sh
+  - build-scripts/cordova-prepare.sh
 
 script:
-  - travis-scripts/${platform}-build.sh
+  - build-scripts/${platform}-build.sh
