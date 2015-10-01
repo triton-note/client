@@ -21,6 +21,7 @@ export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
 ########
 #### Build
 
+[ "$BUILD_MODE" == "debug" ] && echo "cdvBuildMultipleApks=false" >> platforms/android/gradle.properties
 cordova build android --release --buildConfig=platforms/android/build.json
 
 ########
