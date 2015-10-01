@@ -21,14 +21,7 @@ export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
 ########
 #### Build
 
-build_opts() {
-	case "$BUILD_MODE" in
-	"release") echo "--release";;
-	"beta") echo "--release";;
-	"debug") echo "";;
-	esac
-}
-cordova build android $(build_opts) --buildConfig=platforms/android/build.json
+cordova build android --release --buildConfig=platforms/android/build.json
 
 ########
 #### Deploy
