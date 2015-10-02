@@ -64,7 +64,10 @@ echo "#### Fabric API_KEY"
 file="$(find . -name '*-Info.plist')"
 echo "Edit $file"
 
-head -n$(($(wc -l "$file" | awk '{print $1}') - 1)) "$file" > "${file}.tmp"
+cat "$file" | awk '{print $0}' > "${file}.tmp"
+mv -vf "${file}.tmp" "$file"
+
+head -n$(($(wc -l "$file" | awk '{print $1}') - 2)) "$file" > "${file}.tmp"
 cat <<EOF >> "${file}.tmp"
 <key>Fabric</key>
 <dict>
