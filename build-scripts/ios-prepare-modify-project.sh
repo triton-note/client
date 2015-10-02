@@ -74,7 +74,7 @@ cat "$file" | awk '
 	/didFinishLaunchingWithOptions/ { did=1 }
 	/return/ && (did == 1) {
 		print "    [Fabric with:@[CrashlyticsKit]];"
-		print "    [FabricTester start];"
+		print "    // [FabricTester start];"
 		did=0
 	}
 	{ print $0 }
