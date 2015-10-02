@@ -13,6 +13,9 @@ $S3_CACHE_SECRET_KEY
 
 
 
+
+n
+y
 EOF
 
 load() {
