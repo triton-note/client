@@ -20,11 +20,11 @@ EOF
 
 load() {
 	s3cmd get s3://cache-build/${folder}/node_modules.tar.bz
-	tar jxf node_modules.tar.bz
+	tar jxf node_modules.tar.bz > /dev/null
 }
 
 save() {
-	tar jcf node_modules.tar.bz node_modules
+	tar jcf node_modules.tar.bz node_modules > /dev/null
 	s3cmd put node_modules.tar.bz s3://cache-build/${folder}/node_modules.tar.bz
 }
 
