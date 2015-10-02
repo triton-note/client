@@ -7,7 +7,6 @@ name=$3
 tarfile=${name}.tar.bz2
 
 setup() {
-	brew install python
 	sudo easy_install pip
 	sudo pip install awscli --upgrade
 
