@@ -6,6 +6,9 @@ cd "$(dirname $0)/../platforms/ios"
 echo "################################"
 echo "#### Fix project.pbxproj"
 
+proj="$(find . -maxdepth 1 -name '*.xcodeproj')"
+echo "Fixing $proj"
+
 cat <<EOF | ruby
 require 'xcodeproj'
 
@@ -27,7 +30,7 @@ def build_settings(project, params)
 	end
 end
 
-project = Xcodeproj::Project.open "${IOS_APPNAME}.xcodeproj"
+project = Xcodeproj::Project.open "$proj"
 project.recreate_user_schemes
 build_settings(project,
 	"OTHER_LDFLAGS" => "\$(inherited)",
