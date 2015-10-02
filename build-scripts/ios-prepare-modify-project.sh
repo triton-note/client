@@ -23,7 +23,6 @@ def append_script(project, script)
 	project.targets.each do |target|
 		phase = target.new_shell_script_build_phase "Fabric"
 		phase.shell_script = script
-		target.shell_script_build_phases.push phase
 	end
 end
 
@@ -38,18 +37,15 @@ def build_settings(project, params)
 end
 
 def add_fabric_tester(project)
-	build_settings(project, "SWIFT_OBJC_BRIDGING_HEADER" => "$bridge_file")
-
-	group = project.main_group
-	swift_file = group.new_reference "$swift_file"
-	bridge_file = group.new_reference "$bridge_file"
-	group.files.push swift_file
-	group.files.push bridge_file
+	group = project.main_group.new_group "FabricTester"
+	swift_file = group.new_file "$swift_file"
+	bridge_file = group.new_file "$bridge_file"
 
 	project.targets.each do |target|
 		phase = target.build_phases.find { |phase| phase.isa == 'PBXSourcesBuildPhase' }
 		phase.add_file_reference swift_file
 	end
+	build_settings(project, "SWIFT_OBJC_BRIDGING_HEADER" => bridge_file.path)
 end
 
 project = Xcodeproj::Project.open "$proj"
