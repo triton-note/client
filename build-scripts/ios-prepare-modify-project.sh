@@ -4,7 +4,7 @@ set -eu
 script_dir="$(cd $(dirname $0); pwd)"
 cd "$script_dir/../platforms/ios"
 
-dir="$(dirname "$(find . -name 'AppDelegate.m')")"
+dir="$(dirname "$(find "$(pwd)" -name 'AppDelegate.m')")"
 swift_file="$dir/FabricTester.swift"
 bridge_file="$dir/TritonNote-Bridging-Header.h"
 cp -vf "$script_dir/ios-fabric_tester-FabricTester.swift" "$swift_file"
@@ -43,7 +43,7 @@ def add_fabric_tester(project)
 
 	project.targets.each do |target|
 		phase = target.build_phases.find { |phase| phase.isa == 'PBXSourcesBuildPhase' }
-		#phase.add_file_reference swift_file
+		phase.add_file_reference swift_file
 	end
 	build_settings(project, "SWIFT_OBJC_BRIDGING_HEADER" => bridge_file.path)
 end
