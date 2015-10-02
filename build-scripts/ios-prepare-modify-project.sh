@@ -52,7 +52,6 @@ project = Xcodeproj::Project.open "$proj"
 project.recreate_user_schemes
 
 build_settings(project,
-	"IPHONEOS_DEPLOYMENT_TARGET" => "8.0",
 	"OTHER_LDFLAGS" => "\$(inherited)",
 	"ENABLE_BITCODE" => "NO",
 	"PROVISIONING_PROFILE" => "\$(PROFILE_UDID)"
