@@ -7,6 +7,8 @@ name=$3
 tarfile=${name}.tar.bz2
 
 setup() {
+	brew install python
+	sudo easy_install pip
 	sudo pip install awscli --upgrade
 
 	export AWS_ACCESS_KEY_ID=$S3_CACHE_ACCESS_KEY
