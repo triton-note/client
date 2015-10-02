@@ -59,7 +59,7 @@ build_settings(project,
 )
 append_script(project, "./Pods/Fabric/Fabric.framework/run $FABRIC_API_KEY $FABRIC_BUILD_SECRET")
 
-add_fabric_tester project
+#add_fabric_tester project
 
 project.save
 EOF
