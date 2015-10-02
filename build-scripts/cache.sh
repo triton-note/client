@@ -25,7 +25,7 @@ EOF
 
 save() {
 	tar jcf node_modules.tar.bz2 node_modules > /dev/null
-	s3cmd put node_modules.tar.bz s3://cache-build/${folder}/node_modules.tar.bz2
+	s3cmd put node_modules.tar.bz2 s3://cache-build/${folder}/node_modules.tar.bz2
 }
 
 $action
