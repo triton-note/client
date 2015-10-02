@@ -24,15 +24,14 @@ env:
 before_install:
   - (echo -n 'gem'; echo -n ':'; echo ' --no-document') > $HOME/.gemrc
   - brew update
-  - (brew install s3cmd && alias s3cmd="$(type -p s3cmd) --access_key $S3_CACHE_ACCESS_KEY --secret_key $S3_CACHE_SECRET_KEY")
-  - s3cmd get s3://cache-build/${TRAVIS_REPO_SLUG}/node_modules.tar.bz; tar jxf node_modules.tar.bz
+  - build-scripts/cache.sh load $TRAVIS_REPO_SLUG
 
 install:
   - brew tap dart-lang/dart && brew install dart
   - sudo gem install compass
   - npm install
   - export PATH="$PATH:$(pwd)/node_modules/.bin"
-  - tar jcf node_modules.tar.bz node_modules; s3cmd put node_modules.tar.bz s3://cache-build/${TRAVIS_REPO_SLUG}/node_modules.tar.bz
+  - build-scripts/cache.sh save $TRAVIS_REPO_SLUG
 
 before_script:
   - build-scripts/dart.sh
