@@ -4,6 +4,7 @@ set -eu
 action=$1
 folder=$2
 name=$3
+tarfile=${name}.tar.bz2
 
 setup() {
 	sudo pip install awscli --upgrade
@@ -13,12 +14,13 @@ setup() {
 }
 
 load() {
-	mkdir -vp $name
-	aws s3 sync s3://cache-build/$folder/$name $name --delete
+	aws s3 cp s3://cache-build/$folder/$tarfile $tarfile
+	tar jxf $tarfile > /dev/null
 }
 
 save() {
-	aws s3 sync $name s3://cache-build/$folder/$name --delete
+	tar jcf $tarfile $name > /dev/null
+	aws s3 cp $tarfile s3://cache-build/$folder/$tarfile
 }
 
 setup
