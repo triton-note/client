@@ -43,7 +43,9 @@ def add_fabric_tester(project)
 
 	project.targets.each do |target|
 		phase = target.build_phases.find { |phase| phase.isa == 'PBXSourcesBuildPhase' }
-		phase.add_file_reference swift_file
+		swift = phase.add_file_reference swift_file
+		phase.files.delete swift
+		phase.files.insert(1, swift)
 	end
 	build_settings(project, "SWIFT_OBJC_BRIDGING_HEADER" => bridge_file.path)
 end
