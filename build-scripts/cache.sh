@@ -2,9 +2,9 @@
 set -eu
 
 action=$1
-folder=$2
-name=$3
-tarfile=${name}.tar.bz2
+shift
+folder=$1
+shift
 
 install() {
 	sudo easy_install pip
@@ -17,15 +17,28 @@ setup() {
 }
 
 load() {
+	name=$1
+	tarfile=${name}.tar.bz2
+	echo "Syncing $name ..."; return
 	install
 	aws s3 cp s3://cache-build/$folder/$tarfile $tarfile
 	tar jxf $tarfile > /dev/null
 }
 
 save() {
+	name=$1
+	tarfile=${name}.tar.bz2
+	echo "Syncing $name ..."; return
 	tar jcf $tarfile $name > /dev/null
 	aws s3 cp $tarfile s3://cache-build/$folder/$tarfile
 }
 
 setup
-$action
+if [ "$#" == 0 ]
+then
+	cat <<EOF | while read name; do $action $name; done
+node_modules
+EOF
+else
+	for name in $@; do $action $name; done
+fi
