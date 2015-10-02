@@ -19,9 +19,9 @@ echo "Fixing $proj"
 cat <<EOF | ruby
 require 'xcodeproj'
 
-def append_script(project, script)
+def append_script(project, name, script)
 	project.targets.each do |target|
-		phase = target.new_shell_script_build_phase "Fabric"
+		phase = target.new_shell_script_build_phase name
 		phase.shell_script = script
 	end
 end
@@ -56,7 +56,7 @@ build_settings(project,
 	"ENABLE_BITCODE" => "NO",
 	"PROVISIONING_PROFILE" => "\$(PROFILE_UDID)"
 )
-append_script(project, "./Pods/Fabric/Fabric.framework/run $FABRIC_API_KEY $FABRIC_BUILD_SECRET")
+append_script(project, "Fabric", "./Pods/Fabric/Fabric.framework/run $FABRIC_API_KEY $FABRIC_BUILD_SECRET")
 
 add_fabric_tester project
 
