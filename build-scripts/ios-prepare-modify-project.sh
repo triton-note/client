@@ -58,7 +58,7 @@ build_settings(project,
 )
 append_script(project, "./Pods/Fabric/Fabric.framework/run $FABRIC_API_KEY $FABRIC_BUILD_SECRET")
 
-#add_fabric_tester project
+add_fabric_tester project
 
 project.save
 EOF
@@ -73,14 +73,14 @@ cat "$file" | awk '
 	/didFinishLaunchingWithOptions/ { did=1 }
 	/return/ && (did == 1) {
 		print "    [Fabric with:@[CrashlyticsKit]];"
-		print "    // [FabricTester start];"
+		print "    [FabricTester start];"
 		did=0
 	}
 	{ print $0 }
 	/#import </ {
 		print "#import <Fabric/Fabric.h>"
 		print "#import <Crashlytics/Crashlytics.h>"
-		print "// #import \"TritonNote-Swift.h\""
+		print "#import \"TritonNote-Swift.h\""
 	}
 ' > "${file}.tmp"
 mv -vf "${file}.tmp" "$file"
