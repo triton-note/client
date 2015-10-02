@@ -6,15 +6,18 @@ folder=$2
 name=$3
 tarfile=${name}.tar.bz2
 
-setup() {
+install() {
 	sudo easy_install pip
 	sudo pip install awscli --upgrade
+}
 
+setup() {
 	export AWS_ACCESS_KEY_ID=$S3_CACHE_ACCESS_KEY
 	export AWS_SECRET_ACCESS_KEY=$S3_CACHE_SECRET_KEY
 }
 
 load() {
+	install
 	aws s3 cp s3://cache-build/$folder/$tarfile $tarfile
 	tar jxf $tarfile > /dev/null
 }
