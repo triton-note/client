@@ -19,7 +19,7 @@ setup() {
 load() {
 	name=$1
 	tarfile=${name}.tar.bz2
-	echo "Syncing $name ..."; return
+	echo "Syncing $name ..."
 	install
 	aws s3 cp s3://cache-build/$folder/$tarfile $tarfile
 	tar jxf $tarfile > /dev/null
@@ -28,7 +28,7 @@ load() {
 save() {
 	name=$1
 	tarfile=${name}.tar.bz2
-	echo "Syncing $name ..."; return
+	echo "Syncing $name ..."
 	tar jcf $tarfile $name > /dev/null
 	aws s3 cp $tarfile s3://cache-build/$folder/$tarfile
 }
