@@ -43,9 +43,6 @@ do
 		/super.onCreate/ {
 			sub("super.*", "io.fabric.sdk.android.Fabric.with(this, new com.crashlytics.android.Crashlytics());");
 			print $0
-			print "new Thread(new Runnable() { public void run() { try { Thread.sleep(5000);\
-com.crashlytics.android.answers.Answers.getInstance().logLogin(new com.crashlytics.android.answers.LoginEvent());\
-} catch (Exception ex) { ex.printStackTrace(); } } }).start();"
 		}
 	' > "${file}.tmp"
 	mv -vf "${file}.tmp" "$file"
