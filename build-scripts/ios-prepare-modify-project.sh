@@ -81,7 +81,7 @@ cat "$file" | awk '
 	/#import </ {
 		print "#import <Fabric/Fabric.h>"
 		print "#import <Crashlytics/Crashlytics.h>"
-		print "#import \"TritonNote-Swift.h\""
+		print "// #import \"TritonNote-Swift.h\""
 	}
 ' > "${file}.tmp"
 mv -vf "${file}.tmp" "$file"
