@@ -9,7 +9,7 @@
 - (void) doTest {
     @autoreleasepool {
         [NSThread sleepForTimeInterval:5];
-        CLS_LOG(@"Gondra on %@", [NSDate date]);
+        [CrashlyticsKit setValue:@"Use CrashlyticsKit" forKey:@"VER"];
         [CrashlyticsKit throwException];
     }
 }
