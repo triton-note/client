@@ -8,6 +8,7 @@
 
 - (void) doTest {
     @autoreleasepool {
+        [NSThread sleepForTimeInterval:5];
         CLS_LOG(@"Gondra on %@", [NSDate new]);
         [CrashlyticsKit throwException];
     }
