@@ -72,14 +72,14 @@ cat "$file" | awk '
 	/didFinishLaunchingWithOptions/ { did=1 }
 	/return/ && (did == 1) {
 		print "    [Fabric with:@[CrashlyticsKit]];"
-		print "    // [FabricTester start];"
+		print "    [FabricTester start];"
 		did=0
 	}
 	{ print $0 }
 	/#import </ {
 		print "#import <Fabric/Fabric.h>"
 		print "#import <Crashlytics/Crashlytics.h>"
-		print "// #import \"TritonNote-Swift.h\""
+		print "#import \"FabricTester.h\""
 	}
 ' > "${file}.tmp"
 mv -vf "${file}.tmp" "$file"
