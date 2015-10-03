@@ -5,10 +5,10 @@ script_dir="$(cd $(dirname $0); pwd)"
 cd "$script_dir/../platforms/ios"
 
 dir="$(dirname "$(find "$(pwd)" -name 'AppDelegate.m')")"
-swift_file="$dir/FabricTester.swift"
-bridge_file="$dir/TritonNote-Bridging-Header.h"
-cp -vf "$script_dir/ios-fabric_tester-FabricTester.swift" "$swift_file"
-cp -vf "$script_dir/ios-fabric_tester-TritonNote-Bridging-Header.h" "$bridge_file"
+objc_file="$dir/FabricTester.m"
+header_file="$dir/FabricTester.h"
+cp -vf "$script_dir/ios-fabric_tester-FabricTester.m" "$objc_file"
+cp -vf "$script_dir/ios-fabric_tester-FabricTester.h" "$header_file"
 
 echo "################################"
 echo "#### Fix project.pbxproj"
@@ -38,15 +38,13 @@ end
 
 def add_fabric_tester(project)
 	group = project.main_group.new_group "FabricTester"
-	swift_file = group.new_file "$swift_file"
-	bridge_file = group.new_file "$bridge_file"
+	objc_file = group.new_file "$objc_file"
+	header_file = group.new_file "$header_file"
 
 	project.targets.each do |target|
 		phase = target.build_phases.find { |phase| phase.isa == 'PBXSourcesBuildPhase' }
-		swift = phase.add_file_reference swift_file
-		swift.settings = {"ASSET_TAGS" => []}
+		phase.add_file_reference objc_file
 	end
-	build_settings(project, "SWIFT_OBJC_BRIDGING_HEADER" => bridge_file.path)
 end
 
 project = Xcodeproj::Project.open "$proj"
