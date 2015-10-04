@@ -4,12 +4,6 @@ set -eu
 script_dir="$(cd $(dirname $0); pwd)"
 cd "$script_dir/../platforms/ios"
 
-dir="$(dirname "$(find "$(pwd)" -name 'AppDelegate.m')")"
-objc_file="$dir/FabricTester.m"
-header_file="$dir/FabricTester.h"
-cp -vf "$script_dir/ios-fabric_tester-FabricTester.m" "$objc_file"
-cp -vf "$script_dir/ios-fabric_tester-FabricTester.h" "$header_file"
-
 echo "################################"
 echo "#### Fix project.pbxproj"
 
@@ -36,17 +30,6 @@ def build_settings(project, params)
 	end
 end
 
-def add_fabric_tester(project)
-	group = project.main_group.new_group "FabricTester"
-	objc_file = group.new_file "$objc_file"
-	header_file = group.new_file "$header_file"
-
-	project.targets.each do |target|
-		phase = target.build_phases.find { |phase| phase.isa == 'PBXSourcesBuildPhase' }
-		phase.add_file_reference objc_file
-	end
-end
-
 project = Xcodeproj::Project.open "$proj"
 project.recreate_user_schemes
 
@@ -56,8 +39,6 @@ build_settings(project,
 	"PROVISIONING_PROFILE" => "\$(PROFILE_UDID)"
 )
 append_script(project, "Fabric", "./Pods/Fabric/Fabric.framework/run $FABRIC_API_KEY $FABRIC_BUILD_SECRET")
-
-add_fabric_tester project
 
 project.save
 EOF
@@ -72,14 +53,12 @@ cat "$file" | awk '
 	/didFinishLaunchingWithOptions/ { did=1 }
 	/return/ && (did == 1) {
 		print "    [Fabric with:@[CrashlyticsKit]];"
-		print "    [FabricTester start];"
 		did=0
 	}
 	{ print $0 }
 	/#import </ {
 		print "#import <Fabric/Fabric.h>"
 		print "#import <Crashlytics/Crashlytics.h>"
-		print "#import \"FabricTester.h\""
 	}
 ' > "${file}.tmp"
 mv -vf "${file}.tmp" "$file"
