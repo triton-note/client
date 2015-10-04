@@ -9,8 +9,7 @@
 - (void) doTest {
     @autoreleasepool {
         [NSThread sleepForTimeInterval:5];
-        [CrashlyticsKit setValue:@"Use CrashlyticsKit" forKey:@"VER"];
-        [CrashlyticsKit throwException];
+        [CrashlyticsKit crash];
     }
 }
 @end
