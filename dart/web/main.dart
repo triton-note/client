@@ -1,6 +1,7 @@
 library triton_note;
 
 import 'dart:html';
+import 'dart:js';
 
 import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
@@ -76,6 +77,8 @@ void main() {
 
   initPolymer().then((zone) => Polymer.onReady.then((_) {
         onDeviceReady((event) {
+          //window.fabric.Answers.sendLogIn();
+          context['window']['fabric']['Answers'].callMethod('sendLogIn', []);
           applicationFactory().addModule(new AppModule()).run();
         });
       }));

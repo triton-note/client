@@ -2,12 +2,12 @@
 set -eu
 
 update() {
-	echo "Updating $1..."
+	echo "Installing $1..."
 	echo y | android update sdk --no-ui --all --filter $1 | awk '
 BEGIN { go = 0 }
 /Do you accept the license/ { go = 1 }
 /Warning/ { go = 1 }
-{ if (go == 1) print $0 }
+go == 1 { print $0 }
 '
 }
 

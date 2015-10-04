@@ -18,9 +18,6 @@ cordova plugin add cordova-plugin-whitelist
 
 cordova plugin add phonegap-plugin-push
 
-# Facebook connect
-cordova plugin add https://github.com/Wizcorp/phonegap-facebook-plugin.git --variable APP_ID="$FACEBOOK_APP_ID" --variable APP_NAME="$FACEBOOK_APP_NAME"
-
 # Customized org.apache.cordova.file for GOOGLE_PHOTOS
 cordova plugin add https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos
 
