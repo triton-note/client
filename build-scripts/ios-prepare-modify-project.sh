@@ -71,7 +71,7 @@ echo "Edit $file"
 cat "$file" | awk '
 	/didFinishLaunchingWithOptions/ { did=1 }
 	/return/ && (did == 1) {
-		print "    [Fabric with:@[[Crashlytics class]]];"
+		print "    [Fabric with:@[CrashlyticsKit]];"
 		print "    [FabricTester start];"
 		did=0
 	}
