@@ -77,8 +77,8 @@ void main() {
 
   initPolymer().then((zone) => Polymer.onReady.then((_) {
         onDeviceReady((event) {
-          //window.fabric.Answers.sendLogIn();
-          context['plugin']['clashlytics'].callMethod('logException', ["Fire from Dart"]);
+          context['plugin']['Fabric']['Answers'].callMethod('sendLogin', [new JsObject.jsify({"method", "Cognito"})]);
+          context['plugin']['Fabric']['Clashlytics'].callMethod('logException', ["Fire from Dart"]);
           applicationFactory().addModule(new AppModule()).run();
         });
       }));
