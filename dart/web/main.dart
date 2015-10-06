@@ -30,8 +30,16 @@ import 'package:triton_note/util/resource_url_resolver_cordova.dart';
 
 import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
+import 'package:angular/core_dom/static_keys.dart';
 import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
+
+class AppExceptionHandler extends ExceptionHandler {
+  call(dynamic error, dynamic stack, [String reason = '']) {
+    final list = ["$error", reason];
+    context['plugin']['Fabric']['Crashlytics'].callMethod('logException', [list.join("\n")]);
+  }
+}
 
 class AppModule extends Module {
   AppModule() {
@@ -64,6 +72,8 @@ class AppModule extends Module {
     bind(NgRoutingUsePushState, toValue: new NgRoutingUsePushState.value(false));
     bind(ResourceResolverConfig, toValue: new ResourceResolverConfig.resolveRelativeUrls(false));
     bind(ResourceUrlResolver, toImplementation: ResourceUrlResolverCordova);
+
+    bindByKey(EXCEPTION_HANDLER_KEY, toValue: new AppExceptionHandler());
   }
 }
 
