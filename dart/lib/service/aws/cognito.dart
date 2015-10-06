@@ -89,6 +89,9 @@ class CognitoIdentity {
     creds.callMethod('get', [
       (error) {
         if (error == null) {
+          context['plugin']['Fabric']['Answers'].callMethod('eventLogin', [
+            new JsObject.jsify({"method": "Cognito"})
+          ]);
           result.complete();
         } else {
           _logger.fine("Cognito Error: ${error}");
