@@ -71,8 +71,11 @@ void main() {
   Logger.root
     ..level = Level.FINEST
     ..onRecord.listen((record) {
-      final timestamp = isCordova ? '' : "${record.time} ";
-      window.console.log("${timestamp}${record}");
+      if (isCordova) {
+        context['plugin']['Fabric']['Crashlytics'].callMethod('log', ["${record}"]);
+      } else {
+        window.console.log("${record.time} ${record}");
+      }
     });
 
   initPolymer().then((zone) => Polymer.onReady.then((_) {
