@@ -59,6 +59,9 @@ class CognitoIdentity {
           creds['params']['IdentityId'] = null;
           await _refresh();
         }
+        context['plugin']['Fabric']['Answers'].callMethod('eventLogin', [
+          new JsObject.jsify({"method": "Cognito"})
+        ]);
         _onInitialize.complete();
       } catch (ex) {
         _logger.warning("Error on initializing: ${ex}");
@@ -89,9 +92,6 @@ class CognitoIdentity {
     creds.callMethod('get', [
       (error) {
         if (error == null) {
-          context['plugin']['Fabric']['Answers'].callMethod('eventLogin', [
-            new JsObject.jsify({"method": "Cognito"})
-          ]);
           result.complete();
         } else {
           _logger.fine("Cognito Error: ${error}");
