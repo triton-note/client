@@ -13,7 +13,6 @@ export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
 (cd $(dirname $0)
 [ -z "${IS_CI:-}" ] || ./android-prepare-update.sh
 ./android-prepare-keystore.sh
-./android-prepare-fabric.sh
 ./android-prepare-build_num.sh
 )
 
