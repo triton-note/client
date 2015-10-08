@@ -19,7 +19,7 @@ before_install:
 
 install:
   - brew tap dart-lang/dart && brew install dart
-  - sudo gem install compass
+  - sudo gem install compass xcodeproj
   - npm install
   - export PATH="$PATH:$(pwd)/node_modules/.bin"
   - build-scripts/cache.sh save $TRAVIS_REPO_SLUG
