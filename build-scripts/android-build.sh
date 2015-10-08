@@ -10,8 +10,8 @@ export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
 ########
 #### Preparing
 
-(cd $(dirname $0)
-[ -z "${IS_CI:-}" ] || ./android-prepare-update.sh
+[ -z "${IS_CI:-}" ] || (cd $(dirname $0)
+./android-prepare-update.sh
 ./android-prepare-keystore.sh
 ./android-prepare-build_num.sh
 )
@@ -19,8 +19,13 @@ export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
 ########
 #### Build
 
-[ "$BUILD_MODE" == "debug" ] && echo "cdvBuildMultipleApks=false" >> platforms/android/gradle.properties
-cordova build android --release --buildConfig=platforms/android/build.json
+if [ -z "${IS_CI:-}" ]
+then
+	cordova build android
+else
+	[ "$BUILD_MODE" == "debug" ] && echo "cdvBuildMultipleApks=false" >> platforms/android/gradle.properties
+	cordova build android --release --buildConfig=platforms/android/build.json
+fi
 
 ########
 #### Deploy
