@@ -22,8 +22,9 @@ fi
 #### Preparing
 
 (cd $(dirname $0)
-./ios-prepare-modify-project.sh
-./ios-prepare-fastlane.sh
+time ./ios-prepare-cocoapod.sh
+time ./ios-prepare-modify_project.sh
+time ./ios-prepare-fastlane.sh
 )
 
 ########

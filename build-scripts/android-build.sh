@@ -11,9 +11,9 @@ export ANDROID_HOME=$(brew --prefix android) && echo $ANDROID_HOME
 #### Preparing
 
 [ -z "${IS_CI:-}" ] || (cd $(dirname $0)
-./android-prepare-update.sh
-./android-prepare-keystore.sh
-./android-prepare-build_num.sh
+time ./android-prepare-update.sh
+time ./android-prepare-keystore.sh
+time ./android-prepare-build_num.sh
 )
 
 ########
