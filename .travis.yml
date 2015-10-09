@@ -5,7 +5,7 @@ rvm: 2.2.3
 env:
   global:
     - BUILD_NUM="$TRAVIS_BUILD_NUMBER"
-    - RELEASE_NOTE_PATH="$(build-scripts/env-release_note.sh $TRAVIS_COMMIT)"
+    - RELEASE_NOTE_PATH="$(build-scripts/env-release_note.sh $TRAVIS_COMMIT $TRAVIS_COMMIT_RANGE)"
     - IS_CI="$(build-scripts/env-is_ci.sh)"
     - BUILD_MODE="$(build-scripts/env-build_mode.sh)"
   matrix:
