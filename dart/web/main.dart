@@ -90,6 +90,7 @@ void main() {
 
   initPolymer().then((zone) => Polymer.onReady.then((_) {
         onDeviceReady((event) {
+          FabricCrashlytics.logException("Fire at started Cordova.");
           applicationFactory().addModule(new AppModule()).run();
         });
       }));
