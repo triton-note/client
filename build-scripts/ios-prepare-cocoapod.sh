@@ -7,4 +7,6 @@ cd "$script_dir/../platforms/ios"
 echo "################################"
 echo "#### Pod install"
 
+[ -f Podfile ] || echo "platform :ios,'8.0'" > Podfile
+
 pod install
