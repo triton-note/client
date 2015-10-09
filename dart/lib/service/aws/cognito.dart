@@ -7,6 +7,7 @@ import 'dart:js';
 import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
 
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/getter_setter.dart';
 
 final _logger = new Logger('Cognito');
@@ -59,9 +60,7 @@ class CognitoIdentity {
           creds['params']['IdentityId'] = null;
           await _refresh();
         }
-        context['plugin']['Fabric']['Answers'].callMethod('eventLogin', [
-          new JsObject.jsify({"method": "Cognito"})
-        ]);
+        FabricAnswers.eventLogin(method: "Cognito");
         _onInitialize.complete();
       } catch (ex) {
         _logger.warning("Error on initializing: ${ex}");

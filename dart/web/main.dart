@@ -1,7 +1,6 @@
 library triton_note;
 
 import 'dart:html';
-import 'dart:js';
 
 import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
@@ -25,6 +24,7 @@ import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/report_detail.dart';
 import 'package:triton_note/page/preferences.dart';
 import 'package:triton_note/page/distributions.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/resource_url_resolver_cordova.dart';
 
@@ -37,7 +37,7 @@ import 'package:polymer/polymer.dart';
 class AppExceptionHandler extends ExceptionHandler {
   call(dynamic error, dynamic stack, [String reason = '']) {
     final list = ["$error", reason];
-    context['plugin']['Fabric']['Crashlytics'].callMethod('logException', [list.join("\n")]);
+    FabricCrashlytics.logException(list.join("\n"));
   }
 }
 
@@ -82,7 +82,7 @@ void main() {
     ..level = Level.FINEST
     ..onRecord.listen((record) {
       if (isCordova) {
-        context['plugin']['Fabric']['Crashlytics'].callMethod('log', ["${record}"]);
+        FabricCrashlytics.log("${record}");
       } else {
         window.console.log("${record.time} ${record}");
       }
