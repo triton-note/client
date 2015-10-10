@@ -89,18 +89,9 @@ void main() {
       }
     });
 
-  try {
-    context.callMethod('alert', ['Pop on main']);
-  } catch (ex) {
-    //
-  }
-  try {
-    context['window'].callMethod('alert', ['Pop on main(window)']);
-  } catch (ex) {
-    //
-  }
-
   onDeviceReady((event) {
+    context.callMethod('alert', ['Pop onDeviceReady']);
+
     FabricCrashlytics.log("Cordova Ready.");
     FabricCrashlytics.logException("Fire at started Cordova");
     initPolymer().then((zone) => Polymer.onReady.then((_) {
