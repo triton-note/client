@@ -1,6 +1,7 @@
 library triton_note;
 
 import 'dart:html';
+import 'dart:js';
 
 import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
@@ -87,6 +88,17 @@ void main() {
         window.console.log("${record.time} ${record}");
       }
     });
+
+  try {
+    context.callMethod('alert', ['Pop on main']);
+  } catch (ex) {
+    //
+  }
+  try {
+    context['window'].callMethod('alert', ['Pop on main(window)']);
+  } catch (ex) {
+    //
+  }
 
   onDeviceReady((event) {
     FabricCrashlytics.log("Cordova Ready.");
