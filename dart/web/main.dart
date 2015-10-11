@@ -89,13 +89,11 @@ void main() {
       }
     });
 
-  onDeviceReady((event) {
-    context.callMethod('alert', ['Pop onDeviceReady']);
+  initPolymer().then((zone) => Polymer.onReady.then((_) {
+        context.callMethod('alert', ['Pop Polymer.onReady']);
 
-    FabricCrashlytics.log("Cordova Ready.");
-    FabricCrashlytics.logException("Fire at started Cordova");
-    initPolymer().then((zone) => Polymer.onReady.then((_) {
+        onDeviceReady((event) {
           applicationFactory().addModule(new AppModule()).run();
-        }));
-  });
+        });
+      }));
 }
