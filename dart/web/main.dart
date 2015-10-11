@@ -89,11 +89,15 @@ void main() {
       }
     });
 
-  initPolymer().then((zone) => Polymer.onReady.then((_) {
-        context.callMethod('alert', ['Pop Polymer.onReady']);
+  context.callMethod('alert', ['Pop on main']);
+  initPolymer().then((zone) {
+    context.callMethod('alert', ['Pop initPolymer']);
+    Polymer.onReady.then((_) {
+      context.callMethod('alert', ['Pop Polymer.onReady']);
 
-        onDeviceReady((event) {
-          applicationFactory().addModule(new AppModule()).run();
-        });
-      }));
+      onDeviceReady((event) {
+        applicationFactory().addModule(new AppModule()).run();
+      });
+    });
+  });
 }
