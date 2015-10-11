@@ -89,7 +89,6 @@ void main() {
       }
     });
 
-  context.callMethod('alert', ['Pop on main']);
   initPolymer().then((zone) {
     context.callMethod('alert', ['Pop initPolymer']);
     Polymer.onReady.then((_) {
