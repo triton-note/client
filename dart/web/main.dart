@@ -91,26 +91,6 @@ void main() {
 
   try {
     window.alert('Pop on main');
-
-    new Future.delayed(new Duration(seconds: 10), () {
-      document.on['deviceready'].listen((event) {
-        window.alert('Pop onDeviceReady: ${event}');
-        try {
-          initPolymer().then((zone) {
-            zone.run(() {
-              window.alert('Pop initPolymer');
-              Polymer.onReady.then((_) {
-                window.alert('Pop Polymer.onReady');
-
-                applicationFactory().addModule(new AppModule()).run();
-              });
-            });
-          });
-        } catch (ex) {
-          FabricCrashlytics.logException("$ex");
-        }
-      });
-    });
   } catch (ex) {
     window.alert("Error ${ex}");
   }
