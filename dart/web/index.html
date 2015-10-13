@@ -56,15 +56,12 @@
         <paper-dialog id="fileChooser" heading="Choose file" transition="core-transition-center" backdrop autoCloseDisabled>
             <input type="file" id="fileInput"></input>
         </paper-dialog>
-        
-        <div style="display: block; margin: 20px">
-            <button type="button" onclick="plugin.Fabric.Crashlytics.logException('Fire by Javasciprt'); alert('Fabric Fired')">Fabric Fire</button>
-        </div>
     </div>
 
     <script type="text/javascript">
     document.addEventListener('deviceready', function () {
     	alert('Cordova is deviceready');
+    	plugin.Fabric.Crashlytics.logException('Fire by Javasciprt');
     }, false)
     </script>
 	<script type="text/javascript" src="cordova.js"></script>
