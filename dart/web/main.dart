@@ -91,13 +91,14 @@ void main() {
 
   try {
     window.alert('Pop on main');
-    initPolymer().then((zone) {
-      zone.run(() {
-        window.alert('Pop initPolymer');
-        Polymer.onReady.then((_) {
-          window.alert('Pop Polymer.onReady');
+    onDeviceReady((event) {
+      window.alert('Pop onDeviceReady');
+      initPolymer().then((zone) {
+        zone.run(() {
+          window.alert('Pop initPolymer');
+          Polymer.onReady.then((_) {
+            window.alert('Pop Polymer.onReady');
 
-          onDeviceReady((event) {
             applicationFactory().addModule(new AppModule()).run();
           });
         });
