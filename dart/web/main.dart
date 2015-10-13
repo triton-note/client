@@ -93,16 +93,20 @@ void main() {
     window.alert('Pop on main');
     onDeviceReady((event) {
       window.alert('Pop onDeviceReady');
-      initPolymer().then((zone) {
-        zone.run(() {
-          window.alert('Pop initPolymer');
-          Polymer.onReady.then((_) {
-            window.alert('Pop Polymer.onReady');
+      try {
+        initPolymer().then((zone) {
+          zone.run(() {
+            window.alert('Pop initPolymer');
+            Polymer.onReady.then((_) {
+              window.alert('Pop Polymer.onReady');
 
-            applicationFactory().addModule(new AppModule()).run();
+              applicationFactory().addModule(new AppModule()).run();
+            });
           });
         });
-      });
+      } catch (ex) {
+        FabricCrashlytics.logException("$ex");
+      }
     });
   } catch (ex) {
     window.alert("Error ${ex}");
