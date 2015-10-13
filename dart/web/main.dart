@@ -91,8 +91,8 @@ void main() {
 
   try {
     window.alert('Pop on main');
-    onDeviceReady((event) {
-      window.alert('Pop onDeviceReady');
+    document.on['deviceready'].listen((event) {
+      window.alert('Pop onDeviceReady: ${event}');
       try {
         initPolymer().then((zone) {
           zone.run(() {
