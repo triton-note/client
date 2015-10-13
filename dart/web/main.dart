@@ -1,7 +1,7 @@
 library triton_note;
 
 import 'dart:html';
-import 'dart:js';
+import 'dart:async';
 
 import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
@@ -91,22 +91,25 @@ void main() {
 
   try {
     window.alert('Pop on main');
-    document.on['deviceready'].listen((event) {
-      window.alert('Pop onDeviceReady: ${event}');
-      try {
-        initPolymer().then((zone) {
-          zone.run(() {
-            window.alert('Pop initPolymer');
-            Polymer.onReady.then((_) {
-              window.alert('Pop Polymer.onReady');
 
-              applicationFactory().addModule(new AppModule()).run();
+    new Future.delayed(new Duration(seconds: 10), () {
+      document.on['deviceready'].listen((event) {
+        window.alert('Pop onDeviceReady: ${event}');
+        try {
+          initPolymer().then((zone) {
+            zone.run(() {
+              window.alert('Pop initPolymer');
+              Polymer.onReady.then((_) {
+                window.alert('Pop Polymer.onReady');
+
+                applicationFactory().addModule(new AppModule()).run();
+              });
             });
           });
-        });
-      } catch (ex) {
-        FabricCrashlytics.logException("$ex");
-      }
+        } catch (ex) {
+          FabricCrashlytics.logException("$ex");
+        }
+      });
     });
   } catch (ex) {
     window.alert("Error ${ex}");
