@@ -89,14 +89,19 @@ void main() {
       }
     });
 
-  initPolymer().then((zone) {
-    context.callMethod('alert', ['Pop initPolymer']);
-    Polymer.onReady.then((_) {
-      context.callMethod('alert', ['Pop Polymer.onReady']);
+  try {
+    window.alert('Pop on main');
+    initPolymer().then((zone) {
+      window.alert('Pop initPolymer');
+      Polymer.onReady.then((_) {
+        window.alert('Pop Polymer.onReady');
 
-      onDeviceReady((event) {
-        applicationFactory().addModule(new AppModule()).run();
+        onDeviceReady((event) {
+          applicationFactory().addModule(new AppModule()).run();
+        });
       });
     });
-  });
+  } catch (ex) {
+    window.alert("Error ${ex}");
+  }
 }
