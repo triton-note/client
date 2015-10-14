@@ -78,20 +78,4 @@ class AppModule extends Module {
   }
 }
 
-void main() {
-  Logger.root
-    ..level = Level.FINEST
-    ..onRecord.listen((record) {
-      if (isCordova) {
-        FabricCrashlytics.log("${record}");
-      } else {
-        window.console.log("${record.time} ${record}");
-      }
-    });
-
-  try {
-    window.alert('Pop on main');
-  } catch (ex) {
-    window.alert("Error ${ex}");
-  }
-}
+void main() {}
