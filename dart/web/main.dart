@@ -1,7 +1,7 @@
 library triton_note;
 
 import 'dart:html';
-import 'dart:async';
+import 'dart:js';
 
 import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
@@ -78,4 +78,37 @@ class AppModule extends Module {
   }
 }
 
-void main() {}
+void main() {
+  Logger.root
+    ..level = Level.FINEST
+    ..onRecord.listen((record) {
+      if (isCordova) {
+        FabricCrashlytics.log("${record}");
+      } else {
+        window.console.log("${record.time} ${record}");
+      }
+    });
+
+  try {
+    window.alert('Pop on main');
+    document.on['deviceready'].listen((event) {
+      window.alert('Pop onDeviceReady: ${event}');
+      try {
+        initPolymer().then((zone) {
+          zone.run(() {
+            window.alert('Pop initPolymer');
+            Polymer.onReady.then((_) {
+              window.alert('Pop Polymer.onReady');
+
+              applicationFactory().addModule(new AppModule()).run();
+            });
+          });
+        });
+      } catch (ex) {
+        FabricCrashlytics.logException("$ex");
+      }
+    });
+  } catch (ex) {
+    window.alert("Error ${ex}");
+  }
+}
