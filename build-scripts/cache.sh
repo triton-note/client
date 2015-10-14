@@ -6,21 +6,16 @@ shift
 folder=$1
 shift
 
-install() {
-	sudo easy_install pip
-	sudo pip install awscli --upgrade
-}
+[ -z "$(type pip 2> /dev/null)" ] && sudo easy_install pip
+[ -z "$(type aws 2> /dev/null)" ] && sudo pip install awscli --upgrade
 
-setup() {
-	export AWS_ACCESS_KEY_ID=$S3_CACHE_ACCESS_KEY
-	export AWS_SECRET_ACCESS_KEY=$S3_CACHE_SECRET_KEY
-}
+export AWS_ACCESS_KEY_ID=$S3_CACHE_ACCESS_KEY
+export AWS_SECRET_ACCESS_KEY=$S3_CACHE_SECRET_KEY
 
 load() {
 	name=$1
 	tarfile=${name}.tar.bz2
 	echo "Syncing $name ..."
-	install
 	aws s3 cp s3://cache-build/$folder/$tarfile $tarfile
 	tar jxf $tarfile > /dev/null
 }
@@ -33,7 +28,6 @@ save() {
 	aws s3 cp $tarfile s3://cache-build/$folder/$tarfile
 }
 
-setup
 if [ "$#" == 0 ]
 then
 	cat <<EOF | while read name; do $action $name; done
