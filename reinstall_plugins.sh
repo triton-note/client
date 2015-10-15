@@ -21,7 +21,7 @@ cordova plugin add phonegap-plugin-push
 # Customized org.apache.cordova.file for GOOGLE_PHOTOS
 cordova plugin add https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos
 
-cordova plugin add https://github.com/sawatani/Cordova-Plugin-Crashlytics.git#feature/ios
+cordova plugin add https://github.com/sawatani/Cordova-Plugin-Crashlytics.git#feature/kotlin
 
 # Create Icons and Splash Screens
 ionic resources
