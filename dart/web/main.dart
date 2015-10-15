@@ -38,7 +38,7 @@ import 'package:polymer/polymer.dart';
 class AppExceptionHandler extends ExceptionHandler {
   call(dynamic error, dynamic stack, [String reason = '']) {
     final list = ["$error", reason];
-    FabricCrashlytics.logException(list.join("\n"));
+    FabricCrashlytics.crash(list.join("\n"));
   }
 }
 
