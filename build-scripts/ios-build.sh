@@ -4,8 +4,8 @@ set -eu
 ########
 #### Install dependencies
 
-[ -z "$(type fastlane)" ] && sudo gem install fastlane
-[ -z "$(type pod)" ] && sudo gem install cocoapods
+[ -z "$(type fastlane 2> /dev/null)" ] && sudo gem install fastlane
+[ -z "$(type pod 2> /dev/null)" ] && sudo gem install cocoapods
 
 ########
 #### Set environment variables
@@ -22,9 +22,9 @@ fi
 #### Preparing
 
 (cd $(dirname $0)
-./ios-prepare-cocoapods.sh
-./ios-prepare-modify-project.sh
-./ios-prepare-fastlane.sh
+time ./ios-prepare-cocoapod.sh
+time ./ios-prepare-modify_project.sh
+time ./ios-prepare-fastlane.sh
 )
 
 ########

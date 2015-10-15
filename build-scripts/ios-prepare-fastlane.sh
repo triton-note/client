@@ -3,6 +3,9 @@ set -eu
 
 cd "$(dirname $0)/../platforms/ios"
 
+echo "################################"
+echo "#### Create Fastfile"
+
 mkdir -vp fastlane
 
 (mkdir -vp certs && cd certs
@@ -15,7 +18,7 @@ app_identifier "$IOS_BUNDLE_ID"
 EOF
 
 cat <<EOF > fastlane/Fastfile
-fastlane_version "1.29.2"
+fastlane_version "1.32.1"
 
 default_platform :ios
 
