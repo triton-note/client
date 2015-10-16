@@ -2,7 +2,7 @@
 
 cd "$(dirname "$0")"
 
-rm -vf *.js
+rm -vf *.js *.js.map
 
 download() {
     url="$1"
