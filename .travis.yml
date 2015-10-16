@@ -25,6 +25,7 @@ install:
   - build-scripts/cache.sh save $TRAVIS_REPO_SLUG
 
 before_script:
+  - build-scripts/settings.sh
   - build-scripts/dart.sh
   - build-scripts/cordova-prepare.sh
 
