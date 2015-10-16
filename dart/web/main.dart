@@ -78,4 +78,33 @@ class AppModule extends Module {
   }
 }
 
-void main() {}
+void main() {
+  Logger.root
+    ..level = Level.FINEST
+    ..onRecord.listen((record) {
+      if (isCordova) {
+        FabricCrashlytics.log("${record}");
+      } else {
+        window.console.log("${record.time} ${record}");
+      }
+    });
+
+  try {
+    onDeviceReady((event) {
+      try {
+        initPolymer().then((zone) {
+          zone.run(() {
+            Polymer.onReady.then((_) {
+              applicationFactory().addModule(new AppModule()).run();
+            });
+          });
+        });
+      } catch (ex) {
+        FabricCrashlytics.crash("Error on initPolymer: $ex");
+      }
+    });
+  } catch (ex) {
+    window.alert("Error ${ex}");
+    FabricCrashlytics.crash("Error onDeviceReady: $ex");
+  }
+}

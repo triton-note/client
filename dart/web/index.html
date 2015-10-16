@@ -7,12 +7,6 @@
 
 <title>Triton Note</title>
 
-<link href='https://fonts.googleapis.com/css?family=Exo+2:100italic,600,200,300,400,800italic|Roboto+Mono:300' rel='stylesheet' type='text/css'>
-
-<script src="js/aws-sdk-2.2.0.min.js"></script>
-<script src="js/ExifReader.js"></script>
-<script src="js/amazon-cognito.min.js"></script>
-
 <link rel="import" href="packages/polymer/polymer.html">
 <link rel="import" href="packages/core_elements/core_animated_pages.html">
 <link rel="import" href="packages/core_elements/core_animated_pages/transitions/cross_fade.html">
@@ -58,19 +52,10 @@
         </paper-dialog>
     </div>
 
-    <script type="text/javascript">
-    document.addEventListener('deviceready', function () {
-    	alert('Cordova is deviceready');
-    	plugin.Fabric.Answers.eventPurchase({'itemPrice': 280.78, 'currency': 'USD', 'success': true});
-        plugin.Fabric.Answers.eventRating({'rating': 12.3});
-        plugin.Fabric.Answers.eventStartCheckout({'itemCount': 34.8});
-        plugin.Fabric.Crashlytics.setBool('Facebook Longin', true);
-        plugin.Fabric.Crashlytics.setDouble('Start duration', 20.49873);
-        plugin.Fabric.Crashlytics.setFloat('Network Speed', 56.97);
-        plugin.Fabric.Crashlytics.setInt('Interval Days', 3);
-        plugin.Fabric.Crashlytics.crash();
-    }, false)
-    </script>
+    <script src="js/aws-sdk-2.2.0.min.js"></script>
+    <script src="js/ExifReader.js"></script>
+    <script src="js/amazon-cognito.min.js"></script>
+
 	<script type="text/javascript" src="cordova.js"></script>
     <script type="application/dart" src="main.dart"></script>
 </body>
