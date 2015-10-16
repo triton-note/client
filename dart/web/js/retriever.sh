@@ -2,12 +2,11 @@
 
 cd "$(dirname "$0")"
 
-rm -vf *.js *.js.map
+rm -vf *.js
 
 download() {
     url="$1"
     wget "$url"
-    wget "${url}.map" || echo "No map: $url"
 }
 
 cat <<EOF | while read url; do download "$url"; done
