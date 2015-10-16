@@ -100,11 +100,11 @@ void main() {
           });
         });
       } catch (ex) {
-        FabricCrashlytics.crash("$ex");
+        FabricCrashlytics.crash("Error on initPolymer: $ex");
       }
     });
   } catch (ex) {
     window.alert("Error ${ex}");
-    FabricCrashlytics.crash("$ex");
+    FabricCrashlytics.crash("Error onDeviceReady: $ex");
   }
 }
