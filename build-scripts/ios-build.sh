@@ -24,7 +24,6 @@ fi
 (cd $(dirname $0)/../; cordova prepare ios)
 
 (cd $(dirname $0)
-time ./ios-prepare-cocoapod.sh
 time ./ios-prepare-modify_project.sh
 time ./ios-prepare-fastlane.sh
 )
