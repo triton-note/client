@@ -21,6 +21,8 @@ fi
 ########
 #### Preparing
 
+(cd $(dirname $0)/../; cordova prepare ios)
+
 (cd $(dirname $0)
 time ./ios-prepare-cocoapod.sh
 time ./ios-prepare-modify_project.sh

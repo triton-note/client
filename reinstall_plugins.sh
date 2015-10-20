@@ -25,6 +25,3 @@ cordova plugin add https://github.com/fathens/Cordova-Plugin-Crashlytics.git#fea
 
 # Create Icons and Splash Screens
 ionic resources
-
-# Preparing cordova
-cordova prepare
