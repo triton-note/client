@@ -33,12 +33,12 @@ platform :ios do
       puts "On human pc"
     end
 
-    sigh
-    ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
-
     increment_build_number(
       build_number: "$BUILD_NUM"
     )
+
+    sigh
+    ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
 
     gym(
       scheme: "$IOS_APPNAME",
@@ -51,7 +51,17 @@ platform :ios do
   end
 
   desc "Runs all the tests"
+  lane :test do
+    # sh "your_script.sh"
+    submit_crashlytics
+  end
+
+  desc "Submit a new build to Crashlytics"
   lane :debug do
+    submit_crashlytics
+  end
+
+  def submit_crashlytics
     if is_ci?
       crashlytics(
         crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",

@@ -5,9 +5,9 @@ cd $(dirname $0)
 target_dir=$(cd ../platforms/android; pwd)
 
 case "$BUILD_MODE" in
-"debug")   track_name="";;
 "beta")    track_name=beta;;
 "release") track_name=production;;
+*)   track_name="";;
 esac
 
 if [ -z "$track_name" ]
