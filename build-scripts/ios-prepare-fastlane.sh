@@ -33,12 +33,12 @@ platform :ios do
       puts "On human pc"
     end
 
-    sigh
-    ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
-
     increment_build_number(
       build_number: "$BUILD_NUM"
     )
+
+    sigh
+    ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
 
     gym(
       scheme: "$IOS_APPNAME",
