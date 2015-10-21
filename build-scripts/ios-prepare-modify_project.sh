@@ -24,11 +24,8 @@ def build_settings(project, params)
 end
 
 project = Xcodeproj::Project.open "$proj"
-project.recreate_user_schemes
 
 build_settings(project,
-	"OTHER_LDFLAGS" => "\$(inherited)",
-	"ENABLE_BITCODE" => "NO",
 	"PROVISIONING_PROFILE" => "\$(PROFILE_UDID)"
 )
 
