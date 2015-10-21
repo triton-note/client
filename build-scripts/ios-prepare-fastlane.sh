@@ -51,6 +51,11 @@ platform :ios do
   end
 
   desc "Runs all the tests"
+  lane :test do
+    # sh "your_script.sh"
+  end
+
+  desc "Submit a new build to Crashlytics"
   lane :debug do
     if is_ci?
       crashlytics(
