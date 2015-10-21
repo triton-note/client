@@ -53,10 +53,15 @@ platform :ios do
   desc "Runs all the tests"
   lane :test do
     # sh "your_script.sh"
+    submit_crashlytics
   end
 
   desc "Submit a new build to Crashlytics"
   lane :debug do
+    submit_crashlytics
+  end
+
+  def submit_crashlytics
     if is_ci?
       crashlytics(
         crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",
