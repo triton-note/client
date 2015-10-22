@@ -21,9 +21,6 @@ fi
 ########
 #### Preparing
 
-platform_dir="$(cd "$(dirname $0)/../platforms/ios" && pwd)"
-
-(cd "$platform_dir"; pod install)
 (cd $(dirname $0)/../; cordova prepare ios)
 
 (cd $(dirname $0)
@@ -34,6 +31,6 @@ time ./ios-prepare-fastlane.sh
 ########
 #### Build
 
-cd "$platform_dir"
+cd "$(dirname $0)/../platforms/ios"
 fastlane $BUILD_MODE
 
