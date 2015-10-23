@@ -33,7 +33,6 @@ import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
 import 'package:angular/core_dom/static_keys.dart';
 import 'package:logging/logging.dart';
-import 'package:polymer/polymer.dart';
 
 class AppExceptionHandler extends ExceptionHandler {
   call(dynamic error, dynamic stack, [String reason = '']) {
@@ -100,13 +99,7 @@ void main() {
     window.alert("Calling onDeviceReady");
     onDeviceReady((event) {
       try {
-        initPolymer().then((zone) {
-          zone.run(() {
-            Polymer.onReady.then((_) {
-              applicationFactory().addModule(new AppModule()).run();
-            });
-          });
-        });
+        applicationFactory().addModule(new AppModule()).run();
       } catch (ex) {
         FabricCrashlytics.crash("Error on initPolymer: $ex");
       }
