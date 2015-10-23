@@ -6,6 +6,7 @@ cordova platform add android
 [ -n "$(uname | grep 'Darwin')" ] && cordova platform add https://github.com/apache/cordova-ios.git
 
 cordova plugin add cordova-plugin-crosswalk-webview
+cordova plugin add https://github.com/apache/cordova-plugin-wkwebview-engine.git
 
 # Default plugins
 cordova plugin add cordova-plugin-device
