@@ -3,7 +3,7 @@ rm -rf plugins/
 mkdir -vp plugins
 
 cordova platform add android
-[ -n "$(uname | grep 'Darwin')" ] && cordova platform add ios
+[ -n "$(uname | grep 'Darwin')" ] && cordova platform add https://github.com/apache/cordova-ios.git
 
 cordova plugin add cordova-plugin-crosswalk-webview
 
