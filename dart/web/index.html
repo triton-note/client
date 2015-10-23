@@ -12,18 +12,8 @@
 </head>
 <body unresolved>
 
-	<div style="display: none">
-		<paper-input-decorator></paper-input-decorator>
-	</div>
-	
 	<ng-view></ng-view>
     
-    <div id="options">
-        <paper-dialog id="fileChooser" heading="Choose file" transition="core-transition-center" backdrop autoCloseDisabled>
-            <input type="file" id="fileInput"></input>
-        </paper-dialog>
-    </div>
-
     <script src="js/aws-sdk-2.2.0.min.js"></script>
     <script src="js/ExifReader.js"></script>
     <script src="js/amazon-cognito.min.js"></script>
