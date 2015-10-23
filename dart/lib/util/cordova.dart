@@ -13,15 +13,19 @@ final bool isCordova = window.location.protocol == "file:";
 Completer<String> _onDeviceReady;
 
 void onDeviceReady(proc(String)) {
+  window.alert("Entered: onDeviceReady");
   if (_onDeviceReady == null) {
+    window.alert("Creating Completer for _onDeviceReady");
     _onDeviceReady = new Completer<String>();
     if (isCordova) {
+      window.alert("Listening to deviceready");
       document.on['deviceready'].listen((event) {
         _onDeviceReady.complete("cordova");
         hideStatusBar();
       });
     } else _onDeviceReady.complete("browser");
   }
+  window.alert("Setting future to proc");
   _onDeviceReady.future.then(proc);
 }
 
