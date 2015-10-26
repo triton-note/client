@@ -34,4 +34,5 @@ script:
 
 notifications:
   email: false
-  slack: ${SLACK_TEAM}:${SLACK_TOKEN}
+  slack:
+    secure: cj2UIdsFzOCepZpaSCNTu1g37P2Uhve31f7xKN6kl8E1cAtgftWYCVOE43rCChZ4lKYtK2wtGvjTaRjHfO9M2Wz3GiPZ1Q1rh4ECVpUxz4gEEeMutH989T1S3MwkobQICxgXWZid9W3x4+6MEHIwmqiTWwch2AJsAGYPKU/2dz4=
