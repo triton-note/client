@@ -90,14 +90,6 @@ void main() {
     });
 
   try {
-    window.alert("Calling document.title");
-    window.alert("Document Title: ${document.title}");
-    window.alert("Document Body: ${document.body}");
-    window.alert("Document Base URI: ${document.body.baseUri}");
-    document.onLoad.listen((event) {
-      window.alert("Document onLoad: ${event}");
-    });
-    window.alert("Calling onDeviceReady");
     onDeviceReady((event) {
       try {
         initPolymer().then((zone) {
