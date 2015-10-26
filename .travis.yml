@@ -33,4 +33,5 @@ script:
   - build-scripts/${platform}-build.sh
 
 notifications:
-  slack: $SLACK_TOKEN
+  email: false
+  slack: ${SLACK_TEAM}:${SLACK_TOKEN}
