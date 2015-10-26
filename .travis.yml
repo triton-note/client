@@ -31,3 +31,6 @@ before_script:
 
 script:
   - build-scripts/${platform}-build.sh
+
+notifications:
+  slack: $SLACK_TOKEN
