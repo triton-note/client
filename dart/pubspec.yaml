@@ -3,13 +3,33 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
   angular: any
-  paper_elements: any
+  paper_elements:
+    git:
+      url: https://github.com/fathens/paper-elements.git
+      ref: web_components_0.12.0
   polymer: any
 dev_dependencies:
   crypto: any
   mock: any
   sass: any
   unittest: any
+dependency_overrides:
+  polymer:
+    git:
+      url: https://github.com/fathens/polymer-dart.git
+      ref: web_components_0.12.0
+  polymer_interop:
+    git:
+      url: https://github.com/fathens/polymer_interop.git
+      ref: web_components_0.12.0
+  template_binding:
+    git:
+      url: https://github.com/fathens/template-binding.git
+      ref: web_components_0.12.0
+  core_elements:
+    git:
+      url: https://github.com/fathens/core-elements.git
+      ref: web_components_0.12.0
 transformers:
 - sass:
     compass: true
