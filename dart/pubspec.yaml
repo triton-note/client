@@ -10,6 +10,8 @@ dev_dependencies:
   mock: any
   sass: any
   unittest: any
+dependency_overrides:
+  web_components: "^0.12.0+3"
 transformers:
 - sass:
     compass: true
