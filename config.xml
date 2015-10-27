@@ -18,6 +18,7 @@
   <preference name="android-minSdkVersion" value="21"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
   <preference name="iosPersistentFileLocation" value="Library"/>
-  <preference name="deployment-target" value="8.0" />
+  <preference name="deployment-target" value="8.0"/>
   <preference name="SplashScreenDelay" value="30000"/>
+  <preference name="AutoHideSplashScreen" value="false"/>
 </widget>
