@@ -21,4 +21,7 @@
   <preference name="deployment-target" value="8.0"/>
   <preference name="SplashScreenDelay" value="30000"/>
   <preference name="AutoHideSplashScreen" value="false"/>
+  <platform name="ios">
+    <hook src="hooks/ios9-aws.sh" type="after_platform_add"/>
+  </platform>
 </widget>
