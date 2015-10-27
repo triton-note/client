@@ -22,6 +22,7 @@ cordova plugin add phonegap-plugin-push
 cordova plugin add https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos
 
 cordova plugin add https://github.com/fathens/Cordova-Plugin-Crashlytics.git --variable API_KEY=$FABRIC_API_KEY
+cordova plugin add https://github.com/fathens/Cordova-Plugin-iOS9_AWS.git
 
 # Create Icons and Splash Screens
 ionic resources

@@ -5,6 +5,5 @@ platforms/
 plugins/
 bower_components/
 *.log
-hooks
 resources/*/
 /ionic.project
