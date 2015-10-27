@@ -1,24 +1,24 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version='1.0' encoding='utf-8'?>
 <widget id="org.fathens.TritonNote" version="1.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-  <name>TritonNote</name>
-  <description>
-    Triton Note Client
-  </description>
-  <author email="admin+triton_note@fathens.org" href="http://www.fathens.org/">
-    Office fathens
-  </author>
-  <content src="index.html"/>
-  <access origin="*"/>
-  <preference name="fullscreen" value="false"/>
-  <preference name="Orientation" value="portrait"/>
-  <preference name="webviewbounce" value="false"/>
-  <preference name="UIWebViewBounce" value="false"/>
-  <preference name="DisallowOverscroll" value="false"/>
-  <preference name="BackupWebStorage" value="local"/>
-  <preference name="android-minSdkVersion" value="21"/>
-  <preference name="AndroidPersistentFileLocation" value="Internal"/>
-  <preference name="iosPersistentFileLocation" value="Library"/>
-  <preference name="deployment-target" value="8.0"/>
-  <preference name="SplashScreenDelay" value="30000"/>
-  <preference name="AutoHideSplashScreen" value="false"/>
+    <name>TritonNote</name>
+    <description>
+        Triton Note Client
+    </description>
+    <author email="admin+triton_note@fathens.org" href="http://www.fathens.org/">
+        Office fathens
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+    <preference name="fullscreen" value="false" />
+    <preference name="Orientation" value="portrait" />
+    <preference name="webviewbounce" value="false" />
+    <preference name="UIWebViewBounce" value="false" />
+    <preference name="DisallowOverscroll" value="false" />
+    <preference name="BackupWebStorage" value="local" />
+    <preference name="android-minSdkVersion" value="21" />
+    <preference name="AndroidPersistentFileLocation" value="Internal" />
+    <preference name="iosPersistentFileLocation" value="Library" />
+    <preference name="deployment-target" value="8.0" />
+    <preference name="SplashScreenDelay" value="30000" />
+    <preference name="AutoHideSplashScreen" value="false" />
 </widget>
