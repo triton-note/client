@@ -18,6 +18,7 @@ load() {
 	echo "Syncing $name ..."
 	aws s3 cp s3://cache-build/$folder/$tarfile $tarfile
 	tar jxf $tarfile > /dev/null
+	rm -f $tarfile
 }
 
 save() {
@@ -26,6 +27,7 @@ save() {
 	echo "Syncing $name ..."
 	tar jcf $tarfile $name > /dev/null
 	aws s3 cp $tarfile s3://cache-build/$folder/$tarfile
+	rm -f $tarfile
 }
 
 if [ "$#" == 0 ]
