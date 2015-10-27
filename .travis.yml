@@ -15,6 +15,7 @@ env:
 before_install:
   - (echo -n 'gem'; echo -n ':'; echo ' --no-document') > $HOME/.gemrc
   - brew update
+  - build-scripts/cache.sh load $TRAVIS_REPO_SLUG build-scripts/persistent
   - build-scripts/cache.sh load $TRAVIS_REPO_SLUG
 
 install:
