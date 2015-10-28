@@ -16,6 +16,7 @@ def environment_variables():
 
 def execute():
     prefix = os.path.abspath('node_modules/.bin')
+    shell.cmd('ls -la node_modules/.bin')
     shell.mkdirs('plugins')
     shell.cmd('%s/cordova prepare %s' % (prefix, os.environ['PLATFORM']))
     shell.cmd('%s/ionic resources' % prefix)
