@@ -7,6 +7,7 @@ import tarfile
 
 import boto3
 import botocore
+import shell
 
 def getObject(name):
     s3 = boto3.resource('s3')
@@ -15,15 +16,10 @@ def getObject(name):
     filename = name + '.tar.bz2'
     return (bucket.Object(folder + "/" + filename), filename)
 
-def mkdirs(path):
-    dir = os.path.dirname(path)
-    if dir and not os.path.exists(dir):
-        os.makedirs(dir)
-
 def load(name):
     (obj, filename) = getObject(name)
     print('Loading', obj, 'to', filename)
-    mkdirs(filename)
+    shell.mkdirs(os.path.dirname(filename))
     file = open(filename, mode='wb')
     try:
         file.write(obj.get()['Body'].read())
@@ -31,7 +27,7 @@ def load(name):
         tar = tarfile.open(mode='r:bz2', name=filename)
         for member in tar.getmembers():
             if member.isfile():
-                mkdirs(member.name)
+                shell.mkdirs(os.path.dirname(member.name))
                 src = tar.extractfile(member)
                 dst = open(member.name, mode='wb')
                 dst.write(src.read())

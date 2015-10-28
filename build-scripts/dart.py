@@ -47,8 +47,7 @@ def download(url, dir):
     name = uniqueName(url)
     target = os.path.join(dir, name)
     print('Downloading', url, 'to', target)
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    shell.mkdirs(dir)
     urllib.request.urlretrieve(url, target)
     return name
 
@@ -117,8 +116,8 @@ def all():
         index.js()
         index.close()
 
-        shell.call('pub get')
-        shell.call('pub build')
+        shell.cmd('pub get')
+        shell.cmd('pub build')
     finally:
         os.chdir('..')
 
