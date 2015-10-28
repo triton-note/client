@@ -116,6 +116,12 @@ def all():
         index.fonts()
         index.js()
         index.close()
+
+        def call(cmd):
+            if os.system(cmd) != 0:
+                sys.exit("Failed to execute: %s" % cmd)
+        call('pub get')
+        call('pub build')
     finally:
         os.chdir('..')
 
