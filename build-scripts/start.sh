@@ -25,7 +25,7 @@ source /usr/local/bin/virtualenvwrapper.sh
 mkvirtualenv --python=/usr/local/bin/python3 V3
 workon V3
 
-pip install boto3
+pip install boto3 yaml lxml
 
 echo "################"
 echo "# Install tools"
