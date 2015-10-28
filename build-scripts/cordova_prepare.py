@@ -8,10 +8,14 @@ import shell
 
 def environment_variables():
     print('Setting environment variables')
+    os.environ['FACEBOOK_APP_NAME'] = Config.get('APPLICATION_NAME')
+    os.environ['FACEBOOK_APP_ID'] = Config.get('FACEBOOK_APP_ID')
+    os.environ['FABRIC_API_KEY'] = Config.get('fabric.API_KEY')
+    os.environ['FABRIC_BUILD_SECRET'] = Config.get('fabric.BUILD_SECRET')
 
 def execute():
     shell.mkdirs('plugins')
-    shell.cmd('cordova prepare %s' % os.enriron['PLATFORM'])
+    shell.cmd('cordova prepare %s' % os.environ['PLATFORM'])
     shell.cmd('ionic resources')
 
 def all():
