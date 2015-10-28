@@ -7,31 +7,14 @@ env:
     - BUILD_NUM="$TRAVIS_BUILD_NUMBER"
     - RELEASE_NOTE_PATH="$(build-scripts/env-release_note.sh $TRAVIS_COMMIT $TRAVIS_COMMIT_RANGE)"
     - IS_CI="$(build-scripts/env-is_ci.sh)"
+    - PROJECT_REPO_SLUG=$TRAVIS_REPO_SLUG
     - BUILD_MODE="$(build-scripts/env-build_mode.sh)"
   matrix:
-    - platform=android
-    - platform=ios
-
-before_install:
-  - (echo -n 'gem'; echo -n ':'; echo ' --no-document') > $HOME/.gemrc
-  - brew update
-  - build-scripts/cache.sh load $TRAVIS_REPO_SLUG build-scripts/persistent
-  - build-scripts/cache.sh load $TRAVIS_REPO_SLUG
-
-install:
-  - brew tap dart-lang/dart && brew install dart
-  - sudo gem install compass xcodeproj
-  - npm install
-  - export PATH="$PATH:$(pwd)/node_modules/.bin"
-  - build-scripts/cache.sh save $TRAVIS_REPO_SLUG
-
-before_script:
-  - build-scripts/settings.sh
-  - build-scripts/dart.sh
-  - build-scripts/cordova-prepare.sh
+    - PLATFORM=android
+    - PLATFORM=ios
 
 script:
-  - build-scripts/${platform}-build.sh
+  - build-scripts/start.sh
 
 notifications:
   email: false
