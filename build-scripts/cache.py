@@ -17,7 +17,7 @@ def getObject(name):
 
 def mkdirs(path):
     dir = os.path.dirname(path)
-    if not os.path.exists(dir):
+    if dir and not os.path.exists(dir):
         os.makedirs(dir)
 
 def load(name):
