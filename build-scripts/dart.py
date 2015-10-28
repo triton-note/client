@@ -53,18 +53,18 @@ def download(url, dir):
 class IndexHtml:
     def __init__(self):
         self.index = os.path.join('web', 'index.html')
-        self.dom = self.loadIndex()
-
-    def loadIndex(self):
         file = open(self.index, mode='r')
         try:
-            return lxml.html.fromstring(file.read())
+            self.dom = lxml.html.fromstring(file.read())
         finally:
             file.close()
-    def saveIndex(self, dom):
-        file = open(self.index, mode='w')
+
+    def close(self):
+        string = lxml.html.tostring(self.dom, include_meta_content_type=True)
+        print('Writing', self.index)
+        file = open(self.index, 'wb')
         try:
-            dom.dump(file)
+            file.write(string)
         finally:
             file.close()
 
@@ -100,11 +100,6 @@ class IndexHtml:
             href = elem.attrib['src']
             if p.match(href):
                 elem.attrib['src'] = 'js/' + download(href, dir)
-
-    def close(self):
-        string = lxml.html.tostring(self.dom, include_meta_content_type=True)
-        print('Writing', self.index)
-        open(self.index, 'wb').write(string)
 
 def all():
     os.chdir('dart')
