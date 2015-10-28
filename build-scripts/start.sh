@@ -36,7 +36,6 @@ EOF
 brew tap dart-lang/dart && brew install dart
 sudo gem install compass
 npm install
-export PATH="$PATH:$(pwd)/node_modules/.bin"
 
 build-scripts/cache.py save
 
