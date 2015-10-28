@@ -8,6 +8,7 @@ import urllib.request
 
 from config import Config
 import lxml.html
+import shell
 import yaml
 
 def write_settings():
@@ -116,11 +117,8 @@ def all():
         index.js()
         index.close()
 
-        def call(cmd):
-            if os.system(cmd) != 0:
-                sys.exit("Failed to execute: %s" % cmd)
-        call('pub get')
-        call('pub build')
+        shell.call('pub get')
+        shell.call('pub build')
     finally:
         os.chdir('..')
 
