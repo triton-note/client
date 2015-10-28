@@ -12,6 +12,7 @@ def environment_variables():
     os.environ['FACEBOOK_APP_ID'] = Config.get('FACEBOOK_APP_ID')
     os.environ['FABRIC_API_KEY'] = Config.get('fabric.API_KEY')
     os.environ['FABRIC_BUILD_SECRET'] = Config.get('fabric.BUILD_SECRET')
+    os.environ['CRASHLYTICS_GROUPS'] = Config.get('fabric.CRASHLYTICS_GROUPS')
 
 def execute():
     shell.mkdirs('plugins')
