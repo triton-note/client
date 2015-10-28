@@ -20,22 +20,26 @@ def mkdirs(path):
 
 def load(name):
     (obj, filename) = getObject(name)
-    print('Loading', obj, 'to', filename)
-    mkdirs(filename)
-    file = open(filename, mode='wb')
-    try:
-        file.write(obj.get()['Body'].read())
-        tar = tarfile.open(mode='r:bz2', name=filename)
-        for member in tar.getmembers():
-            if member.isfile():
-                mkdirs(member.name)
-                src = tar.extractfile(member)
-                dst = open(member.name, mode='wb')
-                dst.write(src.read())
-                dst.close()
-    finally:
-        file.close()
-        os.remove(filename)
+    if obj == None:
+        print(name, 'is not saved')
+    else:
+        print('Loading', obj, 'to', filename)
+        mkdirs(filename)
+        file = open(filename, mode='wb')
+        try:
+            file.write(obj.get()['Body'].read())
+            file.close()
+            tar = tarfile.open(mode='r:bz2', name=filename)
+            for member in tar.getmembers():
+                if member.isfile():
+                    mkdirs(member.name)
+                    src = tar.extractfile(member)
+                    dst = open(member.name, mode='wb')
+                    dst.write(src.read())
+                    dst.close()
+        finally:
+            file.close()
+            os.remove(filename)
 
 def save(name):
     (obj, filename) = getObject(name)
