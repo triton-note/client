@@ -13,7 +13,7 @@ import yaml
 config = Config()
 
 def write_settings():
-    target = os.path.join('dart', 'web', 'settings.yaml')
+    target = os.path.join('web', 'settings.yaml')
     def loadYaml():
         file = open(target, mode='r')
         try:
@@ -54,7 +54,7 @@ def download(url, dir):
 
 class IndexHtml:
     def __init__(self):
-        self.index = os.path.join('dart', 'web', 'index.html')
+        self.index = os.path.join('web', 'index.html')
         self.dom = self.loadIndex()
 
     def loadIndex(self):
@@ -71,7 +71,7 @@ class IndexHtml:
             file.close()
 
     def fonts(self):
-        dir = os.path.join('dart', 'web', 'styles', 'fonts')
+        dir = os.path.join('web', 'styles', 'fonts')
         def modify(url):
             filename = download(url, dir)
             f = open(os.path.join(dir, filename), mode='r+')
@@ -96,7 +96,7 @@ class IndexHtml:
                 css.attrib['href'] = 'styles/fonts/' + modify(href)
 
     def js(self):
-        dir = os.path.join('dart', 'web', 'js')
+        dir = os.path.join('web', 'js')
         p = re.compile('^https://.*\.js$')
         for elem in self.dom.xpath("//script[@type='text/javascript']"):
             href = elem.attrib['src']
@@ -109,13 +109,18 @@ class IndexHtml:
         open(self.index, 'wb').write(string)
 
 def all():
-    write_settings()
-    index = IndexHtml()
-    index.fonts()
-    index.js()
-    index.close()
+    os.chdir('dart')
+    try:
+        write_settings()
+        index = IndexHtml()
+        index.fonts()
+        index.js()
+        index.close()
+    finally:
+        os.chdir('..')
 
 if __name__ == "__main__":
+    os.chdir('dart')
     action = sys.argv[1]
     if action == 'settings':
         write_settings()
