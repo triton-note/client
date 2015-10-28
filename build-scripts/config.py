@@ -15,7 +15,6 @@ class Config:
                 return None
             elif len(keyList) == 1:
                 value = map[keyList[0]]
-                print('Get', path, value, type(value))
                 if isinstance(value, dict):
                     found = next((t for t in value.items() if os.environ['BUILD_MODE'] in t[0].split(' ')), None)
                     if found != None:
