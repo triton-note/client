@@ -2,7 +2,7 @@ import os, json, itertools
 
 class Config:
     def __init__(self):
-        path = os.path.join('build-scripts', 'persistent', 'variables.json')
+        path = os.path.join('build-scripts', 'persistent', 'config.json')
         file = open(path)
         try:
             self._src = json.load(file)

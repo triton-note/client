@@ -1,7 +1,8 @@
 import os
-import config_variables
+import yaml
+from config import Config
 
-config = config_variables.Config()
+config = Config()
 
 def mkdirs(path):
     dir = os.path.dirname(path)
