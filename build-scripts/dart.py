@@ -96,7 +96,12 @@ class IndexHtml:
                 css.attrib['href'] = 'styles/fonts/' + modify(href)
 
     def js(self):
-        print('Searching javascripts:', self.dom)
+        dir = os.path.join('dart', 'web', 'js')
+        p = re.compile('^https://.*\.js$')
+        for elem in self.dom.xpath("//script[@type='text/javascript']"):
+            href = elem.attrib['src']
+            if p.match(href):
+                elem.attrib['src'] = 'js/' + download(href, dir)
 
     def close(self):
         string = lxml.html.tostring(self.dom, include_meta_content_type=True)
