@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, re, crypt
+import os, sys, re, hashlib
 import yaml, lxml.html
 import urllib.request
 from config import Config
@@ -27,6 +27,11 @@ def write_settings():
         info[name] = config.get(key)
     saveYaml(info)
     print('Set', target)
+
+def uniqueName(base):
+    m = hashlib.md5()
+    m.update(base.encode('utf-8'))
+    return m.hexdigest()
 
 def readLines(filepath):
     f = open(filepath, mode='r')
@@ -63,7 +68,7 @@ class IndexHtml:
             urllib.request.urlretrieve(url, target)
             return target
         def edit(url):
-            filename = '%s.css' % crypt.crypt(url)
+            filename = '%s.css' % uniqueName(url)
             file = download(url, filename)
             lines = readLines(file)
             f = open(file, mode='w')
