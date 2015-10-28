@@ -17,15 +17,12 @@ brew update
 brew install python3
 
 [ -z "$(type pip 2> /dev/null)" ] && sudo easy_install pip
-sudo pip install virtualenvwrapper
+sudo pip install virtualenv
 
-export WORKON_HOME=~/.virtualenvs
-source /usr/local/bin/virtualenvwrapper.sh
+virtualenv --python=/usr/local/bin/python3 .v3
+source .v3/bin/activate
 
-mkvirtualenv --python=/usr/local/bin/python3 V3
-workon V3
-
-pip install boto3 yaml lxml
+pip install boto3 pyyaml lxml
 
 echo "################"
 echo "# Install tools"
