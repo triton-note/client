@@ -1,8 +1,10 @@
 #!/bin/bash
 set -eu
 
+BRANCH_NAME=$1
+
 isMatch() {
-	if [ -z "$(echo "$TRAVIS_BRANCH" | sed "s/$2//")" ]
+	if [ -z "$(echo "$BRANCH_NAME" | sed "s/$2//")" ]
 	then
 		echo "$1"
 		exit 0

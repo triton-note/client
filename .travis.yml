@@ -8,7 +8,7 @@ env:
     - RELEASE_NOTE_PATH="$(build-scripts/env-release_note.sh $TRAVIS_COMMIT $TRAVIS_COMMIT_RANGE)"
     - IS_CI="$(build-scripts/env-is_ci.sh)"
     - PROJECT_REPO_SLUG=$TRAVIS_REPO_SLUG
-    - BUILD_MODE="$(build-scripts/env-build_mode.sh)"
+    - BUILD_MODE="$(build-scripts/env-build_mode.sh $TRAVIS_BRANCH)"
   matrix:
     - PLATFORM=android
     - PLATFORM=ios
