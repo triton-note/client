@@ -33,17 +33,24 @@ def write_settings():
     saveYaml(info)
     print('Set', target)
 
-def uniqueName(base):
-    m = hashlib.md5()
-    m.update(base.encode('utf-8'))
-    return m.hexdigest()
-
-def readLines(filepath):
-    f = open(filepath, mode='r')
-    try:
-        return f.readlines()
-    finally:
-        f.close()
+def download(url, dir):
+    def getExt(base):
+        m = re.search('.*[^\w]([\w]+)$', base.split('?')[0])
+        if m == None:
+            return None
+        else:
+            return m.group(1)
+    def uniqueName(base):
+        m = hashlib.md5()
+        m.update(base.encode('utf-8'))
+        return 'cached-%s.%s' % (m.hexdigest(), getExt(base))
+    name = uniqueName(url)
+    target = os.path.join(dir, name)
+    print('Downloading', url, 'to', target)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    urllib.request.urlretrieve(url, target)
+    return name
 
 class IndexHtml:
     def __init__(self):
@@ -65,28 +72,20 @@ class IndexHtml:
 
     def fonts(self):
         dir = os.path.join('dart', 'web', 'styles', 'fonts')
-        def download(url, name):
-            if not os.path.exists(dir):
-                os.makedirs(dir)
-            target = os.path.join(dir, name)
-            print('Downloading', url, 'to', target)
-            urllib.request.urlretrieve(url, target)
-            return target
-        def edit(url):
-            filename = '%s.css' % uniqueName(url)
-            file = download(url, filename)
-            lines = readLines(file)
-            f = open(file, mode='w')
+        def modify(url):
+            filename = download(url, dir)
+            f = open(os.path.join(dir, filename), mode='r+')
             try:
                 p = re.compile('(^.*url\()(https:[^\)]+)(\).*)')
+                lines = f.readlines()
+                f.seek(0)
                 for line in lines:
                     m = p.match(line)
                     if m != None:
-                        src = m.group(2)
-                        name = os.path.basename(src)
-                        download(src, name)
-                        line = m.expand('\\1%s\\3' % name)
+                        loaded = download(m.group(2), dir)
+                        line = m.expand('\\1%s\\3' % loaded)
                     f.write(line)
+                f.truncate()
                 return filename
             finally:
                 f.close()
@@ -94,7 +93,7 @@ class IndexHtml:
         for css in self.dom.xpath("//link[@rel='stylesheet']"):
             href = css.attrib['href']
             if p.match(href):
-                css.attrib['href'] = 'styles/fonts/' + edit(href)
+                css.attrib['href'] = 'styles/fonts/' + modify(href)
 
     def js(self):
         print('Searching javascripts:', self.dom)
