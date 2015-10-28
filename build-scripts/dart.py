@@ -121,6 +121,7 @@ def all():
         os.chdir('..')
 
 if __name__ == "__main__":
+    Config.load()
     os.chdir('dart')
     action = sys.argv[1]
     if action == 'settings':

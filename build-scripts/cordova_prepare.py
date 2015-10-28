@@ -23,6 +23,7 @@ def all():
     execute()
 
 if __name__ == "__main__":
+    Config.load()
     if len(sys.argv) > 1:
         if sys.argv[1] == "env":
             environment_variables()
