@@ -1,4 +1,6 @@
-import os, json, itertools
+import itertools
+import json
+import os
 
 class Config:
     def __init__(self):

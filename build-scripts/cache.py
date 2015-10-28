@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
+import io
 import os
 import sys
-import boto3, botocore
 import tarfile
-import io
+
+import boto3
+import botocore
 
 def getObject(name):
     s3 = boto3.resource('s3')

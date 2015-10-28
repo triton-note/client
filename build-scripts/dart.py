@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
-import os, sys, re, hashlib
-import yaml, lxml.html
+import hashlib
+import os
+import re
+import sys
 import urllib.request
+
 from config import Config
+import lxml.html
+import yaml
 
 config = Config()
 
