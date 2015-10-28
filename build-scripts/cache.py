@@ -8,7 +8,7 @@ import io
 
 def getObject(name):
     s3 = boto3.resource('s3')
-    folder = os.environ['PROJECT_FOLDER']
+    folder = os.environ['PROJECT_REPO_SLUG']
     bucket = s3.Bucket(os.environ['AWS_S3_BUCKET'])
     filename = name + '.tar.bz2'
     return (bucket.Object(folder + "/" + filename), filename)
