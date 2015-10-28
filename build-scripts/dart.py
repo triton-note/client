@@ -10,8 +10,6 @@ from config import Config
 import lxml.html
 import yaml
 
-config = Config()
-
 def write_settings():
     target = os.path.join('web', 'settings.yaml')
     def loadYaml():
@@ -27,6 +25,7 @@ def write_settings():
         finally:
             file.close()
 
+    config = Config()
     info = loadYaml()
     for (name, key) in info.items():
         info[name] = config.get(key)
