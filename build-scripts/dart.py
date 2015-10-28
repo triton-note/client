@@ -26,10 +26,9 @@ def write_settings():
         finally:
             file.close()
 
-    config = Config()
     info = loadYaml()
     for (name, key) in info.items():
-        info[name] = config.get(key)
+        info[name] = Config.get(key)
     saveYaml(info)
     print('Set', target)
 

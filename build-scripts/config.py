@@ -2,15 +2,20 @@ import json
 import os
 
 class Config:
-    def __init__(self):
-        path = os.path.join('build-scripts', 'persistent', 'config.json')
-        file = open(path)
+    _SRC = None
+
+    @classmethod
+    def load(cls, path=None):
+        if not path:
+            path = os.path.join('build-scripts', 'persistent', 'config.json')
+        file = open(path, mode='r')
         try:
-            self._src = json.load(file)
+            cls._SRC = json.load(file)
         finally:
             file.close()
 
-    def get(self, path):
+    @classmethod
+    def get(cls, path):
         def getting(map, keyList):
             if len(keyList) < 1:
                 return None
@@ -26,4 +31,4 @@ class Config:
                     return value
             else:
                 return getting(map[keyList[0]], keyList[1:])
-        return getting(self._src, path.split('.'))
+        return getting(cls._SRC, path.split('.'))

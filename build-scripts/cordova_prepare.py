@@ -3,6 +3,7 @@
 import os
 import sys
 
+from config import Config
 import shell
 
 def environment_variables():
