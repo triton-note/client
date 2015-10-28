@@ -2,7 +2,7 @@
 
 import os
 import sys
-import boto3
+import boto3, botocore
 import tarfile
 import io
 
@@ -20,26 +20,29 @@ def mkdirs(path):
 
 def load(name):
     (obj, filename) = getObject(name)
-    if obj == None:
-        print(name, 'is not saved')
-    else:
-        print('Loading', obj, 'to', filename)
-        mkdirs(filename)
-        file = open(filename, mode='wb')
-        try:
-            file.write(obj.get()['Body'].read())
-            file.close()
-            tar = tarfile.open(mode='r:bz2', name=filename)
-            for member in tar.getmembers():
-                if member.isfile():
-                    mkdirs(member.name)
-                    src = tar.extractfile(member)
-                    dst = open(member.name, mode='wb')
-                    dst.write(src.read())
-                    dst.close()
-        finally:
-            file.close()
-            os.remove(filename)
+    print('Loading', obj, 'to', filename)
+    mkdirs(filename)
+    file = open(filename, mode='wb')
+    try:
+        file.write(obj.get()['Body'].read())
+        file.close()
+        tar = tarfile.open(mode='r:bz2', name=filename)
+        for member in tar.getmembers():
+            if member.isfile():
+                mkdirs(member.name)
+                src = tar.extractfile(member)
+                dst = open(member.name, mode='wb')
+                dst.write(src.read())
+                dst.close()
+    except botocore.exceptions.ClientError as e:
+        error_code = int(e.response['Error']['Code'])
+        if error_code == 404:
+            print(name, 'is not saved')
+        else:
+            print(name, 'is failed to load:', error_code)
+    finally:
+        file.close()
+        os.remove(filename)
 
 def save(name):
     (obj, filename) = getObject(name)
@@ -50,6 +53,9 @@ def save(name):
     file = open(filename, mode='rb')
     try:
         obj.put(Body=file.read())
+    except botocore.exceptions.ClientError as e:
+        error_code = int(e.response['Error']['Code'])
+        print(name, 'is failed to save:', error_code)
     finally:
         file.close()
         os.remove(filename)
