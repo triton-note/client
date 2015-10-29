@@ -25,13 +25,8 @@ def load(name):
         file.write(obj.get()['Body'].read())
         file.close()
         tar = tarfile.open(mode='r:bz2', name=filename)
-        for member in tar.getmembers():
-            if member.isfile():
-                shell.mkdirs(os.path.dirname(member.name))
-                src = tar.extractfile(member)
-                dst = open(member.name, mode='wb')
-                dst.write(src.read())
-                dst.close()
+        tar.extractall()
+        tar.close()
     except botocore.exceptions.ClientError as e:
         error_code = int(e.response['Error']['Code'])
         if error_code == 404:
@@ -39,7 +34,6 @@ def load(name):
         else:
             print(name, 'is failed to load:', error_code)
     finally:
-        file.close()
         os.remove(filename)
 
 def save(name):
