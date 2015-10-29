@@ -76,7 +76,8 @@ def build():
     shell.cmd('cordova build android --release --buildConfig=%s' % os.path.join(dir, 'build.json'))
 
 def deploy():
-    print('Deploying')
+    import android_deploy
+    android_deploy.all()
 
 def all():
     print('Building Android')
