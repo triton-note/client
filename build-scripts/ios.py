@@ -15,14 +15,6 @@ def install():
     shell.cmd('sudo gem install fastlane cocoapods')
     shell.cmd('cordova prepare %s' % os.environ['PLATFORM'])
 
-def profile():
-    key = 'PROVISIONING_PROFILE'
-    target = platform_dir('cordova', 'build.xcconfig')
-    lines = shell.grep(target, lambda a: not key in a)
-    with open(target, mode='w') as file:
-        file.write('\n'.join(lines))
-        file.write('\n%s = \$(PROFILE_UDID)\n' % key)
-
 def certs():
     dir = platform_dir('certs')
     shell.mkdirs(dir)
@@ -41,21 +33,23 @@ default_platform :ios
 
 platform :ios do
   before_all do
-    if is_ci?
-      keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
-      puts "Using keychain: #{keychainName}"
-      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
-      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
-    else
-      puts "On human pc"
-    end
+    keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
+    puts "Using keychain: #{keychainName}"
+    import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
+    import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
 
     increment_build_number(
       build_number: ENV["BUILD_NUM"]
     )
 
     sigh
-    ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
+    puts lane_context[SharedValues::SIGH_UDID]
+
+    update_project_provisioning(
+      xcodeproj: "#{ENV["APPLICATION_NAME"]}.xcodeproj",
+      target_filter: ".*",
+      build_configuration: "Release"
+    )
 
     gym(
       scheme: ENV["APPLICATION_NAME"],
@@ -130,7 +124,6 @@ def fastlane():
 def all():
     print('Building iOS')
     install()
-    profile()
     certs()
     fastfiles()
     fastlane()
@@ -142,8 +135,6 @@ if __name__ == "__main__":
     action = sys.argv[1]
     if action == "install":
         install()
-    elif action == "profile":
-        profile()
     elif action == "certs":
         certs()
     elif action == "fastfiles":
