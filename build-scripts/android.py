@@ -9,6 +9,10 @@ from config import Config
 from lxml import etree
 import shell
 
+
+def platform_dir(*paths):
+    return os.path.join('platforms', 'android', *paths)
+
 def install_android():
     os.system('brew install android')
     android_home = subprocess.getoutput('brew --prefix android')
@@ -39,7 +43,7 @@ def keystore():
              'alias': Config.get('platforms.android.keystore.ALIAS'),
              'password': Config.get('platforms.android.keystore.ALIAS_PASSWORD')
              }
-    target = os.path.join('platforms', 'android', 'build.json')
+    target = platform_dir('build.json')
     with open(target, mode='w') as file:
         json.dump({'android': {'release': build}}, file, indent=4)
 
@@ -56,18 +60,17 @@ def build_num():
 def build():
     mode = os.environ['BUILD_MODE']
     print('Building by cordova', mode)
-    dir = os.path.join('platforms', 'android')
     multi = 'true'
     if mode != "release" and mode != "beta":
         multi = 'false'
     key = 'cdvBuildMultipleApks'
-    target = os.path.join(dir, 'gradle.properties')
+    target = platform_dir('gradle.properties')
     lines = shell.grep(target, lambda a: not key in a)
     with open(target, mode='w') as file:
         file.write('\n'.join(lines))
         file.write('\n%s=%s\n' % (key, multi))
     print('Add', target, ':', key, '=', multi)
-    shell.cmd('cordova build android --release --buildConfig=%s' % os.path.join(dir, 'build.json'))
+    shell.cmd('cordova build android --release --buildConfig=%s' % platform_dir('build.json'))
 
 def deploy():
     import android_deploy
