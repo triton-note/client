@@ -11,6 +11,9 @@ import shell
 def platform_dir(*paths):
     return os.path.join('platforms', 'ios', *paths)
 
+def install():
+    shell.cmd('sudo gem install fastlane cocoapods')
+
 def profile():
     key = 'PROVISIONING_PROFILE'
     target = platform_dir('cordova', 'build.xcconfig')
@@ -133,6 +136,7 @@ def fastlane():
 
 def all():
     print('Building iOS')
+    install()
     profile()
     certs()
     fastfiles()
@@ -143,7 +147,9 @@ if __name__ == "__main__":
     Config.load()
 
     action = sys.argv[1]
-    if action == "profile":
+    if action == "install":
+        install()
+    elif action == "profile":
         profile()
     elif action == "certs":
         certs()
