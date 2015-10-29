@@ -2,12 +2,17 @@ import json
 import os
 
 class Config:
+    _DIR = os.path.join('build-scripts', 'persistent')
     _SRC = None
+
+    @classmethod
+    def file(cls, *paths):
+        return os.path.join(cls._DIR, *paths)
 
     @classmethod
     def load(cls, path=None):
         if not path:
-            path = os.path.join('build-scripts', 'persistent', 'config.json')
+            path = cls.file('config.json')
         with open(path, mode='r') as file:
             cls._SRC = json.load(file)
 

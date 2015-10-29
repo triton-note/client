@@ -31,7 +31,7 @@ def install_android():
         shell.cmd('echo y | android update sdk --no-ui --all --filter %s > /dev/null' % name)
 
 def keystore():
-    store = os.path.join('build-scripts', 'persistent', 'keys', 'keystore')
+    store = Config.file('android', 'keystore')
     print('Using keystore:', store)
     build = {
              'keystore': os.path.abspath(store),
