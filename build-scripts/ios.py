@@ -17,18 +17,10 @@ def install():
 def profile():
     key = 'PROVISIONING_PROFILE'
     target = platform_dir('cordova', 'build.xcconfig')
-    def read_lines():
-        if os.path.exists(target):
-            with open(target, mode='r') as file:
-                lines = file.readlines()
-                lines = filter(lambda a: not key in a, lines)
-                return map(lambda a: a.rstrip(), lines)
-        else:
-            return []
-    lines = list(read_lines())
-    lines.append('%s = \$(PROFILE_UDID)' % key)
+    lines = shell.grep(target, lambda a: not key in a)
     with open(target, mode='w') as file:
-        file.write('\n'.join(lines) + '\n')
+        file.write('\n'.join(lines))
+        file.write('\n%s = \$(PROFILE_UDID)\n' % key)
 
 def certs():
     dir = platform_dir('certs')

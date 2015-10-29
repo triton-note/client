@@ -62,18 +62,10 @@ def build():
         multi = 'false'
     key = 'cdvBuildMultipleApks'
     target = os.path.join(dir, 'gradle.properties')
-    def read_lines():
-        if os.path.exists(target):
-            with open(target, mode='r') as file:
-                lines = file.readlines()
-                lines = filter(lambda a: not key in a, lines)
-                return map(lambda a: a.rstrip(), lines)
-        else:
-            return []
-    lines = list(read_lines())
-    lines.append('%s=%s' % (key, multi))
+    lines = shell.grep(target, lambda a: not key in a)
     with open(target, mode='w') as file:
-        file.write('\n'.join(lines) + '\n')
+        file.write('\n'.join(lines))
+        file.write('\n%s=%s\n' % (key, multi))
     print('Add', target, ':', key, '=', multi)
     shell.cmd('cordova build android --release --buildConfig=%s' % os.path.join(dir, 'build.json'))
 

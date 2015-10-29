@@ -13,3 +13,13 @@ def on_root(script_file):
     root = os.path.dirname(os.path.dirname(sys.argv[0]))
     if root:
         os.chdir(root)
+
+def grep(target, pf=None):
+    if os.path.exists(target):
+        with open(target, mode='r') as file:
+            lines = map(lambda a: a.rstrip(), file.readlines())
+            if pf:
+                lines = filter(pf, lines)
+            return lines
+    else:
+        return []
