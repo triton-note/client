@@ -15,12 +15,9 @@ def environment_variables():
     os.environ['CRASHLYTICS_GROUPS'] = Config.get('fabric.CRASHLYTICS_GROUPS')
 
 def execute():
-    print('Now on', os.getcwd())
-    prefix = os.path.abspath('node_modules/.bin')
-    shell.cmd('ls -la node_modules/.bin')
     shell.mkdirs('plugins')
-    shell.cmd('%s/cordova prepare %s' % (prefix, os.environ['PLATFORM']))
-    shell.cmd('%s/ionic resources' % prefix)
+    shell.cmd('cordova prepare %s' % os.environ['PLATFORM'])
+    shell.cmd('ionic resources')
 
 def all():
     environment_variables()
