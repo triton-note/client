@@ -2,7 +2,7 @@ import json
 import os
 
 class Config:
-    _DIR = os.path.join('build-scripts', 'persistent')
+    _DIR = os.path.abspath(os.path.join('build-scripts', 'persistent'))
     _SRC = None
 
     @classmethod
