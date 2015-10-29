@@ -68,6 +68,8 @@ def build():
                 lines = file.readlines()
                 lines = filter(lambda a: not key in a, lines)
                 return map(lambda a: a.rstrip(), lines)
+        else:
+            return []
     lines = list(read_lines())
     lines.append('%s=%s' % (key, multi))
     with open(target, mode='w') as file:
