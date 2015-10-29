@@ -13,6 +13,7 @@ def platform_dir(*paths):
 
 def install():
     shell.cmd('sudo gem install fastlane cocoapods')
+    shell.cmd('cordova prepare %s' % os.environ['PLATFORM'])
 
 def profile():
     key = 'PROVISIONING_PROFILE'
