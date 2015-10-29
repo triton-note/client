@@ -13,23 +13,12 @@ import yaml
 
 def write_settings():
     target = os.path.join('web', 'settings.yaml')
-    def loadYaml():
-        file = open(target, mode='r')
-        try:
-            return yaml.load(file)
-        finally:
-            file.close()
-    def saveYaml(info):
-        file = open(target, mode='w')
-        try:
-            yaml.dump(info, file, default_flow_style=False)
-        finally:
-            file.close()
-
-    info = loadYaml()
+    with open(target, mode='r') as file:
+        info = yaml.load(file)
     for (name, key) in info.items():
         info[name] = Config.get(key)
-    saveYaml(info)
+    with open(target, mode='w') as file:
+        yaml.dump(info, file, default_flow_style=False)
     print('Set', target)
 
 def download(url, dir):
@@ -53,27 +42,20 @@ def download(url, dir):
 class IndexHtml:
     def __init__(self):
         self.index = os.path.join('web', 'index.html')
-        file = open(self.index, mode='r')
-        try:
+        with open(self.index, mode='r') as file:
             self.dom = lxml.html.fromstring(file.read())
-        finally:
-            file.close()
 
     def close(self):
         string = lxml.html.tostring(self.dom, include_meta_content_type=True)
         print('Writing', self.index)
-        file = open(self.index, 'wb')
-        try:
+        with open(self.index, 'wb') as file:
             file.write(string)
-        finally:
-            file.close()
 
     def fonts(self):
         dir = os.path.join('web', 'styles', 'fonts')
         def modify(url):
             filename = download(url, dir)
-            f = open(os.path.join(dir, filename), mode='r+')
-            try:
+            with open(os.path.join(dir, filename), mode='r+') as f:
                 p = re.compile('(^.*url\()(https:[^\)]+)(\).*)')
                 lines = f.readlines()
                 f.seek(0)
@@ -84,9 +66,7 @@ class IndexHtml:
                         line = m.expand('\\1%s\\3' % loaded)
                     f.write(line)
                 f.truncate()
-                return filename
-            finally:
-                f.close()
+            return filename
         p = re.compile('^https://fonts.googleapis.com/css\?.*$')
         for css in self.dom.xpath("//link[@rel='stylesheet']"):
             href = css.attrib['href']

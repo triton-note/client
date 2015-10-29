@@ -8,11 +8,8 @@ class Config:
     def load(cls, path=None):
         if not path:
             path = os.path.join('build-scripts', 'persistent', 'config.json')
-        file = open(path, mode='r')
-        try:
+        with open(path, mode='r') as file:
             cls._SRC = json.load(file)
-        finally:
-            file.close()
 
     @classmethod
     def get(cls, path):

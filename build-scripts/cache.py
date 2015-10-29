@@ -19,36 +19,31 @@ def load(name):
     (obj, filename) = getObject(name)
     print('Loading', obj, 'to', filename)
     shell.mkdirs(os.path.dirname(filename))
-    file = open(filename, mode='wb')
     try:
-        file.write(obj.get()['Body'].read())
-        file.close()
-        tar = tarfile.open(mode='r:bz2', name=filename)
-        tar.extractall()
-        tar.close()
+        with open(filename, mode='wb') as file:
+            file.write(obj.get()['Body'].read())
+        with tarfile.open(mode='r:bz2', name=filename) as tar:
+            tar.extractall()
     except botocore.exceptions.ClientError as e:
-        error_code = int(e.response['Error']['Code'])
-        if error_code == 404:
+        if int(e.response['Error']['Code']) == 404:
             print(name, 'is not saved')
         else:
-            print(name, 'is failed to load:', error_code)
+            raise
     finally:
         os.remove(filename)
 
 def save(name):
     (obj, filename) = getObject(name)
     print('Saving', filename, 'to', obj)
-    tar = tarfile.open(mode='w:bz2', name=filename)
-    tar.add(name)
-    tar.close()
-    file = open(filename, mode='rb')
     try:
-        obj.put(Body=file.read())
+        with tarfile.open(mode='w:bz2', name=filename) as tar:
+            tar.add(name)
+        with open(filename, mode='rb') as file:
+            obj.put(Body=file.read())
     except botocore.exceptions.ClientError as e:
         error_code = int(e.response['Error']['Code'])
         print(name, 'is failed to save:', error_code)
     finally:
-        file.close()
         os.remove(filename)
 
 if __name__ == "__main__":
