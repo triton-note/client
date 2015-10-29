@@ -57,10 +57,22 @@ def build():
     mode = os.environ['BUILD_MODE']
     print('Building by cordova', mode)
     dir = os.path.join('platforms', 'android')
+    multi = 'true'
     if mode != "release" and mode != "beta":
-        target = os.path.join(dir, 'gradle.properties')
-        with open(target, mode='a') as file:
-            file.write("\ncdvBuildMultipleApks=false\n")
+        multi = 'false'
+    key = 'cdvBuildMultipleApks'
+    target = os.path.join(dir, 'gradle.properties')
+    def read_lines():
+        if os.path.exists(target):
+            with open(target, mode='r') as file:
+                lines = file.readlines()
+                lines = filter(lambda a: not key in a, lines)
+                return map(lambda a: a.rstrip(), lines)
+    lines = list(read_lines())
+    lines.append('%s=%s' % (key, multi))
+    with open(target, mode='w') as file:
+        file.write('\n'.join(lines) + '\n')
+    print('Add', target, ':', key, '=', multi)
     shell.cmd('cordova build android --release --buildConfig=%s' % os.path.join(dir, 'build.json'))
 
 def deploy():
