@@ -48,7 +48,7 @@ def keystore():
         json.dump({'android': {'release': build}}, file, indent=4)
 
 def build_num():
-    num = os.environ['BUILD_NUM']
+    num = os.environ['BUILD_NUM'] + '00'
     print('Setting build_num', num)
     target = 'config.xml'
     with open(target, mode='rb') as file:
