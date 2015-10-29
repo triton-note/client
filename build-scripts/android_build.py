@@ -2,7 +2,6 @@
 
 import json
 import os
-import shutil
 import subprocess
 import sys
 
@@ -49,13 +48,10 @@ def build_num():
     print('Setting build_num', num)
     target = 'config.xml'
     with open(target, mode='rb') as file:
-        dom = etree.fromstring(file.read())
-    print(target, dom)
-    elem = dom
-    print('widget', elem)
+        elem = etree.fromstring(file.read())
     elem.attrib['android-versionCode'] = num
     with open(target, mode='wb') as file:
-        file.write(etree.tostring(dom, encoding='utf-8', xml_declaration=True))
+        file.write(etree.tostring(elem, encoding='utf-8', xml_declaration=True))
 
 def build():
     mode = os.environ['BUILD_MODE']
