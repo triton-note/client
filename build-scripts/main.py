@@ -8,8 +8,10 @@ import android
 import cordova_prepare
 import dart
 import ios
+import shell
 
 if __name__ == "__main__":
+    shell.on_root(sys.argv[0])
     Config.load()
 
     dart.all()

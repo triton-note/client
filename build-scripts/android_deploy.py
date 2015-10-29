@@ -47,8 +47,10 @@ def all():
         os.chdir(here)
 
 if __name__ == "__main__":
+    shell.on_root(sys.argv[0])
     Config.load()
 
+    os.chdir(os.path.join('platforms', 'android'))
     action = sys.argv[1]
     if action == "googleplay":
         googleplay(sys.argv[2])

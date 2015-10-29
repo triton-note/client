@@ -24,6 +24,7 @@ def all():
     execute()
 
 if __name__ == "__main__":
+    shell.on_root(sys.argv[0])
     Config.load()
     if len(sys.argv) > 1:
         if sys.argv[1] == "env":

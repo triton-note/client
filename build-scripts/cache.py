@@ -47,6 +47,7 @@ def save(name):
         os.remove(filename)
 
 if __name__ == "__main__":
+    shell.on_root(sys.argv[0])
     action = sys.argv[1]
     if len(sys.argv) < 3:
         list = ['node_modules']
