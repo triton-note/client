@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from optparse import OptionParser
 import json
 import os
 import subprocess
@@ -47,8 +48,8 @@ def keystore():
     with open(target, mode='w') as file:
         json.dump({'android': {'release': build}}, file, indent=4)
 
-def build_num():
-    num = os.environ['BUILD_NUM'] + '00'
+def build_num(num):
+    num = '%s00' % num
     print('Setting build_num', num)
     target = 'config.xml'
     with open(target, mode='rb') as file:
@@ -57,8 +58,7 @@ def build_num():
     with open(target, mode='wb') as file:
         file.write(etree.tostring(elem, encoding='utf-8', xml_declaration=True))
 
-def build():
-    mode = os.environ['BUILD_MODE']
+def build(mode):
     print('Building by cordova', mode)
     multi = 'true'
     if mode != "release" and mode != "beta":
@@ -80,22 +80,45 @@ def all():
     print('Building Android')
     install_android()
     keystore()
-    build_num()
-    build()
+    build_num(os.environ['BUILD_NUM'])
+    build(os.environ['BUILD_MODE'])
     deploy()
 
 if __name__ == "__main__":
     shell.on_root()
     Config.load()
 
-    action = sys.argv[1]
+    opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [crashlytics|googleplay]')
+    opt_parser.add_option('-m', '--mode', help='release|beta|debug|test')
+    opt_parser.add_option('-n', '--num', help='build number')
+    opt_parser.add_option('-t', '--track', help='release|beta (only for deploy googleplay)')
+    options, args = opt_parser.parse_args()
+
+    if len(args) < 1:
+        sys.exit('No action is specified')
+    action = args[0]
+
     if action == "install":
         install_android()
     elif action == "keystore":
         keystore()
     elif action == "build_num":
-        build_num()
+        if not options.num:
+            sys.exit('No build number is specified')
+        build_num(options.num)
     elif action == "build":
-        build()
+        if not options.mode:
+            sys.exit('No build mode is specified')
+        build(options.mode)
     elif action == "deploy":
-        deploy()
+        if len(args) < 2:
+            sys.exit('No deploy target is specified')
+        target = args[1]
+        import android_deploy
+        os.chdir(os.path.join('platforms', 'android'))
+        if target == "googleplay":
+            if not options.track:
+                sys.exit('No track name is specified')
+            android_deploy.googleplay(options.track)
+        elif target == "crashlytics":
+            android_deploy.crashlytics()

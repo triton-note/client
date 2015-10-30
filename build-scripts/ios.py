@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from optparse import OptionParser
 import os
 import shutil
 import sys
@@ -13,7 +14,7 @@ def platform_dir(*paths):
 
 def install():
     shell.cmd('sudo gem install fastlane cocoapods')
-    shell.cmd('cordova prepare %s' % os.environ['PLATFORM'])
+    shell.cmd('cordova prepare ios')
 
 def certs():
     dir = platform_dir('certs')
@@ -43,7 +44,6 @@ platform :ios do
     )
 
     sigh
-    puts lane_context[SharedValues::SIGH_UDID]
 
     update_project_provisioning(
       xcodeproj: "#{ENV["APPLICATION_NAME"]}.xcodeproj",
@@ -99,25 +99,33 @@ platform :ios do
 end
 """)
 
-def fastlane():
+def fastlane(build_mode, build_num, overwrite_environ=True):
     def environment_variables():
-        print('Setting environment variables')
-        os.environ['IOS_DISTRIBUTION_KEY_PASSWORD'] = Config.get('platforms.ios.DISTRIBUTION_KEY_PASSWORD')
-        os.environ['APPLICATION_NAME'] = Config.get('APPLICATION_NAME')
-        os.environ['FABRIC_API_KEY'] = Config.get('fabric.API_KEY')
-        os.environ['FABRIC_BUILD_SECRET'] = Config.get('fabric.BUILD_SECRET')
-        os.environ['CRASHLYTICS_GROUPS'] = Config.get('fabric.CRASHLYTICS_GROUPS')
-        os.environ['DELIVER_USER'] = Config.get('platforms.ios.DELIVER_USER')
-        os.environ['DELIVER_PASSWORD'] = Config.get('platforms.ios.DELIVER_PASSWORD')
-        if os.environ['BUILD_MODE'] != 'release':
-            os.environ['SIGH_AD_HOC'] = 'true'
-            os.environ['GYM_USE_LEGACY_BUILD_API'] = 'true'
+        def set_value(name, value):
+            if not (os.environ.get(name) and not overwrite_environ):
+                print('Setting environment variable:', name)
+                os.environ[name] = value
+        map = {
+               'IOS_DISTRIBUTION_KEY_PASSWORD': 'platforms.ios.DISTRIBUTION_KEY_PASSWORD',
+               'APPLICATION_NAME': 'APPLICATION_NAME',
+               'FABRIC_API_KEY': 'fabric.API_KEY',
+               'FABRIC_BUILD_SECRET': 'fabric.BUILD_SECRET',
+               'CRASHLYTICS_GROUPS': 'fabric.CRASHLYTICS_GROUPS',
+               'DELIVER_USER': 'platforms.ios.DELIVER_USER',
+               'DELIVER_PASSWORD': 'platforms.ios.DELIVER_PASSWORD'
+               }
+        for name, key in map.items():
+            set_value(name, Config.get(key))
+        set_value('BUILD_NUM', build_num)
+        if build_mode != 'release':
+            set_value('SIGH_AD_HOC', 'true')
+            set_value('GYM_USE_LEGACY_BUILD_API', 'true')
 
     here = os.getcwd()
     os.chdir(platform_dir())
     try:
         environment_variables()
-        shell.cmd('fastlane %s' % os.environ['BUILD_MODE'])
+        shell.cmd('fastlane %s' % build_mode)
     finally:
         os.chdir(here)
 
@@ -126,18 +134,31 @@ def all():
     install()
     certs()
     fastfiles()
-    fastlane()
+    fastlane(os.environ['BUILD_MODE'], os.environ['BUILD_NUM'])
 
 if __name__ == "__main__":
     shell.on_root()
     Config.load()
 
-    action = sys.argv[1]
+    opt_parser = OptionParser('Usage: %prog [options] <install|certs|fastfiles|fastlane>')
+    opt_parser.add_option('-o', '--overwrite-environment', help='overwrite environment variables', action="store_true", dest='env', default=False)
+    opt_parser.add_option('-m', '--mode', help='release|beta|debug|test')
+    opt_parser.add_option('-n', '--num', help='build number')
+    options, args = opt_parser.parse_args()
+
+    if len(args) < 1:
+        sys.exit('No action is specified')
+    action = args[0]
+
     if action == "install":
-        install()
+        install_android()
     elif action == "certs":
         certs()
     elif action == "fastfiles":
         fastfiles()
     elif action == "fastlane":
-        fastlane()
+        if not options.mode:
+            sys.exit('No build mode is specified')
+        if not options.num:
+            sys.exit('No build number is specified')
+        fastlane(options.mode, options.num, options.env)

@@ -21,12 +21,13 @@ def googleplay(track_name):
     install_import('google-api-python-client', 'apiclient')
 
     keyp12 = Config.file('android', 'service_account_key.p12')
-    for apk in glob('build', 'outputs', 'apk', '*-release.apk'):
+    for apk in glob(os.path.join('build', 'outputs', 'apk', '*-release.apk')):
         print(apk)
+    sys.exit('No implemention of deploy to Google Play')
 
 def crashlytics():
     print('Deploying to Crashlytics')
-    shell.cmd('./gradlew crashlyticsUploadDistributionRelease')
+    shell.cmd('%s crashlyticsUploadDistributionRelease' % os.path.join('.', 'gradlew'))
 
 def all():
     dir = os.path.join('platforms', 'android')
@@ -45,14 +46,3 @@ def all():
             crashlytics()
     finally:
         os.chdir(here)
-
-if __name__ == "__main__":
-    shell.on_root()
-    Config.load()
-
-    os.chdir(os.path.join('platforms', 'android'))
-    action = sys.argv[1]
-    if action == "googleplay":
-        googleplay(sys.argv[2])
-    elif action == "crashlytics":
-        crashlytics()

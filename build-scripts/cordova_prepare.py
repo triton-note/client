@@ -9,41 +9,62 @@ from config import Config
 import shell
 
 
-def environment_variables():
-    print('Setting environment variables')
-    os.environ['FACEBOOK_APP_NAME'] = Config.get('APPLICATION_NAME')
-    os.environ['FACEBOOK_APP_ID'] = Config.get('FACEBOOK_APP_ID')
-    os.environ['FABRIC_API_KEY'] = Config.get('fabric.API_KEY')
-    os.environ['FABRIC_BUILD_SECRET'] = Config.get('fabric.BUILD_SECRET')
-    os.environ['CRASHLYTICS_GROUPS'] = Config.get('fabric.CRASHLYTICS_GROUPS')
+def environment_variables(overwrite_environ=True):
+    map = {
+           'FACEBOOK_APP_NAME': 'APPLICATION_NAME',
+           'FACEBOOK_APP_ID': 'FACEBOOK_APP_ID',
+           'FABRIC_API_KEY': 'fabric.API_KEY',
+           'FABRIC_BUILD_SECRET': 'fabric.BUILD_SECRET',
+           'CRASHLYTICS_GROUPS': 'fabric.CRASHLYTICS_GROUPS'
+           }
+    for name, key in map.items():
+        if not (os.environ.get(name) and not overwrite_environ):
+            print('Setting environment variable:', name)
+            os.environ[name] = Config.get(key)
 
 def cleanup():
     print('Clean Up')
-    shutil.rmtree('plugins')
-    shutil.rmtree('platforms')
+    for dir in ['plugins', 'platforms']:
+        if os.path.exists(dir):
+            shutil.rmtree(dir)
 
-def execute():
+def cordova(platform):
     shell.mkdirs('plugins')
-    shell.cmd('cordova prepare %s' % os.environ['PLATFORM'])
+    shell.cmd('cordova prepare %s' % platform)
+
+def ionic():
     shell.cmd('ionic resources')
 
 def all():
     environment_variables()
-    execute()
+    cleanup()
+    cordova(os.environ['PLATFORM'])
+    ionic()
 
 if __name__ == "__main__":
     shell.on_root()
     Config.load()
 
     opt_parser = OptionParser()
-    opt_parser.add_option('-e', '--env', help='set environment variables', action="store_true", dest='env', default=False)
-    opt_parser.add_option('-c', '--cleanup', help='cleanup before execute', action="store_true", dest='cleanup', default=False)
-    opt_parser.add_option('-d', '--dry-run', help='no execution', action="store_false", dest='execute', default=True)
+    opt_parser.add_option('-p', '--platform', help='android|ios')
+    opt_parser.add_option('-b', '--before', help='script to run before execution', metavar='SCRIPT')
+    opt_parser.add_option('-a', '--after', help='script to run after execution', metavar='SCRIPT')
+    opt_parser.add_option('-o', '--overwrite-environment', help='overwrite environment variables', action="store_true", dest='env', default=False)
+    opt_parser.add_option('-c', '--no-cleanup', help='do not cleanup before execute', action="store_false", dest='cleanup', default=True)
+    opt_parser.add_option('-r', '--no-resources', help='do not create resources', action="store_false", dest='ionic', default=True)
     options, args = opt_parser.parse_args()
 
-    if options.env:
-        environment_variables()
+    environment_variables(options.env)
     if options.cleanup:
         cleanup()
-    if options.execute:
-        execute()
+
+    if options.before:
+        shell.cmd(options.before)
+
+    if options.platform:
+        cordova(options.platform)
+    if options.ionic:
+        ionic()
+
+    if options.after:
+        shell.cmd(options.after)

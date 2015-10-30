@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from optparse import OptionParser
 import hashlib
 import os
 import re
@@ -10,6 +11,7 @@ from config import Config
 import lxml.html
 import shell
 import yaml
+
 
 def write_settings():
     target = os.path.join('web', 'settings.yaml')
@@ -81,6 +83,10 @@ class IndexHtml:
             if p.match(href):
                 elem.attrib['src'] = 'js/' + download(href, dir)
 
+def build():
+    shell.cmd('pub get')
+    shell.cmd('pub build')
+
 def all():
     os.chdir('dart')
     try:
@@ -90,16 +96,22 @@ def all():
         index.js()
         index.close()
 
-        shell.cmd('pub get')
-        shell.cmd('pub build')
+        build()
     finally:
         os.chdir('..')
 
 if __name__ == "__main__":
     shell.on_root()
     Config.load()
+
+    opt_parser = OptionParser('Usage: %prog [options] <settings|fonts|js|build>')
+    options, args = opt_parser.parse_args()
+
+    if len(args) < 1:
+        sys.exit('No action is specified')
+    action = args[0]
+
     os.chdir('dart')
-    action = sys.argv[1]
     if action == 'settings':
         write_settings()
     elif action == 'fonts':
@@ -110,3 +122,5 @@ if __name__ == "__main__":
         index = IndexHtml()
         index.js()
         index.close()
+    elif action == 'build':
+        build()

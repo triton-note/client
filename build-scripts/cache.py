@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from optparse import OptionParser
 import os
 import sys
 import tarfile
@@ -7,6 +8,7 @@ import tarfile
 import boto3
 import botocore
 import shell
+
 
 def getObject(name):
     s3 = boto3.resource('s3')
@@ -25,10 +27,8 @@ def load(name):
         with tarfile.open(mode='r:bz2', name=filename) as tar:
             tar.extractall()
     except botocore.exceptions.ClientError as e:
-        if int(e.response['Error']['Code']) == 404:
-            print(name, 'is not saved')
-        else:
-            raise
+        error_code = e.response['Error']['Code']
+        print(name, 'is failed to load:', error_code)
     finally:
         os.remove(filename)
 
@@ -41,18 +41,38 @@ def save(name):
         with open(filename, mode='rb') as file:
             obj.put(Body=file.read())
     except botocore.exceptions.ClientError as e:
-        error_code = int(e.response['Error']['Code'])
+        error_code = e.response['Error']['Code']
         print(name, 'is failed to save:', error_code)
     finally:
         os.remove(filename)
 
 if __name__ == "__main__":
     shell.on_root()
-    action = sys.argv[1]
-    if len(sys.argv) < 3:
-        list = ['node_modules']
+
+    opt_parser = OptionParser('Usage: %prog [options] <load|save> [dir...]')
+    opt_parser.add_option('-p', '--profile', help='AWS profile')
+    opt_parser.add_option('-b', '--bucket', help='S3 bucket name')
+    opt_parser.add_option('-r', '--repo', help='project repository slug for github: <username|organization>/<project_name>')
+    options, args = opt_parser.parse_args()
+    opts = vars(options)
+
+    if len(args) < 1:
+        sys.exit('No action is directed')
+    action = args[0]
+
+    if len(args) > 1:
+        list = args[1:]
     else:
-        list = sys.argv[2:]
+        list = ['node_modules']
+
+    enviroments = {
+                   'AWS_PROFILE': 'profile',
+                   'AWS_S3_BUCKET': 'bucket',
+                   'PROJECT_REPO_SLUG': 'repo'
+                   }
+    for name, key in enviroments.items():
+        if opts.get(key):
+            os.environ[name] = opts[key]
 
     print(action, list)
     for name in list:
