@@ -7,7 +7,7 @@ env:
     - BUILD_NUM="$TRAVIS_BUILD_NUMBER"
     - RELEASE_NOTE_PATH="$(build-scripts/env-release_note.sh $TRAVIS_COMMIT $TRAVIS_COMMIT_RANGE)"
     - PROJECT_REPO_SLUG=$TRAVIS_REPO_SLUG
-    - BUILD_MODE="$(build-scripts/env-build_mode.sh $TRAVIS_BRANCH)"
+    - GIT_BRANCH=$TRAVIS_BRANCH
   matrix:
     - PLATFORM=android
     - PLATFORM=ios
