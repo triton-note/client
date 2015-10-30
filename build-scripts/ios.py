@@ -5,6 +5,7 @@ import os
 import shutil
 import sys
 
+from build_mode import BuildMode
 from config import Config
 import shell
 
@@ -29,7 +30,8 @@ def fastfiles():
         file.write('app_identifier "%s"\n' % Config.get('platforms.ios.BUNDLE_ID'))
     shutil.copy(Config.script_file('ios_Fastfile.rb'), os.path.join(dir, 'Fastfile'))
 
-def fastlane(build_mode, build_num, overwrite_environ=True):
+def fastlane(build_num, overwrite_environ=True):
+    build_mode = BuildMode()
     def environment_variables():
         def set_value(name, value):
             if not (os.environ.get(name) and not overwrite_environ):
@@ -47,7 +49,7 @@ def fastlane(build_mode, build_num, overwrite_environ=True):
         for name, key in map.items():
             set_value(name, Config.get(key))
         set_value('BUILD_NUM', build_num)
-        if build_mode != 'release':
+        if build_mode.is_RELEASE():
             set_value('SIGH_AD_HOC', 'true')
             set_value('GYM_USE_LEGACY_BUILD_API', 'true')
 
@@ -55,7 +57,7 @@ def fastlane(build_mode, build_num, overwrite_environ=True):
     os.chdir(platform_dir())
     try:
         environment_variables()
-        shell.cmd('fastlane %s' % build_mode)
+        shell.cmd('fastlane %s' % build_mode.CURRENT)
     finally:
         os.chdir(here)
 
@@ -64,7 +66,7 @@ def all():
     install()
     certs()
     fastfiles()
-    fastlane(os.environ['BUILD_MODE'], os.environ['BUILD_NUM'])
+    fastlane(os.environ['BUILD_NUM'])
 
 if __name__ == "__main__":
     shell.on_root()
@@ -72,7 +74,6 @@ if __name__ == "__main__":
 
     opt_parser = OptionParser('Usage: %prog [options] <install|certs|fastfiles|fastlane>')
     opt_parser.add_option('-o', '--overwrite-environment', help='overwrite environment variables', action="store_true", dest='env', default=False)
-    opt_parser.add_option('-m', '--mode', help='release|beta|debug|test')
     opt_parser.add_option('-n', '--num', help='build number')
     options, args = opt_parser.parse_args()
 

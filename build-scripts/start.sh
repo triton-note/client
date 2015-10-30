@@ -3,7 +3,6 @@
 echo "################################"
 echo "# Start building"
 echo "BUILD_NUM=$BUILD_NUM"
-echo "BUILD_MODE=$BUILD_MODE"
 echo "PROJECT_REPO_SLUG=$PROJECT_REPO_SLUG"
 
 into_python() {

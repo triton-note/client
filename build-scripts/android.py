@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 
+from build_mode import BuildMode
 from config import Config
 from lxml import etree
 import shell
@@ -58,10 +59,11 @@ def build_num(num):
     with open(target, mode='wb') as file:
         file.write(etree.tostring(elem, encoding='utf-8', xml_declaration=True))
 
-def build(mode):
-    print('Building by cordova', mode)
+def build():
+    build_mode = BuildMode()
+    print('Building by cordova', build_mode.CURRENT)
     multi = 'true'
-    if mode != "release" and mode != "beta":
+    if build_mode.is_RELEASE() and build_mode.is_BETA:
         multi = 'false'
     key = 'cdvBuildMultipleApks'
     target = platform_dir('gradle.properties')
@@ -81,7 +83,7 @@ def all():
     install_android()
     keystore()
     build_num(os.environ['BUILD_NUM'])
-    build(os.environ['BUILD_MODE'])
+    build()
     deploy()
 
 if __name__ == "__main__":
@@ -89,7 +91,6 @@ if __name__ == "__main__":
     Config.load()
 
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [crashlytics|googleplay]')
-    opt_parser.add_option('-m', '--mode', help='release|beta|debug|test')
     opt_parser.add_option('-n', '--num', help='build number')
     opt_parser.add_option('-t', '--track', help='release|beta (only for deploy googleplay)')
     options, args = opt_parser.parse_args()

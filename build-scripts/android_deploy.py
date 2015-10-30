@@ -7,6 +7,7 @@ import sys
 
 import pip
 
+from build_mode import BuildMode
 from config import Config
 import shell
 
@@ -35,7 +36,7 @@ def all():
            'release': 'production',
            'beta': 'beta'
            }
-    track_name = map.get(os.environ['BUILD_MODE'])
+    track_name = map.get(BuildMode().CURRENT)
 
     here = os.getcwd()
     os.chdir(dir)
