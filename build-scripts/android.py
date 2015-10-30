@@ -63,7 +63,7 @@ def build():
     build_mode = BuildMode()
     print('Building by cordova', build_mode.CURRENT)
     multi = 'true'
-    if build_mode.is_RELEASE() and build_mode.is_BETA:
+    if not (build_mode.is_RELEASE() or build_mode.is_BETA):
         multi = 'false'
     key = 'cdvBuildMultipleApks'
     target = platform_dir('gradle.properties')
