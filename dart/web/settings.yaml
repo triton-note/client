@@ -1,0 +1,3 @@
+awsRegion: aws.REGION
+cognitoPoolId: aws.COGNITO_POOL_ID
+s3Bucket: aws.S3_BUCKET
