@@ -32,7 +32,7 @@ def all():
     execute()
 
 if __name__ == "__main__":
-    shell.on_root(sys.argv[0])
+    shell.on_root()
     Config.load()
 
     opt_parser = OptionParser()

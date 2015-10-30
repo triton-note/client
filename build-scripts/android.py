@@ -85,7 +85,7 @@ def all():
     deploy()
 
 if __name__ == "__main__":
-    shell.on_root(sys.argv[0])
+    shell.on_root()
     Config.load()
 
     action = sys.argv[1]

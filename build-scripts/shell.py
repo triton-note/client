@@ -9,10 +9,9 @@ def mkdirs(path):
     if path and not os.path.exists(path):
         os.makedirs(path)
 
-def on_root(script_file):
-    root = os.path.dirname(os.path.dirname(sys.argv[0]))
-    if root:
-        os.chdir(root)
+def on_root():
+    root = os.path.join(os.path.dirname(sys.argv[0]), '..')
+    os.chdir(root)
 
 def grep(target, pf=None):
     if os.path.exists(target):

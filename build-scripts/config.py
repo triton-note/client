@@ -1,8 +1,9 @@
 import json
 import os
+import sys
 
 class Config:
-    _DIR = os.path.abspath(os.path.join('build-scripts', 'persistent'))
+    _DIR = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), 'persistent'))
     _SRC = None
 
     @classmethod

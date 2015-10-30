@@ -47,7 +47,7 @@ def all():
         os.chdir(here)
 
 if __name__ == "__main__":
-    shell.on_root(sys.argv[0])
+    shell.on_root()
     Config.load()
 
     os.chdir(os.path.join('platforms', 'android'))
