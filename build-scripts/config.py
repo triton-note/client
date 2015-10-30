@@ -3,12 +3,16 @@ import os
 import sys
 
 class Config:
-    _DIR = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), 'persistent'))
+    _DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
     _SRC = None
 
     @classmethod
-    def file(cls, *paths):
+    def script_file(cls, *paths):
         return os.path.join(cls._DIR, *paths)
+
+    @classmethod
+    def file(cls, *paths):
+        return os.path.join(cls._DIR, 'persistent', *paths)
 
     @classmethod
     def load(cls, path=None):
