@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import re
 import subprocess
 import sys
 
@@ -18,7 +19,7 @@ class ReleaseNote:
     @classmethod
     def tags_list(cls):
         tags = subprocess.getoutput('git tag -l').split('\n')
-        regex = re.compile('%s/%s/\w+' % (cls.TAG_PREFIX, BuildMode.NAME))
+        regex = re.compile('%s/%s/%s/\w+' % (cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME))
         return list(filter(regex.match, tags))
 
     @classmethod
@@ -54,7 +55,7 @@ class ReleaseNote:
     def put_tag(cls, build_num=None):
         if not build_num:
             build_num = os.environ['BUILD_NUM']
-        tag_name = '/'.join([cls.TAG_PREFIX, BuildMode.NAME, build_num])
+        tag_name = '/'.join([cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME, build_num])
         shell.cmd('git tag %s' % tag_name)
         shell.cmd('git push --tags')
 
@@ -66,6 +67,6 @@ if __name__ == "__main__":
 
     dart.all()
     cordova_prepare.all()
-    globals()[os.environ['PLATFORM']].all()
+    globals()[Config.PLATFORM].all()
 
     ReleaseNote.put_tag()

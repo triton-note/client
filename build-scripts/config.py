@@ -45,9 +45,11 @@ class BuildMode:
 class Config:
     _DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
     _SRC = None
+    PLATFORM = None
 
     @classmethod
     def init(cls, path=None, branch=None, build_mode=None):
+        cls.PLATFORM = os.environ['PLATFORM']
         BuildMode.init(branch=branch, mode_name=build_mode)
         if not path:
             path = cls.file('config.json')
