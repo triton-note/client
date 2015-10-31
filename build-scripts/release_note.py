@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from optparse import OptionParser
+import os
 import re
 import subprocess
 import sys
@@ -30,7 +31,15 @@ def make(mode=None):
     tag = _recent_tag(mode)
     if tag:
         arg = '%s...HEAD' % tag
-    return subprocess.getoutput("git log --format='%h %s' " + arg)
+    return subprocess.getoutput("git log --format='[%h] %s' " + arg)
+
+def set_environ(mode=None, key='RELEASE_NOTE_PATH'):
+    note = make(mode)
+    target = Config.script_file('.release_note')
+    with open(target, mode='w') as file:
+        file.write(note + '\n')
+    os.environ[key] = target
+    return target
 
 if __name__ == "__main__":
     shell.on_root()
@@ -44,7 +53,9 @@ if __name__ == "__main__":
         sys.exit('No action is directed')
     action = args[0]
 
-    if action == 'make':
+    if action == 'set_environ':
+        print(set_environ(options.mode))
+    elif action == 'make':
         print(make(options.mode))
     elif action == 'recent_tag':
         print(_recent_tag(options.mode))
