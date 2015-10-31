@@ -5,8 +5,7 @@ import os
 import shutil
 import sys
 
-from build_mode import BuildMode
-from config import Config
+from config import BuildMode, Config
 import shell
 
 
@@ -30,9 +29,7 @@ def fastfiles():
         file.write('app_identifier "%s"\n' % Config.get('platforms.ios.BUNDLE_ID'))
     shutil.copy(Config.script_file('ios_Fastfile.rb'), os.path.join(dir, 'Fastfile'))
 
-def fastlane(build_num, build_mode=None, overwrite_environ=True):
-    if not build_mode:
-        build_mode = BuildMode()
+def fastlane(build_num, overwrite_environ=True):
     def environment_variables():
         def set_value(name, value):
             if not (os.environ.get(name) and not overwrite_environ):
@@ -50,7 +47,7 @@ def fastlane(build_num, build_mode=None, overwrite_environ=True):
         for name, key in map.items():
             set_value(name, Config.get(key))
         set_value('BUILD_NUM', build_num)
-        if build_mode.is_RELEASE():
+        if BuildMode.is_RELEASE():
             set_value('SIGH_AD_HOC', 'true')
             set_value('GYM_USE_LEGACY_BUILD_API', 'true')
 
@@ -58,7 +55,7 @@ def fastlane(build_num, build_mode=None, overwrite_environ=True):
     os.chdir(platform_dir())
     try:
         environment_variables()
-        shell.cmd('fastlane %s' % build_mode.CURRENT)
+        shell.cmd('fastlane %s' % BuildMode.NAME)
     finally:
         os.chdir(here)
 
@@ -71,7 +68,7 @@ def all():
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.load()
+    Config.init()
 
     opt_parser = OptionParser('Usage: %prog [options] <install|certs|fastfiles|fastlane>')
     opt_parser.add_option('-o', '--overwrite-environment', help='overwrite environment variables', action="store_true", dest='env', default=False)
@@ -83,6 +80,8 @@ if __name__ == "__main__":
         sys.exit('No action is specified')
     action = args[0]
 
+    BuildMode.init(mode_name=options.mode)
+
     if action == "install":
         install_android()
     elif action == "certs":
@@ -92,4 +91,4 @@ if __name__ == "__main__":
     elif action == "fastlane":
         if not options.num:
             sys.exit('No build number is specified')
-        fastlane(options.num, build_mode=BuildMode(mode_name=options.mode), overwrite_environ=options.env)
+        fastlane(options.num, overwrite_environ=options.env)

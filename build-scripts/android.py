@@ -6,8 +6,7 @@ import os
 import subprocess
 import sys
 
-from build_mode import BuildMode
-from config import Config
+from config import BuildMode, Config
 from lxml import etree
 import shell
 
@@ -59,11 +58,9 @@ def build_num(num):
     with open(target, mode='wb') as file:
         file.write(etree.tostring(elem, encoding='utf-8', xml_declaration=True))
 
-def build(build_mode=None):
-    if not build_mode:
-        build_mode = BuildMode()
-    print('Building by cordova', build_mode.CURRENT)
-    multi = ('%s' % (build_mode.is_RELEASE() or build_mode.is_BETA())).lower()
+def build():
+    print('Building by cordova', BuildMode.NAME)
+    multi = ('%s' % (BuildMode.is_RELEASE() or BuildMode.is_BETA())).lower()
     key = 'cdvBuildMultipleApks'
     target = platform_dir('gradle.properties')
     lines = shell.grep(target, lambda a: not key in a)
@@ -87,7 +84,7 @@ def all():
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.load()
+    Config.init()
 
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [crashlytics|googleplay]')
     opt_parser.add_option('-m', '--mode', help="release|beta|debug|test (only for 'build')")
@@ -99,6 +96,8 @@ if __name__ == "__main__":
         sys.exit('No action is specified')
     action = args[0]
 
+    BuildMode.init(mode_name=options.mode)
+
     if action == "install":
         install_android()
     elif action == "keystore":
@@ -108,7 +107,7 @@ if __name__ == "__main__":
             sys.exit('No build number is specified')
         build_num(options.num)
     elif action == "build":
-        build(BuildMode(mode_name=options.mode))
+        build()
     elif action == "deploy":
         if len(args) < 2:
             sys.exit('No deploy target is specified')

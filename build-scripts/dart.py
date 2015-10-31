@@ -102,7 +102,7 @@ def all():
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.load()
+    Config.init()
 
     opt_parser = OptionParser('Usage: %prog [options] <settings|fonts|js|build>')
     options, args = opt_parser.parse_args()

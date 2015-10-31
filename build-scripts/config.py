@@ -1,13 +1,58 @@
+from optparse import OptionParser
 import json
 import os
+import re
+import subprocess
 import sys
 
-from build_mode import BuildMode
 
+class BuildMode:
+    @classmethod
+    def init(cls, branch=None, mode_name=None):
+        if not branch:
+            branch = os.environ.get('GIT_BRANCH')
+        if not branch:
+            branch = subprocess.getoutput("git status | head -n1 | awk '{print $NF}'")
+        def making():
+            map = {
+                   'release': 'BRANCH_RELEASE',
+                   'beta': 'BRANCH_BETA',
+                   'debug': 'BRANCH_DEBUG'
+                   }
+            for name, key in map.items():
+                if re.fullmatch(os.environ[key], branch):
+                    return name
+            return 'test'
+        cls.BRANCH = branch
+        if not mode_name:
+            mode_name = making()
+        cls.NAME = mode_name
+        print('BuildMode(%s) on branch: %s' % (cls.NAME, cls.BRANCH))
+
+    @classmethod
+    def is_RELEASE(cls):
+        return cls.NAME == 'release'
+    @classmethod
+    def is_BETA(cls):
+        return cls.NAME == 'beta'
+    @classmethod
+    def is_DEBUG(cls):
+        return cls.NAME == 'debug'
+    @classmethod
+    def is_TEST(cls):
+        return cls.NAME == 'test'
 
 class Config:
     _DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
     _SRC = None
+
+    @classmethod
+    def init(cls, path=None, branch=None, build_mode=None):
+        BuildMode.init(branch=branch, mode_name=build_mode)
+        if not path:
+            path = cls.file('config.json')
+        with open(path, mode='r') as file:
+            cls._SRC = json.load(file)
 
     @classmethod
     def script_file(cls, *paths):
@@ -18,15 +63,8 @@ class Config:
         return os.path.join(cls._DIR, 'persistent', *paths)
 
     @classmethod
-    def load(cls, path=None):
-        if not path:
-            path = cls.file('config.json')
-        with open(path, mode='r') as file:
-            cls._SRC = json.load(file)
-
-    @classmethod
     def get(cls, path):
-        build_mode = BuildMode().CURRENT
+        build_mode = BuildMode.CURRENT
 
         def getting(map, keyList):
             if len(keyList) < 1:

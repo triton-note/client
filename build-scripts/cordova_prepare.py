@@ -43,7 +43,7 @@ def all():
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.load()
+    Config.init()
 
     opt_parser = OptionParser()
     opt_parser.add_option('-p', '--platform', help='android|ios')
