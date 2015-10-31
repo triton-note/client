@@ -7,7 +7,7 @@ import subprocess
 
 
 class BuildMode:
-    def __init__(self, branch=None):
+    def __init__(self, branch=None, mode_name=None):
         if not branch:
             branch = os.environ.get('GIT_BRANCH')
         if not branch:
@@ -23,7 +23,11 @@ class BuildMode:
                     return name
             return 'test'
         self.BRANCH = branch
-        self.CURRENT = making()
+        if mode_name:
+            self.CURRENT = mode_name
+        else:
+            self.CURRENT = making()
+        print('BuildMode(%s) on branch: %s' % (self.CURRENT, self.BRANCH))
 
     def is_RELEASE(self):
         return self.CURRENT == 'release'

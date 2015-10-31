@@ -62,7 +62,7 @@ def build_num(num):
 def build():
     build_mode = BuildMode()
     print('Building by cordova', build_mode.CURRENT)
-    multi = ('%s' % (build_mode.is_RELEASE() or build_mode.is_BETA)).lower()
+    multi = ('%s' % (build_mode.is_RELEASE() or build_mode.is_BETA())).lower()
     key = 'cdvBuildMultipleApks'
     target = platform_dir('gradle.properties')
     lines = shell.grep(target, lambda a: not key in a)
