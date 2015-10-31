@@ -16,7 +16,7 @@ if __name__ == "__main__":
     shell.on_root()
     Config.load()
 
+    release_note.set_environ()
     dart.all()
     cordova_prepare.all()
-    release_note.set_environ()
     globals()[os.environ['PLATFORM']].all()
