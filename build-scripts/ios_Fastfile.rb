@@ -16,7 +16,7 @@ platform :ios do
     sigh
 
     update_project_provisioning(
-      xcodeproj: ".*.xcodeproj",
+      xcodeproj: "#{ENV["APPLICATION_NAME"]}.xcodeproj",
       target_filter: ".*",
       build_configuration: "Release"
     )
