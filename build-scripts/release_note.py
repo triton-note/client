@@ -35,6 +35,9 @@ def make(mode=None):
 
 def set_environ(mode=None, key='RELEASE_NOTE_PATH'):
     note = make(mode)
+    print('################ Release Note ################')
+    print(note)
+    print('##############################################')
     target = Config.script_file('.release_note')
     with open(target, mode='w') as file:
         file.write(note + '\n')
