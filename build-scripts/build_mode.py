@@ -19,7 +19,7 @@ class BuildMode:
                    'debug': 'BRANCH_DEBUG'
                    }
             for name, key in map.items():
-                if re.search(os.environ[key], branch):
+                if re.fullmatch(os.environ[key], branch):
                     return name
             return 'test'
         self.BRANCH = branch
@@ -40,12 +40,9 @@ class BuildMode:
 
 if __name__ == "__main__":
     opt_parser = OptionParser()
+    opt_parser.add_option('-b', '--branch', help='branch name')
+    opt_parser.add_option('-m', '--mode', help='build mode')
     options, args = opt_parser.parse_args()
 
-    if args:
-        branch = args[0]
-    else:
-        branch = None
-
-    mode = BuildMode(branch)
+    mode = BuildMode(branch=options.branch, mode_name=options.mode)
     print('branch=%s,  mode=%s' % (mode.BRANCH, mode.CURRENT))
