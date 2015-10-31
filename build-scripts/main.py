@@ -12,10 +12,12 @@ import shell
 
 
 class ReleaseNote:
+    TAG_PREFIX = 'deployed'
+
     @classmethod
     def tags_list(cls):
         tags = subprocess.getoutput('git tag -l').split('\n')
-        regex = re.compile('deployed/%s/\w+' % BuildMode.NAME)
+        regex = re.compile('%s/%s/\w+' % (cls.TAG_PREFIX, BuildMode.NAME))
         return list(filter(regex.match, tags))
 
     @classmethod
@@ -51,7 +53,7 @@ class ReleaseNote:
     def put_tag(cls, build_num=None):
         if not build_num:
             build_num = os.environ['BUILD_NUM']
-        tag_name = 'deployed/%s/%s' % (BuildMode.NAME, build_num)
+        tag_name = '/'.join([cls.TAG_PREFIX, BuildMode.NAME, build_num])
         shell.cmd('git tag %s' % tag_name)
         shell.cmd('git push --tags')
 
