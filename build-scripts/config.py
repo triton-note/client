@@ -66,7 +66,6 @@ class Config:
 
     @classmethod
     def get(cls, path):
-        build_mode = BuildMode.CURRENT
 
         def getting(map, keyList):
             if len(keyList) < 1:
@@ -74,7 +73,7 @@ class Config:
             elif len(keyList) == 1:
                 value = map[keyList[0]]
                 if isinstance(value, dict):
-                    found = next((t for t in value.items() if build_mode in t[0].split(' ')), None)
+                    found = next((t for t in value.items() if BuildMode.NAME in t[0].split(' ')), None)
                     if found != None:
                         return found[1]
                     else:
