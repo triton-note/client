@@ -59,8 +59,9 @@ def build_num(num):
     with open(target, mode='wb') as file:
         file.write(etree.tostring(elem, encoding='utf-8', xml_declaration=True))
 
-def build():
-    build_mode = BuildMode()
+def build(build_mode=None):
+    if not build_mode:
+        build_mode = BuildMode()
     print('Building by cordova', build_mode.CURRENT)
     multi = ('%s' % (build_mode.is_RELEASE() or build_mode.is_BETA())).lower()
     key = 'cdvBuildMultipleApks'
@@ -89,8 +90,9 @@ if __name__ == "__main__":
     Config.load()
 
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [crashlytics|googleplay]')
-    opt_parser.add_option('-n', '--num', help='build number')
-    opt_parser.add_option('-t', '--track', help='release|beta (only for deploy googleplay)')
+    opt_parser.add_option('-m', '--mode', help="release|beta|debug|test (only for 'build')")
+    opt_parser.add_option('-n', '--num', help="build number (only for 'build_num')")
+    opt_parser.add_option('-t', '--track', help="release|beta (only for 'deploy googleplay')")
     options, args = opt_parser.parse_args()
 
     if len(args) < 1:
@@ -106,9 +108,7 @@ if __name__ == "__main__":
             sys.exit('No build number is specified')
         build_num(options.num)
     elif action == "build":
-        if not options.mode:
-            sys.exit('No build mode is specified')
-        build(options.mode)
+        build(BuildMode(mode_name=options.mode))
     elif action == "deploy":
         if len(args) < 2:
             sys.exit('No deploy target is specified')

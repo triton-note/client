@@ -30,8 +30,9 @@ def fastfiles():
         file.write('app_identifier "%s"\n' % Config.get('platforms.ios.BUNDLE_ID'))
     shutil.copy(Config.script_file('ios_Fastfile.rb'), os.path.join(dir, 'Fastfile'))
 
-def fastlane(build_num, overwrite_environ=True):
-    build_mode = BuildMode()
+def fastlane(build_num, build_mode=None, overwrite_environ=True):
+    if not build_mode:
+        build_mode = BuildMode()
     def environment_variables():
         def set_value(name, value):
             if not (os.environ.get(name) and not overwrite_environ):
@@ -74,6 +75,7 @@ if __name__ == "__main__":
 
     opt_parser = OptionParser('Usage: %prog [options] <install|certs|fastfiles|fastlane>')
     opt_parser.add_option('-o', '--overwrite-environment', help='overwrite environment variables', action="store_true", dest='env', default=False)
+    opt_parser.add_option('-m', '--mode', help='release|beta|debug|test')
     opt_parser.add_option('-n', '--num', help='build number')
     options, args = opt_parser.parse_args()
 
@@ -88,8 +90,6 @@ if __name__ == "__main__":
     elif action == "fastfiles":
         fastfiles()
     elif action == "fastlane":
-        if not options.mode:
-            sys.exit('No build mode is specified')
         if not options.num:
             sys.exit('No build number is specified')
-        fastlane(options.mode, options.num, options.env)
+        fastlane(options.num, build_mode=BuildMode(mode_name=options.mode), overwrite_environ=options.env)
