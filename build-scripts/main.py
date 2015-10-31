@@ -8,7 +8,6 @@ import android
 import cordova_prepare
 import dart
 import ios
-import release_note
 import shell
 
 
@@ -48,11 +47,22 @@ class ReleaseNote:
         os.environ[key] = target
         return target
 
+    @classmethod
+    def put_tag(cls, build_num=None):
+        if not build_num:
+            build_num = os.environ['BUILD_NUM']
+        tag_name = 'deployed/%s/%s' % (BuildMode.NAME, build_num)
+        shell.cmd('git tag %s' % tag_name)
+        shell.cmd('git push --tags')
+
 if __name__ == "__main__":
     shell.on_root()
     Config.init()
 
     ReleaseNote.set_environ()
+
     dart.all()
     cordova_prepare.all()
     globals()[os.environ['PLATFORM']].all()
+
+    ReleaseNote.put_tag()
