@@ -64,7 +64,7 @@ class GitHub:
         sha = subprocess.getoutput("git log --format='%H' -n1")
         tag_name = '/'.join([cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME, Config.BUILD_NUM])
         res = cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': sha})
-        print(json.dumps(tagged, indent=4))
+        print(json.dumps(res, indent=4))
 
 if __name__ == "__main__":
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [release_note|tag]')
