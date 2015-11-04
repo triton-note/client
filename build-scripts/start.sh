@@ -28,7 +28,7 @@ install() {
     
     echo 'gem: --no-document' > $HOME/.gemrc
     
-    pip install pyyaml lxml
+    pip install pyyaml lxml requests
     brew tap dart-lang/dart && brew install dart
     sudo gem install compass
     npm install
