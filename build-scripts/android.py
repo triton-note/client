@@ -59,7 +59,7 @@ def build_num(num):
         file.write(etree.tostring(elem, encoding='utf-8', xml_declaration=True))
 
 def build():
-    print('Building by cordova', BuildMode.NAME)
+    shell.marker_log('Building by cordova %s' % BuildMode.NAME)
     multi = ('%s' % (BuildMode.is_RELEASE() or BuildMode.is_BETA())).lower()
     key = 'cdvBuildMultipleApks'
     target = platform_dir('gradle.properties')
@@ -75,7 +75,7 @@ def deploy():
     android_deploy.all()
 
 def all():
-    print('Building Android')
+    shell.marker_log('Building Android')
     install_android()
     keystore()
     build_num(os.environ['BUILD_NUM'])

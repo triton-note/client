@@ -88,6 +88,7 @@ def build():
     shell.cmd('pub build')
 
 def all():
+    shell.marker_log('Dart')
     os.chdir('dart')
     try:
         write_settings()

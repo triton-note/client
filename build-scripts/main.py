@@ -21,9 +21,7 @@ if __name__ == "__main__":
     GitHub.init()
 
     note = GitHub.release_note()
-    print('################ Release Note ################')
-    print(note)
-    print('################')
+    shell.marker_log('Release Note', note)
     target = Config.script_file('.release_note')
     with open(target, mode='w') as file:
         file.write(note + '\n')
@@ -33,4 +31,5 @@ if __name__ == "__main__":
     cordova_prepare.all()
     globals()[Config.PLATFORM].all()
 
+    shell.marker_log('Tagging')
     GitHub.put_tag()

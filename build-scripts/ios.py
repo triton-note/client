@@ -60,7 +60,7 @@ def fastlane(build_num, overwrite_environ=True):
         os.chdir(here)
 
 def all():
-    print('Building iOS')
+    shell.marker_log('Building iOS')
     install()
     certs()
     fastfiles()

@@ -23,3 +23,10 @@ def grep(target, pf=None):
             return lines
     else:
         return []
+
+def marker_log(title, content=None):
+    c = '################'
+    print('%s %s %s' % (c, title, c))
+    if content:
+        print(content)
+        print(c)

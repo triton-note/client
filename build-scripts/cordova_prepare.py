@@ -35,6 +35,7 @@ def ionic():
     shell.cmd('ionic resources')
 
 def all():
+    shell.marker_log('Cordova')
     environment_variables()
     cleanup()
     cordova(os.environ['PLATFORM'])
