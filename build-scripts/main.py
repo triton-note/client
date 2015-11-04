@@ -14,6 +14,8 @@ import shell
 
 
 if __name__ == "__main__":
+    print(sys.version)
+
     shell.on_root()
     Config.init()
     GitHub.init()
