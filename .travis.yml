@@ -22,10 +22,18 @@ before_install:
   - virtualenv --python=$(type -p python3) .v3
   - source .v3/bin/activate
 install:
-  - python --version
+  - pip install boto3
+  - build-scripts/cache.py load build-scripts/persistent
+  - build-scripts/cache.py load
+  - pip install pyyaml lxml requests
+  - brew tap dart-lang/dart && brew install dart
+  - sudo gem install compass
+  - npm install
+  - export PATH="$PATH:$(pwd)/node_modules/.bin"
+  - build-scripts/cache.py save
 
 script:
-  - build-scripts/start.sh
+  - build-scripts/main.py
 
 notifications:
   email: false
