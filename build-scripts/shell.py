@@ -26,6 +26,7 @@ def grep(target, pf=None):
 
 def marker_log(title, content=None):
     c = '################'
+    print()
     print('%s %s %s' % (c, title, c))
     if content:
         print(content)
