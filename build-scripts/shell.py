@@ -2,6 +2,7 @@ import os
 import sys
 
 def cmd(line):
+    print('$ %s' % line)
     if os.system(line) != 0:
         sys.exit("Failed to execute: %s" % line)
 
