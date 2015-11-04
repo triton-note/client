@@ -10,9 +10,9 @@ into_python() {
     echo "# Using Python3"
     
     [ -z "$(type python3 2> /dev/null)" ] && (brew update && brew install python3)
-    
-    [ -z "$(type pip 2> /dev/null)" ] && sudo easy_install pip
-    [ -z "$(type virtualenv 2> /dev/null)" ] && sudo pip install virtualenv
+    python --version
+    pip3 --version
+    [ -z "$(type virtualenv 2> /dev/null)" ] && sudo pip3 install virtualenv
     
     [ -f .v3/bin/activate ] || virtualenv --python=$(type -p python3) .v3
     [ "${VIRTUAL_ENV}x" == "x" ] && source .v3/bin/activate
