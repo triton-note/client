@@ -8,9 +8,7 @@ import subprocess
 import sys
 
 from config import BuildMode, Config
-from lxml import etree
 import requests
-import shell
 
 
 class GitHub:
