@@ -9,8 +9,7 @@ into_python() {
     echo "################################"
     echo "# Using Python3"
     
-    [ -z "$(type python3 2> /dev/null)" ] && (brew update && brew install python3)
-    python --version
+    [ -z "$(type python3 2> /dev/null)" ] && brew install python3
     pip3 --version
     [ -z "$(type virtualenv 2> /dev/null)" ] && sudo pip3 install virtualenv
     
@@ -44,6 +43,7 @@ build() {
     build-scripts/main.py
 }
 
+brew update || brew update
 time into_python
 time install
 time build
