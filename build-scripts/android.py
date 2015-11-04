@@ -32,7 +32,6 @@ def install_android():
              'build-tools-22.0.1'
              ]
     for name in names:
-        print('Installing', name)
         shell.cmd('echo y | android update sdk --no-ui --all --filter %s > /dev/null' % name)
 
 def keystore():

@@ -32,4 +32,5 @@ if __name__ == "__main__":
     globals()[Config.PLATFORM].all()
 
     shell.marker_log('Tagging')
-    GitHub.put_tag()
+    tagged = GitHub.put_tag()
+    print(json.dumps(tagged, indent=4))
