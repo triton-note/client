@@ -15,6 +15,15 @@ env:
     - PLATFORM=android
     - PLATFORM=ios
 
+before_install:
+  - brew update || brew update
+  - brew install python3
+  - sudo pip3 install virtualenv
+  - virtualenv --python=$(type -p python3) .v3
+  - source .v3/bin/activate
+install:
+  - python --version
+
 script:
   - build-scripts/start.sh
 
