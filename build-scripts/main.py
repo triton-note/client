@@ -21,17 +21,10 @@ if __name__ == "__main__":
     Config.init()
     GitHub.init()
 
-    note = GitHub.release_note()
-    shell.marker_log('Release Note', note)
-    target = Config.script_file('.release_note')
-    with open(target, mode='w') as file:
-        file.write(note + '\n')
-    os.environ['RELEASE_NOTE_PATH'] = target
+    os.environ['RELEASE_NOTE_PATH'] = GitHub.release_note(target=Config.script_file('.release_note'))
 
     dart.all()
     cordova_prepare.all()
     globals()[Config.PLATFORM].all()
 
-    shell.marker_log('Tagging')
-    tagged = GitHub.put_tag()
-    print(json.dumps(tagged, indent=4))
+    GitHub.put_tag()

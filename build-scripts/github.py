@@ -40,25 +40,30 @@ class GitHub:
         return sorted(tags, reverse=True)
 
     @classmethod
-    def logs(cls, last):
-        arg = '-n1'
-        if last:
-            arg = '%s...HEAD' % last
-        return subprocess.getoutput("git log --format='[%h] %s' " + arg)
-
-    @classmethod
-    def release_note(cls, last=None):
+    def release_note(cls, last=None, target=None):
         if not last:
             tags = cls.tags()
             if tags:
                 last = tags[0]
-        return cls.logs(last)
+        arg = '-n1'
+        if last:
+            arg = '%s...HEAD' % last
+        note = subprocess.getoutput("git log --format='[%h] %s' " + arg)
+        shell.marker_log('Release Note', note)
+        if target:
+            with open(target, mode='w') as file:
+                file.write(note + '\n')
+            return target
+        else:
+            return note
 
     @classmethod
     def put_tag(cls):
+        shell.marker_log('Tagging')
         sha = subprocess.getoutput("git log --format='%H' -n1")
         tag_name = '/'.join([cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME, Config.BUILD_NUM])
-        return cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': sha})
+        res = cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': sha})
+        print(json.dumps(tagged, indent=4))
 
 if __name__ == "__main__":
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [release_note|tag]')
@@ -81,10 +86,9 @@ if __name__ == "__main__":
     GitHub.init(repo=options.repo, username=options.username, token=options.token)
 
     if action == 'release_note':
-        print(GitHub.release_note(options.commit))
+        print(GitHub.release_note(last=options.commit))
     elif action == 'tag':
         if options.list:
-            result = GitHub.tags()
+            print(GitHub.tags())
         elif options.num:
-            result = GitHub.put_tag()
-        print(json.dumps(result, indent=4))
+            GitHub.put_tag()
