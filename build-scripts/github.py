@@ -71,7 +71,7 @@ class GitHub:
         return list(filter(lambda x: x != None, map(line, data)))[:-1]
 
     @classmethod
-    def release_note(cls, last_sha):
+    def release_note(cls, last_sha=None):
         if not last_sha:
             tags = cls.tags()
             if tags:
