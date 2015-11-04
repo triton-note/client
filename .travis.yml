@@ -2,6 +2,10 @@ osx_image: xcode7
 language: objective-c
 rvm: 2.2.3
 
+branches:
+  except:
+    - /^deployed\/\w+\/\w+\/\w+$/
+
 env:
   global:
     - BUILD_NUM=$TRAVIS_BUILD_NUMBER
