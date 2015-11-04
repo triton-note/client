@@ -4,13 +4,13 @@ from optparse import OptionParser
 import json
 import os
 import re
+import subprocess
 import sys
 
 from config import BuildMode, Config
 from lxml import etree
 import requests
 import shell
-
 
 
 class GitHub:
@@ -30,60 +30,37 @@ class GitHub:
         cls.token = token
 
     @classmethod
-    def _url(cls, sub, proc):
-        url = 'https://%s:%s@api.github.com/repos/%s/%s' % (cls.username, cls.token, cls.repo, sub)
-        return proc(url).json()
-
-    @classmethod
-    def _get(cls, sub, params=None):
-        return cls._url(sub, lambda x: requests.get(x, params=params))
-
-    @classmethod
     def _post(cls, sub, data):
-        return cls._url(sub, lambda x: requests.post(x, data=json.dumps(data)))
-
-    @classmethod
-    def current_sha(cls):
-        data = cls._get('branches/%s' % BuildMode.BRANCH)
-        return data['commit']['sha']
+        url = 'https://api.github.com/repos/%s/%s' % (cls.repo, sub)
+        return requests.post(url, json=data, auth=(cls.username, cls.token)).json()
 
     @classmethod
     def tags(cls):
-        data = cls._get('tags')
+        data = subprocess.getoutput("git tag -l").split('\n')
         regex = re.compile('%s/%s/%s/\w+' % (cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME))
-        tags = filter(lambda x: regex.match(x['name']), data)
-        return sorted(tags, key=lambda x: x['name'], reverse=True)
+        tags = filter(regex.match, data)
+        return sorted(tags, reverse=True)
 
     @classmethod
-    def logs(cls, last_sha):
-        merge = re.compile("Merge branch '.+' into develop")
-        def date(sha):
-            data = cls._get('commits/%s' % sha)
-            return data['commit']['author']['date']
-        def line(data):
-            title = data['commit']['message'].split('\n')[0]
-            if merge.match(title):
-                return None
-            else:
-                return '[%s] %s' % (data['sha'][:7], title)
-
-        data = cls._get('commits', params={'sha': cls.current_sha(), 'since': date(last_sha)})
-        return list(filter(lambda x: x != None, map(line, data)))[:-1]
+    def logs(cls, last):
+        arg = '-n1'
+        if last:
+            arg = '%s...HEAD' % last
+        return subprocess.getoutput("git log --format='[%h] %s' " + arg)
 
     @classmethod
-    def release_note(cls, last_sha=None):
-        if not last_sha:
+    def release_note(cls, last=None):
+        if not last:
             tags = cls.tags()
             if tags:
-                last_sha = tags[0]['commit']['sha']
-            else:
-                last_sha = None
-        return '\n'.join(cls.logs(last_sha))
+                last = tags[0]
+        return cls.logs(last)
 
     @classmethod
     def put_tag(cls):
+        sha = subprocess.getoutput("git log --format='%H' -n1")
         tag_name = '/'.join([cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME, Config.BUILD_NUM])
-        return cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': cls.current_sha()})
+        return cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': sha})
 
 if __name__ == "__main__":
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [release_note|tag]')
