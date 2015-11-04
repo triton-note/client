@@ -3,7 +3,6 @@
 from optparse import OptionParser
 import os
 import shutil
-import sys
 
 from config import Config
 import shell

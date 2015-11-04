@@ -1,4 +1,3 @@
-from optparse import OptionParser
 import json
 import os
 import re

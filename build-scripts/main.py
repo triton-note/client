@@ -4,7 +4,7 @@ import os
 import re
 import sys
 
-from config import BuildMode, Config
+from config import Config
 from github import GitHub
 import android
 import cordova_prepare
