@@ -33,6 +33,10 @@ class GitHub:
         return requests.post(url, json=data, auth=(cls.username, cls.token)).json()
 
     @classmethod
+    def is_deployed(cls):
+        return re.fullmatch('%s/\w+/\w+/\w+' % cls.TAG_PREFIX, BuildMode.BRANCH) != None
+
+    @classmethod
     def tags(cls):
         data = subprocess.getoutput("git tag -l").split('\n')
         regex = re.compile('%s/%s/%s/\w+' % (cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME))
