@@ -5,15 +5,9 @@ echo "# Start building"
 echo "BUILD_NUM=$BUILD_NUM"
 echo "PROJECT_REPO_SLUG=$PROJECT_REPO_SLUG"
 
-check_python() {
-    python --version
-}
-
 into_python() {
     echo "################################"
     echo "# Using Python3"
-    
-    check_python
     
     [ -z "$(type python3 2> /dev/null)" ] && brew install python3
     pip3 --version
