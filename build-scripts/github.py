@@ -9,6 +9,7 @@ import sys
 
 from config import BuildMode, Config
 import requests
+import shell
 
 
 class GitHub:
