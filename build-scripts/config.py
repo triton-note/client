@@ -46,10 +46,16 @@ class Config:
     _DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
     _SRC = None
     PLATFORM = None
+    BUILD_NUM = None
 
     @classmethod
-    def init(cls, path=None, branch=None, build_mode=None):
-        cls.PLATFORM = os.environ['PLATFORM']
+    def init(cls, path=None, branch=None, build_mode=None, build_num=None, platform=None):
+        if not build_num:
+            build_num = os.environ['BUILD_NUM']
+        cls.BUILD_NUM = build_num
+        if not platform:
+            platform = os.environ['PLATFORM']
+        cls.PLATFORM = platform
         BuildMode.init(branch=branch, mode_name=build_mode)
         if not path:
             path = cls.file('config.json')
