@@ -23,7 +23,6 @@ before_install:
   - source .v3/bin/activate
 install:
   - pip install boto3
-  - build-scripts/cache.py load build-scripts/persistent
   - build-scripts/cache.py load
   - pip install pyyaml lxml requests
   - brew tap dart-lang/dart && brew install dart
@@ -33,6 +32,7 @@ install:
   - build-scripts/cache.py save
 
 script:
+  - build-scripts/cache.py load build-scripts/persistent
   - build-scripts/main.py
 
 notifications:
