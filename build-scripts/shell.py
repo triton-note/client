@@ -31,3 +31,4 @@ def marker_log(title, content=None):
     if content:
         print(content)
         print(c)
+        print()
