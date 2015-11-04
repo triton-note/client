@@ -14,7 +14,7 @@ into_python() {
     [ -z "$(type virtualenv 2> /dev/null)" ] && sudo pip3 install virtualenv
     
     [ -f .v3/bin/activate ] || virtualenv --python=$(type -p python3) .v3
-    [ "${VIRTUAL_ENV}x" == "x" ] && source .v3/bin/activate
+    [ -z "${VIRTUAL_ENV:-}" ] && source .v3/bin/activate
 }
 
 install() {
