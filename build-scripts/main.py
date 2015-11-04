@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-import json
 import os
-import re
 import sys
 
 from config import Config
@@ -15,7 +13,7 @@ import shell
 
 
 if __name__ == "__main__":
-    print(sys.version)
+    shell.marker_log('Building by Python', sys.version)
 
     shell.on_root()
     Config.init()
