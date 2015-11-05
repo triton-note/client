@@ -14,7 +14,7 @@ def platform_dir(*paths):
     return os.path.join('platforms', 'android', *paths)
 
 def install_android():
-    shell.cmd('brew install android').call()
+    shell.cmd('brew', 'install', 'android').call()
     android_home = shell.cmd('brew', '--prefix', 'android').output()
     os.environ['ANDROID_HOME'] = android_home
     print('export ANDROID_HOME=%s' % android_home)
