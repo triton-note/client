@@ -19,7 +19,7 @@ class GitHub:
             self.name = name
 
         def _log(self, format):
-            return shell.cmd('git', 'log', self.name, '-n1', "--format=%s" % format).output()
+            return shell.cmd('git', 'log', self.name, '-n1', "--format=%s" % format).output().strip()
 
         def sha(self):
             return self._log('%H')
@@ -33,7 +33,7 @@ class GitHub:
             return int(v)
 
         def oneline(self):
-            return self._log('[%h] %s').strip()
+            return self._log('[%h] %s')
 
     @classmethod
     def init(cls, repo=None, username=None, token=None):
@@ -66,18 +66,18 @@ class GitHub:
             tags = cls.tags()
             if tags:
                 last = tags[0]
+        lines = []
+        obj = GitHub.CommitObj('HEAD')
         if last:
             last_sha = GitHub.CommitObj(last).sha()
-            obj = GitHub.CommitObj('HEAD')
-            lines = []
             while obj and obj.sha() != last_sha:
                 parents = sorted(obj.parents(), key=lambda x: x.timestamp(), reverse=True)
                 if len(parents) < 2:
                     lines.append(obj.oneline())
                 obj = next(iter(parents), None)
-            note = '\n'.join(lines)
         else:
-            note = shell.cmd('git', 'log', "--format='[%h] %s'", '-n1').output()
+            lines.append(obj.oneline())
+        note = '\n'.join(lines)
         shell.marker_log('Release Note', note)
         if target:
             with open(target, mode='w') as file:
@@ -89,7 +89,7 @@ class GitHub:
     @classmethod
     def put_tag(cls):
         shell.marker_log('Tagging')
-        sha = shell.cmd('git', 'log', "--format='%H'", '-n1').output()
+        sha = GitHub.CommitObj('HEAD').sha()
         tag_name = '/'.join([cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME, Config.BUILD_NUM])
         res = cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': sha})
         print(json.dumps(res, indent=4))
