@@ -71,7 +71,8 @@ if __name__ == "__main__":
                'repo': 'PROJECT_REPO_SLUG'
                }
         for key, value in opts.items():
-            os.environ[map[key]] = value
+            if value:
+                os.environ[map[key]] = value
 
     set_environments(vars(options))
 
