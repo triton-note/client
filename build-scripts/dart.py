@@ -105,7 +105,7 @@ if __name__ == "__main__":
     shell.on_root()
 
     opt_parser = OptionParser('Usage: %prog [options] <settings|fonts|js|build>')
-    opt_parser.add_option('-p', '--platform')
+    opt_parser.add_option('-p', '--platform', help='android|ios')
     opt_parser.add_option('-b', '--branch', help="branch name")
     opt_parser.add_option('-m', '--mode', help="release|beta|debug|test")
     opt_parser.add_option('-n', '--num', help="build number")

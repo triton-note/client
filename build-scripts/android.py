@@ -47,8 +47,8 @@ def keystore():
     with open(target, mode='w') as file:
         json.dump({'android': {'release': build}}, file, indent=4)
 
-def build_num(num):
-    num = '%s00' % num
+def build_num():
+    num = '%s00' % Config.BUILD_NUM
     print('Setting build_num', num)
     target = 'config.xml'
     with open(target, mode='rb') as file:
@@ -77,17 +77,17 @@ def all():
     shell.marker_log('Building Android')
     install_android()
     keystore()
-    build_num(os.environ['BUILD_NUM'])
+    build_num()
     build()
     deploy()
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.init()
 
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [crashlytics|googleplay]')
-    opt_parser.add_option('-m', '--mode', help="release|beta|debug|test (only for 'build')")
-    opt_parser.add_option('-n', '--num', help="build number (only for 'build_num')")
+    opt_parser.add_option('-b', '--branch', help="branch name")
+    opt_parser.add_option('-m', '--mode', help="release|beta|debug|test")
+    opt_parser.add_option('-n', '--num', help="build number")
     opt_parser.add_option('-t', '--track', help="release|beta (only for 'deploy googleplay')")
     options, args = opt_parser.parse_args()
 
@@ -95,16 +95,14 @@ if __name__ == "__main__":
         sys.exit('No action is specified')
     action = args[0]
 
-    BuildMode.init(mode_name=options.mode)
+    Config.init(branch=options.branch, build_mode=options.mode, build_num=options.num, platform='android')
 
     if action == "install":
         install_android()
     elif action == "keystore":
         keystore()
     elif action == "build_num":
-        if not options.num:
-            sys.exit('No build number is specified')
-        build_num(options.num)
+        build_num()
     elif action == "build":
         build()
     elif action == "deploy":

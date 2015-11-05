@@ -27,9 +27,9 @@ def cleanup():
         if os.path.exists(dir):
             shutil.rmtree(dir)
 
-def cordova(platform):
+def cordova():
     shell.mkdirs('plugins')
-    shell.cmd('cordova prepare %s' % platform)
+    shell.cmd('cordova prepare %s' % Config.PLATFORM)
 
 def ionic():
     shell.cmd('ionic resources')
@@ -38,33 +38,30 @@ def all():
     shell.marker_log('Cordova')
     environment_variables()
     cleanup()
-    cordova(os.environ['PLATFORM'])
+    cordova()
     ionic()
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.init()
 
     opt_parser = OptionParser()
     opt_parser.add_option('-p', '--platform', help='android|ios')
-    opt_parser.add_option('-b', '--before', help='script to run before execution', metavar='SCRIPT')
-    opt_parser.add_option('-a', '--after', help='script to run after execution', metavar='SCRIPT')
+    opt_parser.add_option('-b', '--branch', help="branch name")
+    opt_parser.add_option('-m', '--mode', help="release|beta|debug|test")
+    opt_parser.add_option('-n', '--num', help="build number")
     opt_parser.add_option('-o', '--overwrite-environment', help='overwrite environment variables', action="store_true", dest='env', default=False)
     opt_parser.add_option('-c', '--no-cleanup', help='do not cleanup before execute', action="store_false", dest='cleanup', default=True)
     opt_parser.add_option('-r', '--no-resources', help='do not create resources', action="store_false", dest='ionic', default=True)
+    opt_parser.add_option('-d', '--no-build', help='do not run cordova prepare', action="store_false", dest='cordova', default=True)
     options, args = opt_parser.parse_args()
+
+    Config.init(branch=options.branch, build_mode=options.mode, build_num=options.num, platform=options.platform)
 
     environment_variables(options.env)
     if options.cleanup:
         cleanup()
 
-    if options.before:
-        shell.cmd(options.before)
-
-    if options.platform:
-        cordova(options.platform)
+    if options.cordova:
+        cordova()
     if options.ionic:
         ionic()
-
-    if options.after:
-        shell.cmd(options.after)

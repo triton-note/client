@@ -68,7 +68,7 @@ class GitHub:
 
 if __name__ == "__main__":
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [release_note|tag]')
-    opt_parser.add_option('-p', '--platform')
+    opt_parser.add_option('-p', '--platform', help='android|ios')
     opt_parser.add_option('-u', '--username', help="GitHub username")
     opt_parser.add_option('-t', '--token', help="GitHub OAuth Token")
     opt_parser.add_option('-b', '--branch', help="branch name")
