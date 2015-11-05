@@ -3,6 +3,7 @@
 from optparse import OptionParser
 import json
 import os
+import subprocess
 import sys
 
 from config import BuildMode, Config
@@ -14,8 +15,8 @@ def platform_dir(*paths):
     return os.path.join('platforms', 'android', *paths)
 
 def install_android():
-    shell.cmd('brew', 'install', 'android').call()
-    android_home = shell.cmd('brew', '--prefix', 'android').output()
+    os.system('brew install android')
+    android_home = subprocess.getoutput('brew --prefix android')
     os.environ['ANDROID_HOME'] = android_home
     print('export ANDROID_HOME=%s' % android_home)
 
@@ -31,13 +32,7 @@ def install_android():
              'build-tools-22.0.1'
              ]
     for name in names:
-        (out, err) = shell.cmd('android', 'update', 'sdk', '--no-ui', '--all', '--filter', name).pipe('y')
-        if out:
-            lines = filter(lambda x: x.find('Installed') > -1, out.split('\n'))
-            print('\n'.join(lines))
-        if err:
-            print('-- Stderr --')
-            print(err)
+        shell.cmd('echo y | android update sdk --no-ui --all --filter %s > /dev/null' % name)
 
 def keystore():
     store = Config.file('android', 'keystore')
@@ -72,7 +67,7 @@ def build():
         file.write('\n'.join(lines))
         file.write('\n%s=%s\n' % (key, multi))
     print('Add', target, ':', key, '=', multi)
-    shell.cmd('cordova', 'build', 'android', '--release', '--buildConfig=%s' % platform_dir('build.json')).call()
+    shell.cmd('cordova build android --release --buildConfig=%s' % platform_dir('build.json'))
 
 def deploy():
     import android_deploy

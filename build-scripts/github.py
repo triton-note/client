@@ -4,6 +4,7 @@ from optparse import OptionParser
 import json
 import os
 import re
+import subprocess
 import sys
 
 from config import BuildMode, Config
@@ -13,27 +14,6 @@ import shell
 
 class GitHub:
     TAG_PREFIX = 'deployed'
-
-    class CommitObj:
-        def __init__(self, name):
-            self.name = name
-
-        def _log(self, format):
-            return shell.cmd('git', 'log', self.name, '-n1', "--format=%s" % format).output().strip()
-
-        def sha(self):
-            return self._log('%H')
-
-        def parents(self):
-            vs = self._log('%P').split()
-            return map(lambda x: GitHub.CommitObj(x), vs)
-
-        def timestamp(self):
-            v = self._log('%at')
-            return int(v)
-
-        def oneline(self):
-            return self._log('[%h] %s')
 
     @classmethod
     def init(cls, repo=None, username=None, token=None):
@@ -55,7 +35,7 @@ class GitHub:
 
     @classmethod
     def tags(cls):
-        data = shell.cmd('git', 'tag', '-l').output().split('\n')
+        data = subprocess.getoutput("git tag -l").split('\n')
         regex = re.compile('%s/%s/%s/\w+' % (cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME))
         tags = filter(regex.match, data)
         return sorted(tags, reverse=True)
@@ -66,18 +46,10 @@ class GitHub:
             tags = cls.tags()
             if tags:
                 last = tags[0]
-        lines = []
-        obj = GitHub.CommitObj('HEAD')
+        arg = '-n1'
         if last:
-            last_sha = GitHub.CommitObj(last).sha()
-            while obj and obj.sha() != last_sha:
-                parents = sorted(obj.parents(), key=lambda x: x.timestamp(), reverse=True)
-                if len(parents) < 2:
-                    lines.append(obj.oneline())
-                obj = next(iter(parents), None)
-        else:
-            lines.append(obj.oneline())
-        note = '\n'.join(lines)
+            arg = '%s...HEAD' % last
+        note = subprocess.getoutput("git log --format='[%h] %s' " + arg)
         shell.marker_log('Release Note', note)
         if target:
             with open(target, mode='w') as file:
@@ -89,7 +61,7 @@ class GitHub:
     @classmethod
     def put_tag(cls):
         shell.marker_log('Tagging')
-        sha = GitHub.CommitObj('HEAD').sha()
+        sha = subprocess.getoutput("git log --format='%H' -n1")
         tag_name = '/'.join([cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME, Config.BUILD_NUM])
         res = cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': sha})
         print(json.dumps(res, indent=4))

@@ -25,7 +25,7 @@ def googleplay(track_name):
 
 def crashlytics():
     print('Deploying to Crashlytics')
-    shell.cmd(os.path.join('.', 'gradlew'), 'crashlyticsUploadDistributionRelease').call()
+    shell.cmd('%s crashlyticsUploadDistributionRelease' % os.path.join('.', 'gradlew'))
 
 def all():
     dir = os.path.join('platforms', 'android')
