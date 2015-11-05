@@ -32,10 +32,12 @@ def install_android():
              ]
     for name in names:
         (out, err) = shell.cmd('android', 'update', 'sdk', '--no-ui', '--all', '--filter', name).pipe('y')
-        print('-- Stderr --')
-        print(err)
-        print('-- Stdout --')
-        print(out)
+        if out:
+            lines = map(lambda x: x.find('Installed') > -1, out.split('\n'))
+            print('\n'.join(lines))
+        if err:
+            print('-- Stderr --')
+            print(err)
 
 def keystore():
     store = Config.file('android', 'keystore')
