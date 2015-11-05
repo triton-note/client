@@ -15,6 +15,27 @@ import shell
 class GitHub:
     TAG_PREFIX = 'deployed'
 
+    class CommitObj:
+        def __init__(self, name):
+            self.name = name
+
+        def _log(self, format):
+            return subprocess.getoutput("git log %s -n1 --format='%s'" % (self.name, format)).strip()
+
+        def sha(self):
+            return self._log('%H')
+
+        def parents(self):
+            vs = self._log('%P').split()
+            return map(lambda x: GitHub.CommitObj(x), vs)
+
+        def timestamp(self):
+            v = self._log('%at')
+            return int(v)
+
+        def oneline(self):
+            return self._log('[%h] %s')
+
     @classmethod
     def init(cls, repo=None, username=None, token=None):
         if not repo:
@@ -46,10 +67,18 @@ class GitHub:
             tags = cls.tags()
             if tags:
                 last = tags[0]
-        arg = '-n1'
+        lines = []
+        obj = GitHub.CommitObj('HEAD')
         if last:
-            arg = '%s...HEAD' % last
-        note = subprocess.getoutput("git log --format='[%h] %s' " + arg)
+            last_sha = GitHub.CommitObj(last).sha()
+            while obj and obj.sha() != last_sha:
+                parents = sorted(obj.parents(), key=lambda x: x.timestamp(), reverse=True)
+                if len(parents) < 2:
+                    lines.append(obj.oneline())
+                obj = next(iter(parents), None)
+        else:
+            lines.append(obj.oneline())
+        note = '\n'.join(lines)
         shell.marker_log('Release Note', note)
         if target:
             with open(target, mode='w') as file:
@@ -61,7 +90,7 @@ class GitHub:
     @classmethod
     def put_tag(cls):
         shell.marker_log('Tagging')
-        sha = subprocess.getoutput("git log --format='%H' -n1")
+        sha = GitHub.CommitObj('HEAD').sha()
         tag_name = '/'.join([cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME, Config.BUILD_NUM])
         res = cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': sha})
         print(json.dumps(res, indent=4))
