@@ -14,7 +14,7 @@ class cmd:
         return subprocess.check_output(self.args, universal_newlines=True)
 
     def pipe(self, input):
-        return subprocess.Popen(self.args, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=input)[0]
+        return subprocess.Popen(self.args, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=input)
 
 def mkdirs(path):
     if path and not os.path.exists(path):

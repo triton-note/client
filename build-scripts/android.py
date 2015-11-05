@@ -31,7 +31,11 @@ def install_android():
              'build-tools-22.0.1'
              ]
     for name in names:
-        shell.cmd('android', 'update', 'sdk', '--no-ui', '--all', '--filter', name).pipe('y')
+        (out, err) = shell.cmd('android', 'update', 'sdk', '--no-ui', '--all', '--filter', name).pipe('y')
+        print('-- Stderr --')
+        print(err)
+        print('-- Stdout --')
+        print(out)
 
 def keystore():
     store = Config.file('android', 'keystore')
