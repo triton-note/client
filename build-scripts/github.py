@@ -14,6 +14,32 @@ import shell
 class GitHub:
     TAG_PREFIX = 'deployed'
 
+    class CommitObj:
+        def __init__(self, name):
+            self.name = name
+
+        def __str__(self):
+            return 'CommitObj(%s)' % self.name
+        def __repr__(self):
+            return self.__str__()
+
+        def _log(self, format):
+            return shell.cmd('git', 'log', '-n1', "--format=%s" % format, self.name).output()
+
+        def sha(self):
+            return self._log('%H')
+
+        def parents(self):
+            vs = self._log('%P').split()
+            return map(lambda x: GitHub.CommitObj(x), vs)
+
+        def timestamp(self):
+            v = self._log('%at')
+            return int(v)
+
+        def oneline(self):
+            return self._log('[%h] %s').strip()
+
     @classmethod
     def init(cls, repo=None, username=None, token=None):
         if not repo:
@@ -45,10 +71,17 @@ class GitHub:
             tags = cls.tags()
             if tags:
                 last = tags[0]
-        arg = '-n1'
         if last:
-            arg = '%s...HEAD' % last
-        note = shell.cmd('git', 'log', "--format='[%h] %s'", arg).output()
+            last_sha = GitHub.CommitObj(last).sha()
+            obj = GitHub.CommitObj('HEAD')
+            lines = []
+            while obj and obj.sha() != last_sha:
+                lines.append(obj.oneline())
+                parents = sorted(obj.parents(), key=lambda x: x.timestamp(), reverse=True)
+                obj = next(iter(parents), None)
+            note = '\n'.join(lines)
+        else:
+            note = shell.cmd('git', 'log', "--format='[%h] %s'", '-n1').output()
         shell.marker_log('Release Note', note)
         if target:
             with open(target, mode='w') as file:
