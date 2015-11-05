@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 
-from config import Config
+from config import BuildMode, Config
 from lxml import etree
 import shell
 
@@ -32,7 +32,6 @@ def install_android():
              'build-tools-22.0.1'
              ]
     for name in names:
-        print('Installing', name)
         shell.cmd('echo y | android update sdk --no-ui --all --filter %s > /dev/null' % name)
 
 def keystore():
@@ -48,8 +47,8 @@ def keystore():
     with open(target, mode='w') as file:
         json.dump({'android': {'release': build}}, file, indent=4)
 
-def build_num(num):
-    num = '%s00' % num
+def build_num():
+    num = '%s00' % Config.BUILD_NUM
     print('Setting build_num', num)
     target = 'config.xml'
     with open(target, mode='rb') as file:
@@ -58,11 +57,9 @@ def build_num(num):
     with open(target, mode='wb') as file:
         file.write(etree.tostring(elem, encoding='utf-8', xml_declaration=True))
 
-def build(mode):
-    print('Building by cordova', mode)
-    multi = 'true'
-    if mode != "release" and mode != "beta":
-        multi = 'false'
+def build():
+    shell.marker_log('Building by cordova %s' % BuildMode.NAME)
+    multi = ('%s' % (BuildMode.is_RELEASE() or BuildMode.is_BETA())).lower()
     key = 'cdvBuildMultipleApks'
     target = platform_dir('gradle.properties')
     lines = shell.grep(target, lambda a: not key in a)
@@ -77,39 +74,37 @@ def deploy():
     android_deploy.all()
 
 def all():
-    print('Building Android')
+    shell.marker_log('Building Android')
     install_android()
     keystore()
-    build_num(os.environ['BUILD_NUM'])
-    build(os.environ['BUILD_MODE'])
+    build_num()
+    build()
     deploy()
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.load()
 
     opt_parser = OptionParser('Usage: %prog [options] <install|keystore|build_num|build|deploy> [crashlytics|googleplay]')
-    opt_parser.add_option('-m', '--mode', help='release|beta|debug|test')
-    opt_parser.add_option('-n', '--num', help='build number')
-    opt_parser.add_option('-t', '--track', help='release|beta (only for deploy googleplay)')
+    opt_parser.add_option('-b', '--branch', help="branch name")
+    opt_parser.add_option('-m', '--mode', help="release|beta|debug|test")
+    opt_parser.add_option('-n', '--num', help="build number")
+    opt_parser.add_option('-t', '--track', help="release|beta (only for 'deploy googleplay')")
     options, args = opt_parser.parse_args()
 
     if len(args) < 1:
         sys.exit('No action is specified')
     action = args[0]
 
+    Config.init(branch=options.branch, build_mode=options.mode, build_num=options.num, platform='android')
+
     if action == "install":
         install_android()
     elif action == "keystore":
         keystore()
     elif action == "build_num":
-        if not options.num:
-            sys.exit('No build number is specified')
-        build_num(options.num)
+        build_num()
     elif action == "build":
-        if not options.mode:
-            sys.exit('No build mode is specified')
-        build(options.mode)
+        build()
     elif action == "deploy":
         if len(args) < 2:
             sys.exit('No deploy target is specified')

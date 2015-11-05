@@ -5,7 +5,7 @@ import os
 import shutil
 import sys
 
-from config import Config
+from config import BuildMode, Config
 import shell
 
 
@@ -29,7 +29,7 @@ def fastfiles():
         file.write('app_identifier "%s"\n' % Config.get('platforms.ios.BUNDLE_ID'))
     shutil.copy(Config.script_file('ios_Fastfile.rb'), os.path.join(dir, 'Fastfile'))
 
-def fastlane(build_mode, build_num, overwrite_environ=True):
+def fastlane(overwrite_environ=True):
     def environment_variables():
         def set_value(name, value):
             if not (os.environ.get(name) and not overwrite_environ):
@@ -46,8 +46,8 @@ def fastlane(build_mode, build_num, overwrite_environ=True):
                }
         for name, key in map.items():
             set_value(name, Config.get(key))
-        set_value('BUILD_NUM', build_num)
-        if build_mode != 'release':
+        set_value('BUILD_NUM', Config.BUILD_NUM)
+        if BuildMode.is_RELEASE():
             set_value('SIGH_AD_HOC', 'true')
             set_value('GYM_USE_LEGACY_BUILD_API', 'true')
 
@@ -55,30 +55,32 @@ def fastlane(build_mode, build_num, overwrite_environ=True):
     os.chdir(platform_dir())
     try:
         environment_variables()
-        shell.cmd('fastlane %s' % build_mode)
+        shell.cmd('fastlane %s' % BuildMode.NAME)
     finally:
         os.chdir(here)
 
 def all():
-    print('Building iOS')
+    shell.marker_log('Building iOS')
     install()
     certs()
     fastfiles()
-    fastlane(os.environ['BUILD_MODE'], os.environ['BUILD_NUM'])
+    fastlane()
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.load()
 
     opt_parser = OptionParser('Usage: %prog [options] <install|certs|fastfiles|fastlane>')
     opt_parser.add_option('-o', '--overwrite-environment', help='overwrite environment variables', action="store_true", dest='env', default=False)
-    opt_parser.add_option('-m', '--mode', help='release|beta|debug|test')
-    opt_parser.add_option('-n', '--num', help='build number')
+    opt_parser.add_option('-b', '--branch', help="branch name")
+    opt_parser.add_option('-m', '--mode', help="release|beta|debug|test")
+    opt_parser.add_option('-n', '--num', help="build number")
     options, args = opt_parser.parse_args()
 
     if len(args) < 1:
         sys.exit('No action is specified')
     action = args[0]
+
+    Config.init(branch=options.branch, build_mode=options.mode, build_num=options.num, platform='ios')
 
     if action == "install":
         install_android()
@@ -87,8 +89,6 @@ if __name__ == "__main__":
     elif action == "fastfiles":
         fastfiles()
     elif action == "fastlane":
-        if not options.mode:
-            sys.exit('No build mode is specified')
         if not options.num:
             sys.exit('No build number is specified')
-        fastlane(options.mode, options.num, options.env)
+        fastlane(options.num, overwrite_environ=options.env)

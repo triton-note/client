@@ -48,7 +48,7 @@ class IndexHtml:
             self.dom = lxml.html.fromstring(file.read())
 
     def close(self):
-        string = lxml.html.tostring(self.dom, include_meta_content_type=True)
+        string = lxml.html.tostring(self.dom, include_meta_content_type=True, doctype='<!DOCTYPE html>')
         print('Writing', self.index)
         with open(self.index, 'wb') as file:
             file.write(string)
@@ -88,6 +88,7 @@ def build():
     shell.cmd('pub build')
 
 def all():
+    shell.marker_log('Dart')
     os.chdir('dart')
     try:
         write_settings()
@@ -102,14 +103,19 @@ def all():
 
 if __name__ == "__main__":
     shell.on_root()
-    Config.load()
 
     opt_parser = OptionParser('Usage: %prog [options] <settings|fonts|js|build>')
+    opt_parser.add_option('-p', '--platform', help='android|ios')
+    opt_parser.add_option('-b', '--branch', help="branch name")
+    opt_parser.add_option('-m', '--mode', help="release|beta|debug|test")
+    opt_parser.add_option('-n', '--num', help="build number")
     options, args = opt_parser.parse_args()
 
     if len(args) < 1:
         sys.exit('No action is specified')
     action = args[0]
+
+    Config.init(branch=options.branch, build_mode=options.mode, build_num=options.num, platform=options.platform)
 
     os.chdir('dart')
     if action == 'settings':

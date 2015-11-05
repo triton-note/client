@@ -2,6 +2,7 @@ import os
 import sys
 
 def cmd(line):
+    print('$ %s' % line)
     if os.system(line) != 0:
         sys.exit("Failed to execute: %s" % line)
 
@@ -22,3 +23,12 @@ def grep(target, pf=None):
             return lines
     else:
         return []
+
+def marker_log(title, content=None):
+    c = '################'
+    print()
+    print('%s %s %s' % (c, title, c))
+    if content:
+        print(content)
+        print(c)
+        print()

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from glob import glob
 import importlib
 import os
@@ -7,7 +5,7 @@ import sys
 
 import pip
 
-from config import Config
+from config import BuildMode, Config
 import shell
 
 
@@ -35,7 +33,7 @@ def all():
            'release': 'production',
            'beta': 'beta'
            }
-    track_name = map.get(os.environ['BUILD_MODE'])
+    track_name = map.get(BuildMode.NAME)
 
     here = os.getcwd()
     os.chdir(dir)

@@ -50,7 +50,7 @@ platform :ios do
         build_secret: ENV["FABRIC_BUILD_SECRET"],
         notes_path: ENV["RELEASE_NOTE_PATH"],
         groups: ENV["CRASHLYTICS_GROUPS"],
-        ipa_path: "./#{ENV["APPLICATION_NAME"]}.ipa"
+        ipa_path: "#{ENV["APPLICATION_NAME"]}.ipa"
       )
     end
   end
