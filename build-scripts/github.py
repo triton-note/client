@@ -4,7 +4,6 @@ from optparse import OptionParser
 import json
 import os
 import re
-import subprocess
 import sys
 
 from config import BuildMode, Config
@@ -35,7 +34,7 @@ class GitHub:
 
     @classmethod
     def tags(cls):
-        data = subprocess.getoutput("git tag -l").split('\n')
+        data = shell.cmd('git', 'tag', '-l').output().split('\n')
         regex = re.compile('%s/%s/%s/\w+' % (cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME))
         tags = filter(regex.match, data)
         return sorted(tags, reverse=True)
@@ -49,7 +48,7 @@ class GitHub:
         arg = '-n1'
         if last:
             arg = '%s...HEAD' % last
-        note = subprocess.getoutput("git log --format='[%h] %s' " + arg)
+        note = shell.cmd('git', 'log', "--format='[%h] %s'", arg).output()
         shell.marker_log('Release Note', note)
         if target:
             with open(target, mode='w') as file:
@@ -61,7 +60,7 @@ class GitHub:
     @classmethod
     def put_tag(cls):
         shell.marker_log('Tagging')
-        sha = subprocess.getoutput("git log --format='%H' -n1")
+        sha = shell.cmd('git', 'log', "--format='%H'", '-n1').output()
         tag_name = '/'.join([cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME, Config.BUILD_NUM])
         res = cls._post('git/refs', {'ref': 'refs/tags/%s' % tag_name, 'sha': sha})
         print(json.dumps(res, indent=4))

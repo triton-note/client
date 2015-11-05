@@ -13,8 +13,8 @@ def platform_dir(*paths):
     return os.path.join('platforms', 'ios', *paths)
 
 def install():
-    shell.cmd('sudo gem install fastlane cocoapods')
-    shell.cmd('cordova prepare ios')
+    shell.cmd('sudo', 'gem', 'install', 'fastlane', 'cocoapods').call()
+    shell.cmd('cordova', 'prepare', 'ios').call()
 
 def certs():
     dir = platform_dir('certs')
@@ -55,7 +55,7 @@ def fastlane(overwrite_environ=True):
     os.chdir(platform_dir())
     try:
         environment_variables()
-        shell.cmd('fastlane %s' % BuildMode.NAME)
+        shell.cmd('fastlane', BuildMode.NAME).call()
     finally:
         os.chdir(here)
 
