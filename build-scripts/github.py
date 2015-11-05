@@ -18,13 +18,8 @@ class GitHub:
         def __init__(self, name):
             self.name = name
 
-        def __str__(self):
-            return 'CommitObj(%s)' % self.name
-        def __repr__(self):
-            return self.__str__()
-
         def _log(self, format):
-            return shell.cmd('git', 'log', '-n1', "--format=%s" % format, self.name).output()
+            return shell.cmd('git', 'log', self.name, '-n1', "--format=%s" % format).output()
 
         def sha(self):
             return self._log('%H')
@@ -76,8 +71,9 @@ class GitHub:
             obj = GitHub.CommitObj('HEAD')
             lines = []
             while obj and obj.sha() != last_sha:
-                lines.append(obj.oneline())
                 parents = sorted(obj.parents(), key=lambda x: x.timestamp(), reverse=True)
+                if len(parents) < 2:
+                    lines.append(obj.oneline())
                 obj = next(iter(parents), None)
             note = '\n'.join(lines)
         else:
