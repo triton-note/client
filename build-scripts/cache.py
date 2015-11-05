@@ -54,7 +54,6 @@ if __name__ == "__main__":
     opt_parser.add_option('-b', '--bucket', help='S3 bucket name')
     opt_parser.add_option('-r', '--repo', help='project repository slug for github: <username|organization>/<project_name>')
     options, args = opt_parser.parse_args()
-    opts = vars(options)
 
     if len(args) < 1:
         sys.exit('No action is directed')
@@ -65,14 +64,16 @@ if __name__ == "__main__":
     else:
         list = ['node_modules']
 
-    enviroments = {
-                   'AWS_PROFILE': 'profile',
-                   'AWS_S3_BUCKET': 'bucket',
-                   'PROJECT_REPO_SLUG': 'repo'
-                   }
-    for name, key in enviroments.items():
-        if opts.get(key):
-            os.environ[name] = opts[key]
+    def set_environments(opts):
+        map = {
+               'profile': 'AWS_PROFILE',
+               'bucket': 'AWS_S3_BUCKET',
+               'repo': 'PROJECT_REPO_SLUG'
+               }
+        for key, value in opts.items():
+            os.environ[map[key]] = value
+
+    set_environments(vars(options))
 
     print(action, list)
     for name in list:
