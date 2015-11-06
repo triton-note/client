@@ -73,7 +73,7 @@ def build():
         file.write('\n'.join(lines))
         file.write('\n%s=%s\n' % (key, multi))
     print('Add', target, ':', key, '=', multi)
-    shell.cmd('cordova build android --release --buildConfig=%s' % platform_dir('build.json'))
+    shell.CMD('cordova', 'build', 'android', '--release', '--buildConfig=%s' % platform_dir('build.json')).call()
 
 def deploy():
     import android_deploy
