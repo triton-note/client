@@ -4,7 +4,6 @@ from optparse import OptionParser
 import json
 import os
 import re
-import subprocess
 import sys
 
 from config import BuildMode, Config
@@ -20,7 +19,7 @@ class GitHub:
             self.name = name
 
         def _log(self, format):
-            return subprocess.getoutput("git log %s -n1 --format='%s'" % (self.name, format)).strip()
+            return shell.CMD('git', 'log', self.name, '-n1', "--format=%s" % format).output().strip()
 
         def sha(self):
             return self._log('%H')
@@ -56,7 +55,7 @@ class GitHub:
 
     @classmethod
     def tags(cls):
-        data = subprocess.getoutput("git tag -l").split('\n')
+        data = shell.CMD('git', 'tag', '-l').output().split('\n')
         regex = re.compile('%s/%s/%s/\w+' % (cls.TAG_PREFIX, Config.PLATFORM, BuildMode.NAME))
         tags = filter(regex.match, data)
         return sorted(tags, reverse=True)

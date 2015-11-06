@@ -3,11 +3,6 @@ import subprocess
 import sys
 
 
-def cmd(line):
-    print('$ %s' % line)
-    if os.system(line) != 0:
-        sys.exit("Failed to execute: %s" % line)
-
 class CMD:
     def __init__(self, *args):
         self.args = args
