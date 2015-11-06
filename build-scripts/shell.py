@@ -12,7 +12,7 @@ class CMD:
         subprocess.check_call(self.args)
 
     def output(self):
-        return subprocess.check_output(self.args, universal_newlines=True)
+        return subprocess.check_output(self.args, universal_newlines=True).rstrip()
 
     def pipe(self, input):
         return subprocess.Popen(self.args, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=input)

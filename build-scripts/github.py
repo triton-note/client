@@ -19,7 +19,7 @@ class GitHub:
             self.name = name
 
         def _log(self, format):
-            return shell.CMD('git', 'log', self.name, '-n1', "--format=%s" % format).output().strip()
+            return shell.CMD('git', 'log', self.name, '-n1', "--format=%s" % format).output()
 
         def sha(self):
             return self._log('%H')
