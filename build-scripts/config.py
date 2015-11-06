@@ -1,8 +1,9 @@
 import json
 import os
 import re
-import subprocess
 import sys
+
+import shell
 
 
 class BuildMode:
@@ -11,7 +12,7 @@ class BuildMode:
         if not branch:
             branch = os.environ.get('GIT_BRANCH')
         if not branch:
-            branch = subprocess.getoutput("git status | head -n1 | awk '{print $NF}'")
+            branch = shell.CMD('git', 'status').output().split('\n')[0].split()[-1]
         def making():
             map = {
                    'release': 'BRANCH_RELEASE',

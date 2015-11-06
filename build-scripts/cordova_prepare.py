@@ -29,10 +29,10 @@ def cleanup():
 
 def cordova():
     shell.mkdirs('plugins')
-    shell.cmd('cordova prepare %s' % Config.PLATFORM)
+    shell.CMD('cordova', 'prepare', Config.PLATFORM).call()
 
 def ionic():
-    shell.cmd('ionic resources')
+    shell.CMD('ionic', 'resources').call()
 
 def all():
     shell.marker_log('Cordova')

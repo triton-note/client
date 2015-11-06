@@ -1,10 +1,21 @@
 import os
+import subprocess
 import sys
 
-def cmd(line):
-    print('$ %s' % line)
-    if os.system(line) != 0:
-        sys.exit("Failed to execute: %s" % line)
+
+class CMD:
+    def __init__(self, *args):
+        self.args = args
+        print('$ %s' % ' '.join(self.args))
+
+    def call(self):
+        subprocess.check_call(self.args)
+
+    def output(self):
+        return subprocess.check_output(self.args, universal_newlines=True).rstrip()
+
+    def pipe(self, input):
+        return subprocess.Popen(self.args, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=input)
 
 def mkdirs(path):
     if path and not os.path.exists(path):

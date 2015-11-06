@@ -84,8 +84,8 @@ class IndexHtml:
                 elem.attrib['src'] = 'js/' + download(href, dir)
 
 def build():
-    shell.cmd('pub get')
-    shell.cmd('pub build')
+    shell.CMD('pub', 'get').call()
+    shell.CMD('pub', 'build').call()
 
 def all():
     shell.marker_log('Dart')
