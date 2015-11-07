@@ -2,16 +2,16 @@
   "name": "TritonNote",
   "description": "Client for TritonNote",
   "devDependencies": {
-    "karma": "^0.13.10",
-    "karma-chrome-launcher": "^0.2.0",
+    "karma": "^0.13.15",
+    "karma-chrome-launcher": "^0.2.1",
     "karma-dart": "^0.3.0",
-    "karma-junit-reporter": "^0.3.7"
+    "karma-junit-reporter": "^0.3.8"
   },
   "scripts": {
     "test": "node_modules/karma/bin/karma start"
   },
   "dependencies": {
-    "cordova": "^5.3.3",
-    "ionic": "^1.6.5"
+    "cordova": "^5.4.0",
+    "ionic": "^1.7.8"
   }
 }
