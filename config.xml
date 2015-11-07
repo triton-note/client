@@ -35,4 +35,5 @@
     <plugin name="phonegap-plugin-push" spec="~1.3.0" />
     <plugin name="org.apache.cordova.file" spec="https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos" />
     <plugin name="org.fathens.cordova.plugin.fabric.Crashlytics" spec="https://github.com/fathens/Cordova-Plugin-Crashlytics.git" />
+    <plugin name="org.fathens.cordova.plugin.FBConnect" spec="https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios" />
 </widget>
