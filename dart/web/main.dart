@@ -92,6 +92,11 @@ void main() {
   try {
     onDeviceReady((event) {
       try {
+        context['plugin']['FBConnect'].callMethod('getName', [
+          (err, result) {
+            window.alert('Error: ${err}, Result: ${result}');
+          }
+        ]);
         initPolymer().then((zone) {
           zone.run(() {
             Polymer.onReady.then((_) {
