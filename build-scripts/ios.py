@@ -13,8 +13,7 @@ def platform_dir(*paths):
     return os.path.join('platforms', 'ios', *paths)
 
 def install():
-    shell.CMD('sudo', 'gem', 'install', 'fastlane', 'cocoapods').call()
-    shell.CMD('cordova', 'prepare', 'ios').call()
+    shell.CMD('sudo', 'gem', 'install', 'fastlane').call()
 
 def certs():
     dir = platform_dir('certs')
@@ -82,9 +81,7 @@ if __name__ == "__main__":
 
     Config.init(branch=options.branch, build_mode=options.mode, build_num=options.num, platform='ios')
 
-    if action == "install":
-        install_android()
-    elif action == "certs":
+    if action == "certs":
         certs()
     elif action == "fastfiles":
         fastfiles()
