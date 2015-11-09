@@ -44,7 +44,6 @@ def cordova():
                'cordova-plugin-whitelist@~1.0.0',
                'phonegap-plugin-push@~1.3.0',
                'https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos',
-               'https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios APP_ID=${FACEBOOK_APP_ID} APP_NAME=${FACEBOOK_APP_NAME}',
                'https://github.com/fathens/Cordova-Plugin-Crashlytics.git'
                ]
     for plugin in plugins:
