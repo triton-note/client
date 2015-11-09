@@ -14,6 +14,7 @@ def platform_dir(*paths):
 
 def install():
     shell.CMD('sudo', 'gem', 'install', 'fastlane').call()
+    shell.CMD('cordova', 'prepare', 'ios').call()
 
 def certs():
     dir = platform_dir('certs')

@@ -58,8 +58,6 @@ def cordova():
             variables.extend(['--variable', '%s=%s' % (key, value)])
         shell.CMD('cordova', 'plugin', 'add', names[0], *variables).call()
 
-    shell.CMD('cordova', 'prepare', Config.PLATFORM).call()
-
 def ionic():
     shell.CMD('ionic', 'resources').call()
 
