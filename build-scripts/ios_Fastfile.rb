@@ -4,11 +4,13 @@ default_platform :ios
 
 platform :ios do
   before_all do
-    keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
-    puts "Using keychain: #{keychainName}"
-    import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
-    import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
-
+    if is_ci?
+      keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
+      puts "Using keychain: #{keychainName}"
+      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
+      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
+    end
+    
     increment_build_number(
       build_number: ENV["BUILD_NUM"]
     )
