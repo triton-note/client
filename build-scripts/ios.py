@@ -13,7 +13,9 @@ def platform_dir(*paths):
     return os.path.join('platforms', 'ios', *paths)
 
 def install():
-    if not shell.CMD('gem', 'which', 'fastlane').output():
+    try:
+        shell.CMD('gem', 'which', 'fastlane').output()
+    except subprocess.CalledProcessError:
         shell.CMD('sudo', 'gem', 'install', 'fastlane').call()
     shell.CMD('cordova', 'prepare', 'ios').call()
 
