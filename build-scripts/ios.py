@@ -13,7 +13,8 @@ def platform_dir(*paths):
     return os.path.join('platforms', 'ios', *paths)
 
 def install():
-    shell.CMD('sudo', 'gem', 'install', 'fastlane').call()
+    if not shell.CMD('gem', 'which', 'fastlane').output():
+        shell.CMD('sudo', 'gem', 'install', 'fastlane').call()
     shell.CMD('cordova', 'prepare', 'ios').call()
 
 def certs():
