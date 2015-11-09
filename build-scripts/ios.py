@@ -77,17 +77,17 @@ if __name__ == "__main__":
     opt_parser.add_option('-n', '--num', help="build number")
     options, args = opt_parser.parse_args()
 
-    if len(args) < 1:
-        sys.exit('No action is specified')
-    action = args[0]
-
     Config.init(branch=options.branch, build_mode=options.mode, build_num=options.num, platform='ios')
 
-    if action == "certs":
-        certs()
-    elif action == "fastfiles":
-        fastfiles()
-    elif action == "fastlane":
-        if not options.num:
-            sys.exit('No build number is specified')
-        fastlane(options.num, overwrite_environ=options.env)
+    if len(args) < 1:
+        all()
+    else:
+        action = args[0]
+        if action == "install":
+            install()
+        elif action == "certs":
+            certs()
+        elif action == "fastfiles":
+            fastfiles()
+        elif action == "fastlane":
+            fastlane(overwrite_environ=options.env)
