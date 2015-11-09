@@ -26,7 +26,7 @@ platform :ios do
     gym(
       scheme: ENV["APPLICATION_NAME"],
       configuration: "Release",
-      include_bitcode: true,
+      include_bitcode: false,
       silent: true
     )
 
