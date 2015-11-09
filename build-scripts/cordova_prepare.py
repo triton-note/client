@@ -2,6 +2,7 @@
 
 from optparse import OptionParser
 import os
+import re
 import shutil
 
 from config import Config
@@ -31,6 +32,7 @@ def cordova():
     shell.mkdirs('plugins')
     shell.CMD('cordova', 'platform', 'add', Config.PLATFORM).call()
 
+    regex = re.compile('\${(\w+)}')
     plugins = [
                'cordova-plugin-crosswalk-webview@~1.3.1',
                'cordova-plugin-device@~1.0.1',
@@ -42,11 +44,19 @@ def cordova():
                'cordova-plugin-whitelist@~1.0.0',
                'phonegap-plugin-push@~1.3.0',
                'https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos',
-               'https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios',
+               'https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios APP_ID=${FACEBOOK_APP_ID} APP_NAME=${FACEBOOK_APP_NAME}',
                'https://github.com/fathens/Cordova-Plugin-Crashlytics.git'
                ]
     for plugin in plugins:
-        shell.CMD('cordova', 'plugin', 'add', plugin).call()
+        names = plugin.split()
+        variables = []
+        for line in names[1:]:
+            key, value = line.split('=')
+            m = regex.fullmatch(value)
+            if m:
+                value = os.environ[m.group(1)]
+            variables.extend(['--variable', '%s=%s' % (key, value)])
+        shell.CMD('cordova', 'plugin', 'add', names[0], *variables).call()
 
     shell.CMD('cordova', 'prepare', Config.PLATFORM).call()
 
