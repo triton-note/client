@@ -3,6 +3,7 @@
 from optparse import OptionParser
 import os
 import shutil
+import subprocess
 import sys
 
 from config import BuildMode, Config
