@@ -29,6 +29,25 @@ def cleanup():
 
 def cordova():
     shell.mkdirs('plugins')
+    shell.CMD('cordova', 'platform', 'add', Config.PLATFORM).call()
+
+    plugins = [
+               'cordova-plugin-crosswalk-webview@~1.3.1',
+               'cordova-plugin-device@~1.0.1',
+               'cordova-plugin-console@~1.0.1',
+               'cordova-plugin-camera@~1.2.0',
+               'cordova-plugin-splashscreen@~2.1.0',
+               'cordova-plugin-statusbar@~1.0.1',
+               'cordova-plugin-geolocation@~1.0.1',
+               'cordova-plugin-whitelist@~1.0.0',
+               'phonegap-plugin-push@~1.3.0',
+               'https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos',
+               'https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios',
+               'https://github.com/fathens/Cordova-Plugin-Crashlytics.git'
+               ]
+    for plugin in plugins:
+        shell.CMD('cordova', 'plugin', 'add', plugin).call()
+
     shell.CMD('cordova', 'prepare', Config.PLATFORM).call()
 
 def ionic():
