@@ -11,11 +11,13 @@ env:
     - BUILD_NUM=$TRAVIS_BUILD_NUMBER
     - PROJECT_REPO_SLUG=$TRAVIS_REPO_SLUG
     - GIT_BRANCH=$TRAVIS_BRANCH
+    - PATH=$PATH:$(pwd)/.gem/bin:$(pwd)/node_modules/.bin
   matrix:
     - PLATFORM=android
     - PLATFORM=ios
 
 before_install:
+  - (echo "gem":" --no-document --install-dir $(pwd)/.gem/download --bindir $(pwd)/.gem/bin") > ~/.gemrc
   - brew update || brew update
   - brew install python3
   - sudo pip3 install virtualenv
@@ -29,7 +31,6 @@ install:
   - brew tap dart-lang/dart && brew install dart
   - sudo gem install compass
   - npm install
-  - export PATH="$PATH:$(pwd)/node_modules/.bin"
   - build-scripts/cache.py save
   - build-scripts/cache.py load build-scripts/persistent
 
