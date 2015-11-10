@@ -37,11 +37,11 @@ def environment_variables(overwrite_environ=True):
 def install():
     with open('Gemfile', mode='a') as file:
         lines = [
-                 'gem cocoapods',
-                 'gem fastlanes'
+                 'gem "cocoapods"',
+                 'gem "fastlane"'
                  ]
-        file.write('\n'.join(lines))
-    shell.CMD('bundle', 'install').output()
+        file.write('\n'.join(lines) + '\n')
+    shell.CMD('bundle', 'install').call()
     shell.CMD('cordova', 'prepare', 'ios').call()
 
 def certs():
