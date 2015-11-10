@@ -50,12 +50,12 @@ platform :ios do
   end
 
   def buildphases
-    projfile = Pathname.glob('*.xcodeproj')[0]
+    projfile = "../#{ENV["APPLICATION_NAME"]}.xcodeproj"
     proj = Xcodeproj::Project.open(projfile)
     proj.targets.each do |target|
       puts "Check: project target: #{target.name}"
       target.shell_script_build_phases.each do |phase|
-        puts "Check: project target: #{target.name}: shell_script_build_phase: #{phase.name}"
+        puts "Check: project target: #{target.name}: shell_script_build_phase: #{phase.name}: #{phase.shell_script}"
       end
     end
   end
