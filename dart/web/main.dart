@@ -90,10 +90,10 @@ void main() {
     });
 
   try {
-    final a = null;
-    a.getParent();
     onDeviceReady((event) {
       try {
+        final a = null;
+        a.getParent();
         initPolymer().then((zone) {
           zone.run(() {
             Polymer.onReady.then((_) {
