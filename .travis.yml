@@ -21,6 +21,7 @@ before_install:
   - sudo pip3 install virtualenv
   - virtualenv --python=$(type -p python3) .v3
   - source .v3/bin/activate
+  - pip install --upgrade wheel
 install:
   - pip install boto3
   - build-scripts/cache.py load
