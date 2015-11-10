@@ -12,21 +12,23 @@ platform :ios do
       import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
       import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
     end
-    
+
+    buildphases
+
     increment_build_number(
       build_number: ENV["BUILD_NUM"]
     )
 
     sigh
 
+    buildphases
+  
     update_project_provisioning(
       xcodeproj: "#{ENV["APPLICATION_NAME"]}.xcodeproj",
       target_filter: ".*",
       build_configuration: "Release"
     )
 
-    buildphases
-    
     gym(
       scheme: ENV["APPLICATION_NAME"],
       configuration: "Release",
