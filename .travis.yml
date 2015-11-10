@@ -15,7 +15,6 @@ env:
     - PLATFORM=ios
 
 before_install:
-  - echo "gem":" --no-document" > ~/.gemrc
   - gem install bundle
   - brew update || brew update
   - brew install python3
