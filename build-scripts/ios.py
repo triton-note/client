@@ -35,10 +35,13 @@ def environment_variables(overwrite_environ=True):
         set_value('GYM_USE_LEGACY_BUILD_API', 'true')
 
 def install():
-    try:
-        shell.CMD('gem', 'which', 'fastlane').output()
-    except subprocess.CalledProcessError:
-        shell.CMD('sudo', 'gem', 'install', 'fastlane').call()
+    with open('Gemfile', mode='a') as file:
+        lines = [
+                 'gem cocoapods',
+                 'gem fastlanes'
+                 ]
+        file.write('\n'.join(lines))
+    shell.CMD('bundle', 'install').output()
     shell.CMD('cordova', 'prepare', 'ios').call()
 
 def certs():
