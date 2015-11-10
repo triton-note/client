@@ -1,3 +1,5 @@
+require 'xcodeproj'
+
 fastlane_version "1.32.1"
 
 default_platform :ios
@@ -23,6 +25,8 @@ platform :ios do
       build_configuration: "Release"
     )
 
+    buildphases
+    
     gym(
       scheme: ENV["APPLICATION_NAME"],
       configuration: "Release",
@@ -43,6 +47,17 @@ platform :ios do
   desc "Submit a new build to Crashlytics"
   lane :debug do
     submit_crashlytics
+  end
+
+  def buildphases
+    projfile = Pathname.glob('*.xcodeproj')[0]
+    proj = Xcodeproj::Project.open(projfile)
+    proj.targets.each do |target|
+      puts "Check: project target: #{target.name}"
+      target.shell_script_build_phases.each do |phase|
+        puts "Check: project target: #{target.name}: shell_script_build_phase: #{phase.name}"
+      end
+    end
   end
 
   def submit_crashlytics
