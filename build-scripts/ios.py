@@ -13,6 +13,27 @@ import shell
 def platform_dir(*paths):
     return os.path.join('platforms', 'ios', *paths)
 
+def environment_variables(overwrite_environ=True):
+    def set_value(name, value):
+        if not (os.environ.get(name) and not overwrite_environ):
+            print('Setting environment variable:', name)
+            os.environ[name] = value
+    map = {
+           'IOS_DISTRIBUTION_KEY_PASSWORD': 'platforms.ios.DISTRIBUTION_KEY_PASSWORD',
+           'APPLICATION_NAME': 'APPLICATION_NAME',
+           'FABRIC_API_KEY': 'fabric.API_KEY',
+           'FABRIC_BUILD_SECRET': 'fabric.BUILD_SECRET',
+           'CRASHLYTICS_GROUPS': 'fabric.CRASHLYTICS_GROUPS',
+           'DELIVER_USER': 'platforms.ios.DELIVER_USER',
+           'DELIVER_PASSWORD': 'platforms.ios.DELIVER_PASSWORD'
+           }
+    for name, key in map.items():
+        set_value(name, Config.get(key))
+    set_value('BUILD_NUM', Config.BUILD_NUM)
+    if not (BuildMode.is_RELEASE() or BuildMode.is_BETA()):
+        set_value('SIGH_AD_HOC', 'true')
+        set_value('GYM_USE_LEGACY_BUILD_API', 'true')
+
 def install():
     try:
         shell.CMD('gem', 'which', 'fastlane').output()
@@ -33,38 +54,17 @@ def fastfiles():
         file.write('app_identifier "%s"\n' % Config.get('platforms.ios.BUNDLE_ID'))
     shutil.copy(Config.script_file('ios_Fastfile.rb'), os.path.join(dir, 'Fastfile'))
 
-def fastlane(overwrite_environ=True):
-    def environment_variables():
-        def set_value(name, value):
-            if not (os.environ.get(name) and not overwrite_environ):
-                print('Setting environment variable:', name)
-                os.environ[name] = value
-        map = {
-               'IOS_DISTRIBUTION_KEY_PASSWORD': 'platforms.ios.DISTRIBUTION_KEY_PASSWORD',
-               'APPLICATION_NAME': 'APPLICATION_NAME',
-               'FABRIC_API_KEY': 'fabric.API_KEY',
-               'FABRIC_BUILD_SECRET': 'fabric.BUILD_SECRET',
-               'CRASHLYTICS_GROUPS': 'fabric.CRASHLYTICS_GROUPS',
-               'DELIVER_USER': 'platforms.ios.DELIVER_USER',
-               'DELIVER_PASSWORD': 'platforms.ios.DELIVER_PASSWORD'
-               }
-        for name, key in map.items():
-            set_value(name, Config.get(key))
-        set_value('BUILD_NUM', Config.BUILD_NUM)
-        if not (BuildMode.is_RELEASE() or BuildMode.is_BETA()):
-            set_value('SIGH_AD_HOC', 'true')
-            set_value('GYM_USE_LEGACY_BUILD_API', 'true')
-
+def fastlane():
     here = os.getcwd()
     os.chdir(platform_dir())
     try:
-        environment_variables()
         shell.CMD('fastlane', BuildMode.NAME).call()
     finally:
         os.chdir(here)
 
 def all():
     shell.marker_log('Building iOS')
+    environment_variables()
     install()
     certs()
     fastfiles()
@@ -86,6 +86,7 @@ if __name__ == "__main__":
         all()
     else:
         action = args[0]
+        environment_variables(overwrite_environ=options.env)
         if action == "install":
             install()
         elif action == "certs":
@@ -93,4 +94,4 @@ if __name__ == "__main__":
         elif action == "fastfiles":
             fastfiles()
         elif action == "fastlane":
-            fastlane(overwrite_environ=options.env)
+            fastlane()
