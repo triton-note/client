@@ -8,3 +8,4 @@ bower_components/
 resources/*/
 /ionic.project
 build-scripts/persistent/
+*.lock

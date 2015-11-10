@@ -1,6 +1,5 @@
 osx_image: xcode7
 language: objective-c
-rvm: 2.2.3
 
 branches:
   except:
@@ -16,6 +15,7 @@ env:
     - PLATFORM=ios
 
 before_install:
+  - gem install bundle
   - brew update || brew update
   - brew install python3
   - sudo pip3 install virtualenv
@@ -26,7 +26,7 @@ install:
   - build-scripts/cache.py load
   - pip install pyyaml lxml requests
   - brew tap dart-lang/dart && brew install dart
-  - sudo gem install compass
+  - bundle install
   - npm install
   - export PATH="$PATH:$(pwd)/node_modules/.bin"
   - build-scripts/cache.py save
