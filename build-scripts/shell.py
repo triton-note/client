@@ -5,16 +5,19 @@ import sys
 
 class CMD:
     def __init__(self, *args):
-        self.args = args
+        self.args = list(args)
         print('$ %s' % ' '.join(self.args))
 
-    def call(self):
+    def call(self, *adding):
+        self.args.extend(adding)
         subprocess.check_call(self.args)
 
-    def output(self):
+    def output(self, *adding):
+        self.args.extend(adding)
         return subprocess.check_output(self.args, universal_newlines=True).rstrip()
 
-    def pipe(self, input):
+    def pipe(self, input, *adding):
+        self.args.extend(adding)
         return subprocess.Popen(self.args, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=input)
 
 def mkdirs(path):

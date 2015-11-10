@@ -56,7 +56,7 @@ def cordova():
             if m:
                 value = os.environ[m.group(1)]
             variables.extend(['--variable', '%s=%s' % (key, value)])
-        shell.CMD('cordova', 'plugin', 'add', names[0], *variables).call()
+        shell.CMD('cordova', 'plugin', 'add', names[0]).call(*variables)
 
 def ionic():
     shell.CMD('ionic', 'resources').call()
