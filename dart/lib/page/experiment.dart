@@ -20,11 +20,17 @@ class ExperimentPage extends MainFrame {
   ExperimentPage(Router router) : super(router) {}
 
   checkFacebook() => rippling(() {
-        context['plugin']['FBConnect'].callMethod('getName', [
-          (err, result) {
-            window.alert('Error: ${err}, Result: ${result}');
-          }
-        ]);
+        try {
+          final fb = context['plugin']['FBConnect'];
+          _logger.info(() => 'plugin.FBConnect = ${fb}');
+          fb.callMethod('getName', [
+            (err, result) {
+              window.alert('Error: ${err}, Result: ${result}');
+            }
+          ]);
+        } catch (ex) {
+          FabricCrashlytics.crash('${ex}');
+        }
       });
 
   crash() {
