@@ -30,7 +30,6 @@ def cleanup():
 
 def cordova():
     shell.mkdirs('plugins')
-    shell.CMD('node', '-v').call()
     shell.CMD('cordova', 'platform', 'add', Config.PLATFORM).call()
 
     regex = re.compile('\${(\w+)}')

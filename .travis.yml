@@ -16,6 +16,7 @@ env:
     - PLATFORM=ios
 
 before_install:
+  - node -v
   - gem install bundle
   - brew update || brew update
   - brew install python3
