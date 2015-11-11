@@ -1,0 +1,12 @@
+@import "../../web/styles/common";
+
+#facebook {
+  display: block;
+  width: 100%;
+  text-align: center;
+  
+  paper-button {
+    background-color: blue;
+    color: white;
+  }
+}

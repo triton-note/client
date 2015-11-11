@@ -1,7 +1,6 @@
 library triton_note;
 
 import 'dart:html';
-import 'dart:js';
 
 import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
@@ -25,6 +24,7 @@ import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/report_detail.dart';
 import 'package:triton_note/page/preferences.dart';
 import 'package:triton_note/page/distributions.dart';
+import 'package:triton_note/page/experiment.dart';
 import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/resource_url_resolver_cordova.dart';
@@ -68,6 +68,7 @@ class AppModule extends Module {
     bind(ReportDetailPage);
     bind(PreferencesPage);
     bind(DistributionsPage);
+    bind(ExperimentPage);
 
     bind(RouteInitializerFn, toValue: getTritonNoteRouteInitializer);
     bind(NgRoutingUsePushState, toValue: new NgRoutingUsePushState.value(false));
@@ -92,11 +93,6 @@ void main() {
   try {
     onDeviceReady((event) {
       try {
-        context['plugin']['FBConnect'].callMethod('getName', [
-          (err, result) {
-            window.alert('Error: ${err}, Result: ${result}');
-          }
-        ]);
         initPolymer().then((zone) {
           zone.run(() {
             Polymer.onReady.then((_) {

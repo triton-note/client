@@ -9,6 +9,7 @@ void getTritonNoteRouteInitializer(Router router, RouteViewFactory views) {
     'add': ngRoute(path: '/add', viewHtml: '<add-report></add-report>'),
     'preferences': ngRoute(path: '/preferences', viewHtml: '<preferences></preferences>'),
     'distributions': ngRoute(path: '/distributions', viewHtml: '<distributions></distributions>'),
+    'experiment': ngRoute(path: '/experiment', viewHtml: '<experiment></experiment>'),
     'home': ngRoute(defaultRoute: true, enter: (RouteEnterEvent e) => router.go('reports-list', {}, replace: true))
   });
 }
