@@ -45,7 +45,7 @@ def cordova():
                'phonegap-plugin-push@~1.3.0',
                'https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos',
                'https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios APP_ID=${FACEBOOK_APP_ID} APP_NAME=${FACEBOOK_APP_NAME}',
-               'https://github.com/fathens/Cordova-Plugin-Crashlytics.git API_KEY=${FABRIC_API_KEY}'
+               'https://github.com/fathens/Cordova-Plugin-Crashlytics.git#feature/build_script API_KEY=${FABRIC_API_KEY}'
                ]
     for plugin in plugins:
         names = plugin.split()
