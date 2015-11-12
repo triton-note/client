@@ -28,7 +28,7 @@ before_install:
 install:
   - pip install boto3
   - build-scripts/cache.py load
-  - pip install pyyaml lxml requests
+  - pip --cache-dir=.pip_cache install pyyaml lxml requests
   - brew tap dart-lang/dart && brew install dart
   - gem install bundle
   - bundle install

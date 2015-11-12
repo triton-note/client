@@ -63,7 +63,7 @@ if __name__ == "__main__":
     if len(args) > 1:
         names = args[1:]
     else:
-        names = ['node_modules']
+        names = ['node_modules', '.pip_cache']
 
     def set_environments(opts):
         map = {
