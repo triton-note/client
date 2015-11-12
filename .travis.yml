@@ -7,6 +7,7 @@ branches:
 
 env:
   global:
+    - PUB_CACHE=$(pwd)/.pub-cache
     - BUILD_NUM=$TRAVIS_BUILD_NUMBER
     - PROJECT_REPO_SLUG=$TRAVIS_REPO_SLUG
     - GIT_BRANCH=$TRAVIS_BRANCH

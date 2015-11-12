@@ -64,7 +64,7 @@ if __name__ == "__main__":
     if len(args) > 1:
         names = args[1:]
     else:
-        names = ['node_modules', '.pip_cache']
+        names = ['node_modules', '.pip_cache', '.pub-cache']
 
     def get_repo():
         url = shell.CMD('git', 'config', '--get', 'remote.origin.url').output()
