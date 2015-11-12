@@ -22,7 +22,7 @@ def getObject(name):
 def load(name):
     (obj, filename) = getObject(name)
     print('Loading', obj, 'to', filename)
-    shell.mkdirs(os.path.dirname(filename))
+    shell.mkdirs(os.path.join(os.path.dirname(filename), name))
     try:
         with open(filename, mode='wb') as file:
             file.write(obj.get()['Body'].read())
