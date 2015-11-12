@@ -6,7 +6,7 @@ import sys
 class CMD:
     def __init__(self, *args):
         self.args = list(args)
-        print('$ %s' % ' '.join(self.args))
+        print('$', *self.args)
 
     def call(self, *adding):
         self.args.extend(adding)
