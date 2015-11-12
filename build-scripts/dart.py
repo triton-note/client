@@ -36,9 +36,18 @@ def download(url, dir):
         return 'cached-%s.%s' % (m.hexdigest(), getExt(base))
     name = uniqueName(url)
     target = os.path.join(dir, name)
-    print('Downloading', url, 'to', target)
     shell.mkdirs(dir)
-    urllib.request.urlretrieve(url, target)
+    retry = 3
+    while True:
+        try:
+            print('Downloading', url, 'to', target)
+            urllib.request.urlretrieve(url, target)
+            break
+        except:
+            print('Failed to download', url)
+            retry = retry - 1;
+            if retry < 0:
+                raise
     return name
 
 class IndexHtml:
