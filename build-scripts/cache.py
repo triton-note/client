@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from multiprocessing import Pool
 from optparse import OptionParser
 import os
 import sys
@@ -60,9 +61,9 @@ if __name__ == "__main__":
     action = args[0]
 
     if len(args) > 1:
-        list = args[1:]
+        names = args[1:]
     else:
-        list = ['node_modules']
+        names = ['node_modules']
 
     def set_environments(opts):
         map = {
@@ -76,9 +77,9 @@ if __name__ == "__main__":
 
     set_environments(vars(options))
 
-    print(action, list)
-    for name in list:
+    print(action, names)
+    with Pool(processes=len(names)) as pool:
         if action == "load":
-            load(name)
+            pool.map(load, names)
         elif action == "save":
-            save(name)
+            pool.map(save, names)
