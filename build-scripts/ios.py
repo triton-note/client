@@ -36,13 +36,8 @@ def environment_variables(overwrite_environ=True):
         set_value('GYM_USE_LEGACY_BUILD_API', 'true')
 
 def install():
-    with open('Gemfile', mode='a') as file:
-        lines = [
-                 'gem "cocoapods"',
-                 'gem "fastlane"'
-                 ]
-        file.write('\n'.join(lines) + '\n')
-    shell.CMD('bundle', 'install').call()
+    for name in ['cocoapods', 'fastlane']:
+        shell.CMD('gem', 'install', name, '--no-document').call()
     shell.CMD('cordova', 'prepare', 'ios').call()
 
 def certs():
