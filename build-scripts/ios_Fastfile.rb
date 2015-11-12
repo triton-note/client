@@ -13,9 +13,11 @@ platform :ios do
       import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
     end
 
-    increment_build_number(
-      build_number: ENV["BUILD_NUM"]
-    )
+    if ENV["BUILD_NUM"] != nil then
+      increment_build_number(
+        build_number: ENV["BUILD_NUM"]
+      )
+    end
 
     sigh
 

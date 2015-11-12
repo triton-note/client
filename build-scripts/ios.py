@@ -29,7 +29,8 @@ def environment_variables(overwrite_environ=True):
            }
     for name, key in map.items():
         set_value(name, Config.get(key))
-    set_value('BUILD_NUM', Config.BUILD_NUM)
+    if Config.BUILD_NUM:
+        set_value('BUILD_NUM', Config.BUILD_NUM)
     set_value('SSL_CERT_FILE', '/usr/local/etc/openssl/cert.pem')
     if not (BuildMode.is_RELEASE() or BuildMode.is_BETA()):
         set_value('SIGH_AD_HOC', 'true')

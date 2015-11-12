@@ -20,7 +20,7 @@ class BuildMode:
                    'debug': 'BRANCH_DEBUG'
                    }
             for name, key in map.items():
-                if re.fullmatch(os.environ[key], branch):
+                if os.environ.get(key) and re.fullmatch(os.environ[key], branch):
                     return name
             return 'test'
         cls.BRANCH = branch
@@ -51,10 +51,10 @@ class Config:
     @classmethod
     def init(cls, path=None, branch=None, build_mode=None, build_num=None, platform=None):
         if not build_num:
-            build_num = os.environ['BUILD_NUM']
+            build_num = os.environ.get('BUILD_NUM')
         cls.BUILD_NUM = build_num
         if not platform:
-            platform = os.environ['PLATFORM']
+            platform = os.environ.get('PLATFORM')
         cls.PLATFORM = platform
         BuildMode.init(branch=branch, mode_name=build_mode)
         if not path:
