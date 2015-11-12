@@ -62,6 +62,7 @@ def fastlane():
     here = os.getcwd()
     os.chdir(platform_dir())
     try:
+        shell.CMD('fastlane', 'enable_crash_reporting').call()
         shell.CMD('fastlane', BuildMode.NAME).call()
     finally:
         os.chdir(here)
