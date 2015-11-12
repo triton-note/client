@@ -24,14 +24,14 @@ class ExperimentPage extends MainFrame {
           final fb = context['plugin']['FBConnect'];
           _logger.info(() => 'plugin.FBConnect = ${fb}');
 
-          _logger.info(() => 'plugin.FBConnect.renewSystemCredentials = ${fb.renewSystemCredentials}');
+          _logger.info(() => 'plugin.FBConnect.renewSystemCredentials = ${fb['renewSystemCredentials']}');
           fb.callMethod('renewSystemCredentials', [
             (err, result) {
               window.alert('Error: ${err}, Result: ${result}');
             }
           ]);
 
-          _logger.info(() => 'plugin.FBConnect.getName = ${fb.getName}');
+          _logger.info(() => 'plugin.FBConnect.getName = ${fb['getName']}');
           fb.callMethod('getName', [
             (err, result) {
               window.alert('Error: ${err}, Result: ${result}');
