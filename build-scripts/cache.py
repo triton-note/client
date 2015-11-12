@@ -73,7 +73,7 @@ if __name__ == "__main__":
             return m.group(1)
 
     def set_env(name, value, otherwise=None):
-        if not value:
+        if not value and not os.environ.get(name):
             if otherwise:
                 value = otherwise()
         if value:
