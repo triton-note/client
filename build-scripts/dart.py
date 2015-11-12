@@ -24,16 +24,14 @@ def write_settings():
     print('Set', target)
 
 def download(url, dir):
-    def getExt(base):
-        m = re.search('.*[^\w]([\w]+)$', base.split('?')[0])
-        if m == None:
-            return None
-        else:
-            return m.group(1)
     def uniqueName(base):
-        m = hashlib.md5()
-        m.update(base.encode('utf-8'))
-        return 'cached-%s.%s' % (m.hexdigest(), getExt(base))
+        h = hashlib.md5()
+        h.update(base.encode('utf-8'))
+        names = [h.hexdigest()]
+        m = re.search('.*[^\w]([\w]+)$', base.split('?')[0])
+        if m != None:
+            names.append(m.group(1))
+        return 'cached-%s' % '.'.join(names)
     name = uniqueName(url)
     target = os.path.join(dir, name)
     shell.mkdirs(dir)
