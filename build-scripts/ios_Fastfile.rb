@@ -17,6 +17,14 @@ platform :ios do
       build_number: ENV["BUILD_NUM"]
     )
 
+    sigh
+
+    update_project_provisioning(
+      xcodeproj: "#{ENV["APPLICATION_NAME"]}.xcodeproj",
+      target_filter: ".*",
+      build_configuration: "Release"
+    )
+
     gym(
       scheme: ENV["APPLICATION_NAME"],
       configuration: "Release",

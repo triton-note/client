@@ -31,7 +31,6 @@ def environment_variables(overwrite_environ=True):
         set_value(name, Config.get(key))
     set_value('BUILD_NUM', Config.BUILD_NUM)
     set_value('SSL_CERT_FILE', '/usr/local/etc/openssl/cert.pem')
-    set_value('GYM_PROVISIONING_PROFILE_PATH', Config.file('ios', 'orgfathensTritonNote_AdHoc.mobileprovision'))
     if not (BuildMode.is_RELEASE() or BuildMode.is_BETA()):
         set_value('SIGH_AD_HOC', 'true')
         set_value('GYM_USE_LEGACY_BUILD_API', 'true')
