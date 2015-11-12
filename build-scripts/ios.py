@@ -37,7 +37,7 @@ def environment_variables(overwrite_environ=True):
 
 def install():
     for name in ['cocoapods', 'fastlane']:
-        shell.CMD('gem', 'install', name, '--no-document').call()
+        shell.CMD('gem', 'install', name).call()
     shell.CMD('cordova', 'prepare', 'ios').call()
 
 def certs():

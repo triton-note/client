@@ -15,6 +15,7 @@ env:
     - PLATFORM=ios
 
 before_install:
+  - echo "gem":" --no-document" > ~/.gemrc
   - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
   - source $HOME/.nvm/nvm.sh
   - nvm install 4.2.2
@@ -29,7 +30,7 @@ install:
   - build-scripts/cache.py load
   - pip install pyyaml lxml requests
   - brew tap dart-lang/dart && brew install dart
-  - gem install bundle --no-document
+  - gem install bundle
   - bundle install
   - npm install
   - export PATH="$PATH:$(pwd)/node_modules/.bin"
