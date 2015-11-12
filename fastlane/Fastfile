@@ -1,0 +1,9 @@
+require 'xcodeproj'
+
+fastlane_version "1.39.0"
+
+platform :ios do
+  before_all do
+    
+  end
+end
