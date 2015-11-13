@@ -5,15 +5,17 @@ fastlane_version "1.39.0"
 def before_platform
   puts "Run before platforms"
   into_ie
+  puts "Runing on #{lane_context[Actions::SharedValues::BUILD_MODE]}"
   dart
   cordova
+  exit
 end
 
 def on_platform &block
-  here = Dir.pwd
-  Dir.chdir Pathname("..").join("platforms").join(ENV["FASTLANE_PLATFORM_NAME"])
-  block.call
-  Dir.chdir here
+  dir = File.join(Fastlane::FastlaneFolder.path, "..", "platforms", ENV["FASTLANE_PLATFORM_NAME"])
+  Dir.chdir(dir) do
+    block.call
+  end
 end
 
 platform :ios do
@@ -67,26 +69,8 @@ platform :ios do
     end
   end
 
-  desc "Runs all the tests"
-  lane :test do
-    # test and take screenshots
-    puts "CWD: #{Dir.pwd}"
-  end
-
-  desc "Submit a new build to Crashlytics"
-  lane :debug do
-    # something
-    puts "CWD: #{Dir.pwd}"
-  end
-
-  desc "Submit a new Beta Build to Apple TestFlight"
-  desc "This will also make sure the profile is up to date"
-  lane :beta do
-    # sh "your_script.sh"
-  end
-
   desc "Deploy a new version to the App Store"
-  lane :release do
+  lane :build do
     # deliver(skip_deploy: true, force: true)
     # frameit
   end
