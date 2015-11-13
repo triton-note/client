@@ -2,21 +2,24 @@ module Fastlane
   module Actions
     class CordovaAction < Action
       def self.run(params)
-        Dir.chdir(FActions.lane_context[Actions::SharedValues::PROJECT_ROOT]) do
-          node_modules
-          cleanup
-          cordova
-          ionic
-        end
+        node_modules
+        cleanup
+        cordova
+        ionic
       end
 
       def self.cleanup
-        ['plugins', 'platforms'].each Dir.rmdir
+        require 'fileutils'
+
+        ['plugins', 'platforms'].each do |dir|
+          puts "Deleting dir: #{dir}"
+          FileUtils.rm_rf dir
+        end
         Dir.mkdir 'plugins'
       end
 
       def self.cordova
-        system("cordova platform add #{ENV['PLATFORM']}")
+        system("cordova platform add #{Actions.lane_context[Actions::SharedValues::PLATFORM_NAME]}")
 
         plugins = [
           'cordova-plugin-crosswalk-webview@~1.3.1',
@@ -34,13 +37,15 @@ module Fastlane
         ]
 
         plugins.each do |line|
-          names = plugin.split
+          names = line.split
           vars = []
           names[1..-1].each do |n|
             ns = n.split('=')
             m = /^\${(\w+)}$/.match ns[1]
             if m != nil then
-              ns[1] = os.environ[m[1]]
+              if ENV.has_key? m[1] then
+                ns[1] = ENV[m[1]]
+              end
             end
             vars.concat ['--variable', ns.join('=')]
           end
@@ -56,7 +61,7 @@ module Fastlane
         if !ENV['PATH'].include?('node_modules/.bin') then
           ENV['PATH'] = "#{ENV['PATH']}:#{Dir.pwd}/node_modules/.bin"
         end
-        if system('cordova -v') || system('ionic -v') then
+        if !(system('cordova -v') || system('ionic -v')) then
           with_cache('node_modules') do
             system('npm install')
           end
@@ -68,17 +73,25 @@ module Fastlane
         remotename = "s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/#{filename}"
         if !File.exist?(name) then
           begin
+            puts "Loading #{name}"
             system("aws s3 cp #{remotename} #{filename}")
             system("tar jxf #{filename}")
           rescue
             Dir.mkdir(name)
+          else
+            File.delete filename
           end
         end
         begin
           block.call
         ensure
-          system("tar jcf #{filename} #{name}")
-          system("aws s3 cp #{filename} #{remotename}")
+          begin
+            puts "Saving #{name}"
+            system("tar jcf #{filename} #{name}")
+            system("aws s3 cp #{filename} #{remotename}")
+          ensure
+            File.delete filename
+          end
         end
       end
 

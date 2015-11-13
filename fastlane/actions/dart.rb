@@ -3,12 +3,10 @@ module Fastlane
     class DartAction < Action
       def self.run(params)
         install
-        Dir.chdir(File.join(Actions.lane_context[Actions::SharedValues::PROJECT_ROOT], 'dart')) do
-          if !File.directory? File.join('build', 'web') then
-            write_settings
-            index_download
-            build
-          end
+        Dir.chdir('dart') do
+          write_settings
+          index_download
+          build
         end
       end
 
@@ -115,8 +113,10 @@ module Fastlane
       end
 
       def self.build
-        system("pub get")
-        system("pub build")
+        if !File.directory? File.join('build', 'web') then
+          system("pub get")
+          system("pub build")
+        end
       end
 
       #####################################################

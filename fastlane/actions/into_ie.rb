@@ -3,17 +3,13 @@ module Fastlane
     module SharedValues
       BUILD_MODE = :BUILD_MODE
       PERSISTENT_DIR = :PERSISTENT_DIR
-      PROJECT_ROOT = :PROJECT_ROOT
     end
 
     class IntoIeAction < Action
       def self.run(params)
-        Actions.lane_context[Actions::SharedValues::PROJECT_ROOT] = File.dirname(Fastlane::FastlaneFolder.path)
-
-        Dir.chdir(Actions.lane_context[Actions::SharedValues::PROJECT_ROOT]) do
-          Actions.lane_context[Actions::SharedValues::PERSISTENT_DIR] = File.join(Fastlane::FastlaneFolder.path, 'persistent')
-          Actions.lane_context[Actions::SharedValues::BUILD_MODE] = get_build_mode
-        end
+        Actions.lane_context[Actions::SharedValues::PERSISTENT_DIR] = File.join(Fastlane::FastlaneFolder.path, 'persistent')
+        Actions.lane_context[Actions::SharedValues::BUILD_MODE] = get_build_mode
+        puts "Runing on #{lane_context[Actions::SharedValues::BUILD_MODE]}"
       end
 
       def self.get_build_mode

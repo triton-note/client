@@ -3,16 +3,16 @@ require 'xcodeproj'
 fastlane_version "1.39.0"
 
 def before_platform
-  puts "Run before platforms"
   into_ie
-  puts "Runing on #{lane_context[Actions::SharedValues::BUILD_MODE]}"
   dart
   cordova
-  exit
 end
 
 def on_platform &block
-  dir = File.join(Fastlane::FastlaneFolder.path, "..", "platforms", ENV["FASTLANE_PLATFORM_NAME"])
+  dir = File.join(File.dirname(Dir.pwd), "platforms", ENV["FASTLANE_PLATFORM_NAME"], 'fastlane')
+  if ! File.directory? dir then
+    Dir.mkdir dir
+  end
   Dir.chdir(dir) do
     block.call
   end
@@ -21,28 +21,48 @@ end
 platform :ios do
   before_all do
     before_platform
+    
+    sh('cordova prepare ios')
+    
+    def set_profile_udid
+      xproj = Xcodeproj::Project.open(File.join(File.dirname(Dir.pwd), "#{ENV["APPLICATION_NAME"]}.xcodeproj"))
+      xproj.build_configurations.each do |conf|
+        conf.build_settings['PROVISIONING_PROFILE'] = "\$(PROFILE_UDID)"
+      end
+      xproj.save
+      ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
+    end
+
+    if is_ci?
+      keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
+      puts "Using keychain: #{keychainName}"
+      cert_dir = File.join(lane_context[Actions::SharedValues::PERSISTENT_DIR], 'ios')
+      import_certificate keychain_name: keychainName, certificate_path: File.join(dir, "Distribution.cer")
+      import_certificate keychain_name: keychainName, certificate_path: File.join(dir, "Distribution.p12"), certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
+    end
+
+    def is_adhoc?
+      !["release", "beta"].include? lane_context[Actions::SharedValues::BUILD_MODE]
+    end
 
     on_platform do
-      if is_ci?
-        keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
-        puts "Using keychain: #{keychainName}"
-        import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
-        import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
-      end
-
       if ENV["BUILD_NUM"] != nil then
         increment_build_number(
         build_number: ENV["BUILD_NUM"]
         )
       end
 
-      sigh
+      sigh(
+      app_identifier: ENV['IOS_BUNDLE_ID'],
+      adhoc: is_adhoc?
+      )
 
       set_profile_udid
 
       gym(
       scheme: ENV["APPLICATION_NAME"],
       configuration: "Release",
+      use_legacy_build_api: is_adhoc?,
       include_bitcode: false,
       silent: true
       )
@@ -53,18 +73,9 @@ platform :ios do
         api_token: ENV["FABRIC_API_KEY"],
         build_secret: ENV["FABRIC_BUILD_SECRET"],
         notes_path: ENV["RELEASE_NOTE_PATH"],
-        groups: ENV["CRASHLYTICS_GROUPS"],
+        groups: ENV["FABRIC_CRASHLYTICS_GROUPS"],
         ipa_path: "#{ENV["APPLICATION_NAME"]}.ipa"
         )
-      end
-
-      def set_profile_udid
-        xproj = Xcodeproj::Project.open("#{ENV["APPLICATION_NAME"]}.xcodeproj")
-        xproj.build_configurations.each do |conf|
-          conf.build_settings['PROVISIONING_PROFILE'] = "\$(PROFILE_UDID)"
-        end
-        xproj.save
-        ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
       end
     end
   end
