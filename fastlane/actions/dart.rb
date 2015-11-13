@@ -24,8 +24,9 @@ module Fastlane
         settings = YAML::load_file(target)
 
         settings.each do |key, name|
-          if name && ENV.has_key?(name) then
-            settings[key] = ENV[name]
+          m = /^\${(\w+)}$/.match name
+          if m && ENV.has_key?(m[1]) then
+            settings[key] = ENV[m[1]]
           end
         end
 
