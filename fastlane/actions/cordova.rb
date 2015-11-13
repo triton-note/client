@@ -4,10 +4,7 @@ module Fastlane
       def self.run(params)
         Dir.chdir(FActions.lane_context[Actions::SharedValues::PROJECT_ROOT]) do
           node_modules
-          ENV['PATH'] = "#{ENV['PATH']}:#{Dir.pwd}/node_modules/.bin"
-
           cleanup
-
           cordova
           ionic
         end
@@ -15,11 +12,11 @@ module Fastlane
 
       def self.cleanup
         ['plugins', 'platforms'].each Dir.rmdir
+        Dir.mkdir 'plugins'
       end
 
       def self.cordova
-        Dir.mkdir 'plugins'
-        sh("cordova platform add #{ENV['PLATFORM']}")
+        system("cordova platform add #{ENV['PLATFORM']}")
 
         plugins = [
           'cordova-plugin-crosswalk-webview@~1.3.1',
@@ -47,17 +44,22 @@ module Fastlane
             end
             vars.concat ['--variable', ns.join('=')]
           end
-          sh("cordova plugin add #{names[0]} #{vars.join(' ')}")
+          system("cordova plugin add #{names[0]} #{vars.join(' ')}")
         end
       end
 
       def self.ionic
-        sh("ionic resources")
+        system("ionic resources")
       end
 
       def self.node_modules
-        with_cache('node_modules') do
-          sh('npm install')
+        if !ENV['PATH'].include?('node_modules/.bin') then
+          ENV['PATH'] = "#{ENV['PATH']}:#{Dir.pwd}/node_modules/.bin"
+        end
+        if system('cordova -v') || system('ionic -v') then
+          with_cache('node_modules') do
+            system('npm install')
+          end
         end
       end
 
@@ -66,8 +68,8 @@ module Fastlane
         remotename = "s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/#{filename}"
         if !File.exist?(name) then
           begin
-            sh("aws s3 cp #{remotename} #{filename}")
-            sh("tar jxf #{filename}")
+            system("aws s3 cp #{remotename} #{filename}")
+            system("tar jxf #{filename}")
           rescue
             Dir.mkdir(name)
           end
@@ -75,8 +77,8 @@ module Fastlane
         begin
           block.call
         ensure
-          sh("tar jcf #{filename} #{name}")
-          sh("aws s3 cp #{filename} #{remotename}")
+          system("tar jcf #{filename} #{name}")
+          system("aws s3 cp #{filename} #{remotename}")
         end
       end
 

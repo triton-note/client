@@ -4,25 +4,31 @@ module Fastlane
       def self.run(params)
         install
         Dir.chdir(File.join(Actions.lane_context[Actions::SharedValues::PROJECT_ROOT], 'dart')) do
-          write_settings
-          index_download
-          build
+          if !File.directory? File.join('build', 'web') then
+            write_settings
+            index_download
+            build
+          end
         end
       end
 
       def self.install
-        if sh("dart --version || echo").strip == "" then
-          sh("brew tap dart-lang/dart")
-          sh("brew install dart")
+        if !system("dart --version") then
+          system("brew tap dart-lang/dart")
+          system("brew install dart")
         end
       end
 
       def self.write_settings
+        require 'yaml'
+
         target = File.join('web', 'settings.yaml')
         settings = YAML::load_file(target)
 
         settings.each do |key, name|
-          settings[key] = ENV[name]
+          if name && ENV.has_key?(name) then
+            settings[key] = ENV[name]
+          end
         end
 
         File.open(target, 'w') do |file|
@@ -62,7 +68,7 @@ module Fastlane
             css['href'] = File.join('styles', 'fonts', filename)
           end
         end
-        
+
         doc.xpath("//script[@type='text/javascript']").each do |js|
           href = js['src']
           if /^https:\/\/.*\.js$/.match(href) then
@@ -109,8 +115,8 @@ module Fastlane
       end
 
       def self.build
-        sh("pub get")
-        sh("pub build")
+        system("pub get")
+        system("pub build")
       end
 
       #####################################################
