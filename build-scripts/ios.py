@@ -52,7 +52,7 @@ def fastfiles():
     shell.mkdirs(dir)
     with open(os.path.join(dir, 'Appfile'), mode='w') as file:
         file.write('app_identifier "%s"\n' % Config.get('platforms.ios.BUNDLE_ID'))
-    shutil.copy(Config.script_file('ios_Fastfile.rb'), os.path.join(dir, 'Fastfile'))
+    shutil.copy(Config.script_file('Fastfile'), dir)
 
 def fastlane():
     here = os.getcwd()
