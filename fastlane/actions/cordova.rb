@@ -3,7 +3,11 @@ module Fastlane
     class CordovaAction < Action
       def self.run(params)
         Dir.chdir(FActions.lane_context[Actions::SharedValues::PROJECT_ROOT]) do
+          node_modules
+          ENV['PATH'] = "#{ENV['PATH']}:#{Dir.pwd}/node_modules/.bin"
+
           cleanup
+
           cordova
           ionic
         end
@@ -41,14 +45,39 @@ module Fastlane
             if m != nil then
               ns[1] = os.environ[m[1]]
             end
-            vars.concat ['--variable', "#{ns[0]}=#{ns[1]}"]
+            vars.concat ['--variable', ns.join('=')]
           end
           sh("cordova plugin add #{names[0]} #{vars.join(' ')}")
         end
       end
-      
+
       def self.ionic
         sh("ionic resources")
+      end
+
+      def self.node_modules
+        with_cache('node_modules') do
+          sh('npm install')
+        end
+      end
+
+      def self.with_cache(name, &block)
+        filename = "#{name}.tar.bz2"
+        remotename = "s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/#{filename}"
+        if !File.exist?(name) then
+          begin
+            sh("aws s3 cp #{remotename} #{filename}")
+            sh("tar jxf #{filename}")
+          rescue
+            Dir.mkdir(name)
+          end
+        end
+        begin
+          block.call
+        ensure
+          sh("tar jcf #{filename} #{name}")
+          sh("aws s3 cp #{filename} #{remotename}")
+        end
       end
 
       #####################################################

@@ -13,9 +13,6 @@ module Fastlane
         Dir.chdir(Actions.lane_context[Actions::SharedValues::PROJECT_ROOT]) do
           Actions.lane_context[Actions::SharedValues::PERSISTENT_DIR] = File.join(Fastlane::FastlaneFolder.path, 'persistent')
           Actions.lane_context[Actions::SharedValues::BUILD_MODE] = get_build_mode
-
-          #node_modules
-          ENV['PATH'] = "#{ENV['PATH']}:#{Dir.pwd}/node_modules/.bin"
         end
       end
 
@@ -35,31 +32,6 @@ module Fastlane
             Regexp.new(pattern).match branch
           end
         end || "test"
-      end
-
-      def self.node_modules
-        with_cache('node_modules') do
-          sh('npm install')
-        end
-      end
-
-      def self.with_cache(name, &block)
-        filename = "#{name}.tar.bz2"
-        remotename = "s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/#{filename}"
-        if !File.exist?(name) then
-          begin
-            sh("aws s3 cp #{remotename} #{filename}")
-            sh("tar jxf #{filename}")
-          rescue
-            Dir.mkdir(name)
-          end
-        end
-        begin
-          block.call
-        ensure
-          sh("tar jcf #{filename} #{name}")
-          sh("aws s3 cp #{filename} #{remotename}")
-        end
       end
 
       #####################################################
