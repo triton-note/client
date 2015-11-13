@@ -2,7 +2,7 @@ require 'xcodeproj'
 
 fastlane_version "1.39.0"
 
-before_all do
+def before_platform
   puts "Run before platforms"
   into_ie
   dart
@@ -11,63 +11,67 @@ end
 
 platform :ios do
   before_all do
-    puts "Run in platform before lanes"
+    before_platform
+    
+    Dir.chdir Pathname("platforms").join("ios")
 
-    chdir 'platform/ios' do
-      if is_ci?
-        keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
-        puts "Using keychain: #{keychainName}"
-        import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
-        import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
-      end
+    puts "CWD: #{Dir.pwd}"
 
-      if ENV["BUILD_NUM"] != nil then
-        increment_build_number(
-        build_number: ENV["BUILD_NUM"]
-        )
-      end
+    if is_ci?
+      keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
+      puts "Using keychain: #{keychainName}"
+      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
+      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
+    end
 
-      sigh
-
-      set_profile_udid
-
-      gym(
-      scheme: ENV["APPLICATION_NAME"],
-      configuration: "Release",
-      include_bitcode: false,
-      silent: true
+    if ENV["BUILD_NUM"] != nil then
+      increment_build_number(
+      build_number: ENV["BUILD_NUM"]
       )
+    end
 
-      if is_ci? then
-        crashlytics(
-        crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",
-        api_token: ENV["FABRIC_API_KEY"],
-        build_secret: ENV["FABRIC_BUILD_SECRET"],
-        notes_path: ENV["RELEASE_NOTE_PATH"],
-        groups: ENV["CRASHLYTICS_GROUPS"],
-        ipa_path: "#{ENV["APPLICATION_NAME"]}.ipa"
-        )
-      end
+    sigh
 
-      def set_profile_udid
-        xproj = Xcodeproj::Project.open("#{ENV["APPLICATION_NAME"]}.xcodeproj")
-        xproj.build_configurations.each do |conf|
-          conf.build_settings['PROVISIONING_PROFILE'] = "\$(PROFILE_UDID)"
-        end
-        xproj.save
-        ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
+    set_profile_udid
+
+    gym(
+    scheme: ENV["APPLICATION_NAME"],
+    configuration: "Release",
+    include_bitcode: false,
+    silent: true
+    )
+
+    if is_ci? then
+      crashlytics(
+      crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",
+      api_token: ENV["FABRIC_API_KEY"],
+      build_secret: ENV["FABRIC_BUILD_SECRET"],
+      notes_path: ENV["RELEASE_NOTE_PATH"],
+      groups: ENV["CRASHLYTICS_GROUPS"],
+      ipa_path: "#{ENV["APPLICATION_NAME"]}.ipa"
+      )
+    end
+
+    def set_profile_udid
+      xproj = Xcodeproj::Project.open("#{ENV["APPLICATION_NAME"]}.xcodeproj")
+      xproj.build_configurations.each do |conf|
+        conf.build_settings['PROVISIONING_PROFILE'] = "\$(PROFILE_UDID)"
       end
+      xproj.save
+      ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
     end
   end
 
   desc "Runs all the tests"
   lane :test do
     # test and take screenshots
+    puts "CWD: #{Dir.pwd}"
   end
 
   desc "Submit a new build to Crashlytics"
   lane :debug do
     # something
+    puts "CWD: #{Dir.pwd}"
   end
 
   desc "Submit a new Beta Build to Apple TestFlight"
@@ -78,6 +82,45 @@ platform :ios do
 
   desc "Deploy a new version to the App Store"
   lane :release do
+    # deliver(skip_deploy: true, force: true)
+    # frameit
+  end
+end
+
+platform :android do
+  before_all do
+    before_platform
+    
+    puts "Run in android before lanes"
+    sleep 5
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    puts "Run android test"
+    sleep 5
+    # test and take screenshots
+  end
+
+  desc "Submit a new build to Crashlytics"
+  lane :debug do
+    puts "Run android debug"
+    sleep 5
+    # something
+  end
+
+  desc "Submit a new Beta Build to Apple TestFlight"
+  desc "This will also make sure the profile is up to date"
+  lane :beta do
+    puts "Run android beta"
+    sleep 5
+    # sh "your_script.sh"
+  end
+
+  desc "Deploy a new version to the App Store"
+  lane :release do
+    puts "Run android release"
+    sleep 5
     # deliver(skip_deploy: true, force: true)
     # frameit
   end
