@@ -64,14 +64,14 @@ module Fastlane
               file.truncate(file.pos)
             end
 
-            css['href'] = File.join('styles', 'fonts', filename)
+            css['href'] = 'styles/fonts/' + filename
           end
         end
 
         doc.xpath("//script[@type='text/javascript']").each do |js|
           href = js['src']
           if /^https:\/\/.*\.js$/.match(href) then
-            js['src'] = File.join('js', download(href, File.join('web', 'js')))
+            js['src'] = 'js/' + download(href, File.join('web', 'js'))
           end
         end
 
