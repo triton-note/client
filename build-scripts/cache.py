@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
+from multiprocessing import Pool
 from optparse import OptionParser
 import os
+import re
 import sys
 import tarfile
 
@@ -20,7 +22,7 @@ def getObject(name):
 def load(name):
     (obj, filename) = getObject(name)
     print('Loading', obj, 'to', filename)
-    shell.mkdirs(os.path.dirname(filename))
+    shell.mkdirs(os.path.join(os.path.dirname(filename), name))
     try:
         with open(filename, mode='wb') as file:
             file.write(obj.get()['Body'].read())
@@ -60,25 +62,31 @@ if __name__ == "__main__":
     action = args[0]
 
     if len(args) > 1:
-        list = args[1:]
+        names = args[1:]
     else:
-        list = ['node_modules']
+        names = ['node_modules', '.pip_cache']
 
-    def set_environments(opts):
-        map = {
-               'profile': 'AWS_PROFILE',
-               'bucket': 'AWS_S3_BUCKET',
-               'repo': 'PROJECT_REPO_SLUG'
-               }
-        for key, value in opts.items():
-            if value:
-                os.environ[map[key]] = value
+    def get_repo():
+        url = shell.CMD('git', 'config', '--get', 'remote.origin.url').output()
+        m = re.fullmatch('^http.*github\.com/([\w-]+/[\w-]+)\.git$', url)
+        if m:
+            return m.group(1)
 
-    set_environments(vars(options))
+    def set_env(name, value, otherwise=None):
+        if not value and not os.environ.get(name):
+            if otherwise:
+                value = otherwise()
+        if value:
+            print('Setting environment variable: %s=%s' % (name, value))
+            os.environ[name] = value
 
-    print(action, list)
-    for name in list:
+    set_env('AWS_S3_BUCKET', options.bucket, lambda: 'build-config')
+    set_env('PROJECT_REPO_SLUG', options.repo, lambda: get_repo())
+    set_env('AWS_PROFILE', options.profile)
+
+    print(action, names)
+    with Pool(processes=len(names)) as pool:
         if action == "load":
-            load(name)
+            pool.map(load, names)
         elif action == "save":
-            save(name)
+            pool.map(save, names)

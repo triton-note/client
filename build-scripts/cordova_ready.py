@@ -2,6 +2,7 @@
 
 from optparse import OptionParser
 import os
+import re
 import shutil
 
 from config import Config
@@ -29,7 +30,33 @@ def cleanup():
 
 def cordova():
     shell.mkdirs('plugins')
-    shell.CMD('cordova', 'prepare', Config.PLATFORM).call()
+    shell.CMD('cordova', 'platform', 'add', Config.PLATFORM).call()
+
+    regex = re.compile('\${(\w+)}')
+    plugins = [
+               'cordova-plugin-crosswalk-webview@~1.3.1',
+               'cordova-plugin-device@~1.0.1',
+               'cordova-plugin-console@~1.0.1',
+               'cordova-plugin-camera@~1.2.0',
+               'cordova-plugin-splashscreen@~2.1.0',
+               'cordova-plugin-statusbar@~1.0.1',
+               'cordova-plugin-geolocation@~1.0.1',
+               'cordova-plugin-whitelist@~1.0.0',
+               'phonegap-plugin-push@~1.3.0',
+               'https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos',
+               'https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios APP_ID=${FACEBOOK_APP_ID} APP_NAME=${FACEBOOK_APP_NAME}',
+               'https://github.com/fathens/Cordova-Plugin-Crashlytics.git API_KEY=${FABRIC_API_KEY}'
+               ]
+    for plugin in plugins:
+        names = plugin.split()
+        variables = []
+        for line in names[1:]:
+            key, value = line.split('=')
+            m = regex.fullmatch(value)
+            if m:
+                value = os.environ[m.group(1)]
+            variables.extend(['--variable', '%s=%s' % (key, value)])
+        shell.CMD('cordova', 'plugin', 'add', names[0]).call(*variables)
 
 def ionic():
     shell.CMD('ionic', 'resources').call()

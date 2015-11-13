@@ -3,6 +3,7 @@
 from optparse import OptionParser
 import os
 import shutil
+import subprocess
 import sys
 
 from config import BuildMode, Config
@@ -12,8 +13,32 @@ import shell
 def platform_dir(*paths):
     return os.path.join('platforms', 'ios', *paths)
 
+def environment_variables(overwrite_environ=True):
+    def set_value(name, value):
+        if not (os.environ.get(name) and not overwrite_environ):
+            print('Setting environment variable:', name)
+            os.environ[name] = value
+    map = {
+           'IOS_DISTRIBUTION_KEY_PASSWORD': 'platforms.ios.DISTRIBUTION_KEY_PASSWORD',
+           'APPLICATION_NAME': 'APPLICATION_NAME',
+           'FABRIC_API_KEY': 'fabric.API_KEY',
+           'FABRIC_BUILD_SECRET': 'fabric.BUILD_SECRET',
+           'CRASHLYTICS_GROUPS': 'fabric.CRASHLYTICS_GROUPS',
+           'DELIVER_USER': 'platforms.ios.DELIVER_USER',
+           'DELIVER_PASSWORD': 'platforms.ios.DELIVER_PASSWORD'
+           }
+    for name, key in map.items():
+        set_value(name, Config.get(key))
+    if Config.BUILD_NUM:
+        set_value('BUILD_NUM', Config.BUILD_NUM)
+    set_value('SSL_CERT_FILE', '/usr/local/etc/openssl/cert.pem')
+    if not (BuildMode.is_RELEASE() or BuildMode.is_BETA()):
+        set_value('SIGH_AD_HOC', 'true')
+        set_value('GYM_USE_LEGACY_BUILD_API', 'true')
+
 def install():
-    shell.CMD('sudo', 'gem', 'install', 'fastlane', 'cocoapods').call()
+    for name in ['cocoapods', 'fastlane']:
+        shell.CMD('gem', 'install', name).call()
     shell.CMD('cordova', 'prepare', 'ios').call()
 
 def certs():
@@ -27,40 +52,20 @@ def fastfiles():
     shell.mkdirs(dir)
     with open(os.path.join(dir, 'Appfile'), mode='w') as file:
         file.write('app_identifier "%s"\n' % Config.get('platforms.ios.BUNDLE_ID'))
-    shutil.copy(Config.script_file('ios_Fastfile.rb'), os.path.join(dir, 'Fastfile'))
+    shutil.copy(Config.script_file('Fastfile'), dir)
 
-def fastlane(overwrite_environ=True):
-    def environment_variables():
-        def set_value(name, value):
-            if not (os.environ.get(name) and not overwrite_environ):
-                print('Setting environment variable:', name)
-                os.environ[name] = value
-        map = {
-               'IOS_DISTRIBUTION_KEY_PASSWORD': 'platforms.ios.DISTRIBUTION_KEY_PASSWORD',
-               'APPLICATION_NAME': 'APPLICATION_NAME',
-               'FABRIC_API_KEY': 'fabric.API_KEY',
-               'FABRIC_BUILD_SECRET': 'fabric.BUILD_SECRET',
-               'CRASHLYTICS_GROUPS': 'fabric.CRASHLYTICS_GROUPS',
-               'DELIVER_USER': 'platforms.ios.DELIVER_USER',
-               'DELIVER_PASSWORD': 'platforms.ios.DELIVER_PASSWORD'
-               }
-        for name, key in map.items():
-            set_value(name, Config.get(key))
-        set_value('BUILD_NUM', Config.BUILD_NUM)
-        if not (BuildMode.is_RELEASE() or BuildMode.is_BETA()):
-            set_value('SIGH_AD_HOC', 'true')
-            set_value('GYM_USE_LEGACY_BUILD_API', 'true')
-
+def fastlane():
     here = os.getcwd()
     os.chdir(platform_dir())
     try:
-        environment_variables()
+        shell.CMD('fastlane', 'enable_crash_reporting').call()
         shell.CMD('fastlane', BuildMode.NAME).call()
     finally:
         os.chdir(here)
 
 def all():
     shell.marker_log('Building iOS')
+    environment_variables()
     install()
     certs()
     fastfiles()
@@ -76,19 +81,18 @@ if __name__ == "__main__":
     opt_parser.add_option('-n', '--num', help="build number")
     options, args = opt_parser.parse_args()
 
-    if len(args) < 1:
-        sys.exit('No action is specified')
-    action = args[0]
-
     Config.init(branch=options.branch, build_mode=options.mode, build_num=options.num, platform='ios')
 
-    if action == "install":
-        install_android()
-    elif action == "certs":
-        certs()
-    elif action == "fastfiles":
-        fastfiles()
-    elif action == "fastlane":
-        if not options.num:
-            sys.exit('No build number is specified')
-        fastlane(options.num, overwrite_environ=options.env)
+    if len(args) < 1:
+        all()
+    else:
+        action = args[0]
+        environment_variables(overwrite_environ=options.env)
+        if action == "install":
+            install()
+        elif action == "certs":
+            certs()
+        elif action == "fastfiles":
+            fastfiles()
+        elif action == "fastlane":
+            fastlane()

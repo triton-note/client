@@ -1,17 +1,23 @@
+require 'xcodeproj'
+
 fastlane_version "1.32.1"
 
 default_platform :ios
 
 platform :ios do
   before_all do
-    keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
-    puts "Using keychain: #{keychainName}"
-    import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
-    import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
+    if is_ci?
+      keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
+      puts "Using keychain: #{keychainName}"
+      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.cer"
+      import_certificate keychain_name: keychainName, certificate_path: "certs/Distribution.p12", certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
+    end
 
-    increment_build_number(
-      build_number: ENV["BUILD_NUM"]
-    )
+    if ENV["BUILD_NUM"] != nil then
+      increment_build_number(
+        build_number: ENV["BUILD_NUM"]
+      )
+    end
 
     sigh
 
@@ -24,6 +30,7 @@ platform :ios do
     gym(
       scheme: ENV["APPLICATION_NAME"],
       configuration: "Release",
+      include_bitcode: false,
       silent: true
     )
 
