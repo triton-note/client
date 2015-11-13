@@ -2,17 +2,13 @@ require 'xcodeproj'
 
 fastlane_version "1.39.0"
 
-def before_platform
-  into_ie
-  dart
-  cordova
+def persistent(*paths)
+  File.join(Fastlane::FastlaneFolder.path, 'persistent', *paths)
 end
 
-def on_platform &block
-  dir = File.join(File.dirname(Dir.pwd), "platforms", ENV["FASTLANE_PLATFORM_NAME"], 'fastlane')
-  if ! File.directory? dir then
-    Dir.mkdir dir
-  end
+def into_platform &block
+  dir = File.join('..', 'platforms', ENV["FASTLANE_PLATFORM_NAME"], 'fastlane')
+  FileUtils.mkdir_p dir
   Dir.chdir(dir) do
     block.call
   end
@@ -20,32 +16,32 @@ end
 
 platform :ios do
   before_all do
-    before_platform
-    
+    BUILD_MODE = build_mode
+    dart
+    cordova
     sh('cordova prepare ios')
-    
-    def set_profile_udid
-      xproj = Xcodeproj::Project.open(File.join(File.dirname(Dir.pwd), "#{ENV["APPLICATION_NAME"]}.xcodeproj"))
-      xproj.build_configurations.each do |conf|
-        conf.build_settings['PROVISIONING_PROFILE'] = "\$(PROFILE_UDID)"
-      end
-      xproj.save
-      ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
-    end
 
     if is_ci?
       keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
       puts "Using keychain: #{keychainName}"
-      cert_dir = File.join(lane_context[Actions::SharedValues::PERSISTENT_DIR], 'ios')
-      import_certificate keychain_name: keychainName, certificate_path: File.join(dir, "Distribution.cer")
-      import_certificate keychain_name: keychainName, certificate_path: File.join(dir, "Distribution.p12"), certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
+      import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "Distribution.cer")
+      import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "Distribution.p12"), certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
     end
 
     def is_adhoc?
-      !["release", "beta"].include? lane_context[Actions::SharedValues::BUILD_MODE]
+      !["release", "beta"].include? BUILD_MODE
     end
 
-    on_platform do
+    into_platform do
+      def set_profile_udid
+        xproj = Xcodeproj::Project.open(File.join(File.dirname(Dir.pwd), "#{ENV["APPLICATION_NAME"]}.xcodeproj"))
+        xproj.build_configurations.each do |conf|
+          conf.build_settings['PROVISIONING_PROFILE'] = "\$(PROFILE_UDID)"
+        end
+        xproj.save
+        ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
+      end
+
       if ENV["BUILD_NUM"] != nil then
         increment_build_number(
         build_number: ENV["BUILD_NUM"]

@@ -1,18 +1,7 @@
 module Fastlane
   module Actions
-    module SharedValues
-      BUILD_MODE = :BUILD_MODE
-      PERSISTENT_DIR = :PERSISTENT_DIR
-    end
-
-    class IntoIeAction < Action
+    class BuildModeAction < Action
       def self.run(params)
-        Actions.lane_context[Actions::SharedValues::PERSISTENT_DIR] = File.join(Fastlane::FastlaneFolder.path, 'persistent')
-        Actions.lane_context[Actions::SharedValues::BUILD_MODE] = get_build_mode
-        puts "Runing on #{lane_context[Actions::SharedValues::BUILD_MODE]}"
-      end
-
-      def self.get_build_mode
         branch = ENV['GIT_BRANCH'] || sh('git symbolic-ref HEAD --short 2>/dev/null').strip
 
         map = {
@@ -21,13 +10,18 @@ module Fastlane
           "beta" => "BRANCH_BETA"
         }
 
-        map.keys.find  do |key|
+        mode = map.keys.find  do |key|
           pattern = ENV[map[key]]
           if pattern != nil then
             puts "Checking build mode of branch '#{branch}' with '#{pattern}'"
             Regexp.new(pattern).match branch
           end
         end || "test"
+        
+        puts "Running on '#{mode}' mode"
+        LaneManager.load_dot_env(mode)
+
+        return mode
       end
 
       #####################################################

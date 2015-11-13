@@ -9,8 +9,6 @@ module Fastlane
       end
 
       def self.cleanup
-        require 'fileutils'
-
         ['plugins', 'platforms'].each do |dir|
           puts "Deleting dir: #{dir}"
           FileUtils.rm_rf dir
@@ -61,7 +59,7 @@ module Fastlane
         if !ENV['PATH'].include?('node_modules/.bin') then
           ENV['PATH'] = "#{ENV['PATH']}:#{Dir.pwd}/node_modules/.bin"
         end
-        if !(system('cordova -v') || system('ionic -v')) then
+        if !(system('cordova -v') && system('ionic -v')) then
           with_cache('node_modules') do
             system('npm install')
           end
