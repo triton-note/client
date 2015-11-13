@@ -15,7 +15,7 @@ env:
     - PLATFORM=ios
 
 before_install:
-  - sudo easy_install pip && pip install awscli
+  - sudo easy_install pip && sudo pip install awscli
   - aws s3 cp s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/persistent.tar.bz2 persistent.tar.bz2
   - tar xjf persistent.tar.bz2
   - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
