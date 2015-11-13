@@ -27,7 +27,7 @@ install:
 
 script:
   - fastlane enable_crash_reporting
-  - falstlane $PLATFORM build
+  - fastlane $PLATFORM build
 
 notifications:
   email: false
