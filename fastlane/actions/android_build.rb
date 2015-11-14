@@ -4,10 +4,12 @@ module Fastlane
       def self.run(params)
         update_sdk(params[:sdks] || [])
         build_num
-        Dir.chdir(File.join('platforms', 'android')) do
-          config_file = keystore(params[:keystore])
+
+        config_file = Dir.chdir(File.join('platforms', 'android')) do
           multi_apks(params[:multi_apks])
+          keystore(params[:keystore])
         end
+
         system("cordova build android --release --buildConfig=#{config_file}")
       end
 
