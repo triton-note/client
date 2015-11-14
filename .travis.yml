@@ -15,11 +15,7 @@ env:
     - PLATFORM=ios
 
 before_install:
-  - rvm reinstall 2.2.3 --disable-binary
-  - rvm use 2.2.3@global
-  - rvm current
-  - rvm gemset list
-  - ruby --version
+  - rvm use 2.2.3 --install --disable-binary
   - sudo easy_install pip && sudo pip install awscli
   - aws s3 cp s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/persistent.tar.bz2 persistent.tar.bz2
   - tar xjf persistent.tar.bz2
@@ -29,7 +25,6 @@ before_install:
 install:
   - gem install bundle --no-document
   - bundle install
-  - gem which fastlane
 
 script:
   - fastlane enable_crash_reporting
