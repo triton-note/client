@@ -97,7 +97,9 @@ platform :android do
 
     into_platform do
       if is_ci? && !is_multi? then
-        sh('./gradlew crashlyticsUploadDistributionRelease')
+        Dir.chdir('..') do
+          sh('./gradlew crashlyticsUploadDistributionRelease')
+        end
       end
     end
   end
