@@ -11,7 +11,9 @@ module Fastlane
       end
 
       def self.install_dart
-        if !system("dart --version") then
+        if system("dart --version") then
+          puts "Dart is OK"
+        else
           system("brew tap dart-lang/dart")
           system("brew install dart")
         end
