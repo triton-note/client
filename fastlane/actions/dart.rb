@@ -22,6 +22,7 @@ module Fastlane
           end
         end
 
+        puts "Rewriting #{target}"
         File.open(target, 'w') do |file|
           file.write settings.to_yaml
         end
@@ -100,18 +101,22 @@ module Fastlane
           end
         end
 
+        puts "Rewriting #{target}"
         File.open(target, 'w') do |file|
           file.write doc.to_html
         end
       end
 
       def self.pub_build
+        puts "Checking dart build..."
         if File.directory? File.join('build', 'web') then
           puts "Skipping dart build"
         else
+          puts "Building dart..."
           if system("dart --version") then
             puts "Dart is OK"
           else
+            puts "Installing dart..."
             system("brew tap dart-lang/dart")
             system("brew install dart")
           end
