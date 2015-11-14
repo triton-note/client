@@ -3,7 +3,7 @@ require 'xcodeproj'
 fastlane_version "1.39.0"
 
 def persistent(*paths)
-  File.join('..', 'fastlane', 'persistent', *paths)
+  File.absolute_path(File.join('persistent', *paths))
 end
 
 def into_platform &block
