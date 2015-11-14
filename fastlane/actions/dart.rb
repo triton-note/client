@@ -2,20 +2,10 @@ module Fastlane
   module Actions
     class DartAction < Action
       def self.run(params)
-        install_dart
         Dir.chdir('dart') do
           write_settings
           index_download
           pub_build
-        end
-      end
-
-      def self.install_dart
-        if system("dart --version") then
-          puts "Dart is OK"
-        else
-          system("brew tap dart-lang/dart")
-          system("brew install dart")
         end
       end
 
@@ -119,6 +109,12 @@ module Fastlane
         if File.directory? File.join('build', 'web') then
           puts "Skipping dart build"
         else
+          if system("dart --version") then
+            puts "Dart is OK"
+          else
+            system("brew tap dart-lang/dart")
+            system("brew install dart")
+          end
           system("pub get")
           system("pub build")
         end
