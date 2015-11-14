@@ -67,29 +67,20 @@ module Fastlane
       end
 
       def self.with_cache(name, &block)
-        filename = "#{name}.tar.bz2"
         remotename = "s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/#{filename}"
         if !File.exist?(name) then
           begin
             puts "Loading #{name}"
-            system("aws s3 cp #{remotename} #{filename}")
-            system("tar jxf #{filename}")
+            system("aws s3 cp #{remotename} - | tar jxf -")
           rescue
             Dir.mkdir(name)
-          else
-            File.delete filename
           end
         end
         begin
           block.call
         ensure
-          begin
-            puts "Saving #{name}"
-            system("tar jcf #{filename} #{name}")
-            system("aws s3 cp #{filename} #{remotename}")
-          ensure
-            File.delete filename
-          end
+          pid = Process.spawn("tar jcf - #{name}  | aws s3 cp - #{remotename}")
+          puts "Saving #{name} (on pid:#{pid})"
         end
       end
 
