@@ -2,15 +2,15 @@ module Fastlane
   module Actions
     class DartAction < Action
       def self.run(params)
-        install
+        install_dart
         Dir.chdir('dart') do
           write_settings
           index_download
-          build
+          pub_build
         end
       end
 
-      def self.install
+      def self.install_dart
         if !system("dart --version") then
           system("brew tap dart-lang/dart")
           system("brew install dart")
@@ -46,7 +46,7 @@ module Fastlane
           href = css['href']
           if /^https:\/\/fonts.googleapis.com\/css\?.*$/.match href then
             dir = File.join('web', 'styles', 'fonts')
-            filename = download(href, dir)
+            filename = download_digest(href, dir)
 
             File.open(File.join(dir, filename), 'r+') do |file|
               lines = file.readlines
@@ -55,7 +55,7 @@ module Fastlane
               lines.each do |line|
                 m = /(^.*url\()(https:[^\)]+)(\).*)/.match line
                 if m != nil then
-                  loaded = download(m[2], dir)
+                  loaded = download_digest(m[2], dir)
                   line = "#{m[1]}#{loaded}#{m[3]}"
                 end
                 file.puts line
@@ -71,7 +71,7 @@ module Fastlane
         doc.xpath("//script[@type='text/javascript']").each do |js|
           href = js['src']
           if /^https:\/\/.*\.js$/.match(href) then
-            js['src'] = 'js/' + download(href, File.join('web', 'js'))
+            js['src'] = 'js/' + download_digest(href, File.join('web', 'js'))
           end
         end
 
@@ -80,7 +80,7 @@ module Fastlane
         end
       end
 
-      def self.download(url, dir)
+      def self.download_digest(url, dir)
         require "digest/md5"
         names = [Digest::MD5.hexdigest(url)]
         m = /.*[^\w]([\w]+)$/.match url.split('?')[0]
@@ -113,7 +113,7 @@ module Fastlane
         return name
       end
 
-      def self.build
+      def self.pub_build
         if File.directory? File.join('build', 'web') then
           puts "Skipping dart build"
         else
