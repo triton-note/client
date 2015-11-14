@@ -14,11 +14,14 @@ def into_platform &block
   end
 end
 
+before_all do
+  into_mode
+  dart
+  cordova
+end
+
 platform :ios do
-  before_all do
-    BUILD_MODE = into_mode
-    dart
-    cordova
+  lane :build do
     sh('cordova prepare ios')
 
     if is_ci?
@@ -29,7 +32,7 @@ platform :ios do
     end
 
     def is_adhoc?
-      !["release", "beta"].include? BUILD_MODE
+      !["release", "beta"].include? lane_context[Actions::SharedValues::BUILD_MODE]
     end
 
     into_platform do
@@ -70,21 +73,12 @@ platform :ios do
       end
     end
   end
-
-  desc "Deploy a new version to the App Store"
-  lane :build do
-    #
-  end
 end
 
 platform :android do
-  before_all do
-    BUILD_MODE = into_mode
-    dart
-    cordova
-
+  lane :build do
     def is_multi?
-      ["release", "beta"].include? BUILD_MODE
+      ["release", "beta"].include? lane_context[Actions::SharedValues::BUILD_MODE]
     end
 
     android_build(
@@ -107,11 +101,6 @@ platform :android do
         sh('./gradlew crashlyticsUploadDistributionRelease')
       end
     end
-  end
-
-  desc "Deploy a new version to the App Store"
-  lane :build do
-    #
   end
 end
 

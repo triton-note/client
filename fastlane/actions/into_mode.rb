@@ -1,5 +1,9 @@
 module Fastlane
   module Actions
+    module SharedValues
+      BUILD_MODE = :BUILD_MODE
+    end
+    
     class IntoModeAction < Action
       def self.run(params)
         branch = ENV['GIT_BRANCH'] || sh('git symbolic-ref HEAD --short 2>/dev/null').strip
@@ -17,11 +21,11 @@ module Fastlane
             Regexp.new(pattern).match branch
           end
         end || "test"
-        
+
         puts "Running on '#{mode}' mode"
         LaneManager.load_dot_env(mode)
 
-        return mode
+        Actions.lane_context[Actions::SharedValues::BUILD_MODE] = mode
       end
 
       #####################################################
