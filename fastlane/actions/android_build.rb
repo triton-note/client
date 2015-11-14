@@ -59,10 +59,9 @@ module Fastlane
         key = 'cdvBuildMultipleApks'
 
         target = 'gradle.properties'
-        File.open(target, 'r+') do |file|
-          lines = file.readlines
-          file.seek(0)
+        lines = File.exist?(target) ? File.readlines(target) : []
 
+        File.open(target, 'w+') do |file|
           lines.each do |line|
             if line.include? key then
               file.puts "#{key}=#{multi}"
@@ -70,9 +69,6 @@ module Fastlane
               file.puts line
             end
           end
-
-          file.flush
-          file.truncate(file.pos)
         end
 
         File.absolute_path target
