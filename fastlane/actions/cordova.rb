@@ -67,7 +67,7 @@ module Fastlane
       end
 
       def self.with_cache(name, &block)
-        remotename = "s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/#{filename}"
+        remotename = "s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/#{name}.tar.bz2"
         if !File.exist?(name) then
           begin
             puts "Loading #{name}"
