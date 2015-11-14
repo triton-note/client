@@ -83,8 +83,30 @@ platform :android do
     dart
     cordova
 
-    puts "Run in android before lanes"
-    sleep 5
+    def is_multi?
+      ["release", "beta"].include? BUILD_MODE
+    end
+
+    android_build(
+    keystore: persistent('android', 'keystore'),
+    multi_apks: is_multi?,
+    sdks: [
+      'platform-tools',
+      'tools',
+      'android-21',
+      'android-22',
+      'extra-google-m2repository',
+      'extra-android-support',
+      'extra-android-m2repository',
+      'build-tools-21.1.2',
+      'build-tools-22.0.1'
+    ])
+
+    into_platform do
+      if is_ci? && !is_multi? then
+        sh('./gradlew crashlyticsUploadDistributionRelease')
+      end
+    end
   end
 
   desc "Deploy a new version to the App Store"
