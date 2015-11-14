@@ -114,7 +114,9 @@ module Fastlane
       end
 
       def self.build
-        if !File.directory? File.join('build', 'web') then
+        if File.directory? File.join('build', 'web') then
+          puts "Skipping dart build"
+        else
           system("pub get")
           system("pub build")
         end
