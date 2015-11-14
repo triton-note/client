@@ -33,15 +33,6 @@ platform :ios do
     end
 
     into_platform do
-      def set_profile_udid
-        xproj = Xcodeproj::Project.open(File.join(File.dirname(Dir.pwd), "#{ENV["APPLICATION_NAME"]}.xcodeproj"))
-        xproj.build_configurations.each do |conf|
-          conf.build_settings['PROVISIONING_PROFILE'] = "\$(PROFILE_UDID)"
-        end
-        xproj.save
-        ENV["PROFILE_UDID"] = lane_context[SharedValues::SIGH_UDID]
-      end
-
       if ENV["BUILD_NUM"] != nil then
         increment_build_number(
         build_number: ENV["BUILD_NUM"]
@@ -53,7 +44,11 @@ platform :ios do
       adhoc: is_adhoc?
       )
 
-      set_profile_udid
+      update_project_provisioning(
+      xcodeproj: "#{ENV["APPLICATION_NAME"]}.xcodeproj",
+      target_filter: ".*",
+      build_configuration: "Release"
+      )
 
       gym(
       scheme: ENV["APPLICATION_NAME"],
