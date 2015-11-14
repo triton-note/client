@@ -115,8 +115,8 @@ module Fastlane
           system('brew --version')
           if !system("dart --version") then
             puts "Installing dart..."
-            system("brew tap dart-lang/dart")
-            system("brew install dart")
+            system('brew tap dart-lang/dart')
+            system('brew install dart')
           end
           puts "Dart Building..."
           system("pub get")
