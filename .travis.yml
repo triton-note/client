@@ -24,8 +24,9 @@ before_install:
   - source $HOME/.nvm/nvm.sh
   - nvm install 4.2.2
 install:
-  - gem install bundle
+  - gem install bundle --no-document
   - bundle install
+  - gem which fastlane
 
 script:
   - fastlane enable_crash_reporting
