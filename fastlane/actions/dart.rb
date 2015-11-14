@@ -108,18 +108,16 @@ module Fastlane
       end
 
       def self.pub_build
-        puts "Checking dart build..."
         if File.directory? File.join('build', 'web') then
           puts "Skipping dart build"
         else
-          puts "Building dart..."
-          if system("dart --version") then
-            puts "Dart is OK"
-          else
+          if !system("dart --version") then
             puts "Installing dart..."
+            system("brew update")
             system("brew tap dart-lang/dart")
             system("brew install dart")
           end
+          puts "Dart Building..."
           system("pub get")
           system("pub build")
         end
