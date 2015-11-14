@@ -17,6 +17,8 @@ env:
 before_install:
   - rvm reinstall 2.2.3 --disable-binary
   - rvm current
+  - rvm gemset list
+  - ruby --version
   - sudo easy_install pip && sudo pip install awscli
   - aws s3 cp s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/persistent.tar.bz2 persistent.tar.bz2
   - tar xjf persistent.tar.bz2
