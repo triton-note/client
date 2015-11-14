@@ -32,7 +32,7 @@ platform :ios do
     end
 
     def is_adhoc?
-      !["release", "beta"].include? lane_context[Actions::SharedValues::BUILD_MODE]
+      !["release", "beta"].include? lane_context[SharedValues::BUILD_MODE]
     end
 
     into_platform do
@@ -78,7 +78,7 @@ end
 platform :android do
   lane :build do
     def is_multi?
-      ["release", "beta"].include? lane_context[Actions::SharedValues::BUILD_MODE]
+      ["release", "beta"].include? lane_context[SharedValues::BUILD_MODE]
     end
 
     android_build(
