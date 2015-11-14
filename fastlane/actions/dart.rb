@@ -113,7 +113,6 @@ module Fastlane
         else
           if !system("dart --version") then
             puts "Installing dart..."
-            system("brew update")
             system("brew tap dart-lang/dart")
             system("brew install dart")
           end
