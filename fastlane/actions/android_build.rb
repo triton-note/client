@@ -14,12 +14,24 @@ module Fastlane
       end
 
       def self.update_sdk(names)
-        if !system("android list sdk") then
+        begin
+          content = sh('android list sdk --extended')
+        rescue
           system('brew install android')
           ENV['ANDROID_HOME'] = sh('brew --prefix android')
+          retry
         end
+
+        availables = content.split("\n").map { |line|
+          m = /^id: +\d+ or "(.*)"$/.match line
+          m ? m[1] : nil
+        }.compact
+
         names.each do |name|
-          system("echo y | android update sdk --no-ui --all --filter #{name} | grep Installed")
+          if availables.include?(name) then
+            puts "Installing SDK #{name}"
+            system("echo y | android update sdk --no-ui --all --filter #{name} | grep Installed")
+          end
         end
       end
 
