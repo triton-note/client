@@ -28,6 +28,39 @@ module Fastlane
       end
 
       def self.index_download
+        cache_digest = lambda do |url, dir|
+          require "digest/md5"
+          names = [Digest::MD5.hexdigest(url)]
+          m = /.*[^\w]([\w]+)$/.match url.split('?')[0]
+          if m != nil then
+            names << m[1]
+          end
+          name = "cached-#{names.join('.')}"
+          target = File.join(dir, name)
+          if !File.exist?(dir) then
+            Dir.mkdir(dir)
+          end
+          retry_count = 3
+          begin
+            require 'open-uri'
+            puts "Downloading #{url} to #{target}"
+            open(target, 'wb') do |file|
+              open(url, 'rb') do |res|
+                file.write res.read
+              end
+            end
+          rescue
+            puts "Error on downloading"
+            retry_count -= 1
+            if 0 < retry_count then
+              retry
+            else
+              raise
+            end
+          end
+          return name
+        end
+
         require 'nokogiri'
         target = File.join('web', 'index.html')
         doc = File.open(target) do |file|
@@ -38,7 +71,7 @@ module Fastlane
           href = css['href']
           if /^https:\/\/fonts.googleapis.com\/css\?.*$/.match href then
             dir = File.join('web', 'styles', 'fonts')
-            filename = download_digest(href, dir)
+            filename = cache_digest.call(href, dir)
 
             File.open(File.join(dir, filename), 'r+') do |file|
               lines = file.readlines
@@ -47,7 +80,7 @@ module Fastlane
               lines.each do |line|
                 m = /(^.*url\()(https:[^\)]+)(\).*)/.match line
                 if m != nil then
-                  loaded = download_digest(m[2], dir)
+                  loaded = cache_digest.call(m[2], dir)
                   line = "#{m[1]}#{loaded}#{m[3]}"
                 end
                 file.puts line
@@ -63,46 +96,13 @@ module Fastlane
         doc.xpath("//script[@type='text/javascript']").each do |js|
           href = js['src']
           if /^https:\/\/.*\.js$/.match(href) then
-            js['src'] = 'js/' + download_digest(href, File.join('web', 'js'))
+            js['src'] = 'js/' + cache_digest.call(href, File.join('web', 'js'))
           end
         end
 
         File.open(target, 'w') do |file|
           file.write doc.to_html
         end
-      end
-
-      def self.download_digest(url, dir)
-        require "digest/md5"
-        names = [Digest::MD5.hexdigest(url)]
-        m = /.*[^\w]([\w]+)$/.match url.split('?')[0]
-        if m != nil then
-          names << m[1]
-        end
-        name = "cached-#{names.join('.')}"
-        target = File.join(dir, name)
-        if !File.exist?(dir) then
-          Dir.mkdir(dir)
-        end
-        retry_count = 3
-        begin
-          require 'open-uri'
-          puts "Downloading #{url} to #{target}"
-          open(target, 'wb') do |file|
-            open(url, 'rb') do |res|
-              file.write res.read
-            end
-          end
-        rescue
-          puts "Error on downloading"
-          retry_count -= 1
-          if 0 < retry_count then
-            retry
-          else
-            raise
-          end
-        end
-        return name
       end
 
       def self.pub_build
