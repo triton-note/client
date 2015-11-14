@@ -78,6 +78,26 @@ module Fastlane
 
         File.absolute_path target
       end
+
+      #####################################################
+      # @!group Documentation
+      #####################################################
+
+      def self.description
+        "Android Build"
+      end
+
+      def self.available_options
+        []
+      end
+
+      def self.authors
+        ["Sawatani"]
+      end
+
+      def self.is_supported?(platform)
+        true
+      end
     end
   end
 end
