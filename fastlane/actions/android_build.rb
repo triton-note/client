@@ -13,7 +13,6 @@ module Fastlane
 
       def self.update_sdk(names)
         if !system("android list sdk") then
-          system('brew update')
           system('brew install android')
           ENV['ANDROID_HOME'] = sh('brew --prefix android')
         end
