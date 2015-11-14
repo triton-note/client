@@ -28,9 +28,10 @@ module Fastlane
         }.compact
 
         names.each do |name|
-          if availables.include?(name) then
-            puts "Installing SDK #{name}"
-            system("echo y | android update sdk --no-ui --all --filter #{name} | grep Installed")
+          puts "Checking SDK: #{name}"
+          availables.select { |x| x.start_with?(name) }.each do |key|
+            puts "Installing SDK #{key}"
+            system("echo y | android update sdk --no-ui --all --filter #{key} | grep Installed")
           end
         end
       end
