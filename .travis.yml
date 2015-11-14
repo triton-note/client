@@ -16,6 +16,7 @@ env:
 
 before_install:
   - rvm reinstall 2.2.3 --disable-binary
+  - rvm use 2.2.3@global
   - rvm current
   - rvm gemset list
   - ruby --version
