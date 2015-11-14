@@ -16,7 +16,7 @@ end
 
 platform :ios do
   before_all do
-    BUILD_MODE = build_mode
+    BUILD_MODE = into_mode
     dart
     cordova
     sh('cordova prepare ios')
@@ -58,7 +58,7 @@ platform :ios do
       silent: true
       )
 
-      if is_ci? then
+      if is_ci? && is_adhoc? then
         crashlytics(
         crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",
         api_token: ENV["FABRIC_API_KEY"],
@@ -73,47 +73,23 @@ platform :ios do
 
   desc "Deploy a new version to the App Store"
   lane :build do
-    # deliver(skip_deploy: true, force: true)
-    # frameit
+    #
   end
 end
 
 platform :android do
   before_all do
-    before_platform
+    BUILD_MODE = into_mode
+    dart
+    cordova
 
     puts "Run in android before lanes"
     sleep 5
   end
 
-  desc "Runs all the tests"
-  lane :test do
-    puts "Run android test"
-    sleep 5
-    # test and take screenshots
-  end
-
-  desc "Submit a new build to Crashlytics"
-  lane :debug do
-    puts "Run android debug"
-    sleep 5
-    # something
-  end
-
-  desc "Submit a new Beta Build to Apple TestFlight"
-  desc "This will also make sure the profile is up to date"
-  lane :beta do
-    puts "Run android beta"
-    sleep 5
-    # sh "your_script.sh"
-  end
-
   desc "Deploy a new version to the App Store"
-  lane :release do
-    puts "Run android release"
-    sleep 5
-    # deliver(skip_deploy: true, force: true)
-    # frameit
+  lane :build do
+    #
   end
 end
 
