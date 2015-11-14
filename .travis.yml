@@ -22,7 +22,7 @@ before_install:
   - source $HOME/.nvm/nvm.sh
   - nvm install 4.2.2
 install:
-  - gem install bundle --no-document
+  - gem install bundler --no-document
   - bundle install
   - brew update
 
