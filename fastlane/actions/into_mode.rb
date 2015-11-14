@@ -3,7 +3,7 @@ module Fastlane
     module SharedValues
       BUILD_MODE = :BUILD_MODE
     end
-    
+
     class IntoModeAction < Action
       def self.run(params)
         branch = ENV['GIT_BRANCH'] || sh('git symbolic-ref HEAD --short 2>/dev/null').strip
