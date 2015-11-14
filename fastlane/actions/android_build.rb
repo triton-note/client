@@ -2,7 +2,7 @@ module Fastlane
   module Actions
     class AndroidBuildAction < Action
       def self.run(params)
-        update_sdk(params[:sdks])
+        update_sdk(params[:sdks] || [])
         build_num
         Dir.chdir(File.join('platforms', 'android')) do
           config_file = keystore(params[:keystore])
@@ -40,7 +40,7 @@ module Fastlane
 
       def self.keystore(file)
         data = {:android => {:release =>{
-          :keystore => File.absolute_path(file),
+          :keystore => file,
           :storePassword => ENV['ANDROID_KEYSTORE_PASSWORD'],
           :alias => ENV['ANDROID_KEYSTORE_ALIAS'],
           :password => ENV['ANDROID_KEYSTORE_ALIAS_PASSWORD']
@@ -51,18 +51,18 @@ module Fastlane
         File.open(target, 'w') do |file|
           JSON.dump(data, file)
         end
-        
+
         File.absolute_path target
       end
 
       def self.multi_apks(multi)
         key = 'cdvBuildMultipleApks'
-        
+
         target = 'gradle.properties'
         File.open(target, 'r+') do |file|
           lines = file.readlines
           file.seek(0)
-          
+
           lines.each do |line|
             if line.include? key then
               file.puts "#{key}=#{multi}"
@@ -87,7 +87,23 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(key: :sdks,
+          description: "Array of sdk names",
+          optional: true,
+          is_string: false
+          ),
+          FastlaneCore::ConfigItem.new(key: :keystore,
+          description: "Absolute path to keystore",
+          optional: false,
+          is_string: false
+          ),
+          FastlaneCore::ConfigItem.new(key: :multi_apks,
+          description: "Boolean for build multiple apks",
+          optional: false,
+          is_string: false
+          )
+        ]
       end
 
       def self.authors
