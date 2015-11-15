@@ -76,13 +76,10 @@ module Fastlane
         lines = File.exist?(target) ? File.readlines(target) : []
 
         File.open(target, 'w+') do |file|
-          lines.each do |line|
-            if line.include? key then
-              file.puts "#{key}=#{multi}"
-            else
-              file.puts line
-            end
+          lines.reject { |line| line.include?(key) }.each do |line|
+            file.puts line
           end
+          file.puts "#{key}=#{multi}"
         end
 
         File.absolute_path target
