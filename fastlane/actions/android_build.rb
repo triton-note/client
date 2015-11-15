@@ -23,9 +23,8 @@ module Fastlane
         end
 
         availables = content.split("\n").map { |line|
-          m = /^id: +\d+ or "(.*)"$/.match line
-          m ? m[1] : nil
-        }.compact
+          /^id: +\d+ or "(.*)"$/.match line
+        }.compact.map { |m| m[1] }
 
         names.each do |name|
           puts "Checking SDK: #{name}"
