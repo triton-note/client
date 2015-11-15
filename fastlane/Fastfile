@@ -92,7 +92,8 @@ platform :android do
       'extra-google-m2repository',
       'extra-android-support',
       'extra-android-m2repository',
-      'build-tools'
+      'build-tools-21',
+      'build-tools-22'
     ])
 
     into_platform do

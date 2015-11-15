@@ -15,7 +15,7 @@ module Fastlane
 
       def self.update_sdk(names)
         begin
-          content = sh('android list sdk --extended')
+          content = sh('android list sdk --extended --all')
         rescue
           system('brew install android')
           ENV['ANDROID_HOME'] = sh('brew --prefix android')
