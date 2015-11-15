@@ -96,11 +96,7 @@ platform :android do
     ])
 
     into_platform do
-      if is_ci? && !is_multi? then
-        Dir.chdir('..') do
-          sh('./gradlew crashlyticsUploadDistributionRelease')
-        end
-      end
+      android_deploy(multi_apks: is_multi?)
     end
   end
 end
