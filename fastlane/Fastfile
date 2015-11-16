@@ -16,6 +16,17 @@ end
 
 before_all do
   into_mode
+
+  release_note = git_logs
+  puts "#### RELEASE_NOTE ####\n" + release_note
+  if release_note then
+    target = '.release_note'
+    File.open(target, 'w') do |file|
+      file.write release_note
+    end
+    ENV["RELEASE_NOTE_PATH"] = target
+  end
+
   dart
   cordova
 end
