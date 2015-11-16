@@ -96,7 +96,15 @@ platform :android do
     ])
 
     into_platform do
-      android_deploy(multi_apks: is_multi?)
+      if !is_multi? then
+        crashlytics(
+        apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
+        api_token: ENV["FABRIC_API_KEY"],
+        build_secret: ENV["FABRIC_BUILD_SECRET"],
+        notes_path: ENV["RELEASE_NOTE_PATH"],
+        groups: ENV["FABRIC_CRASHLYTICS_GROUPS"]
+        )
+      end
     end
   end
 end
