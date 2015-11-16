@@ -22,7 +22,7 @@ before_all do
   if release_note && !release_note.empty? then
     target = '.release_note'
     File.write(target, release_note) 
-    ENV["RELEASE_NOTE_PATH"] = target
+    ENV["RELEASE_NOTE_PATH"] = File.absolute_path target
   end
 
   dart
