@@ -1,5 +1,6 @@
 osx_image: xcode7
 language: objective-c
+rvm: 2.2.3
 
 branches:
   except:
@@ -15,7 +16,6 @@ env:
     - PLATFORM=ios
 
 before_install:
-  - rvm use 2.2.3 --install --disable-binary
   - sudo easy_install pip && sudo pip install awscli
   - aws s3 cp s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/persistent.tar.bz2 - | tar jxf -
   - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
