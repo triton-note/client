@@ -15,30 +15,20 @@ env:
     - PLATFORM=ios
 
 before_install:
-  - echo "gem":" --no-document" > ~/.gemrc
+  - rvm use 2.2.3 --install --disable-binary
+  - sudo easy_install pip && sudo pip install awscli
+  - aws s3 cp s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/persistent.tar.bz2 - | tar jxf -
   - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
   - source $HOME/.nvm/nvm.sh
   - nvm install 4.2.2
-  - brew update || brew update
-  - brew install python3
-  - sudo pip3 install virtualenv
-  - virtualenv --python=$(type -p python3) .v3
-  - source .v3/bin/activate
-  - pip install --upgrade wheel
 install:
-  - pip install boto3
-  - build-scripts/cache.py load
-  - pip --cache-dir=.pip_cache install pyyaml lxml requests
-  - brew tap dart-lang/dart && brew install dart
-  - gem install bundle
+  - gem install bundler --no-document
   - bundle install
-  - npm install
-  - export PATH="$PATH:$(pwd)/node_modules/.bin"
-  - build-scripts/cache.py save &
-  - build-scripts/cache.py load build-scripts/persistent
+  - brew update
 
 script:
-  - build-scripts/main.py
+  - fastlane enable_crash_reporting
+  - fastlane $PLATFORM build
 
 notifications:
   email: false
