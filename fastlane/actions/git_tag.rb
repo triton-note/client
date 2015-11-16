@@ -14,7 +14,7 @@ module Fastlane
         req = Net::HTTP.new(uri.host, uri.port)
         req.use_ssl = true
         res = req.post(uri.path, data.to_json, headers)
-        puts res.body
+        puts JSON.pretty_generate JSON.load res.body
       end
 
       #####################################################
