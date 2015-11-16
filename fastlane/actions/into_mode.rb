@@ -2,26 +2,25 @@ module Fastlane
   module Actions
     class IntoModeAction < Action
       def self.run(params)
-        branch = ENV['GIT_BRANCH'] || sh('git symbolic-ref HEAD --short 2>/dev/null').strip
+        if !ENV['BUILD_MODE']
+          branch = ENV['GIT_BRANCH'] || sh('git symbolic-ref HEAD --short 2>/dev/null').strip
 
-        map = {
-          "release" => "BRANCH_RELEASE",
-          "debug" => "BRANCH_DEBUG",
-          "beta" => "BRANCH_BETA"
-        }
+          map = {
+            "release" => "BRANCH_RELEASE",
+            "debug" => "BRANCH_DEBUG",
+            "beta" => "BRANCH_BETA"
+          }
 
-        mode = map.keys.find  do |key|
-          pattern = ENV[map[key]]
-          if pattern != nil then
-            puts "Checking build mode of branch '#{branch}' with '#{pattern}'"
-            Regexp.new(pattern).match branch
-          end
-        end || "test"
-
-        puts "Running on '#{mode}' mode"
-        LaneManager.load_dot_env(mode)
-
-        ENV['BUILD_MODE'] = mode
+          ENV['BUILD_MODE'] = map.keys.find  do |key|
+            pattern = ENV[map[key]]
+            if pattern != nil then
+              puts "Checking build mode of branch '#{branch}' with '#{pattern}'"
+              Regexp.new(pattern).match branch
+            end
+          end || "test"
+        end
+        puts "Running on '#{ENV['BUILD_MODE']}' mode"
+        LaneManager.load_dot_env(ENV['BUILD_MODE'])
       end
 
       #####################################################
