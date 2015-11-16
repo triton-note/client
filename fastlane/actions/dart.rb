@@ -44,11 +44,7 @@ module Fastlane
           retry_count = 3
           begin
             puts "Downloading #{url} to #{target}"
-            uri = URI(url)
-            req = Net::HTTP.new(uri.host, uri.port)
-            req.use_ssl = true
-            req.verify_mode = OpenSSL::SSL::VERIFY_NONE
-            File.write(target, req.get(url).body)
+            File.write(target, Net::HTTP.get(URI(url)))
           rescue
             puts "Error on downloading"
             retry_count -= 1
