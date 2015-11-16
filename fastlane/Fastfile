@@ -111,10 +111,10 @@ end
 
 after_all do
   if ENV["BUILD_NUM"] then
-    sha = sh('git log HEAD -n1 --format=%H')
-    tag_name = ['deployed', ENV["FASTLANE_PLATFORM_NAME"], lane_context[SharedValues::BUILD_MODE], ENV["BUILD_NUM"]].join('/')
-    url = "https://#{END['GITHUB_USERNAME']}:#{ENV['GITHUB_OAUTH_TOKEN']}@api.github.com/repos/#{ENV['PROJECT_REPO_SLUG']}/git/refs"
-    data = {:ref => "refs/tags/#{tag_name}", :sha => sha}
-    Net::HTTP.post_form(URI(url), data)
+    git_tag(
+    username: ENV['GITHUB_USERNAME'],
+    token: ENV['GITHUB_OAUTH_TOKEN'],
+    tag_name: ['deployed', ENV["FASTLANE_PLATFORM_NAME"], lane_context[SharedValues::BUILD_MODE], ENV["BUILD_NUM"]].join('/')
+    )
   end
 end
