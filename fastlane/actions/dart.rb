@@ -43,13 +43,8 @@ module Fastlane
           end
           retry_count = 3
           begin
-            require 'open-uri'
             puts "Downloading #{url} to #{target}"
-            open(target, 'wb') do |file|
-              open(url, 'rb') do |res|
-                file.write res.read
-              end
-            end
+            File.write(target, Net::HTTP.get(URI(url)))
           rescue
             puts "Error on downloading"
             retry_count -= 1
