@@ -11,7 +11,6 @@ module Fastlane
           "Content-Type" => "application/json",
           "Authorization" => "token #{params[:token]}"
         }
-        puts "Posting #{data} #{uri} with #{headers}"
         req = Net::HTTP.new(uri.host, uri.port)
         req.use_ssl = true
         res = req.post(uri.path, data.to_json, headers)
