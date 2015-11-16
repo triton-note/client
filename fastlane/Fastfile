@@ -32,7 +32,7 @@ platform :ios do
     end
 
     def is_adhoc?
-      !["release", "beta"].include? lane_context[SharedValues::BUILD_MODE]
+      !["release", "beta"].include? ENV['BUILD_MODE']
     end
 
     into_platform do
@@ -78,7 +78,7 @@ end
 platform :android do
   lane :build do
     def is_multi?
-      ["release", "beta"].include? lane_context[SharedValues::BUILD_MODE]
+      ["release", "beta"].include? ENV['BUILD_MODE']
     end
 
     android_build(
@@ -114,7 +114,7 @@ after_all do
     git_tag(
     username: ENV['GITHUB_USERNAME'],
     token: ENV['GITHUB_OAUTH_TOKEN'],
-    tag_name: ['deployed', ENV["FASTLANE_PLATFORM_NAME"], lane_context[SharedValues::BUILD_MODE], ENV["BUILD_NUM"]].join('/')
+    tag_name: ['deployed', ENV["FASTLANE_PLATFORM_NAME"], ENV['BUILD_MODE'], ENV["BUILD_NUM"]].join('/')
     )
   end
 end
