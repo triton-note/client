@@ -19,11 +19,9 @@ before_all do
 
   release_note = git_logs
   puts "#### RELEASE_NOTE ####\n" + release_note
-  if release_note then
+  if release_note && !release_note.empty? then
     target = '.release_note'
-    File.open(target, 'w') do |file|
-      file.write release_note
-    end
+    File.write(target, release_note) 
     ENV["RELEASE_NOTE_PATH"] = target
   end
 
