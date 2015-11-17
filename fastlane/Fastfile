@@ -105,7 +105,7 @@ platform :android do
     ])
 
     into_platform do
-      if !is_multi? then
+      if is_ci? && !is_multi? then
         crashlytics(
         apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
         api_token: ENV["FABRIC_API_KEY"],
