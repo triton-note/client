@@ -46,9 +46,7 @@ module Fastlane
           doc = REXML::Document.new(open(target))
 
           doc.elements['widget'].attributes['android-versionCode'] = num
-          File.open(target, 'w') do |file|
-            file.puts doc
-          end
+          File.write(target, doc)
         end
       end
 
@@ -62,9 +60,7 @@ module Fastlane
 
         target = 'build.json'
         puts "Writing #{target}"
-        File.open(target, 'w') do |file|
-          JSON.dump(data, file)
-        end
+        File.write(target, JSON.dump(data))
 
         File.absolute_path target
       end
