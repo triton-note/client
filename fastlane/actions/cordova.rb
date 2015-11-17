@@ -4,7 +4,7 @@ module Fastlane
       def self.run(params)
         node_modules
         cleanup
-        cordova
+        cordova(params[:plugins] || [])
         ionic
       end
 
@@ -16,38 +16,11 @@ module Fastlane
         Dir.mkdir 'plugins'
       end
 
-      def self.cordova
+      def self.cordova(plugins)
         system("cordova platform add #{Actions.lane_context[Actions::SharedValues::PLATFORM_NAME]}")
 
-        plugins = [
-          'cordova-plugin-crosswalk-webview@~1.3.1',
-          'cordova-plugin-device@~1.0.1',
-          'cordova-plugin-console@~1.0.1',
-          'cordova-plugin-camera@~1.2.0',
-          'cordova-plugin-splashscreen@~2.1.0',
-          'cordova-plugin-statusbar@~1.0.1',
-          'cordova-plugin-geolocation@~1.0.1',
-          'cordova-plugin-whitelist@~1.0.0',
-          'phonegap-plugin-push@~1.3.0',
-          'https://github.com/sawatani/Cordova-plugin-file.git#GooglePhotos',
-          'https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios APP_ID=${FACEBOOK_APP_ID} APP_NAME=${APPLICATION_NAME}',
-          'https://github.com/fathens/Cordova-Plugin-Crashlytics.git API_KEY=${FABRIC_API_KEY}'
-        ]
-
         plugins.each do |line|
-          names = line.split
-          vars = []
-          names[1..-1].each do |n|
-            ns = n.split('=')
-            m = /^\${(\w+)}$/.match ns[1]
-            if m != nil then
-              if ENV.has_key? m[1] then
-                ns[1] = ENV[m[1]]
-              end
-            end
-            vars.concat ['--variable', ns.join('=')]
-          end
-          system("cordova plugin add #{names[0]} #{vars.join(' ')}")
+          system("cordova plugin add #{line}")
         end
       end
 
@@ -93,7 +66,13 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(key: :plugins,
+          description: "Array of plugins",
+          optional: true,
+          is_string: false
+          )
+          ]
       end
 
       def self.authors

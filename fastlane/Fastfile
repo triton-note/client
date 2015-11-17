@@ -26,7 +26,20 @@ before_all do
   end
 
   dart
-  cordova
+  cordova(plugins: plugins = [
+    'cordova-plugin-crosswalk-webview@~1.3.1',
+    'cordova-plugin-device@~1.0.1',
+    'cordova-plugin-console@~1.0.1',
+    'cordova-plugin-camera@~1.2.0',
+    'cordova-plugin-splashscreen@~2.1.0',
+    'cordova-plugin-statusbar@~1.0.1',
+    'cordova-plugin-geolocation@~1.0.1',
+    'cordova-plugin-whitelist@~1.0.0',
+    'cordova-plugin-file@~3.0.0',
+    'phonegap-plugin-push@~1.3.0',
+    "https://github.com/fathens/Cordova-Plugin-FBConnect.git#feature/ios --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
+    "https://github.com/fathens/Cordova-Plugin-Crashlytics.git --variable API_KEY=#{ENV['FABRIC_API_KEY']}"
+  ])
 end
 
 platform :ios do
