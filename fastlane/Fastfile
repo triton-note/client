@@ -21,7 +21,7 @@ before_all do
   puts "#### RELEASE_NOTE ####\n" + release_note
   if release_note && !release_note.empty? then
     target = '.release_note'
-    File.write(target, release_note) 
+    File.write(target, release_note)
     ENV["RELEASE_NOTE_PATH"] = File.absolute_path target
   end
 
@@ -30,6 +30,10 @@ before_all do
 end
 
 platform :ios do
+  before_all do
+    set_app_id(id: ENV['IOS_BUNDLE_ID'])
+  end
+
   lane :build do
     sh('cordova prepare ios')
 
@@ -85,6 +89,10 @@ platform :ios do
 end
 
 platform :android do
+  before_all do
+    set_app_id(id: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
+  end
+
   lane :build do
     def is_multi?
       ["release", "beta"].include? ENV['BUILD_MODE']
