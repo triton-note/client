@@ -3,17 +3,21 @@ module Fastlane
     class CordovaAction < Action
       def self.run(params)
         node_modules
-        cleanup
-        cordova(params[:plugins] || [])
-        ionic
+        cordova(params[:plugins] || []) if cleanup(['plugins', 'platforms'])
+        ionic if cleanup(['android', 'ios'].map { |x| File.join('resources', x) })
       end
 
-      def self.cleanup
-        ['plugins', 'platforms'].each do |dir|
-          puts "Deleting dir: #{dir}"
-          FileUtils.rm_rf dir
+      def self.cleanup(dirs)
+        if dirs.all? { |x| File.exist? x } then
+          return false
+        else
+          dirs.each do |dir|
+            puts "Deleting dir: #{dir}"
+            FileUtils.rm_rf dir
+          end
+          Dir.mkdir dirs.first
+          return true
         end
-        Dir.mkdir 'plugins'
       end
 
       def self.cordova(plugins)
@@ -72,7 +76,7 @@ module Fastlane
           optional: true,
           is_string: false
           )
-          ]
+        ]
       end
 
       def self.authors
