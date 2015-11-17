@@ -22,18 +22,19 @@ class ExperimentPage extends MainFrame {
   checkFacebook() => rippling(() {
         try {
           final fb = context['plugin']['FBConnect'];
-          _logger.info(() => 'plugin.FBConnect = ${fb}');
 
-          _logger.info(() => 'plugin.FBConnect.renewSystemCredentials = ${fb['renewSystemCredentials']}');
+          _logger.info(() => 'Calling plugin.FBConnect.renewSystemCredentials');
           fb.callMethod('renewSystemCredentials', [
             (err, result) {
+              _logger.info(() => 'Result of plugin.FBConnect.renewSystemCredentials: ${result}, error: ${err}');
               window.alert('Error: ${err}, Result: ${result}');
             }
           ]);
 
-          _logger.info(() => 'plugin.FBConnect.getName = ${fb['getName']}');
+          _logger.info(() => 'Calling plugin.FBConnect.getName');
           fb.callMethod('getName', [
             (err, result) {
+              _logger.info(() => 'Result of plugin.FBConnect.getName: ${result}, error: ${err}');
               window.alert('Error: ${err}, Result: ${result}');
             }
           ]);
