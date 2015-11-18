@@ -1,5 +1,6 @@
 library triton_note.page.experiment;
 
+import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
 
@@ -19,29 +20,27 @@ final _logger = new Logger('ExperimentPage');
 class ExperimentPage extends MainFrame {
   ExperimentPage(Router router) : super(router) {}
 
-  checkFacebook() => rippling(() {
+  tryFB(String name, [List args = null]) => rippling(() {
         try {
-          final fb = context['plugin']['FBConnect'];
-
-          _logger.info(() => 'Calling plugin.FBConnect.getName');
-          fb.callMethod('getName', [
-            (err, result) {
-              _logger.info(() => 'Result of plugin.FBConnect.getName: ${result}, error: ${err}');
-              window.alert('Error: ${err}, Result: ${result}');
-            }
-          ]);
-
-          _logger.info(() => 'Calling plugin.FBConnect.getStatus');
-          fb.callMethod('getStatus', [
-            (err, result) {
-              _logger.info(() => 'Result of plugin.FBConnect.getStatus: ${result}, error: ${err}');
-              window.alert('Error: ${err}, Result: ${result}');
-            }
-          ]);
+          if (args == null) {
+            args = [];
+          }
+          args.insert(0, (err, result) {
+            _logger.info(() => 'Result of plugin.FBConnect.${name}: ${result}, error: ${err}');
+            window.alert("${name}\nError: ${err}, Result: ${JSON.encode(result)}");
+          });
+          _logger.info(() => 'Calling plugin.FBConnect.${name}');
+          context['plugin']['FBConnect'].callMethod(name, args);
         } catch (ex) {
           FabricCrashlytics.crash('${ex}');
         }
       });
+
+  fbLogin() => tryFB('login');
+  fbLogout() => tryFB('logout');
+  fbName() => tryFB('getName');
+  fbPerm() => tryFB('getCurrentPermissions');
+  fbGain() => tryFB('gainPermission', ['publish_actions']);
 
   crash() {
     FabricCrashlytics.crash('Crash by user');

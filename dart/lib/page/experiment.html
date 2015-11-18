@@ -24,7 +24,11 @@
     	
     	<div>
 		    <div id="facebook">
-                <paper-button ng-click="checkFacebook()">Check Facebook</paper-button>
+                <paper-button ng-click="fbLogin">Facebook login</paper-button>
+                <paper-button ng-click="fbLogout">Facebook logout</paper-button>
+                <paper-button ng-click="fbName">Facebook getName</paper-button>
+                <paper-button ng-click="fbPerm">Facebook getCurrentPermissions</paper-button>
+                <paper-button ng-click="fbGain">Facebook gainPermission('publish_actions')</paper-button>
 		    </div>
         </div>
     </core-header-panel>
