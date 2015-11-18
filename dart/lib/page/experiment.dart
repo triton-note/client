@@ -30,6 +30,14 @@ class ExperimentPage extends MainFrame {
               window.alert('Error: ${err}, Result: ${result}');
             }
           ]);
+
+          _logger.info(() => 'Calling plugin.FBConnect.getStatus');
+          fb.callMethod('getStatus', [
+            (err, result) {
+              _logger.info(() => 'Result of plugin.FBConnect.getStatus: ${result}, error: ${err}');
+              window.alert('Error: ${err}, Result: ${result}');
+            }
+          ]);
         } catch (ex) {
           FabricCrashlytics.crash('${ex}');
         }
