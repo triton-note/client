@@ -23,14 +23,6 @@ class ExperimentPage extends MainFrame {
         try {
           final fb = context['plugin']['FBConnect'];
 
-          _logger.info(() => 'Calling plugin.FBConnect.renewSystemCredentials');
-          fb.callMethod('renewSystemCredentials', [
-            (err, result) {
-              _logger.info(() => 'Result of plugin.FBConnect.renewSystemCredentials: ${result}, error: ${err}');
-              window.alert('Error: ${err}, Result: ${result}');
-            }
-          ]);
-
           _logger.info(() => 'Calling plugin.FBConnect.getName');
           fb.callMethod('getName', [
             (err, result) {
