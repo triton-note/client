@@ -51,7 +51,7 @@ platform :ios do
     sh('cordova prepare ios')
 
     if is_ci?
-      keychainName = sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
+      keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
       puts "Using keychain: #{keychainName}"
       import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "Distribution.cer")
     end
