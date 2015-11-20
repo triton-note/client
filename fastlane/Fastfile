@@ -84,8 +84,11 @@ platform :ios do
       configuration: "Release",
       use_legacy_build_api: is_adhoc?,
       include_bitcode: false,
-      xcargs: "PROVISIONING_PROFILE=#{lane_context[SharedValues::SIGH_UDID]} PRODUCT_BUNDLE_IDENTIFIER=#{ENV['IOS_BUNDLE_ID']}"
-      silent: true
+      silent: true,
+      xcargs: {
+        PROVISIONING_PROFILE: lane_context[SharedValues::SIGH_UDID],
+        PRODUCT_BUNDLE_IDENTIFIER: ENV['IOS_BUNDLE_ID']
+      }.map { |k, v| "#{k.to_s.shellescape}=#{v.shellescape}" }.join(' ')
       )
 
       if is_ci? && is_adhoc? then
