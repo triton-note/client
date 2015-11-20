@@ -92,7 +92,7 @@ platform :ios do
       )
 
       if is_ci? && is_adhoc? then
-        ENV['PODS_ROOT'] = 'Pods'
+        ENV['PODS_ROOT'] = File.absolute_path 'Pods'
         crashlytics(
         api_token: ENV["FABRIC_API_KEY"],
         build_secret: ENV["FABRIC_BUILD_SECRET"],
