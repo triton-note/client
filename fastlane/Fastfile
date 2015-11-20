@@ -92,17 +92,19 @@ platform :ios do
       )
 
       if is_ci? && is_adhoc? then
-        command = [
-          File.join('..', 'Pods', 'Crashlytics', 'submit'),
-          ENV["FABRIC_API_KEY"],
-          ENV["FABRIC_BUILD_SECRET"],
-          "-ipaPath '#{ENV["APPLICATION_NAME"]}.ipa'",
-          "-notesPath '#{ENV["RELEASE_NOTE_PATH"]}'",
-          "-groupAliases '#{ENV["FABRIC_CRASHLYTICS_GROUPS"]}'",
-          "-notifications YES",
-          "-debug NO"
-        ]
-        system(command.join ' ')
+        Dir.chdir('..') do
+          command = [
+            File.join('Pods', 'Crashlytics', 'submit'),
+            ENV["FABRIC_API_KEY"],
+            ENV["FABRIC_BUILD_SECRET"],
+            "-ipaPath '#{ENV["APPLICATION_NAME"]}.ipa'",
+            "-notesPath '#{ENV["RELEASE_NOTE_PATH"]}'",
+            "-groupAliases '#{ENV["FABRIC_CRASHLYTICS_GROUPS"]}'",
+            "-notifications YES",
+            "-debug NO"
+          ]
+          system(command.join ' ')
+        end
       end
     end
   end
