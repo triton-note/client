@@ -92,14 +92,17 @@ platform :ios do
       )
 
       if is_ci? && is_adhoc? then
-        ENV['PODS_ROOT'] = File.absolute_path 'Pods'
-        crashlytics(
-        api_token: ENV["FABRIC_API_KEY"],
-        build_secret: ENV["FABRIC_BUILD_SECRET"],
-        notes_path: ENV["RELEASE_NOTE_PATH"],
-        groups: ENV["FABRIC_CRASHLYTICS_GROUPS"],
-        ipa_path: "#{ENV["APPLICATION_NAME"]}.ipa"
-        )
+        command = [
+          File.join('..', 'Pods', 'Crashlytics', 'submit'),
+          ENV["FABRIC_API_KEY"],
+          ENV["FABRIC_BUILD_SECRET"],
+          "-ipaPath '#{ENV["APPLICATION_NAME"]}.ipa'",
+          "-notesPath '#{ENV["RELEASE_NOTE_PATH"]}'",
+          "-groupAliases '#{ENV["FABRIC_CRASHLYTICS_GROUPS"]}'",
+          "-notifications YES",
+          "-debug NO"
+        ]
+        system(command.join ' ')
       end
     end
   end
