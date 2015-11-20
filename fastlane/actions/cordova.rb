@@ -15,7 +15,6 @@ module Fastlane
             FileUtils.rm_rf dir
           end
           Dir.mkdir dirs.first
-          return true
 
           system("cordova platform add #{ENV["FASTLANE_PLATFORM_NAME"]}")
 
