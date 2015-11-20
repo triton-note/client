@@ -3,33 +3,32 @@ module Fastlane
     class CordovaAction < Action
       def self.run(params)
         node_modules
-        cordova(params[:plugins] || []) if cleanup(['plugins', 'platforms'])
-        ionic if cleanup(['android', 'ios'].map { |x| File.join('resources', x) })
+        cordova(params[:plugins] || [])
+        ionic
       end
 
-      def self.cleanup(dirs)
-        if dirs.all? { |x| File.exist? x } then
-          return false
-        else
+      def self.cordova(plugins)
+        dirs = ['plugins', File.join('platforms', ENV["FASTLANE_PLATFORM_NAME"])]
+        if !dirs.all? { |x| File.exist? x } then
           dirs.each do |dir|
             puts "Deleting dir: #{dir}"
             FileUtils.rm_rf dir
           end
           Dir.mkdir dirs.first
           return true
-        end
-      end
 
-      def self.cordova(plugins)
-        system("cordova platform add #{Actions.lane_context[Actions::SharedValues::PLATFORM_NAME]}")
+          system("cordova platform add #{ENV["FASTLANE_PLATFORM_NAME"]}")
 
-        plugins.each do |line|
-          system("cordova plugin add #{line}")
+          plugins.each do |line|
+            system("cordova plugin add #{line}")
+          end
         end
       end
 
       def self.ionic
-        system("ionic resources")
+        if !File.exist? File.join('resources', ENV["FASTLANE_PLATFORM_NAME"])
+          system("ionic resources")
+        end
       end
 
       def self.node_modules
