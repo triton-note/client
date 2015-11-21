@@ -39,8 +39,8 @@ class ExperimentPage extends MainFrame {
   fbLogin() => tryFB('login');
   fbLogout() => tryFB('logout');
   fbName() => tryFB('getName');
-  fbPerm() => tryFB('getCurrentPermissions');
-  fbGain() => tryFB('gainPermission', ['publish_actions']);
+  fbToken() => tryFB('getToken');
+  fbGain() => tryFB('gainPermissions', ['publish_actions']);
 
   crash() {
     FabricCrashlytics.crash('Crash by user');
