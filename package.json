@@ -12,6 +12,6 @@
   },
   "dependencies": {
     "cordova": "^5.4.0",
-    "ionic": "^1.7.8"
+    "ionic": "^1.7.10"
   }
 }
