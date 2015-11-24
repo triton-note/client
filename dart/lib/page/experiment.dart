@@ -42,6 +42,7 @@ class ExperimentPage extends MainFrame {
   fbName() => tryFB('getName');
   fbToken() => tryFB('getToken');
   fbGain() => tryFB('login', ['publish_actions']);
+  fbMerge() => tryFB('login', ['publish_actions', 'public_profile']);
 
   crash() {
     FabricCrashlytics.crash('Crash by user');
