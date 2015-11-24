@@ -30,7 +30,7 @@ class ExperimentPage extends MainFrame {
             if (result != null) {
               result = JSON.decode(context['JSON'].callMethod('stringify', [result]));
             }
-            window.alert("${name}\nError: ${err}, Result: ${result}");
+            window.alert("${name}\nResult: ${result}\n\nError: ${err}");
           });
           _logger.info(() => 'Calling plugin.FBConnect.${name}');
           context['plugin']['FBConnect'].callMethod(name, args);
