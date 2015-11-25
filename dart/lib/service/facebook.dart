@@ -78,10 +78,18 @@ class FBPublish {
     final settings = await Settings;
     final fb = await _FBSettings.load();
 
-    og(String name, Map info) {
+    og(String name, [Map info = const {}]) {
       final url = "https://api.fathens.org/triton-note/open_graph/${name}";
-      info['url'] = url;
-      var text = JSON.encode(info);
+      final data = {
+        'url': url,
+        'region': settings.awsRegion,
+        'table_report': "${settings.appName}.REPORT",
+        'appId': fb.appId,
+        'cognitoId': cred.id,
+        'reportId': report.id
+      }..addAll(info);
+
+      var text = JSON.encode(data);
       text = new Base64Encoder().convert(new AsciiEncoder().convert(text));
       text = Uri.encodeFull(text);
       return "${url}/${text}";
@@ -92,24 +100,13 @@ class FBPublish {
       'message': report.comment,
       "image[0][url]": await report.photo.original.makeUrl(),
       "image[0][user_generated]": 'true',
-      'place': og('spot', {
-        'appId': fb.appId,
-        'region': settings.awsRegion,
-        'table_report': "${settings.appName}.REPORT",
-        'cognitoId': cred.id,
-        'reportId': report.id
-      }),
+      'place': og('spot'),
       fb.objectName: og('catch_report', {
-        'appId': fb.appId,
         'appName': fb.appName,
         'objectName': fb.objectName,
-        'region': settings.awsRegion,
         'bucketName': settings.s3Bucket,
         'urlTimeout': fb.imageTimeout,
-        'table_report': "${settings.appName}.REPORT",
-        'table_catch': "${settings.appName}.CATCH",
-        'cognitoId': cred.id,
-        'reportId': report.id
+        'table_catch': "${settings.appName}.CATCH"
       })
     };
 
