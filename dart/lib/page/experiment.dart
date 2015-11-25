@@ -48,21 +48,21 @@ class ExperimentPage extends MainFrame {
     }
   }
 
-  fbToken() async {
-    try {
-      final result = await FBConnect.getToken();
-      window.alert("getToken: ${result}");
-    } catch (ex) {
-      window.alert("getToken: Error: ${ex}");
-    }
-  }
-
   fbGain() async {
     try {
       final result = await FBConnect.grantPublish();
       window.alert("grantPublish: ${result}");
     } catch (ex) {
       window.alert("grantPublish: Error: ${ex}");
+    }
+  }
+
+  fbSettings() async {
+    try {
+      final result = await FBSettings.load();
+      window.alert("getAppId: ${result.appId}");
+    } catch (ex) {
+      window.alert("getAppId: Error: ${ex}");
     }
   }
 
