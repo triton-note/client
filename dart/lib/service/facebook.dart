@@ -6,6 +6,8 @@ import 'dart:js';
 
 import 'package:logging/logging.dart';
 
+import 'package:triton_note/settings.dart';
+import 'package:triton_note/service/aws/cognito.dart';
 class FBConnect {
   static final _logger = new Logger('FBConnect');
 
@@ -27,11 +29,38 @@ class FBConnect {
     return completer.future;
   }
 
-  static Future<String> login() => _call('login', []);
+  static Future<bool> login() async {
+    try {
+      final token = await _call('login', []) as String;
+      final cred = await CognitoIdentity.joinFacebook(token);
+      _logger.finest(() => "Logged in: cognito id: ${cred.id}");
+      return cred.hasFacebook();
+    } catch (ex) {
+      _logger.warning(() => "Failed to connect to Facebook: ${ex}");
+      return false;
+    }
+  }
+
+  static Future<bool> logout() async {
+    try {
+      await _call('logout', []);
+      final cred = await CognitoIdentity.dropFacebook();
+      _logger.finest(() => "Logged out: cognito id: ${cred.id}");
+      if (cred.hasFacebook()) {
+        _logger.warning(() => "Failed to disconnect from Facebook. Still connected.");
+        return false;
+      } else {
+        return true;
+      }
+    } catch (ex) {
+      _logger.warning(() => "Failed to disconnect from Facebook: ${ex}");
+      return false;
+    }
+  }
+
   static Future<String> grantPublish() => _call('login', ['publish_actions']);
   static Future<String> getName() => _call('getName', []);
   static Future<Map> getToken() => _call('getToken', []);
-  static Future<Null> logout() => _call('logout', []);
 }
 
 class FBPublish {

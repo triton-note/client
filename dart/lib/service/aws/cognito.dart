@@ -1,6 +1,7 @@
 library triton_note.service.aws.cognito;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
 
@@ -71,15 +72,34 @@ class CognitoIdentity {
   }
 
   static Future<CognitoIdentity> _setToken(String service, String token) async {
-    _logger.fine("Google Signin Token: ${token}");
+    _logger.fine("SignIn: ${service}: ${token}");
 
     final creds = context['AWS']['config']['credentials'];
-    final logins = (creds['params']['Logins'] == null) ? {} : creds['params']['Logins'];
+    final logins = (creds['params']['Logins'] == null)
+        ? {}
+        : JSON.decode(context['JSON'].callMethod('stringify', [creds['params']['Logins']]));
     logins[service] = token;
     creds['params']['Logins'] = new JsObject.jsify(logins);
     creds['expired'] = true;
 
     await _refresh();
+    return await credential;
+  }
+
+  static Future<CognitoIdentity> _removeToken(String service) async {
+    _logger.fine("SignOut: ${service}");
+
+    final creds = context['AWS']['config']['credentials'];
+    final Map logins = (creds['params']['Logins'] == null)
+        ? {}
+        : JSON.decode(context['JSON'].callMethod('stringify', [creds['params']['Logins']]));
+
+    if (logins.containsKey(service)) {
+      logins.remove(service);
+      creds['params']['Logins'] = new JsObject.jsify(logins);
+      creds['expired'] = true;
+      await _refresh();
+    }
     return await credential;
   }
 
@@ -102,10 +122,17 @@ class CognitoIdentity {
     return result.future;
   }
 
+  static Future<CognitoIdentity> joinFacebook(String token) async => _setToken(PROVIDER_KEY_FACEBOOK, token);
+  static Future<CognitoIdentity> dropFacebook() async => _removeToken(PROVIDER_KEY_FACEBOOK);
+
+  static final String PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
+
   final String id;
   final Map<String, String> logins;
 
   CognitoIdentity(this.id, Map logins) : this.logins = logins == null ? const {} : new Map.unmodifiable(logins);
+
+  bool hasFacebook() => logins.containsKey(PROVIDER_KEY_FACEBOOK);
 }
 
 class CognitoSync {
