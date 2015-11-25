@@ -39,14 +39,13 @@ class Image {
   final String relativePath;
   DateTime _urlLimit;
   String _url;
-  Completer<String> _urlCompleter = new Completer();
 
   Image(this._reportId, this.relativePath);
 
-  Future<String> get storagePath =>
-      DynamoDB.cognitoId.then((cognitoId) => "photo/${relativePath}/${cognitoId}/${_reportId}/photo_file.jpg");
+  Future<String> get storagePath async =>
+      "photo/${relativePath}/${await DynamoDB.cognitoId}/${_reportId}/photo_file.jpg";
 
-  Future<String> get urlFuture async => url != null ? url : _urlCompleter.future;
+  Future<String> makeUrl() async => S3File.url(await storagePath);
 
   String get url {
     _refreshUrl();
@@ -69,15 +68,10 @@ class Image {
   _refreshUrl() {
     if (_url == null || (_urlLimit != null && _urlLimit.isBefore(new DateTime.now()))) {
       _refresher.go(() async {
-        _urlCompleter = new Completer();
-        final path = await storagePath;
-        _logger.info("Refresh url of s3file: ${path}");
         try {
-          url = await S3File.url(path);
-          _urlCompleter.complete(url);
+          url = await makeUrl();
         } catch (ex) {
           _logger.info("Failed to get url of s3file: ${ex}");
-          _urlCompleter.completeError(ex);
         }
       });
     }

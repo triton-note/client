@@ -87,7 +87,7 @@ class FBPublish {
     final params = {
       'fb:explicitly_shared': ['true'],
       'message': report.comment,
-      "image[0][url]": await report.photo.original.urlFuture,
+      "image[0][url]": await report.photo.original.makeUrl(),
       "image[0][user_generated]": 'true',
       'place': og('spot', {
         'region': settings.awsRegion,
