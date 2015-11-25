@@ -38,10 +38,8 @@ class Reports {
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
   static Future<Null> _loadFishes(Report report) async {
-    final list = await TABLE_CATCH.query("COGNITO_ID-REPORT_ID-index", {
-      DynamoDB.COGNITO_ID: await DynamoDB.cognitoId,
-      TABLE_REPORT.ID_COLUMN: report.id
-    });
+    final list = await TABLE_CATCH.query("COGNITO_ID-REPORT_ID-index",
+        {DynamoDB.COGNITO_ID: await DynamoDB.cognitoId, TABLE_REPORT.ID_COLUMN: report.id});
     report.fishes
       ..clear()
       ..addAll(list);
