@@ -14,6 +14,7 @@ import 'package:triton_note/util/getter_setter.dart';
 final _logger = new Logger('Cognito');
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
+Map _jsmap(JsObject obj) => obj == null ? {} : JSON.decode(_stringify(obj));
 
 class CognitoSettings {
   static CognitoSettings _instance = null;
@@ -36,8 +37,8 @@ class CognitoIdentity {
     final credId = context['AWS']['config']['credentials']['identityId'];
     final logins = context['AWS']['config']['credentials']['params']['Logins'];
 
-    _logger.finer(() => "CognitoIdentity(${_stringify(credId)}):${_stringify(logins)}");
-    return new CognitoIdentity(credId, logins);
+    _logger.finer(() => "CognitoIdentity(${_stringify(credId)})");
+    return new CognitoIdentity(credId, _jsmap(logins));
   }
 
   static Completer _onInitialize = null;
@@ -72,12 +73,10 @@ class CognitoIdentity {
   }
 
   static Future<CognitoIdentity> _setToken(String service, String token) async {
-    _logger.fine("SignIn: ${service}: ${token}");
+    _logger.fine("SignIn: ${service}");
 
     final creds = context['AWS']['config']['credentials'];
-    final logins = (creds['params']['Logins'] == null)
-        ? {}
-        : JSON.decode(context['JSON'].callMethod('stringify', [creds['params']['Logins']]));
+    final logins = _jsmap(creds['params']['Logins']);
     logins[service] = token;
     creds['params']['Logins'] = new JsObject.jsify(logins);
     creds['expired'] = true;
@@ -90,9 +89,7 @@ class CognitoIdentity {
     _logger.fine("SignOut: ${service}");
 
     final creds = context['AWS']['config']['credentials'];
-    final Map logins = (creds['params']['Logins'] == null)
-        ? {}
-        : JSON.decode(context['JSON'].callMethod('stringify', [creds['params']['Logins']]));
+    final Map logins = _jsmap(creds['params']['Logins']);
 
     if (logins.containsKey(service)) {
       logins.remove(service);
