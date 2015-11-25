@@ -76,7 +76,7 @@ class FBPublish {
     final token = await FBConnect.grantPublish();
     final cred = await CognitoIdentity.credential;
     final settings = await Settings;
-    final fbSettings = await _FBSettings.load();
+    final fb = await _FBSettings.load();
 
     og(String name, Map info) {
       var text = JSON.encode(info);
@@ -96,10 +96,10 @@ class FBPublish {
         'cognitoId': cred.id,
         'reportId': report.id
       }),
-      fbSettings.objectName: og('catch_report', {
+      fb.objectName: og('catch_report', {
         'region': settings.awsRegion,
         'bucketName': settings.s3Bucket,
-        'urlTimeout': fbSettings.imageTimeout,
+        'urlTimeout': fb.imageTimeout,
         'table_report': "${settings.appName}.REPORT",
         'table_catch': "${settings.appName}.CATCH",
         'cognitoId': cred.id,
@@ -107,7 +107,7 @@ class FBPublish {
       })
     };
 
-    final url = "${fbSettings.hostname}/me/${fbSettings.appName}:${fbSettings.actionName}";
+    final url = "${fb.hostname}/me/${fb.appName}:${fb.actionName}";
     _logger.fine(() => "Posting to ${url}: ${params}");
 
     final result = await HttpRequest.postFormData("${url}?access_token=${token}", params);
