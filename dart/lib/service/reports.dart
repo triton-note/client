@@ -28,8 +28,7 @@ class Reports {
     return {DynamoDB.CONTENT: obj.toMap(), 'REPORT_ID': obj.id, 'DATE_AT': obj.dateAt.toUtc().millisecondsSinceEpoch};
   });
 
-  static Future<PagingList<Report>> paging =
-      cognitoId.then((cognitoId) => new PagingList(new _PagerReports(cognitoId)));
+  static PagingList<Report> paging = new PagingList(new _PagerReports());
   static Future<List<Report>> get _cachedList async => (await paging).list;
 
   static Future<Report> _fromCache(String id) async =>
@@ -116,25 +115,29 @@ class Reports {
 class _PagerReports implements Pager<Report> {
   String _cognitoId;
   Pager<Report> _db;
+  Completer<Null> _ready = new Completer();
 
-  _PagerReports(String id)
-      : this._cognitoId = id,
-        _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, id, false) {
-    window.on[EVENT_COGNITO_ID_CHANGED].listen((event) async {
-      final newId = await cognitoId;
-      if (_cognitoId != newId) {
-        _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
-        _cognitoId = newId;
-        _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, _cognitoId, false);
-      }
-    });
+  _PagerReports() {
+    _refreshDb();
+    window.on[EVENT_COGNITO_ID_CHANGED].listen((event) => _refreshDb());
   }
 
-  bool get hasMore => _db.hasMore;
+  Future<Null> _refreshDb() async {
+    final newId = await cognitoId;
+    if (_cognitoId != newId) {
+      _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
+      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, _cognitoId, false);
+      _cognitoId = newId;
+      if (!_ready.isCompleted) _ready.complete(_db);
+    }
+  }
 
-  void reset() => _db.reset();
+  bool get hasMore => _db?.hasMore ?? true;
+
+  void reset() => _db?.reset();
 
   Future<List<Report>> more(int pageSize) async {
+    await _ready.future;
     final list = await _db.more(pageSize);
     await Future.wait(list.map(Reports._loadFishes));
     _logger.finer(() => "Loaded reports: ${list}");
