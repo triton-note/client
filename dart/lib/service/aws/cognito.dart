@@ -16,6 +16,8 @@ final _logger = new Logger('Cognito');
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 Map _jsmap(JsObject obj) => obj == null ? {} : JSON.decode(_stringify(obj));
 
+final EVENT_COGNITO_ID_CHANGED = "EVENT_COGNITO_ID_CHANGED";
+
 class CognitoSettings {
   static CognitoSettings _instance = null;
   static Future<CognitoSettings> get value async {
@@ -77,11 +79,13 @@ class CognitoIdentity {
 
     final creds = context['AWS']['config']['credentials'];
     final logins = _jsmap(creds['params']['Logins']);
-    logins[service] = token;
-    creds['params']['Logins'] = new JsObject.jsify(logins);
-    creds['expired'] = true;
 
-    await _refresh();
+    if (!logins.containsKey(service)) {
+      logins[service] = token;
+      creds['params']['Logins'] = new JsObject.jsify(logins);
+      creds['expired'] = true;
+      await _refresh();
+    }
     return await credential;
   }
 
@@ -109,13 +113,13 @@ class CognitoIdentity {
       (error) {
         if (error == null) {
           result.complete();
+          window.dispatchEvent(new CustomEvent(EVENT_COGNITO_ID_CHANGED, cancelable: false));
         } else {
           _logger.fine("Cognito Error: ${error}");
           result.completeError(error);
         }
       }
     ]);
-
     return result.future;
   }
 

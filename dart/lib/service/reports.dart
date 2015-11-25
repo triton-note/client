@@ -1,10 +1,12 @@
 library triton_note.service.reports;
 
 import 'dart:async';
+import 'dart:html';
 
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
+import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/util/pager.dart';
 
@@ -112,12 +114,21 @@ class Reports {
 }
 
 class _PagerReports implements Pager<Report> {
-  final String cognitoId;
-  final Pager<Report> _db;
+  String _cognitoId;
+  Pager<Report> _db;
 
   _PagerReports(String id)
-      : this.cognitoId = id,
-        _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, id, false);
+      : this._cognitoId = id,
+        _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, id, false) {
+    window.on[EVENT_COGNITO_ID_CHANGED].listen((event) async {
+      final newId = await DynamoDB.cognitoId;
+      if (_cognitoId != newId) {
+        _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
+        _cognitoId = newId;
+        _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, _cognitoId, false);
+      }
+    });
+  }
 
   bool get hasMore => _db.hasMore;
 
