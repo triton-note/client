@@ -31,7 +31,7 @@ class FBConnect {
   static Future<String> grantPublish() => _call('login', ['publish_actions']);
   static Future<String> getName() => _call('getName', []);
   static Future<Map> getToken() => _call('getToken', []);
-  static Future logout() => _call('logout', []);
+  static Future<Null> logout() => _call('logout', []);
 }
 
 class FBPublish {
