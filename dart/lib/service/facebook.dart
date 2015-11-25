@@ -63,13 +63,13 @@ class FBConnect {
   static Future<Map> getToken() => _call('getToken', []);
 }
 
-class _FBSettings {
-  static Future<_FBSettings> load() async {
+class FBSettings {
+  static Future<FBSettings> load() async {
     final Map map = (await AuthorizedSettings)['facebook'];
-    return new _FBSettings(map);
+    return new FBSettings(map);
   }
 
-  _FBSettings(this._map);
+  FBSettings(this._map);
 
   final Map _map;
 
