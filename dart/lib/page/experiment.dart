@@ -5,6 +5,7 @@ import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 
+import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/facebook.dart';
 import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/main_frame.dart';
@@ -52,6 +53,16 @@ class ExperimentPage extends MainFrame {
       window.alert("grantPublish: ${result}");
     } catch (ex) {
       window.alert("grantPublish: Error: ${ex}");
+    }
+  }
+
+  fbPublish() async {
+    try {
+      final pager = await Reports.paging;
+      final result = await FBPublish.publish(pager.list.first);
+      window.alert("publish: ${result}");
+    } catch (ex) {
+      window.alert("publish: Error: ${ex}");
     }
   }
 
