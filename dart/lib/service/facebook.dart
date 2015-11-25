@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:js';
 
 import 'package:logging/logging.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/browser_client.dart' as http;
 
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/cognito.dart';
@@ -109,7 +109,7 @@ class FBPublish {
     final url = "${fbSettings.hostname}/me/${fbSettings.appName}:${fbSettings.actionName}";
     _logger.fine(() => "Posting to ${url}: ${params}");
 
-    final result = await new http.Client().post("${url}?access_token=${token}", body: params);
+    final result = await new http.BrowserClient().post("${url}?access_token=${token}", body: params);
     _logger.fine(() => "Result of posting to facebook: ${result}");
 
     if (result.statusCode % 100 != 2) {
