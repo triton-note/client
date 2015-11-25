@@ -126,7 +126,7 @@ class _PagerReports implements Pager<Report> {
     final newId = await cognitoId;
     if (_cognitoId != newId) {
       _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
-      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, _cognitoId, false);
+      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, newId, false);
       _cognitoId = newId;
       if (!_ready.isCompleted) _ready.complete(_db);
     }
