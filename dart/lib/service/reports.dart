@@ -29,7 +29,7 @@ class Reports {
   });
 
   static Future<PagingList<Report>> paging =
-      DynamoDB.cognitoId.then((cognitoId) => new PagingList(new _PagerReports(cognitoId)));
+      cognitoId.then((cognitoId) => new PagingList(new _PagerReports(cognitoId)));
   static Future<List<Report>> get _cachedList async => (await paging).list;
 
   static Future<Report> _fromCache(String id) async =>
@@ -40,8 +40,8 @@ class Reports {
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
   static Future<Null> _loadFishes(Report report) async {
-    final list = await TABLE_CATCH.query("COGNITO_ID-REPORT_ID-index",
-        {DynamoDB.COGNITO_ID: await DynamoDB.cognitoId, TABLE_REPORT.ID_COLUMN: report.id});
+    final list = await TABLE_CATCH.query(
+        "COGNITO_ID-REPORT_ID-index", {DynamoDB.COGNITO_ID: await cognitoId, TABLE_REPORT.ID_COLUMN: report.id});
     report.fishes
       ..clear()
       ..addAll(list);
@@ -121,7 +121,7 @@ class _PagerReports implements Pager<Report> {
       : this._cognitoId = id,
         _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, id, false) {
     window.on[EVENT_COGNITO_ID_CHANGED].listen((event) async {
-      final newId = await DynamoDB.cognitoId;
+      final newId = await cognitoId;
       if (_cognitoId != newId) {
         _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
         _cognitoId = newId;

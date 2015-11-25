@@ -18,6 +18,8 @@ Map _jsmap(JsObject obj) => obj == null ? {} : JSON.decode(_stringify(obj));
 
 final EVENT_COGNITO_ID_CHANGED = "EVENT_COGNITO_ID_CHANGED";
 
+Future<String> get cognitoId async => (await CognitoIdentity.credential).id;
+
 class CognitoSettings {
   static CognitoSettings _instance = null;
   static Future<CognitoSettings> get value async {

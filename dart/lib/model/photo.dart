@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import 'package:triton_note/service/aws/dynamodb.dart';
+import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/settings.dart';
 
@@ -42,8 +42,7 @@ class Image {
 
   Image(this._reportId, this.relativePath);
 
-  Future<String> get storagePath async =>
-      "photo/${relativePath}/${await DynamoDB.cognitoId}/${_reportId}/photo_file.jpg";
+  Future<String> get storagePath async => "photo/${relativePath}/${await cognitoId}/${_reportId}/photo_file.jpg";
 
   Future<String> makeUrl() async => S3File.url(await storagePath);
 
