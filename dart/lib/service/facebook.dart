@@ -63,6 +63,24 @@ class FBConnect {
   static Future<Map> getToken() => _call('getToken', []);
 }
 
+class _FBSettings {
+  static Future<_FBSettings> load() async {
+    final Map map = (await AuthorizedSettings)['facebook'];
+    return new _FBSettings(map);
+  }
+
+  _FBSettings(this._map);
+
+  final Map _map;
+
+  String get hostname => _map['host'];
+  String get appName => _map['appName'];
+  String get appId => _map['appId'];
+  String get imageTimeout => _map['imageTimeout'];
+  String get actionName => _map['actionName'];
+  String get objectName => _map['objectName'];
+}
+
 class FBPublish {
   static final _logger = new Logger('FBPublish');
 }
