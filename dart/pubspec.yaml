@@ -3,7 +3,6 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
   angular: any
-  http: any
   paper_elements:
     git:
       ref: web_components_0.12.0
