@@ -5,9 +5,12 @@ import 'dart:convert';
 import 'dart:js';
 
 import 'package:logging/logging.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/cognito.dart';
+import 'package:triton_note/model/report.dart';
+
 class FBConnect {
   static final _logger = new Logger('FBConnect');
 
@@ -83,4 +86,59 @@ class FBSettings {
 
 class FBPublish {
   static final _logger = new Logger('FBPublish');
+
+  static publish(Report report) async {
+    _logger.fine(() => "Publishing report: ${report.id}");
+
+    final cred = await CognitoIdentity.credential;
+    final settings = await Settings;
+    final fbSettings = await FBSettings.load();
+
+    api(String name, Map info) {
+      final json = JSON.encode(info);
+      final urlen = Uri.encodeFull(json);
+      final base64 = new Base64Encoder().convert(new AsciiEncoder().convert(urlen));
+      return "https://api.fathens.org/triton-note/open_graph/${name}/${base64}";
+    }
+    apiSpot() => api('spot', {
+          'region': settings.awsRegion,
+          'table_report': "${settings.appName}.REPORT",
+          'cognitoId': cred.id,
+          'reportId': report.id
+        });
+    apiReport() => api('catch_report', {
+          'region': settings.awsRegion,
+          'bucketName': settings.s3Bucket,
+          'urlTimeout': fbSettings.imageTimeout,
+          'table_report': "${settings.appName}.REPORT",
+          'table_catch': "${settings.appName}.CATCH",
+          'cognitoId': cred.id,
+          'reportId': report.id
+        });
+
+    final params = {
+      'fb:explicitly_shared': ['true'],
+      'message': report.comment,
+      'place': apiSpot(),
+      fbSettings.objectName: apiReport(),
+      "image[0][url]": report.photo.original.url,
+      "image[0][user_generated]": 'true'
+    };
+
+    final token = await FBConnect.grantPublish();
+    final url = "${fbSettings.hostname}/me/${fbSettings.appName}:${fbSettings.actionName}?access_token=${token}";
+    final result = await new http.Client().post(url, body: params);
+
+    if (result.statusCode % 100 != 2) {
+      throw result.body;
+    } else {
+      final Map obj = JSON.decode(result.body);
+      if (!obj.containsKey('id')) {
+        throw obj;
+      } else {
+        final published = obj['id'];
+        _logger.info(() => "Report(${report.id}) is published: ${published}");
+      }
+    }
+  }
 }

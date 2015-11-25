@@ -3,10 +3,11 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
   angular: any
+  http: any
   paper_elements:
     git:
-      url: https://github.com/fathens/paper-elements.git
       ref: web_components_0.12.0
+      url: https://github.com/fathens/paper-elements.git
   polymer: any
 dev_dependencies:
   crypto: any
