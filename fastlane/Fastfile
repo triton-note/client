@@ -21,22 +21,39 @@ before_all do
   puts "#### RELEASE_NOTE ####\n" + release_note
   if release_note && !release_note.empty? then
     target = '.release_note'
-    File.write(target, release_note) 
+    File.write(target, release_note)
     ENV["RELEASE_NOTE_PATH"] = File.absolute_path target
   end
 
   dart
-  cordova
+  cordova(plugins: [
+    'cordova-plugin-crosswalk-webview@~1.3.1',
+    'cordova-plugin-device@~1.0.1',
+    'cordova-plugin-console@~1.0.1',
+    'cordova-plugin-camera@~1.2.0',
+    'cordova-plugin-splashscreen@~2.1.0',
+    'cordova-plugin-statusbar@~1.0.1',
+    'cordova-plugin-geolocation@~1.0.1',
+    'cordova-plugin-whitelist@~1.0.0',
+    'cordova-plugin-file@~3.0.0',
+    'phonegap-plugin-push@~1.3.0',
+    "https://github.com/fathens/Cordova-Plugin-FBConnect.git --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
+    "https://github.com/fathens/Cordova-Plugin-Crashlytics.git --variable API_KEY=#{ENV['FABRIC_API_KEY']}"
+  ])
 end
 
 platform :ios do
+  before_all do
+    set_app_id(id: ENV['IOS_BUNDLE_ID'])
+  end
+
   lane :build do
     sh('cordova prepare ios')
 
     if is_ci?
       keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
       puts "Using keychain: #{keychainName}"
-      import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "Distribution.cer")
+      import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "AppleWWDRCA.cer")
       import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "Distribution.p12"), certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
     end
 
@@ -67,24 +84,37 @@ platform :ios do
       configuration: "Release",
       use_legacy_build_api: is_adhoc?,
       include_bitcode: false,
-      silent: true
+      silent: true,
+      xcargs: {
+        PROVISIONING_PROFILE: lane_context[SharedValues::SIGH_UDID],
+        PRODUCT_BUNDLE_IDENTIFIER: ENV['IOS_BUNDLE_ID']
+      }.map { |k, v| "#{k.to_s.shellescape}=#{v.shellescape}" }.join(' ')
       )
 
       if is_ci? && is_adhoc? then
-        crashlytics(
-        crashlytics_path: "./Pods/Crashlytics/Crashlytics.framework",
-        api_token: ENV["FABRIC_API_KEY"],
-        build_secret: ENV["FABRIC_BUILD_SECRET"],
-        notes_path: ENV["RELEASE_NOTE_PATH"],
-        groups: ENV["FABRIC_CRASHLYTICS_GROUPS"],
-        ipa_path: "#{ENV["APPLICATION_NAME"]}.ipa"
-        )
+        Dir.chdir('..') do
+          command = [
+            File.join('Pods', 'Crashlytics', 'submit'),
+            ENV["FABRIC_API_KEY"],
+            ENV["FABRIC_BUILD_SECRET"],
+            "-ipaPath '#{ENV["APPLICATION_NAME"]}.ipa'",
+            "-notesPath '#{ENV["RELEASE_NOTE_PATH"]}'",
+            "-groupAliases '#{ENV["FABRIC_CRASHLYTICS_GROUPS"]}'",
+            "-notifications YES",
+            "-debug NO"
+          ]
+          system(command.join ' ')
+        end
       end
     end
   end
 end
 
 platform :android do
+  before_all do
+    set_app_id(id: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
+  end
+
   lane :build do
     def is_multi?
       ["release", "beta"].include? ENV['BUILD_MODE']
@@ -105,7 +135,7 @@ platform :android do
     ])
 
     into_platform do
-      if !is_multi? then
+      if is_ci? && !is_multi? then
         crashlytics(
         apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
         api_token: ENV["FABRIC_API_KEY"],

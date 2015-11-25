@@ -1,5 +1,6 @@
 library triton_note.page.experiment;
 
+import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
 
@@ -19,28 +20,31 @@ final _logger = new Logger('ExperimentPage');
 class ExperimentPage extends MainFrame {
   ExperimentPage(Router router) : super(router) {}
 
-  checkFacebook() => rippling(() {
+  tryFB(String name, [List args = null]) => rippling(() {
         try {
-          final fb = context['plugin']['FBConnect'];
-          _logger.info(() => 'plugin.FBConnect = ${fb}');
-
-          _logger.info(() => 'plugin.FBConnect.renewSystemCredentials = ${fb['renewSystemCredentials']}');
-          fb.callMethod('renewSystemCredentials', [
-            (err, result) {
-              window.alert('Error: ${err}, Result: ${result}');
+          if (args == null) {
+            args = [];
+          }
+          args.insert(0, (err, result) {
+            _logger.info(() => 'Result of plugin.FBConnect.${name}: ${result}, error: ${err}');
+            if (result != null) {
+              result = JSON.decode(context['JSON'].callMethod('stringify', [result]));
             }
-          ]);
-
-          _logger.info(() => 'plugin.FBConnect.getName = ${fb['getName']}');
-          fb.callMethod('getName', [
-            (err, result) {
-              window.alert('Error: ${err}, Result: ${result}');
-            }
-          ]);
+            window.alert("${name}\nResult: ${result}\n\nError: ${err}");
+          });
+          _logger.info(() => 'Calling plugin.FBConnect.${name}');
+          context['plugin']['FBConnect'].callMethod(name, args);
         } catch (ex) {
           FabricCrashlytics.crash('${ex}');
         }
       });
+
+  fbLogin() => tryFB('login');
+  fbLogout() => tryFB('logout');
+  fbName() => tryFB('getName');
+  fbToken() => tryFB('getToken');
+  fbGain() => tryFB('login', ['publish_actions']);
+  fbMerge() => tryFB('login', ['publish_actions', 'public_profile']);
 
   crash() {
     FabricCrashlytics.crash('Crash by user');

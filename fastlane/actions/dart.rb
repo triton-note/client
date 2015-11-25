@@ -23,9 +23,7 @@ module Fastlane
         end
 
         puts "Rewriting #{target}"
-        File.open(target, 'w') do |file|
-          file.write settings.to_yaml
-        end
+        File.write(target, settings.to_yaml)
       end
 
       def self.index_download
@@ -97,9 +95,7 @@ module Fastlane
         end
 
         puts "Rewriting #{target}"
-        File.open(target, 'w') do |file|
-          file.write doc.to_html
-        end
+        File.write(target, doc.to_html)
       end
 
       def self.pub_build
