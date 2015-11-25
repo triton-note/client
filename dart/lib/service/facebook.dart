@@ -79,10 +79,12 @@ class FBPublish {
     final fb = await _FBSettings.load();
 
     og(String name, Map info) {
+      final url = "https://api.fathens.org/triton-note/open_graph/${name}";
+      info['url'] = url;
       var text = JSON.encode(info);
       text = new Base64Encoder().convert(new AsciiEncoder().convert(text));
       text = Uri.encodeFull(text);
-      return "https://api.fathens.org/triton-note/open_graph/${name}/${text}";
+      return "${url}/${text}";
     }
 
     final params = {
@@ -91,12 +93,16 @@ class FBPublish {
       "image[0][url]": await report.photo.original.makeUrl(),
       "image[0][user_generated]": 'true',
       'place': og('spot', {
+        'appId': fb.appId,
         'region': settings.awsRegion,
         'table_report': "${settings.appName}.REPORT",
         'cognitoId': cred.id,
         'reportId': report.id
       }),
       fb.objectName: og('catch_report', {
+        'appId': fb.appId,
+        'appName': fb.appName,
+        'objectName': fb.objectName,
         'region': settings.awsRegion,
         'bucketName': settings.s3Bucket,
         'urlTimeout': fb.imageTimeout,
