@@ -66,13 +66,13 @@ class FBConnect {
   static Future<Map> getToken() => _call('getToken', []);
 }
 
-class FBSettings {
-  static Future<FBSettings> load() async {
+class _FBSettings {
+  static Future<_FBSettings> load() async {
     final Map map = (await AuthorizedSettings)['facebook'];
-    return new FBSettings(map);
+    return new _FBSettings(map);
   }
 
-  FBSettings(this._map);
+  _FBSettings(this._map);
 
   final Map _map;
 
@@ -92,7 +92,7 @@ class FBPublish {
 
     final cred = await CognitoIdentity.credential;
     final settings = await Settings;
-    final fbSettings = await FBSettings.load();
+    final fbSettings = await _FBSettings.load();
 
     api(String name, Map info) {
       final json = JSON.encode(info);

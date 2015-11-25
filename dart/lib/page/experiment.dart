@@ -1,8 +1,6 @@
 library triton_note.page.experiment;
 
-import 'dart:convert';
 import 'dart:html';
-import 'dart:js';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
@@ -54,15 +52,6 @@ class ExperimentPage extends MainFrame {
       window.alert("grantPublish: ${result}");
     } catch (ex) {
       window.alert("grantPublish: Error: ${ex}");
-    }
-  }
-
-  fbSettings() async {
-    try {
-      final result = await FBSettings.load();
-      window.alert("getAppId: ${result.appId}");
-    } catch (ex) {
-      window.alert("getAppId: Error: ${ex}");
     }
   }
 
