@@ -37,7 +37,7 @@ before_all do
     'cordova-plugin-whitelist@~1.0.0',
     'cordova-plugin-file@~3.0.0',
     'phonegap-plugin-push@~1.3.0',
-    "https://github.com/fathens/Cordova-Plugin-FBConnect.git#android_rc3 --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
+    "https://github.com/fathens/Cordova-Plugin-FBConnect.git --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
     "https://github.com/fathens/Cordova-Plugin-Crashlytics.git --variable API_KEY=#{ENV['FABRIC_API_KEY']}"
   ])
 end
