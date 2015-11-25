@@ -79,9 +79,10 @@ class FBPublish {
     final fbSettings = await _FBSettings.load();
 
     og(String name, Map info) {
-      final urlen = Uri.encodeFull(JSON.encode(info));
-      final base64 = new Base64Encoder().convert(new AsciiEncoder().convert(urlen));
-      return "https://api.fathens.org/triton-note/open_graph/${name}/${base64}";
+      final json = JSON.encode(info);
+      final base64 = new Base64Encoder().convert(new AsciiEncoder().convert(json));
+      final urlen = Uri.encodeFull(base64);
+      return "https://api.fathens.org/triton-note/open_graph/${name}/${urlen}";
     }
 
     final params = {
