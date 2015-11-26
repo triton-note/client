@@ -116,7 +116,7 @@ class FBPublish {
     final result = await HttpRequest.postFormData("${url}?access_token=${token}", params);
     _logger.fine(() => "Result of posting to facebook: ${result}");
 
-    if (result.status % 100 != 2) throw result.responseText;
+    if ((result.status / 100).floor() != 2) throw result.responseText;
     final Map obj = JSON.decode(result.responseText);
 
     if (!obj.containsKey('id')) throw obj;
