@@ -27,7 +27,8 @@ install:
   - brew update || brew update
   - brew upgrade
   - brew install git-lfs
-  - git-lfs pull
+  - git lfs install
+  - git lfs pull
 
 script:
   - fastlane enable_crash_reporting
