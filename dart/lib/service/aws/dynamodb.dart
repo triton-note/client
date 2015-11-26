@@ -33,7 +33,6 @@ class DynamoDB {
   static const CONTENT = "CONTENT";
   static const COGNITO_ID = "COGNITO_ID";
 
-  static Future<String> get cognitoId async => (await CognitoIdentity.credential).id;
   static final client = new JsObject(context["AWS"]["DynamoDB"], []);
 
   static String createRandomKey() {
@@ -72,7 +71,7 @@ class DynamoDB_Table<T extends DBRecord> {
 
   Future<Map<String, Map<String, String>>> _makeKey(String id) async {
     final key = {
-      DynamoDB.COGNITO_ID: {'S': await DynamoDB.cognitoId}
+      DynamoDB.COGNITO_ID: {'S': await cognitoId}
     };
     if (id != null && ID_COLUMN != null) key[ID_COLUMN] = {'S': id};
     return key;

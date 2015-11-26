@@ -20,10 +20,8 @@ class ReportsListPage extends MainFrame {
   PagingList<Report> reports;
 
   ReportsListPage(Router router) : super(router) {
-    Reports.paging.then((list) {
-      reports = list;
-      hideSplashScreen();
-    });
+    reports = Reports.paging;
+    hideSplashScreen();
   }
 
   goReport(String id) => rippling(() {

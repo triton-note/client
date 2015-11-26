@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/reports.dart';
@@ -114,6 +115,7 @@ abstract class _Expression {
     if (map.containsKey(value)) return map[value];
     return map[value] = "${pre}${map.length + 1}";
   }
+
   String putName(String name) => _put(_names, "#N", name);
   String putValue(value) => _put(_values, ":V", value);
   void addCond(String cond) => conds.add(cond);
@@ -133,7 +135,7 @@ class _ExpressionReport extends _Expression {
 
   Future<Null> _doInit(DistributionsFilter filter) async {
     if (!filter.isIncludeOthers) {
-      addCond("${putName(DynamoDB.COGNITO_ID)} = ${putValue(await DynamoDB.cognitoId)}");
+      addCond("${putName(DynamoDB.COGNITO_ID)} = ${putValue(await cognitoId)}");
     }
 
     if (filter.cond.isActive_Any) {

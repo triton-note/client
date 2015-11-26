@@ -33,8 +33,14 @@ const String editFlop = "done";
 
 const Duration blinkDuration = const Duration(seconds: 2);
 const Duration blinkDownDuration = const Duration(milliseconds: 300);
-const frameBackground = const [const {'background': "#fffcfc"}, const {'background': "#fee"}];
-const frameBackgroundDown = const [const {'background': "#fee"}, const {'background': "white"}];
+const frameBackground = const [
+  const {'background': "#fffcfc"},
+  const {'background': "#fee"}
+];
+const frameBackgroundDown = const [
+  const {'background': "#fee"},
+  const {'background': "white"}
+];
 
 const submitDuration = const Duration(minutes: 1);
 
@@ -151,7 +157,10 @@ class _Comment {
 }
 
 class _Catches {
-  static const frameButton = const [const {'opacity': 0.05}, const {'opacity': 1}];
+  static const frameButton = const [
+    const {'opacity': 0.05},
+    const {'opacity': 1}
+  ];
 
   final ShadowRoot _root;
   final OnChanged _onChanged;
@@ -168,10 +177,8 @@ class _Catches {
     _addButton = new CachedValue(() => _root.querySelectorAll('#fishes paper-icon-button.add').toList(growable: false));
     _fishItems = new CachedValue(() => _root.querySelectorAll('#fishes .content').toList(growable: false));
 
-    _blinker = new Blinker(blinkDuration, blinkDownDuration, [
-      new BlinkTarget(_addButton, frameButton),
-      new BlinkTarget(_fishItems, frameBackground, frameBackgroundDown)
-    ]);
+    _blinker = new Blinker(blinkDuration, blinkDownDuration,
+        [new BlinkTarget(_addButton, frameButton), new BlinkTarget(_fishItems, frameBackground, frameBackgroundDown)]);
   }
 
   toggle(event) {
@@ -195,30 +202,36 @@ class _Catches {
   }
 
   add() => alfterRippling(() {
-    _logger.fine("Add new fish");
-    final fish = new Fishes.fromMap({'count': 1});
-    dialog.value.open(new GetterSetter(() => fish, (v) {
-      list.value.add(v);
-      _onChanged(list.value);
-    }));
-  });
+        _logger.fine("Add new fish");
+        final fish = new Fishes.fromMap({'count': 1});
+        dialog.value.open(new GetterSetter(() => fish, (v) {
+          list.value.add(v);
+          _onChanged(list.value);
+        }));
+      });
 
   edit(index) => alfterRippling(() {
-    _logger.fine("Edit at $index");
-    dialog.value.open(new GetterSetter(() => list.value[index], (v) {
-      if (v == null) {
-        list.value.removeAt(index);
-      } else {
-        list.value[index] = v;
-      }
-      _onChanged(list.value);
-    }));
-  });
+        _logger.fine("Edit at $index");
+        dialog.value.open(new GetterSetter(() => list.value[index], (v) {
+          if (v == null) {
+            list.value.removeAt(index);
+          } else {
+            list.value[index] = v;
+          }
+          _onChanged(list.value);
+        }));
+      });
 }
 
 class _Location {
-  static const frameBorder = const [const {'border': "solid 2px #fee"}, const {'border': "solid 2px #f88"}];
-  static const frameBorderStop = const [const {'border': "solid 2px #f88"}, const {'border': "solid 2px white"}];
+  static const frameBorder = const [
+    const {'border': "solid 2px #fee"},
+    const {'border': "solid 2px #f88"}
+  ];
+  static const frameBorderStop = const [
+    const {'border': "solid 2px #f88"},
+    const {'border': "solid 2px white"}
+  ];
 
   final ShadowRoot _root;
   final Loc.Location _location;
@@ -239,6 +252,7 @@ class _Location {
     _location.name = v;
     _onChanged(v);
   }
+
   Loc.GeoInfo get geoinfo => _location.geoinfo;
   set geoinfo(Loc.GeoInfo v) {
     if (v == null || _location.geoinfo == v) ;
@@ -260,10 +274,8 @@ class _Location {
     _blinkInput = new CachedValue(() => _root.querySelectorAll('#location .editor input').toList(growable: false));
     _blinkBorder = new CachedValue(() => _root.querySelectorAll('#location .content .gmap').toList(growable: false));
 
-    _blinker = new Blinker(blinkDuration, blinkDownDuration, [
-      new BlinkTarget(_blinkInput, frameBackground),
-      new BlinkTarget(_blinkBorder, frameBorder, frameBorderStop)
-    ]);
+    _blinker = new Blinker(blinkDuration, blinkDownDuration,
+        [new BlinkTarget(_blinkInput, frameBackground), new BlinkTarget(_blinkBorder, frameBorder, frameBorderStop)]);
   }
 
   toggle(event) {
@@ -321,6 +333,7 @@ class _PhotoSize {
     }
     return _width;
   }
+
   int get height => width;
 
   _init(Element divNormal) async {
@@ -346,7 +359,10 @@ class _PhotoSize {
 
   _animateButtons(bool show) {
     final move = _buttons.value.clientHeight;
-    final list = [{'transform': "translateY(${-move}px)"}, {'transform': "none"}];
+    final list = [
+      {'transform': "translateY(${-move}px)"},
+      {'transform': "none"}
+    ];
     final frames = show ? list : list.reversed.toList();
 
     new CoreAnimation()
@@ -387,6 +403,7 @@ class _Conditions {
     _src.tide = v;
     _onChanged(v);
   }
+
   String get tideName => nameOfEnum(_src.tide);
   String get tideImage => Loc.Tides.iconOf(_src.tide);
 
@@ -396,6 +413,7 @@ class _Conditions {
   dialogWeather() => weatherDialog.value.open();
   dialogTide() => tideDialog.value.open();
 }
+
 class _WeatherWrapper implements Loc.Weather {
   final Loc.Weather _src;
   final OnChanged _onChanged;
@@ -416,6 +434,7 @@ class _WeatherWrapper implements Loc.Weather {
     }
     return _temperature;
   }
+
   set temperature(Temperature v) {
     if (v == null) return;
     if (_temperature != null && _temperature == v) return;

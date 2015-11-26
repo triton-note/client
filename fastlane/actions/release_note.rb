@@ -1,6 +1,6 @@
 module Fastlane
   module Actions
-    class GitLogsAction < Action
+    class ReleaseNoteAction < Action
       def self.run(params)
         last = last_tag
         logs = []
@@ -15,7 +15,14 @@ module Fastlane
         else
           logs << obj.oneline
         end
-        return logs.join("\n")
+        note = logs.join("\n")
+      
+        puts "#### RELEASE_NOTE ####\n" + note
+        if note && !note.empty? then
+          target = '.release_note'
+          File.write(target, note)
+          ENV["RELEASE_NOTE_PATH"] = File.absolute_path target
+        end
       end
 
       def self.last_tag

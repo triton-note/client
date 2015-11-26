@@ -38,6 +38,12 @@ Future<_Settings> _initialize() async {
 
 Future<_Settings> get Settings => _initialize();
 
+Future<Map> get AuthorizedSettings async {
+  final Map settings = loadYaml(await S3File.read('authorized/settings.yaml', (await Settings).s3Bucket));
+  _logger.config(() => "Authorized settings loaded");
+  return settings;
+}
+
 class _Settings {
   _Settings(this._local, this._map) {
     snsEndpointArn.then((arn) {

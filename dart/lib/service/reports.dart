@@ -1,10 +1,12 @@
 library triton_note.service.reports;
 
 import 'dart:async';
+import 'dart:html';
 
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
+import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/util/pager.dart';
 
@@ -26,8 +28,7 @@ class Reports {
     return {DynamoDB.CONTENT: obj.toMap(), 'REPORT_ID': obj.id, 'DATE_AT': obj.dateAt.toUtc().millisecondsSinceEpoch};
   });
 
-  static Future<PagingList<Report>> paging =
-      DynamoDB.cognitoId.then((cognitoId) => new PagingList(new _PagerReports(cognitoId)));
+  static PagingList<Report> paging = new PagingList(new _PagerReports());
   static Future<List<Report>> get _cachedList async => (await paging).list;
 
   static Future<Report> _fromCache(String id) async =>
@@ -38,10 +39,8 @@ class Reports {
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
   static Future<Null> _loadFishes(Report report) async {
-    final list = await TABLE_CATCH.query("COGNITO_ID-REPORT_ID-index", {
-      DynamoDB.COGNITO_ID: await DynamoDB.cognitoId,
-      TABLE_REPORT.ID_COLUMN: report.id
-    });
+    final list = await TABLE_CATCH.query(
+        "COGNITO_ID-REPORT_ID-index", {DynamoDB.COGNITO_ID: await cognitoId, TABLE_REPORT.ID_COLUMN: report.id});
     report.fishes
       ..clear()
       ..addAll(list);
@@ -114,18 +113,31 @@ class Reports {
 }
 
 class _PagerReports implements Pager<Report> {
-  final String cognitoId;
-  final Pager<Report> _db;
+  String _cognitoId;
+  Pager<Report> _db;
+  Completer<Null> _ready = new Completer();
 
-  _PagerReports(String id)
-      : this.cognitoId = id,
-        _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, id, false);
+  _PagerReports() {
+    _refreshDb();
+    window.on[EVENT_COGNITO_ID_CHANGED].listen((event) => _refreshDb());
+  }
 
-  bool get hasMore => _db.hasMore;
+  Future<Null> _refreshDb() async {
+    final newId = await cognitoId;
+    if (_cognitoId != newId) {
+      _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
+      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, newId, false);
+      _cognitoId = newId;
+      if (!_ready.isCompleted) _ready.complete(_db);
+    }
+  }
 
-  void reset() => _db.reset();
+  bool get hasMore => _db?.hasMore ?? true;
+
+  void reset() => _db?.reset();
 
   Future<List<Report>> more(int pageSize) async {
+    await _ready.future;
     final list = await _db.more(pageSize);
     await Future.wait(list.map(Reports._loadFishes));
     _logger.finer(() => "Loaded reports: ${list}");

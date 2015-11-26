@@ -1,6 +1,7 @@
 library triton_note.service.aws.cognito;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
 
@@ -13,6 +14,11 @@ import 'package:triton_note/util/getter_setter.dart';
 final _logger = new Logger('Cognito');
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
+Map _jsmap(JsObject obj) => obj == null ? {} : JSON.decode(_stringify(obj));
+
+final EVENT_COGNITO_ID_CHANGED = "EVENT_COGNITO_ID_CHANGED";
+
+Future<String> get cognitoId async => (await CognitoIdentity.credential).id;
 
 class CognitoSettings {
   static CognitoSettings _instance = null;
@@ -35,8 +41,8 @@ class CognitoIdentity {
     final credId = context['AWS']['config']['credentials']['identityId'];
     final logins = context['AWS']['config']['credentials']['params']['Logins'];
 
-    _logger.finer(() => "CognitoIdentity(${_stringify(credId)}):${_stringify(logins)}");
-    return new CognitoIdentity(credId, logins);
+    _logger.finer(() => "CognitoIdentity(${_stringify(credId)})");
+    return new CognitoIdentity(credId, _jsmap(logins));
   }
 
   static Completer _onInitialize = null;
@@ -71,15 +77,32 @@ class CognitoIdentity {
   }
 
   static Future<CognitoIdentity> _setToken(String service, String token) async {
-    _logger.fine("Google Signin Token: ${token}");
+    _logger.fine("SignIn: ${service}");
 
     final creds = context['AWS']['config']['credentials'];
-    final logins = (creds['params']['Logins'] == null) ? {} : creds['params']['Logins'];
-    logins[service] = token;
-    creds['params']['Logins'] = new JsObject.jsify(logins);
-    creds['expired'] = true;
+    final logins = _jsmap(creds['params']['Logins']);
 
-    await _refresh();
+    if (!logins.containsKey(service)) {
+      logins[service] = token;
+      creds['params']['Logins'] = new JsObject.jsify(logins);
+      creds['expired'] = true;
+      await _refresh();
+    }
+    return await credential;
+  }
+
+  static Future<CognitoIdentity> _removeToken(String service) async {
+    _logger.fine("SignOut: ${service}");
+
+    final creds = context['AWS']['config']['credentials'];
+    final Map logins = _jsmap(creds['params']['Logins']);
+
+    if (logins.containsKey(service)) {
+      logins.remove(service);
+      creds['params']['Logins'] = new JsObject.jsify(logins);
+      creds['expired'] = true;
+      await _refresh();
+    }
     return await credential;
   }
 
@@ -92,20 +115,27 @@ class CognitoIdentity {
       (error) {
         if (error == null) {
           result.complete();
+          window.dispatchEvent(new CustomEvent(EVENT_COGNITO_ID_CHANGED, cancelable: false));
         } else {
           _logger.fine("Cognito Error: ${error}");
           result.completeError(error);
         }
       }
     ]);
-
     return result.future;
   }
+
+  static Future<CognitoIdentity> joinFacebook(String token) async => _setToken(PROVIDER_KEY_FACEBOOK, token);
+  static Future<CognitoIdentity> dropFacebook() async => _removeToken(PROVIDER_KEY_FACEBOOK);
+
+  static final String PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
 
   final String id;
   final Map<String, String> logins;
 
   CognitoIdentity(this.id, Map logins) : this.logins = logins == null ? const {} : new Map.unmodifiable(logins);
+
+  bool hasFacebook() => logins.containsKey(PROVIDER_KEY_FACEBOOK);
 }
 
 class CognitoSync {

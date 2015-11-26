@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import 'package:triton_note/service/aws/dynamodb.dart';
+import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/settings.dart';
 
@@ -42,13 +42,15 @@ class Image {
 
   Image(this._reportId, this.relativePath);
 
-  Future<String> get storagePath =>
-      DynamoDB.cognitoId.then((cognitoId) => "photo/${relativePath}/${cognitoId}/${_reportId}/photo_file.jpg");
+  Future<String> get storagePath async => "photo/${relativePath}/${await cognitoId}/${_reportId}/photo_file.jpg";
+
+  Future<String> makeUrl() async => S3File.url(await storagePath);
 
   String get url {
     _refreshUrl();
     return _url;
   }
+
   set url(String v) {
     _url = v;
     if (v.startsWith('http')) {
@@ -65,10 +67,8 @@ class Image {
   _refreshUrl() {
     if (_url == null || (_urlLimit != null && _urlLimit.isBefore(new DateTime.now()))) {
       _refresher.go(() async {
-        final path = await storagePath;
-        _logger.info("Refresh url of s3file: ${path}");
         try {
-          url = await S3File.url(path);
+          url = await makeUrl();
         } catch (ex) {
           _logger.info("Failed to get url of s3file: ${ex}");
         }
