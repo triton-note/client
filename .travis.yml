@@ -25,6 +25,7 @@ install:
   - gem install bundler --no-document
   - bundle install
   - brew update || brew update
+  - brew upgrade
   - brew install git-lfs
   - git-lfs pull
 
