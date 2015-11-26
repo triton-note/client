@@ -17,14 +17,6 @@ end
 before_all do
   into_mode
 
-  release_note = git_logs
-  puts "#### RELEASE_NOTE ####\n" + release_note
-  if release_note && !release_note.empty? then
-    target = '.release_note'
-    File.write(target, release_note)
-    ENV["RELEASE_NOTE_PATH"] = File.absolute_path target
-  end
-
   dart
   cordova(plugins: [
     'cordova-plugin-crosswalk-webview@~1.3.1',
@@ -91,6 +83,8 @@ platform :ios do
       }.map { |k, v| "#{k.to_s.shellescape}=#{v.shellescape}" }.join(' ')
       )
 
+      release_note
+
       if is_ci? && is_adhoc? then
         Dir.chdir('..') do
           command = [
@@ -133,6 +127,8 @@ platform :android do
       'extra-android-m2repository',
       'build-tools'
     ])
+
+    release_note
 
     into_platform do
       if is_ci? && !is_multi? then
