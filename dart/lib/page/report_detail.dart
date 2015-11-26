@@ -73,15 +73,24 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    photo = new _PhotoSize(root);
+    try {
+      photo = new _PhotoSize(root);
 
-    _report.then((v) async {
-      report = v;
-      comment = new _Comment(root, _onChanged, report);
-      catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
-      conditions = new _Conditions(report.condition, _onChanged);
-      location = new _Location(root, report.location, _onChanged);
-    });
+      _logger.info(() => "Waiting for report...");
+      _report.then((v) async {
+        try {
+          report = v;
+          comment = new _Comment(root, _onChanged, report);
+          catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
+          conditions = new _Conditions(report.condition, _onChanged);
+          location = new _Location(root, report.location, _onChanged);
+        } catch (ex) {
+          window.alert("${ex}");
+        }
+      });
+    } catch (ex) {
+      window.alert("${ex}");
+    }
   }
 
   void detach() {
