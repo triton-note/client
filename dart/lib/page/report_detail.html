@@ -6,7 +6,7 @@
       		<span flex>Report Detail</span>
       		
             <div id="more-menu">
-                <paper-icon-button icon="more-vert" ng-click="moreMenu()"></paper-icon-button>
+                <paper-icon-button icon="more-vert" ng-click="root.querySelector('#more-menu core-dropdown').toggle()"></paper-icon-button>
                 <core-dropdown halign="right"">
                     <div class="menu">
                         <paper-item class="publish" ng-click="publish()"><core-icon icon="send"></core-icon>Publish</paper-item>

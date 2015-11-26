@@ -8,7 +8,6 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
-import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
 import 'package:paper_elements/paper_autogrow_textarea.dart';
 
@@ -107,10 +106,6 @@ class ReportDetailPage extends MainFrame implements DetachAware {
 
   void _update() {
     Reports.update(report);
-  }
-
-  moreMenu() {
-    root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
   }
 
   publish() async {
