@@ -130,35 +130,31 @@ class _MoreMenu {
   String dialogMessage;
   Completer<bool> dialogResult;
 
-  Future<bool> dialog(String message) async {
+  dialogOk() => dialogResult.complete(true);
+  dialogCancel() => dialogResult.complete(false);
+
+  dialog(String message, void whenOk()) {
     dialogMessage = message;
     toggle();
 
     dialogResult = new Completer();
     final dialog = _root.querySelector('#more-menu paper-action-dialog') as PaperActionDialog;
     dialog.open();
-    return dialogResult.future;
+    dialogResult.future.then((ok) {
+      if (ok) whenOk();
+    });
   }
 
-  dialogOk() => dialogResult.complete(true);
-  dialogCancel() => dialogResult.complete(false);
+  publish() => dialog("Publish to Facebook ?", () async {
+        final published = await FBPublish.publish(_report);
+        _report.facebookPublish = published;
+        _onChanged(published);
+      });
 
-  publish() async {
-    final ok = await dialog("Publish to Facebook ?");
-    if (ok) {
-      final published = await FBPublish.publish(_report);
-      _report.facebookPublish = published;
-      _onChanged(published);
-    }
-  }
-
-  delete() async {
-    final ok = await dialog("Delete this report ?");
-    if (ok) {
-      await Reports.remove(_report.id);
-      _back();
-    }
-  }
+  delete() => dialog("Delete this report ?", () async {
+        await Reports.remove(_report.id);
+        _back();
+      });
 }
 
 class _Comment {
