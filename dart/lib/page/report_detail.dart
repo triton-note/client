@@ -80,15 +80,10 @@ class ReportDetailPage extends MainFrame implements DetachAware {
       _report.then((v) async {
         try {
           report = v;
-          _logger.info(() => "Get report: ${report}");
           comment = new _Comment(root, _onChanged, report);
-          _logger.info(() => "Created comment: ${comment}");
           catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
-          _logger.info(() => "Created catches: ${catches}");
           conditions = new _Conditions(report.condition, _onChanged);
-          _logger.info(() => "Created conditions: ${conditions}");
           location = new _Location(root, report.location, _onChanged);
-          _logger.info(() => "Created location: ${location}");
         } catch (ex) {
           window.alert("${ex}");
         }
