@@ -114,7 +114,7 @@ class FBPublish {
     _logger.fine(() => "Posting to ${url}: ${params}");
 
     final result = await HttpRequest.postFormData("${url}?access_token=${token}", params);
-    _logger.fine(() => "Result of posting to facebook: ${result}");
+    _logger.fine(() => "Result of posting to facebook: ${result?.responseText}");
 
     if ((result.status / 100).floor() != 2) throw result.responseText;
     final Map obj = JSON.decode(result.responseText);
