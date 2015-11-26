@@ -8,7 +8,9 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
+import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
+import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:paper_elements/paper_autogrow_textarea.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
@@ -60,6 +62,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   _PhotoSize photo;
   _Location location;
   _Conditions conditions;
+  _MoreMenu moreMenu;
   GetterSetter<EditTimestampDialog> editTimestamp = new PipeValue();
   Timer _submitTimer;
 
@@ -80,6 +83,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
       catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
       conditions = new _Conditions(report.condition, _onChanged);
       location = new _Location(root, report.location, _onChanged);
+      moreMenu = new _MoreMenu(root, report, _onChanged, back);
     });
   }
 
@@ -107,16 +111,53 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   void _update() {
     Reports.update(report);
   }
+}
+
+class _MoreMenu {
+  final ShadowRoot _root;
+  final Report _report;
+  final OnChanged _onChanged;
+  final _back;
+
+  _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
+
+  bool get publishable => _report?.facebookPublish == null;
+
+  toggle() {
+    _root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
+  }
+
+  String dialogMessage;
+  Completer<bool> dialogResult;
+
+  Future<bool> dialog(String message) async {
+    dialogMessage = message;
+    toggle();
+
+    dialogResult = new Completer();
+    final dialog = _root.querySelector('#more-menu paper-action-dialog') as PaperActionDialog;
+    dialog.open();
+    return dialogResult.future;
+  }
+
+  dialogOk() => dialogResult.complete(true);
+  dialogCancel() => dialogResult.complete(false);
 
   publish() async {
-    final published = await FBPublish.publish(report);
-    report.facebookPublish = published;
-    _update();
+    final ok = await dialog("Publish to Facebook ?");
+    if (ok) {
+      final published = await FBPublish.publish(_report);
+      _report.facebookPublish = published;
+      _onChanged(published);
+    }
   }
 
   delete() async {
-    await Reports.remove(report.id);
-    back();
+    final ok = await dialog("Delete this report ?");
+    if (ok) {
+      await Reports.remove(_report.id);
+      _back();
+    }
   }
 }
 
