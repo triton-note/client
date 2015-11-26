@@ -12,6 +12,41 @@ $edit-button-padding: 8px;
   }
 }
 
+div#more-menu {
+  position: relative;
+  
+  core-dropdown {
+    top: 38px;
+    color: #111;
+    
+    .menu {
+      @include display-flex();
+      @include flex-direction(column);
+      padding: 8px;
+      
+      &>* {
+        margin: 5px;
+        @include border-radius(4px);
+        
+        &>core-icon {
+          margin-right: 8px;
+        }
+      }
+      
+      .publish {
+        $base-color: #3296FF;
+        color: $base-color;
+        background: tint($base-color, 80%);
+      }
+      .delete {
+        $base-color: #FF3232;
+        color: $base-color;
+        background: tint($base-color, 80%);
+      }
+    }
+  }
+}
+
 #base {
   margin: 10px;
 }

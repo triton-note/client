@@ -20,6 +20,7 @@ import 'package:triton_note/model/location.dart' as Loc;
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
+import 'package:triton_note/service/facebook.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/enums.dart';
@@ -105,6 +106,17 @@ class ReportDetailPage extends MainFrame implements DetachAware {
 
   void _update() {
     Reports.update(report);
+  }
+
+  publish() async {
+    final published = await FBPublish.publish(report);
+    report.facebookPublish = published;
+    _update();
+  }
+
+  delete() async {
+    await Reports.remove(report.id);
+    back();
   }
 }
 

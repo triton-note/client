@@ -8,6 +8,7 @@ import 'package:triton_note/service/aws/dynamodb.dart';
 
 abstract class Report implements DBRecord<Report> {
   String comment;
+  String facebookPublish;
   DateTime dateAt;
   Location location;
   Condition condition;
@@ -39,6 +40,9 @@ class _ReportImpl implements Report {
 
   String get comment => _data['comment'];
   set comment(String v) => _data['comment'] = v;
+
+  String get facebookPublish => _data['facebookPublish'];
+  set facebookPublish(String v) => _data['facebookPublish'] = v;
 
   Location get location => _location.value;
   set location(Location v) => _location.value = v;
