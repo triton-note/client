@@ -73,6 +73,7 @@ class FBPublish {
 
   static Future<String> publish(Report report) async {
     _logger.fine(() => "Publishing report: ${report.id}");
+    FabricCrashlytics.crash("On entering publish");
 
     final token = await FBConnect.grantPublish();
     final cred = await CognitoIdentity.credential;
@@ -114,7 +115,6 @@ class FBPublish {
     final url = "${fb.hostname}/me/${fb.appName}:${fb.actionName}";
     _logger.fine(() => "Posting to ${url}: ${params}");
 
-    FabricCrashlytics.crash("Before posting");
     final result = await HttpRequest.postFormData("${url}?access_token=${token}", params);
     _logger.fine(() => "Result of posting to facebook: ${result?.responseText}");
 
