@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/model/report.dart';
+import 'package:triton_note/util/fabric.dart';
 
 class FBConnect {
   static final _logger = new Logger('FBConnect');
@@ -113,6 +114,7 @@ class FBPublish {
     final url = "${fb.hostname}/me/${fb.appName}:${fb.actionName}";
     _logger.fine(() => "Posting to ${url}: ${params}");
 
+    FabricCrashlytics.crash("Before posting");
     final result = await HttpRequest.postFormData("${url}?access_token=${token}", params);
     _logger.fine(() => "Result of posting to facebook: ${result?.responseText}");
 
