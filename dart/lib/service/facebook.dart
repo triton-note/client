@@ -75,8 +75,8 @@ class FBPublish {
     _logger.fine(() => "Publishing report: ${report.id}");
 
     final token = await FBConnect.grantPublish();
+    FabricCrashlytics.crash("Before cognito credential");
     final cred = await CognitoIdentity.credential;
-    FabricCrashlytics.crash("After cognito credential");
     final settings = await Settings;
     final fb = await _FBSettings.load();
 
