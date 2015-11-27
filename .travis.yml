@@ -25,10 +25,6 @@ install:
   - gem install bundler --no-document
   - bundle install
   - brew update || brew update
-  - brew upgrade
-  - brew install git-lfs
-  - git lfs install
-  - git lfs pull
 
 script:
   - fastlane enable_crash_reporting
