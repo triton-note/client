@@ -48,7 +48,7 @@ div#more-menu {
   
   paper-action-dialog {
     @include border-radius(3px);
-    border: solid 16px #ddd;
+    font-size: 16px;
     paper-button[dismissive] {
       color: red;
     }
