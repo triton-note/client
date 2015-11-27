@@ -12,6 +12,7 @@ import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
 import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:paper_elements/paper_autogrow_textarea.dart';
+import 'package:paper_elements/paper_toast.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
@@ -149,6 +150,10 @@ class _MoreMenu {
         final published = await FBPublish.publish(_report);
         _report.facebookPublish = published;
         _onChanged(published);
+
+        _root.querySelector('#more-menu paper-toast') as PaperToast
+          ..text = "Published to Facebook"
+          ..show();
       });
 
   delete() => dialog("Delete this report ?", () async {
