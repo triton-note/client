@@ -45,17 +45,6 @@ div#more-menu {
       }
     }
   }
-  
-  paper-action-dialog {
-    @include border-radius(3px);
-    border: solid 16px #ddd;
-    paper-button[dismissive] {
-      color: red;
-    }
-    paper-button[affirmative] {
-      color: blue;
-    }
-  }
 }
 
 #base {
