@@ -147,16 +147,20 @@ class _MoreMenu {
   }
 
   publish() => dialog("Publish to Facebook ?", () async {
-        final published = await FBPublish.publish(_report);
-        if (_report.published == null) {
-          _report.published = new Published.fromMap({});
-        }
-        _report.published.facebook = published;
-        _onChanged(published);
-
-        _root.querySelector('#more-menu paper-toast') as PaperToast
-          ..text = "Published to Facebook"
+        toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
+          ..text = msg
           ..show();
+        try {
+          final published = await FBPublish.publish(_report);
+          if (_report.published == null) {
+            _report.published = new Published.fromMap({});
+          }
+          _report.published.facebook = published;
+          _onChanged(published);
+          toast("Completed on publishing to Facebook");
+        } catch (ex) {
+          toast("Failed on publishing to Facebook");
+        }
       });
 
   delete() => dialog("Delete this report ?", () async {
