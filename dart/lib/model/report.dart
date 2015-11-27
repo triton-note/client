@@ -8,8 +8,8 @@ import 'package:triton_note/service/aws/dynamodb.dart';
 
 abstract class Report implements DBRecord<Report> {
   String comment;
-  String facebookPublish;
   DateTime dateAt;
+  Published published;
   Location location;
   Condition condition;
   final Photo photo;
@@ -23,6 +23,7 @@ abstract class Report implements DBRecord<Report> {
 class _ReportImpl implements Report {
   final Map _data;
   final Photo photo;
+  final CachedProp<Published> _published;
   final CachedProp<Location> _location;
   final CachedProp<Condition> _condition;
 
@@ -30,6 +31,7 @@ class _ReportImpl implements Report {
       : _data = data,
         this.id = id,
         photo = new Photo(id),
+        _published = new CachedProp<Published>.forMap(data, 'published', (map) => new Published.fromMap(map)),
         _location = new CachedProp<Location>.forMap(data, 'location', (map) => new Location.fromMap(map)),
         _condition = new CachedProp<Condition>.forMap(data, 'condition', (map) => new Condition.fromMap(map));
 
@@ -41,8 +43,8 @@ class _ReportImpl implements Report {
   String get comment => _data['comment'];
   set comment(String v) => _data['comment'] = v;
 
-  String get facebookPublish => _data['facebookPublish'];
-  set facebookPublish(String v) => _data['facebookPublish'] = v;
+  Published get published => _published.value;
+  set published(Published v) => _published.value = v;
 
   Location get location => _location.value;
   set location(Location v) => _location.value = v;
@@ -75,6 +77,23 @@ class _ReportImpl implements Report {
   }
 
   Report clone() => new _ReportImpl(toMap(), id, dateAt, fishes.map((o) => o.clone()).toList());
+}
+
+abstract class Published implements JsonSupport {
+  String facebook;
+
+  factory Published.fromMap(Map data) => new _PublishedImpl(data);
+}
+
+class _PublishedImpl extends JsonSupport implements Published {
+  final Map _data;
+
+  _PublishedImpl(Map data) : _data = data;
+
+  Map get asMap => _data;
+
+  String get facebook => _data['facebook'];
+  set facebook(String v) => _data['facebook'] = v;
 }
 
 abstract class Fishes implements DBRecord<Fishes> {

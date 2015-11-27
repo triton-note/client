@@ -122,7 +122,7 @@ class _MoreMenu {
 
   _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
 
-  bool get publishable => _report?.facebookPublish == null;
+  bool get publishable => _report?.published?.facebook == null;
 
   toggle() {
     _root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
@@ -148,7 +148,10 @@ class _MoreMenu {
 
   publish() => dialog("Publish to Facebook ?", () async {
         final published = await FBPublish.publish(_report);
-        _report.facebookPublish = published;
+        if (_report.published == null) {
+          _report.published = new Published.fromMap({});
+        }
+        _report.published.facebook = published;
         _onChanged(published);
 
         _root.querySelector('#more-menu paper-toast') as PaperToast
