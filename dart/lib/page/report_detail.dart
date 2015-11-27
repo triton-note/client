@@ -143,6 +143,7 @@ class _MoreMenu {
     dialog.open();
     dialogResult.future.then((ok) {
       if (ok) whenOk();
+      else toast("Cancelled");
     });
   }
 
