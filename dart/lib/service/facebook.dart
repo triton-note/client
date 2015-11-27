@@ -120,6 +120,6 @@ class FBPublish {
     final Map obj = JSON.decode(result.responseText);
 
     if (!obj.containsKey('id')) throw obj;
-    return obj['id'];
+    return (report.published ??= new Published.fromMap({})).facebook = obj['id'];
   }
 }

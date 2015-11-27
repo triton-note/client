@@ -8,8 +8,11 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
+import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
+import 'package:paper_elements/paper_action_dialog.dart';
 import 'package:paper_elements/paper_autogrow_textarea.dart';
+import 'package:paper_elements/paper_toast.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
@@ -20,6 +23,7 @@ import 'package:triton_note/model/location.dart' as Loc;
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
+import 'package:triton_note/service/facebook.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/enums.dart';
@@ -59,6 +63,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   _PhotoSize photo;
   _Location location;
   _Conditions conditions;
+  _MoreMenu moreMenu;
   GetterSetter<EditTimestampDialog> editTimestamp = new PipeValue();
   Timer _submitTimer;
 
@@ -79,6 +84,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
       catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
       conditions = new _Conditions(report.condition, _onChanged);
       location = new _Location(root, report.location, _onChanged);
+      moreMenu = new _MoreMenu(root, report, _onChanged, back);
     });
   }
 
@@ -106,6 +112,61 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   void _update() {
     Reports.update(report);
   }
+}
+
+class _MoreMenu {
+  final ShadowRoot _root;
+  final Report _report;
+  final OnChanged _onChanged;
+  final _back;
+
+  _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
+
+  bool get publishable => _report?.published?.facebook == null;
+
+  toggle() {
+    _root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
+  }
+
+  String dialogMessage;
+  Completer<bool> dialogResult;
+
+  dialogOk() => dialogResult.complete(true);
+  dialogCancel() => dialogResult.complete(false);
+
+  dialog(String message, void whenOk()) {
+    dialogMessage = message;
+    toggle();
+
+    dialogResult = new Completer();
+    final dialog = _root.querySelector('#more-menu paper-action-dialog') as PaperActionDialog;
+    dialog.open();
+    dialogResult.future.then((ok) {
+      if (ok) whenOk();
+      else toast("Cancelled");
+    });
+  }
+
+  toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
+    ..classes.remove('fit-bottom')
+    ..text = msg
+    ..show();
+
+  publish() => dialog("Publish to Facebook ?", () async {
+        try {
+          final published = await FBPublish.publish(_report);
+          _onChanged(published);
+          toast("Completed on publishing to Facebook");
+        } catch (ex) {
+          _logger.warning(() => "Error on publishing to Facebook: ${ex}");
+          toast("Failed on publishing to Facebook");
+        }
+      });
+
+  delete() => dialog("Delete this report ?", () async {
+        await Reports.remove(_report.id);
+        _back();
+      });
 }
 
 class _Comment {

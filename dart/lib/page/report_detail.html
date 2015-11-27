@@ -5,6 +5,24 @@
 			
       		<span flex>Report Detail</span>
       		
+            <div id="more-menu" ng-if="moreMenu != null">
+                <paper-icon-button icon="more-vert" ng-click="moreMenu.toggle()"></paper-icon-button>
+                <core-dropdown halign="right"">
+                    <div class="menu">
+                        <paper-item class="publish" ng-click="moreMenu.publish()" ng-if="moreMenu.publishable"><core-icon icon="send"></core-icon>Publish</paper-item>
+                        <paper-item class="delete" ng-click="moreMenu.delete()"><core-icon icon="delete"></core-icon>Delete</paper-item>
+                    </div>
+                </core-dropdown>
+                
+                <paper-action-dialog backdrop autoCloseDisabled layered="false" transition="core-transition-center">
+                    <p>{{ moreMenu.dialogMessage }}</p>
+                    <paper-button dismissive raise ng-click="moreMenu.dialogCancel()">CANCEL</paper-button>
+                    <paper-button affirmative raise ng-click="moreMenu.dialogOk()">OK</paper-button>
+                </paper-action-dialog>
+                
+                <paper-toast class="capsule"></paper-toast>
+            </div>
+            
    		</core-toolbar>
 
 		<core-animated-pages transitions="hero-transition cross-fade">

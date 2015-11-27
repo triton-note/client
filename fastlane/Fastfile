@@ -83,21 +83,23 @@ platform :ios do
       }.map { |k, v| "#{k.to_s.shellescape}=#{v.shellescape}" }.join(' ')
       )
 
-      release_note
+      if is_ci? then
+        release_note
 
-      if is_ci? && is_adhoc? then
-        Dir.chdir('..') do
-          command = [
-            File.join('Pods', 'Crashlytics', 'submit'),
-            ENV["FABRIC_API_KEY"],
-            ENV["FABRIC_BUILD_SECRET"],
-            "-ipaPath '#{ENV["APPLICATION_NAME"]}.ipa'",
-            "-notesPath '#{ENV["RELEASE_NOTE_PATH"]}'",
-            "-groupAliases '#{ENV["FABRIC_CRASHLYTICS_GROUPS"]}'",
-            "-notifications YES",
-            "-debug NO"
-          ]
-          system(command.join ' ')
+        if is_adhoc? then
+          Dir.chdir('..') do
+            command = [
+              File.join('Pods', 'Crashlytics', 'submit'),
+              ENV["FABRIC_API_KEY"],
+              ENV["FABRIC_BUILD_SECRET"],
+              "-ipaPath '#{ENV["APPLICATION_NAME"]}.ipa'",
+              "-notesPath '#{ENV["RELEASE_NOTE_PATH"]}'",
+              "-groupAliases '#{ENV["FABRIC_CRASHLYTICS_GROUPS"]}'",
+              "-notifications YES",
+              "-debug NO"
+            ]
+            system(command.join ' ')
+          end
         end
       end
     end
@@ -128,17 +130,19 @@ platform :android do
       'build-tools'
     ])
 
-    release_note
+    if is_ci? then
+      release_note
 
-    into_platform do
-      if is_ci? && !is_multi? then
-        crashlytics(
-        apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
-        api_token: ENV["FABRIC_API_KEY"],
-        build_secret: ENV["FABRIC_BUILD_SECRET"],
-        notes_path: ENV["RELEASE_NOTE_PATH"],
-        groups: ENV["FABRIC_CRASHLYTICS_GROUPS"]
-        )
+      into_platform do
+        if !is_multi? then
+          crashlytics(
+          apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
+          api_token: ENV["FABRIC_API_KEY"],
+          build_secret: ENV["FABRIC_BUILD_SECRET"],
+          notes_path: ENV["RELEASE_NOTE_PATH"],
+          groups: ENV["FABRIC_CRASHLYTICS_GROUPS"]
+          )
+        end
       end
     end
   end
