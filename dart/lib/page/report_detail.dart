@@ -148,6 +148,7 @@ class _MoreMenu {
   }
 
   toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
+    ..classes.remove('fit-bottom')
     ..text = msg
     ..show();
 
