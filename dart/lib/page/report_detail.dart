@@ -154,10 +154,6 @@ class _MoreMenu {
   publish() => dialog("Publish to Facebook ?", () async {
         try {
           final published = await FBPublish.publish(_report);
-          if (_report.published == null) {
-            _report.published = new Published.fromMap({});
-          }
-          _report.published.facebook = published;
           _onChanged(published);
           toast("Completed on publishing to Facebook");
         } catch (ex) {
