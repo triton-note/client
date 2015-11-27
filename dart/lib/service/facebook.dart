@@ -75,10 +75,10 @@ class FBPublish {
     _logger.fine(() => "Publishing report: ${report.id}");
 
     final token = await FBConnect.grantPublish();
-    FabricCrashlytics.crash("Before cognito credential");
     final cred = await CognitoIdentity.credential;
     final settings = await Settings;
     final fb = await _FBSettings.load();
+    FabricCrashlytics.crash("After loaded");
 
     og(String name, [Map info = const {}]) {
       final url = "https://api.fathens.org/triton-note/open_graph/${name}";
