@@ -48,17 +48,12 @@ div#more-menu {
   
   paper-action-dialog {
     @include border-radius(3px);
-    p {
-      padding-bottom: 16px;
-      border-bottom: solid 1px #eee;
-    }
+    border: solid 16px #ddd;
     paper-button[dismissive] {
       color: red;
-      background-color: lightgray;
     }
     paper-button[affirmative] {
       color: blue;
-      background-color: lightgray;
     }
   }
 }
