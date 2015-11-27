@@ -10,7 +10,6 @@ import 'package:logging/logging.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/model/report.dart';
-import 'package:triton_note/util/fabric.dart';
 
 class FBConnect {
   static final _logger = new Logger('FBConnect');
@@ -78,7 +77,6 @@ class FBPublish {
     final cred = await CognitoIdentity.credential;
     final settings = await Settings;
     final fb = await _FBSettings.load();
-    FabricCrashlytics.crash("After loaded");
 
     og(String name, [Map info = const {}]) {
       final url = "https://api.fathens.org/triton-note/open_graph/${name}";
