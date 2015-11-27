@@ -146,10 +146,11 @@ class _MoreMenu {
     });
   }
 
+  toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
+    ..text = msg
+    ..show();
+
   publish() => dialog("Publish to Facebook ?", () async {
-        toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
-          ..text = msg
-          ..show();
         try {
           final published = await FBPublish.publish(_report);
           if (_report.published == null) {
@@ -159,6 +160,7 @@ class _MoreMenu {
           _onChanged(published);
           toast("Completed on publishing to Facebook");
         } catch (ex) {
+          _logger.warning(() => "Error on publishing to Facebook: ${ex}");
           toast("Failed on publishing to Facebook");
         }
       });
