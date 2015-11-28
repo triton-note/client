@@ -2,7 +2,6 @@ library triton_note.service.aws.dynamodb;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 import 'dart:js';
 import 'dart:math';
 
@@ -50,9 +49,7 @@ class DynamoDB_Table<T extends DBRecord> {
   final _RecordWriter<T> writer;
 
   DynamoDB_Table(this.tableName, this.ID_COLUMN, this.reader, this.writer) {
-    window.on[EVENT_COGNITO_ID_CHANGED].listen((CustomEvent event) {
-      _changeCognitoId(event.detail['previous'], event.detail['current']);
-    });
+    CognitoIdentity.onChangedEvent(_changeCognitoId);
   }
 
   Future<Null> _changeCognitoId(String previous, String current) async {

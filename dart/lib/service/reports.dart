@@ -118,16 +118,15 @@ class _PagerReports implements Pager<Report> {
   Completer<Null> _ready = new Completer();
 
   _PagerReports() {
-    _refreshDb();
-    window.on[EVENT_COGNITO_ID_CHANGED].listen((event) => _refreshDb());
+    cognitoId.then((id) => _refreshDb(null, id));
+    CognitoIdentity.onChangedEvent(_refreshDb);
   }
 
-  Future<Null> _refreshDb() async {
-    final newId = await cognitoId;
-    if (_cognitoId != newId) {
+  Future<Null> _refreshDb(String previousId, String currentId) async {
+    if (currentId != null && _cognitoId != currentId) {
       _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
-      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, newId, false);
-      _cognitoId = newId;
+      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
+      _cognitoId = currentId;
       if (!_ready.isCompleted) _ready.complete(_db);
     }
   }

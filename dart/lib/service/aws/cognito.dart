@@ -16,8 +16,6 @@ final _logger = new Logger('Cognito');
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 Map _jsmap(JsObject obj) => obj == null ? {} : JSON.decode(_stringify(obj));
 
-final EVENT_COGNITO_ID_CHANGED = "EVENT_COGNITO_ID_CHANGED";
-
 Future<String> get cognitoId async => (await CognitoIdentity.credential).id;
 
 class CognitoSettings {
@@ -119,9 +117,7 @@ class CognitoIdentity {
 
           final newId = _credentials['identityId'];
           if (oldId != newId) {
-            final info = {'previous': oldId, 'current': newId};
-            _logger.finest(() => "Dispatching event: ${info}");
-            window.dispatchEvent(new CustomEvent(EVENT_COGNITO_ID_CHANGED, cancelable: false, detail: info));
+            fireChangedEvent(oldId, newId);
           }
         } else {
           _logger.fine("Cognito Error: ${error}");
@@ -136,6 +132,20 @@ class CognitoIdentity {
   static Future<CognitoIdentity> dropFacebook() async => _removeToken(PROVIDER_KEY_FACEBOOK);
 
   static final String PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
+
+  static final EVENT_COGNITO_ID_CHANGED = "EVENT_COGNITO_ID_CHANGED";
+
+  static fireChangedEvent(String previous, String current) {
+    final info = {'previous': previous, 'current': current};
+    _logger.finest(() => "Dispatching event: ${info}");
+    window.dispatchEvent(new CustomEvent(EVENT_COGNITO_ID_CHANGED, cancelable: false, detail: info));
+  }
+
+  static onChangedEvent(proc(String previous, String current)) {
+    window.on[EVENT_COGNITO_ID_CHANGED].listen((CustomEvent event) {
+      proc(event.detail['previous'], event.detail['current']);
+    });
+  }
 
   final String id;
   final Map<String, String> logins;
