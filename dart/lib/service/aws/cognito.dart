@@ -9,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:triton_note/util/fabric.dart';
-import 'package:triton_note/util/getter_setter.dart';
+import 'package:triton_note/service/facebook.dart';
 
 final _logger = new Logger('Cognito');
 
@@ -67,6 +67,11 @@ class CognitoIdentity {
           await _refresh();
         }
         FabricAnswers.eventLogin(method: "Cognito");
+
+        if (_ConnectedServices.get(PROVIDER_KEY_FACEBOOK)) {
+          await FBConnect.login();
+        }
+
         _onInitialize.complete();
       } catch (ex) {
         _logger.warning("Error on initializing: ${ex}");
@@ -76,7 +81,7 @@ class CognitoIdentity {
     return _onInitialize.future;
   }
 
-  static Future<CognitoIdentity> _setToken(String service, String token) async {
+  static Future<Null> _setToken(String service, String token) async {
     _logger.fine("SignIn: ${service}");
 
     final logins = _jsmap(_credentials['params']['Logins']);
@@ -86,11 +91,11 @@ class CognitoIdentity {
       _credentials['params']['Logins'] = new JsObject.jsify(logins);
       await _refresh();
       FabricAnswers.eventLogin(method: service);
+      _ConnectedServices.set(service, true);
     }
-    return await credential;
   }
 
-  static Future<CognitoIdentity> _removeToken(String service) async {
+  static Future<Null> _removeToken(String service) async {
     _logger.fine("SignOut: ${service}");
 
     final Map logins = _jsmap(_credentials['params']['Logins']);
@@ -99,8 +104,8 @@ class CognitoIdentity {
       logins.remove(service);
       _credentials['params']['Logins'] = new JsObject.jsify(logins);
       await _refresh();
+      _ConnectedServices.set(service, false);
     }
-    return await credential;
   }
 
   static Future<Null> _refresh() async {
@@ -128,8 +133,8 @@ class CognitoIdentity {
     return result.future;
   }
 
-  static Future<CognitoIdentity> joinFacebook(String token) async => _setToken(PROVIDER_KEY_FACEBOOK, token);
-  static Future<CognitoIdentity> dropFacebook() async => _removeToken(PROVIDER_KEY_FACEBOOK);
+  static Future<Null> joinFacebook(String token) async => _setToken(PROVIDER_KEY_FACEBOOK, token);
+  static Future<Null> dropFacebook() async => _removeToken(PROVIDER_KEY_FACEBOOK);
 
   static final String PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
 
@@ -153,6 +158,14 @@ class CognitoIdentity {
   CognitoIdentity(this.id, Map logins) : this.logins = logins == null ? const {} : new Map.unmodifiable(logins);
 
   bool hasFacebook() => logins.containsKey(PROVIDER_KEY_FACEBOOK);
+}
+
+class _ConnectedServices {
+  static Map<String, bool> get _value => JSON.decode(window.localStorage['cognito']);
+  static set _value(Map<String, bool> v) => window.localStorage['cognito'] = JSON.encode(v);
+
+  static bool get(String service) => _value[service];
+  static set(String service, bool v) => _value = _value..[service] = v;
 }
 
 class CognitoSync {
