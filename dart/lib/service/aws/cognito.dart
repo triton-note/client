@@ -156,10 +156,10 @@ class CognitoIdentity {
 }
 
 class CognitoSync {
-  static final Getter<Future<JsObject>> _client = new Getter(() async {
+  static Future<JsObject> get _client async {
     await CognitoIdentity.credential;
     return new JsObject(context['AWS']['CognitoSyncManager'], []);
-  });
+  }
 
   static Future<JsObject> _invoke(JsObject target, String methodName, List params) async {
     final result = new Completer();
@@ -183,7 +183,7 @@ class CognitoSync {
   }
 
   static Future<CognitoSync> getDataset(String name) async {
-    final dataset = await _invoke(await _client.value, 'openOrCreateDataset', [name]);
+    final dataset = await _invoke(await _client, 'openOrCreateDataset', [name]);
     return new CognitoSync(dataset);
   }
 
