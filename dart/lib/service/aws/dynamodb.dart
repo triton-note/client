@@ -56,6 +56,8 @@ class DynamoDB_Table<T extends DBRecord> {
   }
 
   Future<Null> _changeCognitoId(String previous, String current) async {
+    if (previous == null || current == null) return;
+
     _logger.fine(() => "Changing cognito id on table(${tableName}): ${previous} -> ${current}");
     final keys = {
       DynamoDB.COGNITO_ID: {'S': previous}
