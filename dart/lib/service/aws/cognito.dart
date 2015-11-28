@@ -81,13 +81,13 @@ class CognitoIdentity {
   static Future<CognitoIdentity> _setToken(String service, String token) async {
     _logger.fine("SignIn: ${service}");
 
-    final creds = _credentials;
-    final logins = _jsmap(creds['params']['Logins']);
+    final logins = _jsmap(_credentials['params']['Logins']);
 
     if (!logins.containsKey(service)) {
       logins[service] = token;
-      creds['params']['Logins'] = new JsObject.jsify(logins);
+      _credentials['params']['Logins'] = new JsObject.jsify(logins);
       await _refresh();
+      FabricAnswers.eventLogin(method: service);
     }
     return await credential;
   }
