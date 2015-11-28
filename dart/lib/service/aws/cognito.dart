@@ -35,11 +35,14 @@ class CognitoSettings {
 }
 
 class CognitoIdentity {
+  static JsObject get _credentials => context['AWS']['config']['credentials'];
+  static set _credentials(JsObject obj) => context['AWS']['config']['credentials'] = obj;
+
   static Future<CognitoIdentity> get credential async {
     await _initialize();
 
-    final credId = context['AWS']['config']['credentials']['identityId'];
-    final logins = context['AWS']['config']['credentials']['params']['Logins'];
+    final credId = _credentials['identityId'];
+    final logins = _credentials['params']['Logins'];
 
     _logger.finer(() => "CognitoIdentity(${_stringify(credId)})");
     return new CognitoIdentity(credId, _jsmap(logins));
@@ -54,16 +57,15 @@ class CognitoIdentity {
         final settings = await CognitoSettings.value;
 
         context['AWS']['config']['region'] = settings.region;
-        final creds = new JsObject(context['AWS']['CognitoIdentityCredentials'], [
+        _credentials = new JsObject(context['AWS']['CognitoIdentityCredentials'], [
           new JsObject.jsify({'IdentityPoolId': settings.poolId})
         ]);
-        context['AWS']['config']['credentials'] = creds;
 
         try {
           await _refresh();
         } catch (ex) {
           _logger.fine("Initialize error (reset and try again): ${ex}");
-          creds['params']['IdentityId'] = null;
+          _credentials['params']['IdentityId'] = null;
           await _refresh();
         }
         FabricAnswers.eventLogin(method: "Cognito");
@@ -79,13 +81,12 @@ class CognitoIdentity {
   static Future<CognitoIdentity> _setToken(String service, String token) async {
     _logger.fine("SignIn: ${service}");
 
-    final creds = context['AWS']['config']['credentials'];
+    final creds = _credentials;
     final logins = _jsmap(creds['params']['Logins']);
 
     if (!logins.containsKey(service)) {
       logins[service] = token;
       creds['params']['Logins'] = new JsObject.jsify(logins);
-      creds['expired'] = true;
       await _refresh();
     }
     return await credential;
@@ -94,13 +95,11 @@ class CognitoIdentity {
   static Future<CognitoIdentity> _removeToken(String service) async {
     _logger.fine("SignOut: ${service}");
 
-    final creds = context['AWS']['config']['credentials'];
-    final Map logins = _jsmap(creds['params']['Logins']);
+    final Map logins = _jsmap(_credentials['params']['Logins']);
 
     if (logins.containsKey(service)) {
       logins.remove(service);
-      creds['params']['Logins'] = new JsObject.jsify(logins);
-      creds['expired'] = true;
+      _credentials['params']['Logins'] = new JsObject.jsify(logins);
       await _refresh();
     }
     return await credential;
@@ -109,13 +108,21 @@ class CognitoIdentity {
   static Future<Null> _refresh() async {
     final result = new Completer();
 
-    final creds = context['AWS']['config']['credentials'];
+    final oldId = _credentials['identityId'];
+    _credentials['expired'] = true;
+
     _logger.fine("Getting credentials");
-    creds.callMethod('get', [
+    _credentials.callMethod('get', [
       (error) {
         if (error == null) {
           result.complete();
-          window.dispatchEvent(new CustomEvent(EVENT_COGNITO_ID_CHANGED, cancelable: false));
+
+          final newId = _credentials['identityId'];
+          if (oldId != newId) {
+            final info = {'previous': oldId, 'current': newId};
+            _logger.finest(() => "Dispatching event: ${info}");
+            window.dispatchEvent(new CustomEvent(EVENT_COGNITO_ID_CHANGED, cancelable: false, detail: info));
+          }
         } else {
           _logger.fine("Cognito Error: ${error}");
           result.completeError(error);
