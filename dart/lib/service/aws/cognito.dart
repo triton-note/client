@@ -121,7 +121,7 @@ class CognitoIdentity {
           result.complete();
 
           final newId = _credentials['identityId'];
-          if (oldId != newId) {
+          if (oldId != newId && (_onInitialize?.isCompleted ?? false)) {
             fireChangedEvent(oldId, newId);
           }
         } else {
