@@ -85,13 +85,15 @@ class _Photo {
 }
 
 class _ServerApiMap {
-  _ServerApiMap(this._map);
-  final Map _map;
+  static _api(Map config, String name) =>
+      new ApiInfo("${config['base_url']}/${config['gateways'][name]}", config['key']);
 
-  _api(String name) => new ApiInfo("${_map['base_url']}/${_map['gateways'][name]}", _map['key']);
+  final ApiInfo moon, weather, cognitoIdChanged;
 
-  ApiInfo get moon => _api('moon');
-  ApiInfo get weather => _api('weather');
+  _ServerApiMap(Map map)
+      : moon = _api(map, 'moon'),
+        weather = _api(map, 'weather'),
+        cognitoIdChanged = _api(map, 'cognitoIdChanged');
 }
 
 class ApiInfo {
