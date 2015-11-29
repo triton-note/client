@@ -164,7 +164,7 @@ class _ConnectedServices {
   static Map<String, bool> get _value => JSON.decode(window.localStorage['cognito'] ?? '{}');
   static set _value(Map<String, bool> v) => window.localStorage['cognito'] = JSON.encode(v ?? {});
 
-  static bool get(String service) => _value[service];
+  static bool get(String service) => _value[service] ?? false;
   static set(String service, bool v) => _value = _value..[service] = v;
 }
 
