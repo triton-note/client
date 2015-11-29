@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:logging/logging.dart';
 
+import 'package:triton_note/service/aws/api_gateway.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/util/pager.dart';
@@ -43,10 +44,15 @@ class DynamoDB {
 }
 
 class DynamoDB_Table<T extends DBRecord> {
+  static final Future<ApiGateway<List<String>>> _apiChanged = Settings.then((s) {
+    return new ApiGateway<List<String>>(s.server.cognitoIdChanged, (Map map) => map['updates']);
+  });
+
   final String tableName;
   final String ID_COLUMN;
   final _RecordReader<T> reader;
   final _RecordWriter<T> writer;
+  Future<String> get tableFullName async => "${(await Settings).appName}.${tableName}";
 
   DynamoDB_Table(this.tableName, this.ID_COLUMN, this.reader, this.writer) {
     CognitoIdentity.onChangedEvent(_changeCognitoId);
@@ -54,22 +60,13 @@ class DynamoDB_Table<T extends DBRecord> {
 
   Future<Null> _changeCognitoId(String previous, String current) async {
     if (previous == null || current == null) return;
-
-    _logger.fine(() => "Changing cognito id on table(${tableName}): ${previous} -> ${current}");
-    final keys = {
-      DynamoDB.COGNITO_ID: {'S': previous}
-    };
-    final attrs = {
-      DynamoDB.COGNITO_ID: {
-        'Action': 'PUT',
-        'Value': {'S': current}
-      }
-    };
-    await _invoke('updateItem', {'Key': keys, 'AttributeUpdates': attrs});
+    final info = {'table_name': await tableFullName, 'previous': previous, 'current': current};
+    final result = await (await _apiChanged)(info);
+    _logger.finest(() => "CognitoID Changed: ${result}");
   }
 
   Future<JsObject> _invoke(String methodName, Map param) async {
-    param['TableName'] = "${(await Settings).appName}.${tableName}";
+    param['TableName'] = await tableFullName;
     _logger.finest(() => "Invoking '${methodName}': ${param}");
     final result = new Completer();
     DynamoDB.client.callMethod(methodName, [
