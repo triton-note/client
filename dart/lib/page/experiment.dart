@@ -38,9 +38,9 @@ class ExperimentPage extends MainFrame {
     }
   }
 
-  fbName() async {
+  fbToken() async {
     try {
-      final result = await FBConnect.getName();
+      final result = await FBConnect.getToken();
       window.alert("getName: ${result}");
     } catch (ex) {
       window.alert("getName: Error: ${ex}");
