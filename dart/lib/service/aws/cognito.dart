@@ -88,10 +88,13 @@ class CognitoIdentity {
 
     if (!logins.containsKey(service)) {
       logins[service] = token;
+      _logger.finest(() => "Added token: ${service}");
       _credentials['params']['Logins'] = new JsObject.jsify(logins);
       await _refresh();
       FabricAnswers.eventLogin(method: service);
       _ConnectedServices.set(service, true);
+    } else {
+      _logger.warning(() => "Nothing to do, since already joined: ${service}");
     }
   }
 
@@ -102,9 +105,12 @@ class CognitoIdentity {
 
     if (logins.containsKey(service)) {
       logins.remove(service);
+      _logger.finest(() => "Removed token: ${service}");
       _credentials['params']['Logins'] = new JsObject.jsify(logins);
       await _refresh();
       _ConnectedServices.set(service, false);
+    } else {
+      _logger.warning(() => "Nothing to do, since not joined: ${service}");
     }
   }
 
