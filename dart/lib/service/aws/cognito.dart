@@ -118,12 +118,11 @@ class CognitoIdentity {
     _credentials.callMethod('get', [
       (error) {
         if (error == null) {
-          result.complete();
-
           final newId = _credentials['identityId'];
           if (oldId != newId && (_onInitialize?.isCompleted ?? false)) {
             fireChangedEvent(oldId, newId);
           }
+          result.complete();
         } else {
           _logger.fine("Cognito Error: ${error}");
           result.completeError(error);
