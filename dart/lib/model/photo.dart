@@ -15,8 +15,11 @@ class Photo {
     final waiters = ["original", "${ReducedImages._PATH_REDUCED}/mainview", "${ReducedImages._PATH_REDUCED}/thumbnail"]
         .map((relativePath) async {
       final prefix = "photo/${relativePath}/${previous}";
+      final next = "photo/${relativePath}/${current}";
+      _logger.finest(() => "Moving cognito id: ${prefix} -> ${next}");
+
       final dones = (await S3File.list(prefix)).map((src) {
-        final dst = "photo/${relativePath}/${current}/${src.substring(prefix.length)}";
+        final dst = "${next}${src.substring(prefix.length)}";
         S3File.move(src, dst);
       });
       return Future.wait(dones);
