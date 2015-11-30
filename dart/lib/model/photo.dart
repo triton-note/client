@@ -11,6 +11,19 @@ import 'package:triton_note/settings.dart';
 final _logger = new Logger('Photo');
 
 class Photo {
+  static Future<Null> moveCognitoId(String previous, String current) async {
+    final waiters = ["original", "${ReducedImages._PATH_REDUCED}/mainview", "${ReducedImages._PATH_REDUCED}/thumbnail"]
+        .map((relativePath) async {
+      final prefix = "photo/${relativePath}/${previous}";
+      final dones = (await S3File.list(prefix)).map((src) {
+        final dst = "photo/${relativePath}/${current}/${src.substring(prefix.length)}";
+        S3File.move(src, dst);
+      });
+      return Future.wait(dones);
+    });
+    await Future.wait(waiters);
+  }
+
   final Image original;
   final ReducedImages reduced;
 

@@ -1,11 +1,11 @@
 library triton_note.service.reports;
 
 import 'dart:async';
-import 'dart:html';
 
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
+import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/util/pager.dart';
@@ -125,6 +125,7 @@ class _PagerReports implements Pager<Report> {
   Future<Null> _refreshDb(String previousId, String currentId) async {
     if (currentId != null && _cognitoId != currentId) {
       _logger.info(() => "Refresh pager of reports: CognitoID is changed ${previousId} => ${currentId}");
+      await Photo.moveCognitoId(previousId, currentId);
       _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
       _cognitoId = currentId;
       if (!_ready.isCompleted) _ready.complete(_db);
