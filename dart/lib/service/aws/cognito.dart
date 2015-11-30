@@ -59,13 +59,7 @@ class CognitoIdentity {
           new JsObject.jsify({'IdentityPoolId': settings.poolId})
         ]);
 
-        try {
-          await _refresh();
-        } catch (ex) {
-          _logger.fine("Initialize error (reset and try again): ${ex}");
-          _credentials['params']['IdentityId'] = null;
-          await _refresh();
-        }
+        await _refresh();
         FabricAnswers.eventLogin(method: "Cognito");
 
         if (_ConnectedServices.get(PROVIDER_KEY_FACEBOOK)) {
@@ -118,6 +112,7 @@ class CognitoIdentity {
     final result = new Completer();
 
     final oldId = _credentials['identityId'];
+    _credentials['params']['IdentityId'] = null;
     _credentials['expired'] = true;
 
     _logger.fine("Getting credentials");
