@@ -124,7 +124,7 @@ class _PagerReports implements Pager<Report> {
 
   Future<Null> _refreshDb(String previousId, String currentId) async {
     if (currentId != null && _cognitoId != currentId) {
-      _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
+      _logger.info(() => "Refresh pager of reports: CognitoID is changed ${previousId} => ${currentId}");
       _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
       _cognitoId = currentId;
       if (!_ready.isCompleted) _ready.complete(_db);

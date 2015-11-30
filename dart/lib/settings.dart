@@ -26,7 +26,7 @@ Future<_Settings> _initialize() async {
       final local = await CognitoSettings.value;
       final server = loadYaml(await S3File.read('unauthorized/client.yaml', local.s3Bucket));
       final map = new Map.from(server);
-      _logger.config("using: ${map}");
+      _logger.config("Initializing...");
       _initializing.complete(new _Settings(local, map));
     } catch (ex) {
       _logger.warning("Failed to read settings file: ${ex}");
