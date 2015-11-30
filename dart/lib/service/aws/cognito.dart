@@ -138,18 +138,17 @@ class CognitoIdentity {
 
   static final String PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
 
-  static final EVENT_COGNITO_ID_CHANGED = "EVENT_COGNITO_ID_CHANGED";
+  static final List LISTEN_COGNITO_ID_CHANGED = [];
 
   static fireChangedEvent(String previous, String current) {
-    final info = {'previous': previous, 'current': current};
-    _logger.finest(() => "Dispatching event: ${info}");
-    window.dispatchEvent(new CustomEvent(EVENT_COGNITO_ID_CHANGED, cancelable: false, detail: info));
+    _logger.finest(() => "Dispatching event: previous: ${previous}, current: ${current}");
+    LISTEN_COGNITO_ID_CHANGED.forEach((proc) async {
+      proc(previous, current);
+    });
   }
 
   static onChangedEvent(proc(String previous, String current)) {
-    window.on[EVENT_COGNITO_ID_CHANGED].listen((CustomEvent event) {
-      proc(event.detail['previous'], event.detail['current']);
-    });
+    LISTEN_COGNITO_ID_CHANGED.add(proc);
   }
 
   final String id;
