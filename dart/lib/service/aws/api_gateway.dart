@@ -8,7 +8,7 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/settings.dart';
 
-final _logger = new Logger('Lambda');
+final _logger = new Logger('ApiGateway');
 
 typedef T _LoadResult<T>(Map map);
 
