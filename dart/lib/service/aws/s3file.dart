@@ -10,86 +10,65 @@ import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('S3File');
 
-String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
-
 class S3File {
   static final s3 = new JsObject(context['AWS']['S3'], []);
 
-  static Future<String> url(String path) async {
+  static Future _call(String methodName, Map params, [List opts = null]) async {
     final result = new Completer();
     try {
-      final bucket = (await Settings).s3Bucket;
-      s3.callMethod('getSignedUrl', [
-        "getObject",
-        new JsObject.jsify({"Bucket": bucket, "Key": path, 'Expires': (await Settings).photo.urlTimeout.inSeconds}),
-        (error, String url) {
-          if (error == null) {
-            _logger.fine("S3File.url: ${path} => ${url}");
-            result.complete(url);
-          } else {
-            _logger.fine("Failed to getSignedUrl: ${error}");
-            result.completeError(error);
-          }
+      final args = opts ?? [];
+      params['Bucket'] ??= (await Settings).s3Bucket;
+      args.add(new JsObject.jsify(params));
+      args.add((error, data) {
+        if (error == null) {
+          result.complete(data);
+        } else {
+          _logger.warning(() => "Error on S3.${methodName}: ${error}");
+          result.completeError(error);
         }
-      ]);
+      });
+      s3.callMethod(methodName, args);
     } catch (ex) {
-      _logger.fine("Failed to call getObject of s3file: ${ex}");
+      _logger.warning(() => "Failed to call ${methodName}: ${ex}");
       result.completeError(ex);
     }
     return result.future;
+  }
+
+  static Future<String> url(String path) async {
+    final params = {"Key": path, 'Expires': (await Settings).photo.urlTimeout.inSeconds};
+    return _call('getSignedUrl', params, ["getObject"]);
   }
 
   static Future<String> read(String path, [String bucket = null]) async {
-    final result = new Completer();
-    try {
-      final bucketName = bucket != null ? bucket : (await Settings).s3Bucket;
-      _logger.finest("Reading ${bucketName}/${path}");
-      s3.callMethod('getObject', [
-        new JsObject.jsify({'Bucket': bucketName, 'Key': path}),
-        (error, data) {
-          if (error != null) {
-            _logger.fine("Error on read object(${path}): ${error}");
-            result.completeError(error);
-          } else {
-            _logger.finest(() => "Read object: ${_stringify(data)}");
-            final body = data['Body'];
-            final text = new String.fromCharCodes(body);
-            result.complete(text);
-          }
-        }
-      ]);
-    } catch (ex) {
-      _logger.fine("Failed to read object(${path}): ${ex}");
-      result.completeError(ex);
-    }
-    return result.future;
+    final data = await _call('getObject', {'Bucket': bucket, 'Key': path});
+    final body = data['Body'];
+    return new String.fromCharCodes(body);
   }
 
   static Future<Null> putObject(String path, Blob data) async {
-    final result = new Completer();
-    try {
-      final bucket = (await Settings).s3Bucket;
-      final params = {'Bucket': bucket, 'Key': path, 'Body': data};
-      if (data.type != null) {
-        params['ContentType'] = data.type;
-      }
-      _logger.finest(() => "putObject: ${params}");
-
-      s3.callMethod('putObject', [
-        new JsObject.jsify(params),
-        (error, data) {
-          if (error != null) {
-            _logger.warning("Failed to put object: ${path}");
-            result.completeError(error);
-          } else {
-            _logger.finer("Success to put object: ${path}");
-            result.complete();
-          }
-        }
-      ]);
-    } catch (ex) {
-      result.completeError(ex);
+    final params = {'Key': path, 'Body': data};
+    if (data.type != null) {
+      params['ContentType'] = data.type;
     }
-    return result.future;
+    await _call('putObject', params);
+  }
+
+  static Future<List<String>> list(String path) async {
+    final data = await _call('listObject', {'Prefix': path});
+    return data['Contents'].map((obj) => obj['Key']);
+  }
+
+  static Future<Null> copy(String src, String dst) async {
+    await _call('copyObject', {'CopySource': src, 'Key': dst});
+  }
+
+  static Future<Null> delete(String path) async {
+    await _call('deleteObject', {'Key': path});
+  }
+
+  static Future<Null> move(String src, dst) async {
+    await copy(src, dst);
+    await delete(src);
   }
 }
