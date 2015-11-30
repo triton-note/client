@@ -12,7 +12,7 @@ final _logger = new Logger('Photo');
 
 class Photo {
   static Future<Null> moveCognitoId(String previous, String current) async {
-    final waiters = ["original", "${ReducedImages._PATH_REDUCED}/mainview", "${ReducedImages._PATH_REDUCED}/thumbnail"]
+    final waiters = [ReducedImages.PATH_ORIGINAL, ReducedImages.PATH_MAINVIEW, ReducedImages.PATH_THUMBNAIL]
         .map((relativePath) async {
       final prefix = "photo/${relativePath}/${previous}";
       final next = "photo/${relativePath}/${current}";
@@ -31,19 +31,23 @@ class Photo {
   final ReducedImages reduced;
 
   Photo(String id)
-      : original = new Image(id, 'original'),
+      : original = new Image(id, ReducedImages.PATH_ORIGINAL),
         reduced = new ReducedImages(id);
 }
 
 class ReducedImages {
   static const _PATH_REDUCED = 'reduced';
 
+  static const PATH_ORIGINAL = 'original';
+  static const PATH_MAINVIEW = "${_PATH_REDUCED}/mainview";
+  static const PATH_THUMBNAIL = "${_PATH_REDUCED}/thumbnail";
+
   final Image mainview;
   final Image thumbnail;
 
   ReducedImages(String id)
-      : mainview = new Image(id, "${_PATH_REDUCED}/mainview"),
-        thumbnail = new Image(id, "${_PATH_REDUCED}/thumbnail");
+      : mainview = new Image(id, PATH_MAINVIEW),
+        thumbnail = new Image(id, PATH_THUMBNAIL);
 }
 
 class Image {
