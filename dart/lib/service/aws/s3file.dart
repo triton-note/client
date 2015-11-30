@@ -18,6 +18,8 @@ class S3File {
     try {
       final args = opts ?? [];
       params['Bucket'] ??= (await Settings).s3Bucket;
+      _logger.fine(() => "Invoking S3.${methodName}: ${args}, ${params}");
+
       args.add(new JsObject.jsify(params));
       args.add((error, data) {
         if (error == null) {
