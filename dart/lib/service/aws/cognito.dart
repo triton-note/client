@@ -184,6 +184,8 @@ class _ConnectedServices {
 }
 
 class CognitoSync {
+  static final _logger = new Logger('CognitoSync');
+
   static Future<JsObject> get _client async {
     await CognitoIdentity.credential;
     return new JsObject(context['AWS']['CognitoSyncManager'], []);
