@@ -14,8 +14,8 @@ class Photo {
   static Future<Null> moveCognitoId(String previous, String current) async {
     final waiters = [ReducedImages.PATH_ORIGINAL, ReducedImages.PATH_MAINVIEW, ReducedImages.PATH_THUMBNAIL]
         .map((relativePath) async {
-      final prefix = "photo/${relativePath}/${previous}";
-      final next = "photo/${relativePath}/${current}";
+      final prefix = "photo/${relativePath}/${previous}/";
+      final next = "photo/${relativePath}/${current}/";
       _logger.finest(() => "Moving cognito id: ${prefix} -> ${next}");
 
       final dones = (await S3File.list(prefix)).map((src) {
