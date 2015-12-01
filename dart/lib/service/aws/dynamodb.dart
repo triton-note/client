@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:logging/logging.dart';
 
-import 'package:triton_note/service/aws/api_gateway.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/util/pager.dart';
@@ -43,30 +42,45 @@ class DynamoDB {
   }
 }
 
-class DynamoDB_Table<T extends DBRecord> {
-  static final Future<ApiGateway<List<String>>> _apiChanged = Settings.then((s) {
-    return new ApiGateway<List<String>>(s.server.cognitoIdChanged, (Map map) => map['updates']);
-  });
+class _CognitoIdHook<T extends DBRecord> implements ChangingHook {
+  final DynamoDB_Table<T> table;
+  List<T> _cache;
 
+  String oldId;
+
+  _CognitoIdHook(this.table);
+
+  Future onStartChanging(id) async {
+    if (id != null) {
+      oldId = id;
+      _cache = await table.query(null, {DynamoDB.COGNITO_ID: id});
+      await Future.wait(_cache.map((obj) => table.delete(obj.id)));
+    }
+  }
+
+  Future _finish(String id) async {
+    if (_cache != null) {
+      await Future.wait(_cache.map((obj) => table.put(obj, id)));
+    }
+  }
+
+  Future onFinishChanging(id) => _finish(id);
+  Future onFailedChanging() => _finish(oldId);
+}
+
+class DynamoDB_Table<T extends DBRecord> {
   final String tableName;
   final String ID_COLUMN;
   final _RecordReader<T> reader;
   final _RecordWriter<T> writer;
-  Future<String> get tableFullName async => "${(await Settings).appName}.${tableName}";
+  Future<String> get fullName async => "${(await Settings).appName}.${tableName}";
 
   DynamoDB_Table(this.tableName, this.ID_COLUMN, this.reader, this.writer) {
-    CognitoIdentity.onChangedEvent(_changeCognitoId);
-  }
-
-  Future<Null> _changeCognitoId(String previous, String current) async {
-    if (previous == null || current == null) return;
-    final info = {'table_name': await tableFullName, 'previous': previous, 'current': current};
-    final result = await (await _apiChanged)(info);
-    _logger.finest(() => "CognitoID Changed: ${result}");
+    CognitoIdentity.addChaningHook(() => new _CognitoIdHook(this));
   }
 
   Future<JsObject> _invoke(String methodName, Map param) async {
-    param['TableName'] = await tableFullName;
+    param['TableName'] = await fullName;
     _logger.finest(() => "Invoking '${methodName}': ${param}");
     final result = new Completer();
     DynamoDB.client.callMethod(methodName, [
@@ -84,9 +98,9 @@ class DynamoDB_Table<T extends DBRecord> {
     return result.future;
   }
 
-  Future<Map<String, Map<String, String>>> _makeKey(String id) async {
+  Future<Map<String, Map<String, String>>> _makeKey(String id, [String currentCognitoId = null]) async {
     final key = {
-      DynamoDB.COGNITO_ID: {'S': await cognitoId}
+      DynamoDB.COGNITO_ID: {'S': currentCognitoId ?? await cognitoId}
     };
     if (id != null && ID_COLUMN != null) key[ID_COLUMN] = {'S': id};
     return key;
@@ -101,8 +115,8 @@ class DynamoDB_Table<T extends DBRecord> {
     return reader(map);
   }
 
-  Future<Null> put(T obj) async {
-    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(obj.id));
+  Future<Null> put(T obj, [String currentCognitoId = null]) async {
+    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(obj.id, currentCognitoId));
     await _invoke('putItem', {'Item': item});
   }
 

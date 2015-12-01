@@ -82,9 +82,10 @@ class CognitoIdentity {
 
     if (!logins.containsKey(service)) {
       logins[service] = token;
-      _logger.finest(() => "Added token: ${service}");
-      _credentials['params']['Logins'] = new JsObject.jsify(logins);
-      await _refresh();
+      await _refresh(() async {
+        _logger.finest(() => "Added token: ${service}");
+        _credentials['params']['Logins'] = new JsObject.jsify(logins);
+      });
       FabricAnswers.eventLogin(method: service);
       _ConnectedServices.set(service, true);
     } else {
@@ -99,33 +100,38 @@ class CognitoIdentity {
 
     if (logins.containsKey(service)) {
       logins.remove(service);
-      _logger.finest(() => "Removed token: ${service}");
-      _credentials['params']['Logins'] = new JsObject.jsify(logins);
-      await _refresh();
+      await _refresh(() async {
+        _logger.finest(() => "Removed token: ${service}");
+        _credentials['params']['Logins'] = new JsObject.jsify(logins);
+      });
       _ConnectedServices.set(service, false);
     } else {
       _logger.warning(() => "Nothing to do, since not joined: ${service}");
     }
   }
 
-  static Future<Null> _refresh() async {
+  static Future<Null> _refresh([Future proc()]) async {
     final result = new Completer();
 
     final oldId = _credentials['identityId'];
+
+    final hook = (_onInitialize?.isCompleted ?? false) ? new _ChangingHookObserver() : null;
+    await hook?.onStartChanging(oldId);
+
+    if (proc != null) await proc();
     _credentials['params']['IdentityId'] = null;
     _credentials['expired'] = true;
 
     _logger.fine("Getting credentials");
     _credentials.callMethod('get', [
-      (error) {
+      (error) async {
         if (error == null) {
           final newId = _credentials['identityId'];
-          if (oldId != newId && (_onInitialize?.isCompleted ?? false)) {
-            fireChangedEvent(oldId, newId);
-          }
+          await hook?.onFinishChanging(newId);
           result.complete();
         } else {
           _logger.fine("Cognito Error: ${error}");
+          await hook?.onFailedChanging();
           result.completeError(error);
         }
       }
@@ -138,18 +144,7 @@ class CognitoIdentity {
 
   static final String PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
 
-  static final List LISTEN_COGNITO_ID_CHANGED = [];
-
-  static fireChangedEvent(String previous, String current) {
-    _logger.finest(() => "Dispatching event: previous: ${previous}, current: ${current}");
-    LISTEN_COGNITO_ID_CHANGED.forEach((proc) async {
-      proc(previous, current);
-    });
-  }
-
-  static onChangedEvent(proc(String previous, String current)) {
-    LISTEN_COGNITO_ID_CHANGED.add(proc);
-  }
+  static void addChaningHook(ChangingHookFactory hookFactory) => _ChangingHookObserver.addHook(hookFactory);
 
   final String id;
   final Map<String, String> logins;
@@ -157,6 +152,27 @@ class CognitoIdentity {
   CognitoIdentity(this.id, Map logins) : this.logins = logins == null ? const {} : new Map.unmodifiable(logins);
 
   bool hasFacebook() => logins.containsKey(PROVIDER_KEY_FACEBOOK);
+}
+
+abstract class ChangingHook {
+  Future onStartChanging(String oldId);
+  Future onFinishChanging(String newId);
+  Future onFailedChanging();
+}
+
+typedef ChangingHook ChangingHookFactory();
+
+class _ChangingHookObserver {
+  static final List<ChangingHookFactory> _hookFactories = [];
+  static void addHook(ChangingHookFactory fact) => _hookFactories.add(fact);
+
+  final List<ChangingHook> _hooks;
+
+  _ChangingHookObserver() : _hooks = _hookFactories.map((f) => f());
+
+  Future onStartChanging(String oldId) => Future.wait(_hooks.map((h) => h.onStartChanging(oldId)));
+  Future onFinishChanging(String newId) => Future.wait(_hooks.map((h) => h.onFinishChanging(newId)));
+  Future onFailedChanging() => Future.wait(_hooks.map((h) => h.onFailedChanging()));
 }
 
 class _ConnectedServices {
