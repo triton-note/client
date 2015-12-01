@@ -50,7 +50,7 @@ class _CognitoIdHook<T extends DBRecord> implements ChangingHook {
 
   _CognitoIdHook(this.table);
 
-  Future onStartChanging(id) async {
+  Future onStartChanging(String id) async {
     if (id != null) {
       oldId = id;
       _cache = await table.query(null, {DynamoDB.COGNITO_ID: id});
@@ -64,7 +64,7 @@ class _CognitoIdHook<T extends DBRecord> implements ChangingHook {
     }
   }
 
-  Future onFinishChanging(id) => _finish(id);
+  Future onFinishChanging(String id) => _finish(id);
   Future onFailedChanging() => _finish(oldId);
 }
 
