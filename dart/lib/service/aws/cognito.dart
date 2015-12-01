@@ -162,13 +162,13 @@ abstract class ChangingHook {
 
 typedef ChangingHook ChangingHookFactory();
 
-class _ChangingHookObserver {
+class _ChangingHookObserver implements ChangingHook {
   static final List<ChangingHookFactory> _hookFactories = [];
   static void addHook(ChangingHookFactory fact) => _hookFactories.add(fact);
 
   final List<ChangingHook> _hooks;
 
-  _ChangingHookObserver() : _hooks = _hookFactories.map((f) => f());
+  _ChangingHookObserver() : _hooks = new List.unmodifiable(_hookFactories.map((f) => f()));
 
   Future onStartChanging(String oldId) => Future.wait(_hooks.map((h) => h.onStartChanging(oldId)));
   Future onFinishChanging(String newId) => Future.wait(_hooks.map((h) => h.onFinishChanging(newId)));
