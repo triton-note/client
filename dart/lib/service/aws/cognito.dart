@@ -37,7 +37,8 @@ class CognitoIdentity {
   static set _credentials(JsObject obj) => context['AWS']['config']['credentials'] = obj;
 
   static Future<CognitoIdentity> get credential async {
-    await _initialize();
+    if (_onInitialize == null) _initialize();
+    await _onInitialize.future;
 
     final credId = _credentials['identityId'];
     final logins = _credentials['params']['Logins'];
@@ -111,8 +112,6 @@ class CognitoIdentity {
   }
 
   static Future<Null> _refresh([Future proc()]) async {
-    final result = new Completer();
-
     final oldId = _credentials['identityId'];
 
     final hook = (_onInitialize?.isCompleted ?? false) ? new _ChangingHookObserver() : null;
@@ -121,6 +120,7 @@ class CognitoIdentity {
     if (proc != null) await proc();
     _credentials['params']['IdentityId'] = null;
     _credentials['expired'] = true;
+    _onInitialize = new Completer();
 
     _logger.fine("Getting credentials");
     _credentials.callMethod('get', [
@@ -128,15 +128,15 @@ class CognitoIdentity {
         if (error == null) {
           final newId = _credentials['identityId'];
           await hook?.onFinishChanging(newId);
-          result.complete();
+          _onInitialize.complete();
         } else {
           _logger.fine("Cognito Error: ${error}");
           await hook?.onFailedChanging();
-          result.completeError(error);
+          _onInitialize.completeError(error);
         }
       }
     ]);
-    return result.future;
+    return _onInitialize.future;
   }
 
   static Future<Null> joinFacebook(String token) async => _setToken(PROVIDER_KEY_FACEBOOK, token);

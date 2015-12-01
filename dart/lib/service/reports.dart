@@ -114,23 +114,27 @@ class Reports {
 }
 
 class _PagerReports implements Pager<Report> {
+  static const changedEx = "CognitoId Changed";
+
   Pager<Report> _db;
-  Completer<Null> _ready = new Completer();
+  Completer<Null> _ready;
 
   _PagerReports() {
-    cognitoId.then((id) {
-      refreshDb(id);
-      _ready.complete();
-      CognitoIdentity.addChaningHook(() => new _CognitoIdHook(this));
-    });
+    refreshDb();
+    CognitoIdentity.addChaningHook(() => new _CognitoIdHook(this));
   }
 
-  refreshDb(String currentId) {
-    if (currentId != null) {
-      _logger.info(() => "Refresh pager of reports: CognitoID is changed ${currentId}");
-      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
-      Reports.paging.reset();
-    }
+  refreshDb() async {
+    if (_ready != null && !_ready.isCompleted) _ready.completeError(changedEx);
+
+    _ready = new Completer();
+    final currentId = await cognitoId;
+
+    _logger.info(() => "Refresh pager of reports: CognitoID is changed ${currentId}");
+    _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
+    Reports.paging.reset();
+
+    _ready.complete();
   }
 
   bool get hasMore => _db?.hasMore ?? true;
@@ -138,11 +142,16 @@ class _PagerReports implements Pager<Report> {
   void reset() => _db?.reset();
 
   Future<List<Report>> more(int pageSize) async {
-    await _ready.future;
-    final list = await _db.more(pageSize);
-    await Future.wait(list.map(Reports._loadFishes));
-    _logger.finer(() => "Loaded reports: ${list}");
-    return list;
+    try {
+      await _ready.future;
+      final list = await _db.more(pageSize);
+      await Future.wait(list.map(Reports._loadFishes));
+      _logger.finer(() => "Loaded reports: ${list}");
+      return list;
+    } catch (ex) {
+      if (ex != changedEx) throw ex;
+      return [];
+    }
   }
 }
 
@@ -163,7 +172,7 @@ class _CognitoIdHook implements ChangingHook {
       _logger.finest(() => "Finishing changing cognito id: ${oldId} -> ${newId}");
       if (newId != null && oldId != newId) {
         if (oldId != null) await Photo.moveCognitoId(oldId, newId);
-        pager.refreshDb(newId);
+        pager.refreshDb();
       }
     } catch (ex) {
       FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
