@@ -151,14 +151,13 @@ class _CognitoIdHook implements ChangingHook {
   _CognitoIdHook(this.pager);
 
   Future onStartChanging(String id) async {
-    _logger.finest(() => "[_PagerReports] Starting changing cognito id: ${id}");
+    _logger.finest(() => "Starting changing cognito id: ${id}");
     oldId = id;
   }
 
   Future onFinishChanging(String newId) async {
-    _logger.finest(() => "[_PagerReports] Finishing changing cognito id: ${newId}");
+    _logger.finest(() => "Finishing changing cognito id: ${oldId} -> ${newId}");
     if (newId != null && oldId != newId) {
-      _logger.info(() => "Refresh pager of reports: CognitoID is changed ${oldId} => ${newId}");
       if (oldId != null) await Photo.moveCognitoId(oldId, newId);
       pager.refreshDb(newId);
     }
