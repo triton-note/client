@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/settings.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('DynamoDB');
@@ -51,18 +52,25 @@ class _CognitoIdHook<T extends DBRecord> implements ChangingHook {
   _CognitoIdHook(this.table);
 
   Future onStartChanging(String id) async {
-    _logger.finest(() => "[DBTable(${table.tableName})] Starting changing cognito id: ${id}");
-    if (id != null) {
+    try {
       oldId = id;
-      _cache = await table.query(null, {DynamoDB.COGNITO_ID: id});
-      await Future.wait(_cache.map((obj) => table.delete(obj.id)));
+      _logger.finest(() => "[DBTable(${table.tableName})] Starting changing cognito id: ${oldId}");
+      if (id != null) {
+        _cache = await table.query(null, {DynamoDB.COGNITO_ID: id});
+      }
+    } catch (ex) {
+      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
     }
   }
 
   Future _finish(String id) async {
-    _logger.finest(() => "[DBTable(${table.tableName})] Finishing changing cognito id: ${oldId} -> ${id}");
-    if (_cache != null) {
-      await Future.wait(_cache.map((obj) => table.put(obj, id)));
+    try {
+      _logger.finest(() => "[DBTable(${table.tableName})] Finishing changing cognito id: ${oldId} -> ${id}");
+      if (_cache != null) {
+        await Future.wait(_cache.map((obj) => table.put(obj, id)));
+      }
+    } catch (ex) {
+      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
     }
   }
 

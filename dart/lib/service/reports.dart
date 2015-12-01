@@ -8,6 +8,7 @@ import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('Reports');
@@ -153,15 +154,19 @@ class _CognitoIdHook implements ChangingHook {
   _CognitoIdHook(this.pager);
 
   Future onStartChanging(String id) async {
-    _logger.finest(() => "Starting changing cognito id: ${id}");
     oldId = id;
+    _logger.finest(() => "Starting changing cognito id: ${oldId}");
   }
 
   Future onFinishChanging(String newId) async {
-    _logger.finest(() => "Finishing changing cognito id: ${oldId} -> ${newId}");
-    if (newId != null && oldId != newId) {
-      if (oldId != null) await Photo.moveCognitoId(oldId, newId);
-      pager.refreshDb(newId);
+    try {
+      _logger.finest(() => "Finishing changing cognito id: ${oldId} -> ${newId}");
+      if (newId != null && oldId != newId) {
+        if (oldId != null) await Photo.moveCognitoId(oldId, newId);
+        pager.refreshDb(newId);
+      }
+    } catch (ex) {
+      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
     }
   }
 

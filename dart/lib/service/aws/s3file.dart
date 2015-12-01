@@ -68,9 +68,4 @@ class S3File {
   static Future<Null> delete(String path) async {
     await _call('deleteObject', {'Key': path});
   }
-
-  static Future<Null> move(String src, dst) async {
-    await copy(src, dst);
-    await delete(src);
-  }
 }
