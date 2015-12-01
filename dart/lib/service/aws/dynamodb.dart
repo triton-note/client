@@ -170,11 +170,11 @@ class DynamoDB_Table<T extends DBRecord> {
     });
     final params = {
       'ScanIndexForward': isForward,
-      'IndexName': indexName,
       'KeyConditionExpression': expressions.join(" and "),
       'ExpressionAttributeNames': names,
       'ExpressionAttributeValues': values
     };
+    if (indexName != null) params['IndexName'] = indexName;
     if (0 < pageSize) params['Limit'] = pageSize;
     if (lastEvaluatedKey != null) lastEvaluatedKey.putToParam(params);
 
