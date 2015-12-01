@@ -20,7 +20,7 @@ class Photo {
 
       final dones = (await S3File.list(prefix)).map((src) {
         final dst = "${next}${src.substring(prefix.length)}";
-        S3File.copy(src, dst);
+        S3File.move(src, dst);
       });
       return Future.wait(dones);
     });

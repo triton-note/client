@@ -43,42 +43,6 @@ class DynamoDB {
   }
 }
 
-class _CognitoIdHook<T extends DBRecord> implements ChangingHook {
-  final DynamoDB_Table<T> table;
-  List<T> _cache;
-
-  String oldId;
-
-  _CognitoIdHook(this.table);
-
-  Future onStartChanging(String id) async {
-    try {
-      oldId = id;
-      _logger.finest(() => "[DBTable(${table.tableName})] Starting changing cognito id: ${oldId}");
-      if (id != null) {
-        _cache = await table.query(null, {DynamoDB.COGNITO_ID: id});
-        await Future.wait(_cache.map((obj) => table.delete(obj.id)));
-      }
-    } catch (ex) {
-      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
-    }
-  }
-
-  Future _finish(String id) async {
-    try {
-      _logger.finest(() => "[DBTable(${table.tableName})] Finishing changing cognito id: ${oldId} -> ${id}");
-      if (_cache != null) {
-        await Future.wait(_cache.map((obj) => table.put(obj, id)));
-      }
-    } catch (ex) {
-      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
-    }
-  }
-
-  Future onFinishChanging(String id) => _finish(id);
-  Future onFailedChanging() => _finish(oldId);
-}
-
 class DynamoDB_Table<T extends DBRecord> {
   final String tableName;
   final String ID_COLUMN;
@@ -87,7 +51,20 @@ class DynamoDB_Table<T extends DBRecord> {
   Future<String> get fullName async => "${(await Settings).appName}.${tableName}";
 
   DynamoDB_Table(this.tableName, this.ID_COLUMN, this.reader, this.writer) {
-    CognitoIdentity.addChaningHook(() => new _CognitoIdHook(this));
+    CognitoIdentity.addChaningHook(_cognitoIdChanged);
+  }
+
+  Future _cognitoIdChanged(String oldId, String newId) async {
+    try {
+      _logger.finest(() => "[DBTable(${tableName})] Finishing changing cognito id: ${oldId} -> ${newId}");
+      final items = await query(null, {DynamoDB.COGNITO_ID: oldId});
+      await Future.wait(items.map((item) async {
+        await put(item, newId);
+        await delete(item.id, oldId);
+      }));
+    } catch (ex) {
+      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
+    }
   }
 
   Future<JsObject> _invoke(String methodName, Map param) async {
@@ -140,8 +117,8 @@ class DynamoDB_Table<T extends DBRecord> {
     await _invoke('updateItem', {'Key': await _makeKey(obj.id), 'AttributeUpdates': attrs});
   }
 
-  Future<Null> delete(String id) async {
-    await _invoke('deleteItem', {'Key': await _makeKey(id)});
+  Future<Null> delete(String id, [String currentCognitoId = null]) async {
+    await _invoke('deleteItem', {'Key': await _makeKey(id, currentCognitoId)});
   }
 
   Future<List<T>> scan(String expression, Map<String, String> names, Map<String, dynamic> values,

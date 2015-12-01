@@ -112,10 +112,11 @@ class CognitoIdentity {
   }
 
   static Future<Null> _refresh([Future proc()]) async {
+    if (_onInitialize != null && !_onInitialize.isCompleted) {
+      await _onInitialize;
+    }
     final oldId = _credentials['identityId'];
-
-    final hook = (_onInitialize?.isCompleted ?? false) ? new _ChangingHookObserver() : null;
-    await hook?.onStartChanging(oldId);
+    final hooks = (oldId == null) ? null : new List.unmodifiable(_changingHooks);
 
     if (proc != null) await proc();
     _credentials['params']['IdentityId'] = null;
@@ -127,11 +128,12 @@ class CognitoIdentity {
       (error) async {
         if (error == null) {
           final newId = _credentials['identityId'];
-          await hook?.onFinishChanging(newId);
+          if (hooks != null) {
+            await Future.wait(hooks.map((h) => h(oldId, newId)));
+          }
           _onInitialize.complete();
         } else {
           _logger.fine("Cognito Error: ${error}");
-          await hook?.onFailedChanging();
           _onInitialize.completeError(error);
         }
       }
@@ -144,7 +146,8 @@ class CognitoIdentity {
 
   static final String PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
 
-  static void addChaningHook(ChangingHookFactory hookFactory) => _ChangingHookObserver.addHook(hookFactory);
+  static List<CognitoIdChangingHook> _changingHooks = [];
+  static void addChaningHook(CognitoIdChangingHook hook) => _changingHooks.add(hook);
 
   final String id;
   final Map<String, String> logins;
@@ -154,26 +157,7 @@ class CognitoIdentity {
   bool hasFacebook() => logins.containsKey(PROVIDER_KEY_FACEBOOK);
 }
 
-abstract class ChangingHook {
-  Future onStartChanging(String oldId);
-  Future onFinishChanging(String newId);
-  Future onFailedChanging();
-}
-
-typedef ChangingHook ChangingHookFactory();
-
-class _ChangingHookObserver implements ChangingHook {
-  static final List<ChangingHookFactory> _hookFactories = [];
-  static void addHook(ChangingHookFactory fact) => _hookFactories.add(fact);
-
-  final List<ChangingHook> _hooks;
-
-  _ChangingHookObserver() : _hooks = new List.unmodifiable(_hookFactories.map((f) => f()));
-
-  Future onStartChanging(String oldId) => Future.wait(_hooks.map((h) => h.onStartChanging(oldId)));
-  Future onFinishChanging(String newId) => Future.wait(_hooks.map((h) => h.onFinishChanging(newId)));
-  Future onFailedChanging() => Future.wait(_hooks.map((h) => h.onFailedChanging()));
-}
+typedef Future CognitoIdChangingHook(String oldId, String newId);
 
 class _ConnectedServices {
   static Map<String, bool> get _value => JSON.decode(window.localStorage['cognito'] ?? '{}');

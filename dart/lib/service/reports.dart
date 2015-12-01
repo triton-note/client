@@ -121,7 +121,7 @@ class _PagerReports implements Pager<Report> {
 
   _PagerReports() {
     refreshDb();
-    CognitoIdentity.addChaningHook(() => new _CognitoIdHook(this));
+    CognitoIdentity.addChaningHook(_cognitoIdChanged);
   }
 
   refreshDb() async {
@@ -135,6 +135,18 @@ class _PagerReports implements Pager<Report> {
     Reports.paging.reset();
 
     _ready.complete();
+  }
+
+  Future _cognitoIdChanged(String oldId, String newId) async {
+    try {
+      _logger.finest(() => "Finishing changing cognito id: ${oldId} -> ${newId}");
+      if (newId != null && oldId != newId) {
+        if (oldId != null) await Photo.moveCognitoId(oldId, newId);
+        refreshDb();
+      }
+    } catch (ex) {
+      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
+    }
   }
 
   bool get hasMore => _db?.hasMore ?? true;
@@ -153,31 +165,4 @@ class _PagerReports implements Pager<Report> {
       return [];
     }
   }
-}
-
-class _CognitoIdHook implements ChangingHook {
-  final _PagerReports pager;
-
-  String oldId;
-
-  _CognitoIdHook(this.pager);
-
-  Future onStartChanging(String id) async {
-    oldId = id;
-    _logger.finest(() => "Starting changing cognito id: ${oldId}");
-  }
-
-  Future onFinishChanging(String newId) async {
-    try {
-      _logger.finest(() => "Finishing changing cognito id: ${oldId} -> ${newId}");
-      if (newId != null && oldId != newId) {
-        if (oldId != null) await Photo.moveCognitoId(oldId, newId);
-        pager.refreshDb();
-      }
-    } catch (ex) {
-      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
-    }
-  }
-
-  Future onFailedChanging() async {}
 }
