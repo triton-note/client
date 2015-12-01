@@ -117,15 +117,15 @@ class _PagerReports implements Pager<Report> {
   Completer<Null> _ready = new Completer();
 
   _PagerReports() {
-    cognitoId.then((id) => _refreshDb(null, id));
+    cognitoId.then((id) => refreshDb(id));
     CognitoIdentity.addChaningHook(() => new _CognitoIdHook(this));
   }
 
-  Future<Null> _refreshDb(String previousId, String currentId) async {
+  Future<Null> refreshDb(String currentId) async {
     if (currentId != null) {
-      _logger.info(() => "Refresh pager of reports: CognitoID is changed ${previousId} => ${currentId}");
-      if (previousId != null) await Photo.moveCognitoId(previousId, currentId);
+      _logger.info(() => "Refresh pager of reports: CognitoID is changed ${currentId}");
       _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
+      Reports.paging.reset();
       if (!_ready.isCompleted) _ready.complete(_db);
     }
   }
@@ -160,7 +160,7 @@ class _CognitoIdHook implements ChangingHook {
     if (newId != null && oldId != newId) {
       _logger.info(() => "Refresh pager of reports: CognitoID is changed ${oldId} => ${newId}");
       if (oldId != null) await Photo.moveCognitoId(oldId, newId);
-      pager._db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, newId, false);
+      pager.refreshDb(newId);
     }
   }
 
