@@ -44,8 +44,6 @@ class S3File {
 
   static Future<String> read(String path, [String bucket = null]) async {
     final data = await _call('getObject', {'Bucket': bucket, 'Key': path});
-    _logger.finest(() => "Loading '${path}': ${data}");
-    _logger.finest(() => "Loading '${path}': ${context['JSON'].callMethod('stringify', [data])}");
     final body = data['Body'];
     return new String.fromCharCodes(body);
   }
@@ -59,7 +57,7 @@ class S3File {
   }
 
   static Future<List<String>> list(String path) async {
-    final data = await _call('listObject', {'Prefix': path});
+    final data = await _call('listObjects', {'Prefix': path});
     return data['Contents'].map((obj) => obj['Key']);
   }
 
