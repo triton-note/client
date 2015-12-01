@@ -57,6 +57,7 @@ class _CognitoIdHook<T extends DBRecord> implements ChangingHook {
       _logger.finest(() => "[DBTable(${table.tableName})] Starting changing cognito id: ${oldId}");
       if (id != null) {
         _cache = await table.query(null, {DynamoDB.COGNITO_ID: id});
+        await Future.wait(_cache.map((obj) => table.delete(obj.id)));
       }
     } catch (ex) {
       FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
