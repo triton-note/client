@@ -125,10 +125,9 @@ class CognitoIdentity {
             _logger.fine(() => "Starting hooks on changing coginito id: ${old.id} -> ${cred.id}");
             await Future.wait(hooks.map((hook) {
               try {
-                _logger.finest(() => "Processing changing cognito id: ${hook}");
                 return hook(old.id, cred.id);
               } catch (ex) {
-                FabricCrashlytics.crash("Fatal Error: _cognitoIdChanged: ${hook}: ${ex}");
+                FabricCrashlytics.crash("Fatal Error: _cognitoIdChanged: ${ex}");
               }
             }));
           }

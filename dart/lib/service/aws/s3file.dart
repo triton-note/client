@@ -23,6 +23,7 @@ class S3File {
       args.add(new JsObject.jsify(params));
       args.add((error, data) {
         if (error == null) {
+          _logger.fine(() => "Success on S3.${methodName}");
           result.complete(data);
         } else {
           _logger.warning(() => "Error on S3.${methodName}: ${error}");
