@@ -62,7 +62,7 @@ class S3File {
   }
 
   static Future<Null> copy(String src, String dst) async {
-    await _call('copyObject', {'CopySource': src, 'Key': dst});
+    await _call('copyObject', {'CopySource': "${(await Settings).s3Bucket}/${src}", 'Key': dst});
   }
 
   static Future<Null> delete(String path) async {
