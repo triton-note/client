@@ -122,7 +122,11 @@ class _PagerReports implements Pager<Report> {
 
   _PagerReports() {
     refreshDb();
-    CognitoIdentity.addChaningHook(_cognitoIdChanged);
+
+    CognitoIdentity.addChaningHook((String oldId, String newId) async {
+      if (oldId != null) await Photo.moveCognitoId(oldId, newId);
+      refreshDb();
+    });
   }
 
   toString() => "PagerReports[${currentId}](ready=${_ready?.isCompleted ?? false})";
@@ -133,23 +137,11 @@ class _PagerReports implements Pager<Report> {
     _ready = new Completer();
     currentId = await cognitoId;
 
-    _logger.info(() => "Refresh pager of reports: CognitoID is changed ${currentId}");
+    _logger.info(() => "Refresh pager: cognito id is changed to ${currentId}");
     _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
     Reports.paging.reset();
 
     _ready.complete();
-  }
-
-  Future _cognitoIdChanged(String oldId, String newId) async {
-    try {
-      _logger.finest(() => "[${this}] Finishing changing cognito id: ${oldId} -> ${newId}");
-      if (newId != null && oldId != newId) {
-        if (oldId != null) await Photo.moveCognitoId(oldId, newId);
-        refreshDb();
-      }
-    } catch (ex) {
-      FabricCrashlytics.crash("[${this}] Fatal Error: _cognitoIdChanged: ${ex}");
-    }
   }
 
   bool get hasMore => _db?.hasMore ?? true;

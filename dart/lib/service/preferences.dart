@@ -51,7 +51,10 @@ class _MeasuresImpl implements Measures {
 
   _MeasuresImpl(this._dataset) {
     _init();
-    CognitoIdentity.addChaningHook(_cognitoIdChanged);
+    CognitoIdentity.addChaningHook((String oldId, String newId) async {
+      await _dataset.synchronize();
+      await _loadAll();
+    });
   }
 
   toString() => "Measures(${KEY_LENGTH}: ${length}, ${KEY_WEIGHT}: ${weight}, ${KEY_TEMPERATURE}: ${temperature})";
@@ -74,16 +77,6 @@ class _MeasuresImpl implements Measures {
     if (_temperature == null) temperature = TemperatureUnit.Cels;
 
     _logger.finest(() => "Loaded: ${this}");
-  }
-
-  Future _cognitoIdChanged(String oldId, String newId) async {
-    try {
-      _logger.finest(() => "[${this}] Finishing changing cognito id: ${oldId} -> ${newId}");
-      await _dataset.synchronize();
-      await _loadAll();
-    } catch (ex) {
-      FabricCrashlytics.crash("[${this}] Fatal Error: _cognitoIdChanged: ${ex}");
-    }
   }
 
   LengthUnit get length => enumByName(LengthUnit.values, _length);

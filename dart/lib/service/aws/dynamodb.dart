@@ -51,23 +51,16 @@ class DynamoDB_Table<T extends DBRecord> {
   Future<String> get fullName async => "${(await Settings).appName}.${tableName}";
 
   DynamoDB_Table(this.tableName, this.ID_COLUMN, this.reader, this.writer) {
-    CognitoIdentity.addChaningHook(_cognitoIdChanged);
-  }
-
-  toString() => "DynamoDB_Table[${tableName}]";
-
-  Future _cognitoIdChanged(String oldId, String newId) async {
-    try {
-      _logger.finest(() => "[${this}] Finishing changing cognito id: ${oldId} -> ${newId}");
+    CognitoIdentity.addChaningHook((String oldId, String newId) async {
       final items = await query(null, {DynamoDB.COGNITO_ID: oldId});
       await Future.wait(items.map((item) async {
         await put(item, newId);
         await delete(item.id, oldId);
       }));
-    } catch (ex) {
-      FabricCrashlytics.crash("[${this}] Fatal Error: _cognitoIdChanged: ${ex}");
-    }
+    });
   }
+
+  toString() => "DynamoDB_Table[${tableName}]";
 
   Future<JsObject> _invoke(String methodName, Map param) async {
     param['TableName'] = await fullName;

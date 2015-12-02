@@ -121,8 +121,16 @@ class CognitoIdentity {
         if (error == null) {
           final cred = new CognitoIdentity();
 
-          if (hooks != null) {
-            await Future.wait(hooks.map((h) => h(old.id, cred.id)));
+          if (hooks != null && old.id != cred.id) {
+            _logger.fine(() => "Starting hooks on changing coginito id: ${old.id} -> ${cred.id}");
+            await Future.wait(hooks.map((hook) {
+              try {
+                _logger.finest(() => "Processing changing cognito id: ${hook}");
+                return hook(old.id, cred.id);
+              } catch (ex) {
+                FabricCrashlytics.crash("Fatal Error: _cognitoIdChanged: ${hook}: ${ex}");
+              }
+            }));
           }
           _onCredential.complete(cred);
         } else {
@@ -152,6 +160,7 @@ class CognitoIdentity {
       : this.id = _credentials['identityId'],
         this.logins = new Map.unmodifiable(_jsmap(_credentials['params']['Logins'])) {
     _logger.finer(() => "CognitoIdentity(${id}) [${logins.keys.join(', ')}]");
+    assert(id != null);
   }
 
   bool hasFacebook() => logins.containsKey(PROVIDER_KEY_FACEBOOK);
