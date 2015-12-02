@@ -18,10 +18,8 @@ class Photo {
       final next = "photo/${relativePath}/${current}/";
       _logger.finest(() => "Moving cognito id: ${prefix} -> ${next}");
 
-      final dones = (await S3File.list(prefix)).map((src) {
-        final dst = "${next}${src.substring(prefix.length)}";
-        S3File.move(src, dst);
-      });
+      final srcList = await S3File.list(prefix);
+      final dones = srcList.map((src) => S3File.move(src, "${next}${src.substring(prefix.length)}"));
       return Future.wait(dones);
     });
     await Future.wait(waiters);
