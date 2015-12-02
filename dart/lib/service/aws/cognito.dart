@@ -36,19 +36,14 @@ class CognitoIdentity {
   static JsObject get _credentials => context['AWS']['config']['credentials'];
   static set _credentials(JsObject obj) => context['AWS']['config']['credentials'] = obj;
 
+  static Completer<CognitoIdentity> _onCredential = null;
   static Future<CognitoIdentity> get credential async {
-    if (_onInitialize == null) _initialize();
-    await _onInitialize.future;
-
-    final credId = _credentials['identityId'];
-    final logins = _credentials['params']['Logins'];
-
-    _logger.finer(() => "CognitoIdentity(${_stringify(credId)})");
-    return new CognitoIdentity(credId, _jsmap(logins));
+    await _initialize();
+    return _onCredential.future;
   }
 
-  static Completer _onInitialize = null;
-  static _initialize() async {
+  static Completer<Null> _onInitialize = null;
+  static Future<Null> _initialize() async {
     if (_onInitialize == null) {
       _onInitialize = new Completer();
       try {
@@ -60,13 +55,12 @@ class CognitoIdentity {
           new JsObject.jsify({'IdentityPoolId': settings.poolId})
         ]);
 
-        await _refresh();
-        FabricAnswers.eventLogin(method: "Cognito");
-
         if (_ConnectedServices.get(PROVIDER_KEY_FACEBOOK)) {
           await FBConnect.login();
+        } else {
+          await _refresh();
+          FabricAnswers.eventLogin(method: "Cognito");
         }
-
         _onInitialize.complete();
       } catch (ex) {
         _logger.warning("Error on initializing: ${ex}");
@@ -83,7 +77,7 @@ class CognitoIdentity {
 
     if (!logins.containsKey(service)) {
       logins[service] = token;
-      await _refresh(() async {
+      await _refresh(() {
         _logger.finest(() => "Added token: ${service}");
         _credentials['params']['Logins'] = new JsObject.jsify(logins);
       });
@@ -101,7 +95,7 @@ class CognitoIdentity {
 
     if (logins.containsKey(service)) {
       logins.remove(service);
-      await _refresh(() async {
+      await _refresh(() {
         _logger.finest(() => "Removed token: ${service}");
         _credentials['params']['Logins'] = new JsObject.jsify(logins);
       });
@@ -111,34 +105,33 @@ class CognitoIdentity {
     }
   }
 
-  static Future<Null> _refresh([Future proc()]) async {
-    if (_onInitialize != null && !_onInitialize.isCompleted) {
-      await _onInitialize;
-    }
-    final oldId = _credentials['identityId'];
-    final hooks = (oldId == null) ? null : new List.unmodifiable(_changingHooks);
+  static Future<Null> _refresh([void proc()]) async {
+    final old = !(_onInitialize?.isCompleted ?? false) ? null : await credential;
+    final hooks = (old == null) ? null : new List.unmodifiable(_changingHooks);
 
-    if (proc != null) await proc();
+    _onCredential = new Completer();
+
+    if (proc != null) proc();
     _credentials['params']['IdentityId'] = null;
     _credentials['expired'] = true;
-    _onInitialize = new Completer();
 
     _logger.fine("Getting credentials");
     _credentials.callMethod('get', [
       (error) async {
         if (error == null) {
-          final newId = _credentials['identityId'];
+          final cred = new CognitoIdentity();
+
           if (hooks != null) {
-            await Future.wait(hooks.map((h) => h(oldId, newId)));
+            await Future.wait(hooks.map((h) => h(old.id, cred.id)));
           }
-          _onInitialize.complete();
+          _onCredential.complete(cred);
         } else {
           _logger.fine("Cognito Error: ${error}");
-          _onInitialize.completeError(error);
+          _onCredential.completeError(error);
         }
       }
     ]);
-    return _onInitialize.future;
+    await _onCredential.future;
   }
 
   static Future<Null> joinFacebook(String token) async => _setToken(PROVIDER_KEY_FACEBOOK, token);
@@ -149,10 +142,17 @@ class CognitoIdentity {
   static List<CognitoIdChangingHook> _changingHooks = [];
   static void addChaningHook(CognitoIdChangingHook hook) => _changingHooks.add(hook);
 
+  ////////////////
+  // In instance
+
   final String id;
   final Map<String, String> logins;
 
-  CognitoIdentity(this.id, Map logins) : this.logins = logins == null ? const {} : new Map.unmodifiable(logins);
+  CognitoIdentity()
+      : this.id = _credentials['identityId'],
+        this.logins = new Map.unmodifiable(_jsmap(_credentials['params']['Logins'])) {
+    _logger.finer(() => "CognitoIdentity(${id}) [${logins.keys.join(', ')}]");
+  }
 
   bool hasFacebook() => logins.containsKey(PROVIDER_KEY_FACEBOOK);
 }
