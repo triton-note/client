@@ -11,7 +11,7 @@ import 'package:triton_note/settings.dart';
 final _logger = new Logger('S3File');
 
 class S3File {
-  static final s3 = new JsObject(context['AWS']['S3'], []);
+  static final _s3 = new JsObject(context['AWS']['S3'], []);
 
   static Future _call(String methodName, Map params, [List opts = null]) async {
     final result = new Completer();
@@ -29,7 +29,7 @@ class S3File {
           result.completeError(error);
         }
       });
-      s3.callMethod(methodName, args);
+      _s3.callMethod(methodName, args);
     } catch (ex) {
       _logger.warning(() => "Failed to call ${methodName}: ${ex}");
       result.completeError(ex);
