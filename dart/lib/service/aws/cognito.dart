@@ -9,14 +9,12 @@ import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:triton_note/util/fabric.dart';
-import 'package:triton_note/util/getter_setter.dart';
+import 'package:triton_note/service/facebook.dart';
 
 final _logger = new Logger('Cognito');
 
 String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]);
 Map _jsmap(JsObject obj) => obj == null ? {} : JSON.decode(_stringify(obj));
-
-final EVENT_COGNITO_ID_CHANGED = "EVENT_COGNITO_ID_CHANGED";
 
 Future<String> get cognitoId async => (await CognitoIdentity.credential).id;
 
@@ -35,18 +33,17 @@ class CognitoSettings {
 }
 
 class CognitoIdentity {
+  static JsObject get _credentials => context['AWS']['config']['credentials'];
+  static set _credentials(JsObject obj) => context['AWS']['config']['credentials'] = obj;
+
+  static Completer<CognitoIdentity> _onCredential = null;
   static Future<CognitoIdentity> get credential async {
     await _initialize();
-
-    final credId = context['AWS']['config']['credentials']['identityId'];
-    final logins = context['AWS']['config']['credentials']['params']['Logins'];
-
-    _logger.finer(() => "CognitoIdentity(${_stringify(credId)})");
-    return new CognitoIdentity(credId, _jsmap(logins));
+    return _onCredential.future;
   }
 
-  static Completer _onInitialize = null;
-  static _initialize() async {
+  static Completer<Null> _onInitialize = null;
+  static Future<Null> _initialize() async {
     if (_onInitialize == null) {
       _onInitialize = new Completer();
       try {
@@ -54,19 +51,16 @@ class CognitoIdentity {
         final settings = await CognitoSettings.value;
 
         context['AWS']['config']['region'] = settings.region;
-        final creds = new JsObject(context['AWS']['CognitoIdentityCredentials'], [
+        _credentials = new JsObject(context['AWS']['CognitoIdentityCredentials'], [
           new JsObject.jsify({'IdentityPoolId': settings.poolId})
         ]);
-        context['AWS']['config']['credentials'] = creds;
 
-        try {
+        if (_ConnectedServices.get(PROVIDER_KEY_FACEBOOK)) {
+          await FBConnect.login();
+        } else {
           await _refresh();
-        } catch (ex) {
-          _logger.fine("Initialize error (reset and try again): ${ex}");
-          creds['params']['IdentityId'] = null;
-          await _refresh();
+          FabricAnswers.eventLogin(method: "Cognito");
         }
-        FabricAnswers.eventLogin(method: "Cognito");
         _onInitialize.complete();
       } catch (ex) {
         _logger.warning("Error on initializing: ${ex}");
@@ -76,73 +70,118 @@ class CognitoIdentity {
     return _onInitialize.future;
   }
 
-  static Future<CognitoIdentity> _setToken(String service, String token) async {
+  static Future<Null> _setToken(String service, String token) async {
     _logger.fine("SignIn: ${service}");
 
-    final creds = context['AWS']['config']['credentials'];
-    final logins = _jsmap(creds['params']['Logins']);
+    final logins = _jsmap(_credentials['params']['Logins']);
 
     if (!logins.containsKey(service)) {
       logins[service] = token;
-      creds['params']['Logins'] = new JsObject.jsify(logins);
-      creds['expired'] = true;
-      await _refresh();
+      await _refresh(() {
+        _logger.finest(() => "Added token: ${service}");
+        _credentials['params']['Logins'] = new JsObject.jsify(logins);
+      });
+      FabricAnswers.eventLogin(method: service);
+      _ConnectedServices.set(service, true);
+    } else {
+      _logger.warning(() => "Nothing to do, since already joined: ${service}");
     }
-    return await credential;
   }
 
-  static Future<CognitoIdentity> _removeToken(String service) async {
+  static Future<Null> _removeToken(String service) async {
     _logger.fine("SignOut: ${service}");
 
-    final creds = context['AWS']['config']['credentials'];
-    final Map logins = _jsmap(creds['params']['Logins']);
+    final Map logins = _jsmap(_credentials['params']['Logins']);
 
     if (logins.containsKey(service)) {
       logins.remove(service);
-      creds['params']['Logins'] = new JsObject.jsify(logins);
-      creds['expired'] = true;
-      await _refresh();
+      await _refresh(() {
+        _logger.finest(() => "Removed token: ${service}");
+        _credentials['params']['Logins'] = new JsObject.jsify(logins);
+      });
+      _ConnectedServices.set(service, false);
+    } else {
+      _logger.warning(() => "Nothing to do, since not joined: ${service}");
     }
-    return await credential;
   }
 
-  static Future<Null> _refresh() async {
-    final result = new Completer();
+  static Future<Null> _refresh([void proc()]) async {
+    final old = !(_onInitialize?.isCompleted ?? false) ? null : await credential;
+    final hooks = (old == null) ? null : new List.unmodifiable(_changingHooks);
 
-    final creds = context['AWS']['config']['credentials'];
+    _onCredential = new Completer();
+
+    if (proc != null) proc();
+    _credentials['params']['IdentityId'] = null;
+    _credentials['expired'] = true;
+
     _logger.fine("Getting credentials");
-    creds.callMethod('get', [
-      (error) {
+    _credentials.callMethod('get', [
+      (error) async {
         if (error == null) {
-          result.complete();
-          window.dispatchEvent(new CustomEvent(EVENT_COGNITO_ID_CHANGED, cancelable: false));
+          final cred = new CognitoIdentity();
+
+          if (hooks != null && old.id != cred.id) {
+            _logger.fine(() => "Starting hooks on changing coginito id: ${old.id} -> ${cred.id}");
+            await Future.wait(hooks.map((hook) {
+              try {
+                return hook(old.id, cred.id);
+              } catch (ex) {
+                FabricCrashlytics.crash("Fatal Error: _cognitoIdChanged: ${ex}");
+              }
+            }));
+          }
+          _onCredential.complete(cred);
         } else {
           _logger.fine("Cognito Error: ${error}");
-          result.completeError(error);
+          _onCredential.completeError(error);
         }
       }
     ]);
-    return result.future;
+    await _onCredential.future;
   }
 
-  static Future<CognitoIdentity> joinFacebook(String token) async => _setToken(PROVIDER_KEY_FACEBOOK, token);
-  static Future<CognitoIdentity> dropFacebook() async => _removeToken(PROVIDER_KEY_FACEBOOK);
+  static Future<Null> joinFacebook(String token) async => _setToken(PROVIDER_KEY_FACEBOOK, token);
+  static Future<Null> dropFacebook() async => _removeToken(PROVIDER_KEY_FACEBOOK);
 
   static final String PROVIDER_KEY_FACEBOOK = 'graph.facebook.com';
+
+  static List<CognitoIdChangingHook> _changingHooks = [];
+  static void addChaningHook(CognitoIdChangingHook hook) => _changingHooks.add(hook);
+
+  ////////////////
+  // In instance
 
   final String id;
   final Map<String, String> logins;
 
-  CognitoIdentity(this.id, Map logins) : this.logins = logins == null ? const {} : new Map.unmodifiable(logins);
+  CognitoIdentity()
+      : this.id = _credentials['identityId'],
+        this.logins = new Map.unmodifiable(_jsmap(_credentials['params']['Logins'])) {
+    _logger.finer(() => "CognitoIdentity(${id}) [${logins.keys.join(', ')}]");
+    assert(id != null);
+  }
 
   bool hasFacebook() => logins.containsKey(PROVIDER_KEY_FACEBOOK);
 }
 
+typedef Future CognitoIdChangingHook(String oldId, String newId);
+
+class _ConnectedServices {
+  static Map<String, bool> get _value => JSON.decode(window.localStorage['cognito'] ?? '{}');
+  static set _value(Map<String, bool> v) => window.localStorage['cognito'] = JSON.encode(v ?? {});
+
+  static bool get(String service) => _value[service] ?? false;
+  static set(String service, bool v) => _value = _value..[service] = v;
+}
+
 class CognitoSync {
-  static final Getter<Future<JsObject>> _client = new Getter(() async {
+  static final _logger = new Logger('CognitoSync');
+
+  static Future<JsObject> get _client async {
     await CognitoIdentity.credential;
     return new JsObject(context['AWS']['CognitoSyncManager'], []);
-  });
+  }
 
   static Future<JsObject> _invoke(JsObject target, String methodName, List params) async {
     final result = new Completer();
@@ -166,7 +205,7 @@ class CognitoSync {
   }
 
   static Future<CognitoSync> getDataset(String name) async {
-    final dataset = await _invoke(await _client.value, 'openOrCreateDataset', [name]);
+    final dataset = await _invoke(await _client, 'openOrCreateDataset', [name]);
     return new CognitoSync(dataset);
   }
 

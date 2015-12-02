@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/settings.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('DynamoDB');
@@ -47,11 +48,22 @@ class DynamoDB_Table<T extends DBRecord> {
   final String ID_COLUMN;
   final _RecordReader<T> reader;
   final _RecordWriter<T> writer;
+  Future<String> get fullName async => "${(await Settings).appName}.${tableName}";
 
-  DynamoDB_Table(this.tableName, this.ID_COLUMN, this.reader, this.writer);
+  DynamoDB_Table(this.tableName, this.ID_COLUMN, this.reader, this.writer) {
+    CognitoIdentity.addChaningHook((String oldId, String newId) async {
+      final items = await query(null, {DynamoDB.COGNITO_ID: oldId});
+      await Future.wait(items.map((item) async {
+        await put(item, newId);
+        await delete(item.id, oldId);
+      }));
+    });
+  }
+
+  toString() => "DynamoDB_Table[${tableName}]";
 
   Future<JsObject> _invoke(String methodName, Map param) async {
-    param['TableName'] = "${(await Settings).appName}.${tableName}";
+    param['TableName'] = await fullName;
     _logger.finest(() => "Invoking '${methodName}': ${param}");
     final result = new Completer();
     DynamoDB.client.callMethod(methodName, [
@@ -69,9 +81,9 @@ class DynamoDB_Table<T extends DBRecord> {
     return result.future;
   }
 
-  Future<Map<String, Map<String, String>>> _makeKey(String id) async {
+  Future<Map<String, Map<String, String>>> _makeKey(String id, [String currentCognitoId = null]) async {
     final key = {
-      DynamoDB.COGNITO_ID: {'S': await cognitoId}
+      DynamoDB.COGNITO_ID: {'S': currentCognitoId ?? await cognitoId}
     };
     if (id != null && ID_COLUMN != null) key[ID_COLUMN] = {'S': id};
     return key;
@@ -86,8 +98,8 @@ class DynamoDB_Table<T extends DBRecord> {
     return reader(map);
   }
 
-  Future<Null> put(T obj) async {
-    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(obj.id));
+  Future<Null> put(T obj, [String currentCognitoId = null]) async {
+    final item = _ContentEncoder.toDynamoMap(writer(obj))..addAll(await _makeKey(obj.id, currentCognitoId));
     await _invoke('putItem', {'Item': item});
   }
 
@@ -100,8 +112,8 @@ class DynamoDB_Table<T extends DBRecord> {
     await _invoke('updateItem', {'Key': await _makeKey(obj.id), 'AttributeUpdates': attrs});
   }
 
-  Future<Null> delete(String id) async {
-    await _invoke('deleteItem', {'Key': await _makeKey(id)});
+  Future<Null> delete(String id, [String currentCognitoId = null]) async {
+    await _invoke('deleteItem', {'Key': await _makeKey(id, currentCognitoId)});
   }
 
   Future<List<T>> scan(String expression, Map<String, String> names, Map<String, dynamic> values,
@@ -141,11 +153,11 @@ class DynamoDB_Table<T extends DBRecord> {
     });
     final params = {
       'ScanIndexForward': isForward,
-      'IndexName': indexName,
       'KeyConditionExpression': expressions.join(" and "),
       'ExpressionAttributeNames': names,
       'ExpressionAttributeValues': values
     };
+    if (indexName != null) params['IndexName'] = indexName;
     if (0 < pageSize) params['Limit'] = pageSize;
     if (lastEvaluatedKey != null) lastEvaluatedKey.putToParam(params);
 

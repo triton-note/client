@@ -26,6 +26,7 @@ module Fastlane
       end
 
       def self.last_tag
+        sh("git fetch")
         prefix = "deployed/#{ENV['FASTLANE_PLATFORM_NAME']}/#{ENV['BUILD_MODE']}/"
         sh("git tag -l | grep '#{prefix}' || echo").split("\n").sort.last
       end

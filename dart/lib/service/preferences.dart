@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/fabric.dart';
 
 final _logger = new Logger('UserPreferences');
 
@@ -50,19 +51,32 @@ class _MeasuresImpl implements Measures {
 
   _MeasuresImpl(this._dataset) {
     _init();
+    CognitoIdentity.addChaningHook((String oldId, String newId) async {
+      await _dataset.synchronize();
+      await _loadAll();
+    });
   }
+
+  toString() => "Measures(${KEY_LENGTH}: ${length}, ${KEY_WEIGHT}: ${weight}, ${KEY_TEMPERATURE}: ${temperature})";
+
   _init() async {
     try {
-      _length = await _dataset.get(KEY_LENGTH);
-      if (_length == null) length = LengthUnit.cm;
-      _weight = await _dataset.get(KEY_WEIGHT);
-      if (_weight == null) weight = WeightUnit.g;
-      _temperature = await _dataset.get(KEY_TEMPERATURE);
-      if (_temperature == null) temperature = TemperatureUnit.Cels;
+      await _loadAll();
       _onLoaded.complete();
     } catch (ex) {
       _onLoaded.completeError(ex);
     }
+  }
+
+  _loadAll() async {
+    _length = await _dataset.get(KEY_LENGTH);
+    if (_length == null) length = LengthUnit.cm;
+    _weight = await _dataset.get(KEY_WEIGHT);
+    if (_weight == null) weight = WeightUnit.g;
+    _temperature = await _dataset.get(KEY_TEMPERATURE);
+    if (_temperature == null) temperature = TemperatureUnit.Cels;
+
+    _logger.finest(() => "Loaded: ${this}");
   }
 
   LengthUnit get length => enumByName(LengthUnit.values, _length);

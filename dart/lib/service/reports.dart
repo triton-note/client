@@ -1,13 +1,14 @@
 library triton_note.service.reports;
 
 import 'dart:async';
-import 'dart:html';
 
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/report.dart';
+import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('Reports');
@@ -113,23 +114,34 @@ class Reports {
 }
 
 class _PagerReports implements Pager<Report> {
-  String _cognitoId;
+  static const changedEx = "CognitoId Changed";
+
   Pager<Report> _db;
-  Completer<Null> _ready = new Completer();
+  Completer<Null> _ready;
+  String currentId;
 
   _PagerReports() {
-    _refreshDb();
-    window.on[EVENT_COGNITO_ID_CHANGED].listen((event) => _refreshDb());
+    refreshDb();
+
+    CognitoIdentity.addChaningHook((String oldId, String newId) async {
+      if (oldId != null) await Photo.moveCognitoId(oldId, newId);
+      refreshDb();
+    });
   }
 
-  Future<Null> _refreshDb() async {
-    final newId = await cognitoId;
-    if (_cognitoId != newId) {
-      _logger.info(() => "CognitoID is changed. Refresh pager of reports.");
-      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, newId, false);
-      _cognitoId = newId;
-      if (!_ready.isCompleted) _ready.complete(_db);
-    }
+  toString() => "PagerReports[${currentId}](ready=${_ready?.isCompleted ?? false})";
+
+  refreshDb() async {
+    if (_ready != null && !_ready.isCompleted) _ready.completeError(changedEx);
+
+    _ready = new Completer();
+    currentId = await cognitoId;
+
+    _logger.info(() => "Refresh pager: cognito id is changed to ${currentId}");
+    _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
+    Reports.paging.reset();
+
+    _ready.complete();
   }
 
   bool get hasMore => _db?.hasMore ?? true;
@@ -137,10 +149,15 @@ class _PagerReports implements Pager<Report> {
   void reset() => _db?.reset();
 
   Future<List<Report>> more(int pageSize) async {
-    await _ready.future;
-    final list = await _db.more(pageSize);
-    await Future.wait(list.map(Reports._loadFishes));
-    _logger.finer(() => "Loaded reports: ${list}");
-    return list;
+    try {
+      await _ready.future;
+      final list = await _db.more(pageSize);
+      await Future.wait(list.map(Reports._loadFishes));
+      _logger.finer(() => "Loaded reports: ${list}");
+      return list;
+    } catch (ex) {
+      if (ex != changedEx) throw ex;
+      return [];
+    }
   }
 }

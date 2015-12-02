@@ -32,15 +32,13 @@ class FBConnect {
 
   static Future<String> _login(List<String> perms) async {
     final token = await _call('login', perms) as String;
-    final cred = await CognitoIdentity.joinFacebook(token);
-    if (!cred.hasFacebook()) throw "Failed to connect to Facebook.";
+    await CognitoIdentity.joinFacebook(token);
     return token;
   }
 
   static Future<Null> logout() async {
     await _call('logout', []);
-    final cred = await CognitoIdentity.dropFacebook();
-    if (cred.hasFacebook()) throw "Failed to disconnect from Facebook. Still connected.";
+    await CognitoIdentity.dropFacebook();
   }
 
   static Future<String> login() => _login([]);
