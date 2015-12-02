@@ -8,7 +8,6 @@ import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
-import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('Reports');
