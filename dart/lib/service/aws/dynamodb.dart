@@ -54,16 +54,18 @@ class DynamoDB_Table<T extends DBRecord> {
     CognitoIdentity.addChaningHook(_cognitoIdChanged);
   }
 
+  toString() => "DynamoDB_Table[${tableName}]";
+
   Future _cognitoIdChanged(String oldId, String newId) async {
     try {
-      _logger.finest(() => "[DBTable(${tableName})] Finishing changing cognito id: ${oldId} -> ${newId}");
+      _logger.finest(() => "[${this}] Finishing changing cognito id: ${oldId} -> ${newId}");
       final items = await query(null, {DynamoDB.COGNITO_ID: oldId});
       await Future.wait(items.map((item) async {
         await put(item, newId);
         await delete(item.id, oldId);
       }));
     } catch (ex) {
-      FabricCrashlytics.crash("Fatal Error: onFinishChanging: ${ex}");
+      FabricCrashlytics.crash("[${this}] Fatal Error: _cognitoIdChanged: ${ex}");
     }
   }
 
