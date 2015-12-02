@@ -29,7 +29,7 @@ class Reports {
     return {DynamoDB.CONTENT: obj.toMap(), 'REPORT_ID': obj.id, 'DATE_AT': obj.dateAt.toUtc().millisecondsSinceEpoch};
   });
 
-  static PagingList<Report> paging = new PagingList(new _PagerReports());
+  static Future<PagingList<Report>> paging = cognitoId.then((id) => new PagingList(new _PagerReports(id)));
   static Future<List<Report>> get _cachedList async => (await paging).list;
 
   static Future<Report> _fromCache(String id) async =>
@@ -120,28 +120,30 @@ class _PagerReports implements Pager<Report> {
   Completer<Null> _ready;
   String currentId;
 
-  _PagerReports() {
-    refreshDb();
+  _PagerReports(this.currentId) {
+    _refreshDb();
 
     CognitoIdentity.addChaningHook((String oldId, String newId) async {
       if (oldId != null) await Photo.moveCognitoId(oldId, newId);
-      refreshDb();
+      cognitoId.then((id) {
+        currentId = newId;
+        _refreshDb();
+      });
     });
   }
 
   toString() => "PagerReports[${currentId}](ready=${_ready?.isCompleted ?? false})";
 
-  refreshDb() async {
+  _refreshDb() {
     if (_ready != null && !_ready.isCompleted) _ready.completeError(changedEx);
-
     _ready = new Completer();
-    currentId = await cognitoId;
 
     _logger.info(() => "Refresh pager: cognito id is changed to ${currentId}");
     _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
-    Reports.paging.reset();
-
-    _ready.complete();
+    Reports.paging.then((paging) {
+      paging.reset();
+      _ready.complete();
+    });
   }
 
   bool get hasMore => _db?.hasMore ?? true;
