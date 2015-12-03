@@ -1,5 +1,6 @@
 library triton_note.page.reports_add;
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
@@ -40,8 +41,13 @@ class AddReportPage extends MainFrame {
   _GMap gmap;
   _Conditions conditions;
 
-  bool get isReady => report != null;
-  bool get isLoading => report.photo == null;
+  // Status
+  final Completer<Null> _onUploaded = new Completer();
+  final Completer<Null> _onGetConditions = new Completer();
+  Future get _onSubmitable async => Future.wait([_onUploaded.future, _onGetConditions.future]);
+
+  bool isReady = false;
+  bool get isLoading => report?.photo?.reduced?.mainview?.url == null;
 
   AddReportPage(Router router) : super(router);
 
@@ -49,10 +55,12 @@ class AddReportPage extends MainFrame {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    gmap = new _GMap(root, new GetterSetter(() => report.location.name, (v) => report.location.name = v),
+    gmap = new _GMap(
+        root,
+        new GetterSetter(() => report.location.name, (v) => report.location.name = v),
         new GetterSetter(() => report.location.geoinfo, (pos) {
-      report.location.geoinfo = pos;
-    }));
+          report.location.geoinfo = pos;
+        }));
     conditions = new _Conditions(root, new Getter(() => report.condition));
   }
 
@@ -60,53 +68,59 @@ class AddReportPage extends MainFrame {
    * Choosing photo and get conditions and inference.
    */
   choosePhoto(bool take) => rippling(() {
-    final shop = new PhotoShop(take);
+        _onSubmitable.then((_) => _submitable());
 
-    report = new Report.fromMap({'location': {}, 'condition': {'weather': {}}});
+        final shop = new PhotoShop(take);
 
-    shop.photoUrl.then((url) {
-      report.photo.reduced.mainview.url = url;
-      _logger.finest(() => "Selected photo's local reference: ${report.photo},  (isLoading=${isLoading})");
-    });
+        report = new Report.fromMap({
+          'location': {},
+          'condition': {'weather': {}}
+        });
 
-    shop.photo.then((photo) async {
-      _upload(photo);
+        shop.photoUrl.then((url) {
+          report.photo.reduced.mainview.url = url;
+          _logger.finest(() => "Selected photo's local reference: ${report.photo},  (isLoading=${isLoading})");
+        });
 
-      try {
-        report.dateAt = await shop.timestamp;
-      } catch (ex) {
-        _logger.info("No Timestamp in Exif: ${ex}");
-      }
+        shop.photo.then((photo) async {
+          isReady = true;
+          _upload(photo);
 
-      try {
-        report.location.geoinfo = await shop.geoinfo;
-      } catch (ex) {
-        _logger.info("No GeoInfo in Exif: ${ex}");
-        report.location.geoinfo = await Geo.location();
-      }
-      renewConditions();
-
-      try {
-        final inference = null;
-        if (inference != null) {
-          if (inference.spotName != null && inference.spotName.length > 0) {
-            report.location.name = inference.spotName;
+          try {
+            report.dateAt = await shop.timestamp;
+          } catch (ex) {
+            _logger.info("No Timestamp in Exif: ${ex}");
           }
-          if (inference.fishes != null && inference.fishes.length > 0) {
-            report.fishes.addAll(inference.fishes);
+
+          try {
+            report.location.geoinfo = await shop.geoinfo;
+          } catch (ex) {
+            _logger.info("No GeoInfo in Exif: ${ex}");
+            report.location.geoinfo = await Geo.location();
           }
-        }
-      } catch (ex) {
-        _logger.info("Failed to infer: ${ex}");
-      }
-    });
-  });
+          renewConditions();
+
+          try {
+            final inference = null;
+            if (inference != null) {
+              if (inference.spotName != null && inference.spotName.length > 0) {
+                report.location.name = inference.spotName;
+              }
+              if (inference.fishes != null && inference.fishes.length > 0) {
+                report.fishes.addAll(inference.fishes);
+              }
+            }
+          } catch (ex) {
+            _logger.info("Failed to infer: ${ex}");
+          }
+        });
+      });
 
   _upload(Blob photo) async {
     try {
       final path = await report.photo.original.storagePath;
       await S3File.putObject(path, photo);
-      submitable();
+      _onUploaded.complete();
     } catch (ex) {
       _logger.warning("Failed to upload: ${ex}");
     }
@@ -130,6 +144,7 @@ class AddReportPage extends MainFrame {
               cond.weather.temperature.convertTo((await UserPreferences.current).measures.temperature);
         }
         report.condition = cond;
+        if (!_onGetConditions.isCompleted) _onGetConditions.complete();
       }
     } catch (ex) {
       _logger.info("Failed to get conditions: ${ex}");
@@ -147,6 +162,7 @@ class AddReportPage extends MainFrame {
     }
     return _photoWidth;
   }
+
   int get photoHeight => photoWidth == null ? null : (photoWidth * 2 / 3).round();
 
   //********************************
@@ -177,7 +193,7 @@ class AddReportPage extends MainFrame {
   //********************************
   // Submit
 
-  void submitable() {
+  void _submitable() {
     final div = root.querySelector('core-toolbar div.submit');
     _logger.fine("Appearing submit button: ${div}");
     div.style.display = "block";
@@ -187,16 +203,19 @@ class AddReportPage extends MainFrame {
       ..target = div
       ..duration = 300
       ..fill = "both"
-      ..keyframes = [{'transform': "translate(-${x}px, ${y}px)", 'opacity': '0'}, {'transform': "none", 'opacity': '1'}]
+      ..keyframes = [
+        {'transform': "translate(-${x}px, ${y}px)", 'opacity': '0'},
+        {'transform': "none", 'opacity': '1'}
+      ]
       ..play();
   }
 
   submit() => rippling(() async {
-    _logger.finest("Submitting report: ${report}");
-    if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
-    Reports.add(report);
-    back();
-  });
+        _logger.finest("Submitting report: ${report}");
+        if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
+        Reports.add(report);
+        back();
+      });
 }
 
 class _GMap {
