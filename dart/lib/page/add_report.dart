@@ -44,7 +44,7 @@ class AddReportPage extends MainFrame {
   // Status
   final Completer<Null> _onUploaded = new Completer();
   final Completer<Null> _onGetConditions = new Completer();
-  Future get _onSubmitable async => Future.wait([_onUploaded.future, _onGetConditions.future]);
+  Future get _onSubmitable => Future.wait([_onUploaded.future, _onGetConditions.future]);
 
   bool isReady = false;
   bool get isLoading => report?.photo?.reduced?.mainview?.url == null;
@@ -67,63 +67,60 @@ class AddReportPage extends MainFrame {
   /**
    * Choosing photo and get conditions and inference.
    */
-  choosePhoto(bool take) => rippling(() {
-        _onSubmitable.then((_) => _submitable());
+  choosePhoto(bool take) async {
+    try {
+      _onSubmitable.then((_) => _submitable());
 
-        final shop = new PhotoShop(take);
+      final shop = new PhotoShop(take);
 
-        report = new Report.fromMap({
-          'location': {},
-          'condition': {'weather': {}}
-        });
-
-        shop.photoUrl.then((url) {
-          report.photo.reduced.mainview.url = url;
-          _logger.finest(() => "Selected photo's local reference: ${report.photo},  (isLoading=${isLoading})");
-        });
-
-        shop.photo.then((photo) async {
-          isReady = true;
-          _upload(photo);
-
-          try {
-            report.dateAt = await shop.timestamp;
-          } catch (ex) {
-            _logger.info("No Timestamp in Exif: ${ex}");
-          }
-
-          try {
-            report.location.geoinfo = await shop.geoinfo;
-          } catch (ex) {
-            _logger.info("No GeoInfo in Exif: ${ex}");
-            report.location.geoinfo = await Geo.location();
-          }
-          renewConditions();
-
-          try {
-            final inference = null;
-            if (inference != null) {
-              if (inference.spotName != null && inference.spotName.length > 0) {
-                report.location.name = inference.spotName;
-              }
-              if (inference.fishes != null && inference.fishes.length > 0) {
-                report.fishes.addAll(inference.fishes);
-              }
-            }
-          } catch (ex) {
-            _logger.info("Failed to infer: ${ex}");
-          }
-        });
+      report = new Report.fromMap({
+        'location': {},
+        'condition': {'weather': {}}
       });
 
-  _upload(Blob photo) async {
-    try {
-      final path = await report.photo.original.storagePath;
-      await S3File.putObject(path, photo);
-      _onUploaded.complete();
+      final photo = await shop.photo;
+      isReady = true;
+      _upload(photo);
+
+      report.photo.reduced.mainview.url = await shop.photoUrl;
+
+      try {
+        report.dateAt = await shop.timestamp;
+      } catch (ex) {
+        _logger.info("No Timestamp in Exif: ${ex}");
+      }
+
+      try {
+        report.location.geoinfo = await shop.geoinfo;
+      } catch (ex) {
+        _logger.info("No GeoInfo in Exif: ${ex}");
+        report.location.geoinfo = await Geo.location();
+      }
+      renewConditions();
+
+      try {
+        final inference = null;
+        if (inference != null) {
+          if (inference.spotName != null && inference.spotName.length > 0) {
+            report.location.name = inference.spotName;
+          }
+          if (inference.fishes != null && inference.fishes.length > 0) {
+            report.fishes.addAll(inference.fishes);
+          }
+        }
+      } catch (ex) {
+        _logger.info("Failed to infer: ${ex}");
+      }
     } catch (ex) {
-      _logger.warning("Failed to upload: ${ex}");
+      _logger.warning(() => "Failed to choose photo: ${ex}");
+      back();
     }
+  }
+
+  _upload(Blob photo) async {
+    final path = await report.photo.original.storagePath;
+    await S3File.putObject(path, photo);
+    _onUploaded.complete();
   }
 
   /**
