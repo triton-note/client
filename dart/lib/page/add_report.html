@@ -44,26 +44,28 @@
                     </div> 
 			    </div>
 			    <div id="catches">
-			    	<div class="control">
-			    		<div class="title">
-			    			<p>Catches</p>
-			    		</div>
-			    		<div class="fish-name">
-			    			<paper-input-decorator label="Fish name">
-			    				<input ng-model="addingFishName">
-			    			</paper-input-decorator>
-			    		</div>
-			    		<div class="add-button">
-				    		<paper-fab mini icon="add" ng-click="addFish()"></paper-fab>
-			    		</div>
-			    	</div>
-			    	<div class="list">
-			    		<div class="item" ng-repeat="fish in report.fishes">
-		    				<p>{{fish | fishFilter }}</p>
-		    				<paper-ripple fit ng-click="editFish($index)"></paper-ripple>
-			    		</div>
-			    	</div>
-                    <edit-fish-dialog setter="fishDialog"></edit-fish-dialog>
+                    <div class="content">
+    			    	<div class="control">
+    			    		<div class="title">
+    			    			<p>Catches</p>
+    			    		</div>
+    			    		<div class="fish-name">
+    			    			<paper-input-decorator label="Fish name">
+    			    				<input ng-model="addingFishName">
+    			    			</paper-input-decorator>
+    			    		</div>
+    			    		<div class="add-button">
+    				    		<paper-fab mini icon="add" ng-click="addFish()"></paper-fab>
+    			    		</div>
+    			    	</div>
+    			    	<div class="list">
+    			    		<div class="item" ng-repeat="fish in report.fishes">
+    		    				<p>{{fish | fishFilter }}</p>
+    		    				<paper-ripple fit ng-click="editFish($index)"></paper-ripple>
+    			    		</div>
+    			    	</div>
+                        <edit-fish-dialog setter="fishDialog"></edit-fish-dialog>
+                    </div>
 			    </div>
 			    <div id="location">
 			    	<div>
