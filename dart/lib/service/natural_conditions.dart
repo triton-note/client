@@ -56,7 +56,7 @@ class _OpenWeatherMap {
     loader(Map map) => (map.isEmpty)
         ? null
         : new Weather.fromMap({
-            'nominal': map['nominal'].toString(),
+            'nominal': map['name'].toString(),
             'iconUrl': map['iconUrl'].toString(),
             'temperature': map['temperature'].toDouble()
           });
