@@ -7,19 +7,19 @@ div.view {
 }
 
 div.control {
-  display: table;
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
   width: 100%;
   padding-top: 5px;
   padding-bottom: 5px;
   
   background-color: #eee;
   
-  div {
-    display: table-cell;
+  &>div {
+    @include flex-grow(1);
   }
-  paper-button {
-    height: 24px;
-    
+  paper-button {    
     /deep/ .button-content {
       padding-top: 4px;
       padding-bottom: 4px;
@@ -32,21 +32,6 @@ div.control {
       width: 16px;
       height: 16px;
     }
-  }
-  
-  .back {
-    padding-left: 10px;
-    text-align: left;
-  }
-  .today {
-    text-align: center;
-    core-icon {
-      margin-right: 4px;
-    }
-  }
-  .forward {
-    padding-right: 10px;
-    text-align: right;
   }
 }
 
