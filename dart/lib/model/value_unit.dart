@@ -19,7 +19,7 @@ String round(double v, int digits) {
 abstract class ValueUnit<A extends ValueUnit<A, U>, U> implements StreamedUpdate<A> {
   ValueUnit(this._value, this.unit);
 
-  final StreamController<A> _updateStream = new StreamController();
+  final StreamController<A> _updateStream = new StreamController.broadcast();
   Stream<A> get onUpdate => _updateStream.stream;
 
   double _value;
@@ -44,6 +44,7 @@ abstract class ValueUnit<A extends ValueUnit<A, U>, U> implements StreamedUpdate
 }
 
 enum TemperatureUnit { Cels, Fahr }
+
 class Temperature extends ValueUnit<Temperature, TemperatureUnit> {
   static const TemperatureUnit STANDARD_UNIT = TemperatureUnit.Cels;
 
@@ -75,6 +76,7 @@ class Temperature extends ValueUnit<Temperature, TemperatureUnit> {
 }
 
 enum WeightUnit { kg, g, pound, oz }
+
 class Weight extends ValueUnit<Weight, WeightUnit> {
   static const WeightUnit STANDARD_UNIT = WeightUnit.g;
 
@@ -154,6 +156,7 @@ class Weight extends ValueUnit<Weight, WeightUnit> {
 }
 
 enum LengthUnit { cm, inch }
+
 class Length extends ValueUnit<Length, LengthUnit> {
   static const LengthUnit STANDARD_UNIT = LengthUnit.cm;
 
