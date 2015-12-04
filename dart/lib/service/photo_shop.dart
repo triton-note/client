@@ -22,15 +22,18 @@ class PhotoShop {
   final Completer<DateTime> _onGetTimestamp = new Completer();
 
   PhotoShop(bool take) {
-    photo.then((blob) {
+    _photo(take);
+    _init();
+  }
+
+  _init() async {
+    try {
+      final blob = await photo;
       _makeUrl(blob);
       _readExif(blob);
-    }).catchError((error) {
-      _onGetUrl.completeError("No photo data");
-      _onGetGeoinfo.completeError("No photo data");
-      _onGetTimestamp.completeError("No photo data");
-    });
-    _photo(take);
+    } catch (ex) {
+      _logger.warning(() => "Failed on choose photo: ${ex}");
+    }
   }
 
   Future<Blob> get photo => _onChoose.future;
@@ -106,6 +109,7 @@ class PhotoShop {
         context['navigator']['camera'].callMethod('getPicture', [
           (uri) async {
             try {
+              _logger.finest(() => "Loaging choosed photo uri: ${uri}");
               final blob = await readAsBlob(uri, CONTENT_TYPE);
               _logger.fine(() => "Get photo data: ${blob}");
               _onChoose.complete(blob);
@@ -114,7 +118,7 @@ class PhotoShop {
             }
           },
           (error) {
-            _logger.fine("Failed to get photo: ${error}");
+            _logger.warning("Failed to get photo: ${error}");
             _onChoose.completeError(error);
           },
           new JsObject.jsify(params)
