@@ -58,7 +58,14 @@ class CognitoIdentity {
         if (_ConnectedServices.get(PROVIDER_KEY_FACEBOOK)) {
           await FBConnect.login();
         } else {
-          await _refresh();
+          try {
+            await _refresh();
+          } catch (ex) {
+            _logger.warning(() => "Retry to obtain credential: ${ex}");
+            await _refresh(() {
+              _credentials['params']['IdentityId'] = null;
+            });
+          }
           FabricAnswers.eventLogin(method: "Cognito");
         }
         _onInitialize.complete();
@@ -98,6 +105,7 @@ class CognitoIdentity {
       await _refresh(() {
         _logger.finest(() => "Removed token: ${service}");
         _credentials['params']['Logins'] = new JsObject.jsify(logins);
+        _credentials['params']['IdentityId'] = null;
       });
       _ConnectedServices.set(service, false);
     } else {
@@ -112,7 +120,6 @@ class CognitoIdentity {
     _onCredential = new Completer();
 
     if (proc != null) proc();
-    _credentials['params']['IdentityId'] = null;
     _credentials['expired'] = true;
 
     _logger.fine("Getting credentials");
