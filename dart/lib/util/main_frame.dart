@@ -25,6 +25,13 @@ void listenOn(Element target, String eventType, void proc(Element target)) {
   });
 }
 
+void clearOverlay() {
+  document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
+    _logger.finest(() => "Clearing overlay: ${e}");
+    e.remove();
+  });
+}
+
 class MainFrame extends ShadowRootAware {
   final Router router;
   ShadowRoot _root;

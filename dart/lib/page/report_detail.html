@@ -14,11 +14,13 @@
                     </div>
                 </core-dropdown>
                 
-                <paper-action-dialog backdrop autoCloseDisabled layered="false" transition="core-transition-center">
+                <paper-dialog backdrop autoCloseDisabled layered="false" transition="core-transition-center">
                     <p>{{ moreMenu.dialogMessage }}</p>
-                    <paper-button dismissive raise ng-click="moreMenu.dialogCancel()">CANCEL</paper-button>
-                    <paper-button affirmative raise ng-click="moreMenu.dialogOk()">OK</paper-button>
-                </paper-action-dialog>
+                    <div class="buttons">
+                        <paper-button style="color: red" ng-click="moreMenu.dialogCancel()">CANCEL</paper-button>
+                        <paper-button style="color: blue" ng-click="moreMenu.dialogOk()">OK</paper-button>
+                    </div>
+                </paper-dialog>
                 
                 <paper-toast class="capsule"></paper-toast>
             </div>
