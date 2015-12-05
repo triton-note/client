@@ -5,6 +5,7 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
+import 'package:paper_elements/paper_dialog.dart';
 
 final _logger = new Logger('MainFrame');
 
@@ -25,11 +26,27 @@ void listenOn(Element target, String eventType, void proc(Element target)) {
   });
 }
 
-void clearOverlay() {
-  document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
-    _logger.finest(() => "Clearing overlay: ${e}");
-    e.remove();
+closeDialog(PaperDialog dialog) async {
+  final cleared = new Completer();
+
+  dialog.on['core-overlay-close-completed'].listen((event) {
+    if (!cleared.isCompleted) cleared.complete();
   });
+  dialog.close();
+
+  new Timer.periodic(ripplingDuration, (_) {
+    if (!cleared.isCompleted) {
+      _logger.warning(() => "Time over: clear overlay manually...");
+
+      document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
+        _logger.finest(() => "Clearing overlay: ${e}");
+        e.remove();
+      });
+      cleared.complete();
+    }
+  });
+
+  return cleared.future;
 }
 
 class MainFrame extends ShadowRootAware {

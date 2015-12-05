@@ -142,8 +142,7 @@ class _MoreMenu {
     final dialog = _root.querySelector('#more-menu paper-dialog') as PaperDialog;
     dialog.open();
     _dialogResult.future.then((ok) async {
-      dialog.close();
-      clearOverlay();
+      closeDialog(dialog);
       if (ok) whenOk();
     });
   }
