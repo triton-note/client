@@ -1,9 +1,10 @@
 @import "../../web/styles/common";
 
-infinite-scroll::shadow div#content {
+infinite-scroll::shadow div#content {  
   .no-reports {
     display: block;
     width: 100%;
+    margin-top: 20%;
     text-align: center;
     
     paper-button {
@@ -13,25 +14,15 @@ infinite-scroll::shadow div#content {
   }
 
   .report-row {
+    position: relative;
     margin-bottom: 10px;
     padding-top: 0px;
     padding-bottom: 4px;
     padding-left: 8px;
     padding-right: 8px;
     
-    border: solid 1px #eee;
-    border-top-color: #cde;
-    position: relative;
+    border-bottom: solid 10px #eee;
     
-    div.border-top {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 32px;
-      @include background-image(linear-gradient($header-color, white));
-    }
-
     .head {
       display: table;
       width: 100%;
@@ -41,10 +32,18 @@ infinite-scroll::shadow div#content {
         vertical-align: top;
       }
       
-      fit-image {
+      .image {
         width: 100px;
         padding-top: 10px;
         text-align: center;
+        
+        .loading {
+          @include display-flex();
+          @include align-items(center);
+          @include justify-content(center);
+          height: 100px;
+          background-color: #eee;
+        }
       }
       
       .desc {

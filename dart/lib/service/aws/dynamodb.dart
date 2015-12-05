@@ -9,7 +9,6 @@ import 'package:logging/logging.dart';
 
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/settings.dart';
-import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('DynamoDB');

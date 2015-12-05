@@ -1,5 +1,7 @@
 library triton_note.page.reports_list;
 
+import 'dart:html';
+
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 
@@ -19,9 +21,15 @@ final _logger = new Logger('ReportsListPage');
 class ReportsListPage extends MainFrame {
   PagingList<Report> reports;
 
-  ReportsListPage(Router router) : super(router) {
-    reports = Reports.paging;
-    hideSplashScreen();
+  ReportsListPage(Router router) : super(router);
+
+  void onShadowRoot(ShadowRoot sr) {
+    super.onShadowRoot(sr);
+
+    Reports.paging.then((paging) {
+      reports = paging;
+      hideSplashScreen();
+    });
   }
 
   goReport(String id) => rippling(() {

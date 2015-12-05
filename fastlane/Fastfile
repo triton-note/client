@@ -24,11 +24,10 @@ before_all do
     'cordova-plugin-console@~1.0.1',
     'cordova-plugin-camera@~1.2.0',
     'cordova-plugin-splashscreen@~2.1.0',
-    'cordova-plugin-statusbar@~1.0.1',
     'cordova-plugin-geolocation@~1.0.1',
     'cordova-plugin-whitelist@~1.0.0',
-    'cordova-plugin-file@~3.0.0',
-    'phonegap-plugin-push@~1.3.0',
+    'phonegap-plugin-push@~1.4.0',
+    "https://github.com/sawatani/cordova-plugin-file.git#google_photos",
     "https://github.com/fathens/Cordova-Plugin-FBConnect.git --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
     "https://github.com/fathens/Cordova-Plugin-Crashlytics.git --variable API_KEY=#{ENV['FABRIC_API_KEY']}"
   ])
@@ -43,7 +42,7 @@ platform :ios do
     sh('cordova prepare ios')
 
     if is_ci?
-      keychainName = Fastlane::Actions.sh("security default-keychain", log: false).match(/.*\/([^\/]+)\"/)[1]
+      keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
       puts "Using keychain: #{keychainName}"
       import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "AppleWWDRCA.cer")
       import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "Distribution.p12"), certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]

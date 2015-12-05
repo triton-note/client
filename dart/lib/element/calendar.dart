@@ -35,6 +35,7 @@ class CalendarElement extends ShadowRootAware with AttachAware {
       weekNamesList.add(weekNames[(startOfWeek + i) % 7]);
     }
   }
+
   @override
   void onShadowRoot(ShadowRoot shadowRoot) {
     _pages = shadowRoot.querySelector('core-animated-pages') as CoreAnimatedPages..selected = 0;
@@ -52,6 +53,7 @@ class CalendarElement extends ShadowRootAware with AttachAware {
     pageA_weeks = weeks(v);
     _pageA_currentFirst = v;
   }
+
   DateTime get pageB_currentFirst => _pageB_currentFirst;
   set pageB_currentFirst(DateTime v) {
     pageB_weeks = weeks(v);
@@ -103,16 +105,18 @@ class CalendarElement extends ShadowRootAware with AttachAware {
     final all = _pages.querySelectorAll('section');
     final index = _pages.selected;
 
-    bool pageSelect() {
-      if (all[index].id == "pageA") {
-        pageB_currentFirst = cur;
-        return cur.isAfter(pageA_currentFirst);
-      } else {
-        pageA_currentFirst = cur;
-        return cur.isAfter(pageB_currentFirst);
-      }
+    final displayedDate = all[index].id == "pageA" ? pageA_currentFirst : pageB_currentFirst;
+    if (displayedDate == cur) {
+      _logger.fine(() => "Today is already displayed");
+      return;
     }
-    final nextIndex = pageSelect() ? 1 : 0;
+
+    if (all[index].id == "pageA") {
+      pageB_currentFirst = cur;
+    } else {
+      pageA_currentFirst = cur;
+    }
+    final nextIndex = cur.isAfter(displayedDate) ? 1 : 0;
     final next = all[(index + 1) % 2];
     if (index == nextIndex) {
       next.remove();
@@ -128,7 +132,10 @@ class CalendarElement extends ShadowRootAware with AttachAware {
       ..delay = 300
       ..duration = 300
       ..fill = "both"
-      ..keyframes = [{'opacity': 0}, {'opacity': 1}]
+      ..keyframes = [
+        {'opacity': 0},
+        {'opacity': 1}
+      ]
       ..play();
     _logger.fine("Animation of page of today is started");
   }

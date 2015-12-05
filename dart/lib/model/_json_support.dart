@@ -38,16 +38,14 @@ class CachedProp<T> {
 
   StreamSubscription<T> _currentListener;
   T _listen(T a) {
-    if (_currentListener != null) {
-      _currentListener.cancel();
-      _currentListener = null;
-    }
+    _currentListener?.cancel();
     if (a != null && a is StreamedUpdate<T>) {
       _logger.finest(() => "Listen update [#${a.hashCode}] ${a}");
       _currentListener = (a as StreamedUpdate<T>).onUpdate.listen(_update);
     }
     return a;
   }
+
   T _update(T a) => _data[name] = _encode(_cache = a);
 
   T get value {
@@ -55,5 +53,6 @@ class CachedProp<T> {
     final pre = _data[name];
     return _cache = _listen(pre == null ? null : _decode(pre));
   }
+
   set value(T v) => _update(_listen(v));
 }

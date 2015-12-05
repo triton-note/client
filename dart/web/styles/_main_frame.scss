@@ -37,16 +37,11 @@ core-drawer-panel {
       }
     }
     
-    &>div {
-      margin: 10px;
-    }
-    
     div.page-loading {
       div {
-        display: block;
-        
+        @include display-flex();
+        @include justify-content(center);
         margin-top: 30%;
-        text-align: center;
       }
     }
   }
