@@ -1,4 +1,4 @@
-<paper-action-dialog id="weather-dialog" transition="core-transition-center" backdrop>
+<paper-dialog id="weather-dialog" transition="core-transition-center" backdrop>
     <style>
         #weather-dialog paper-shadow {
             margin-bottom: 10px;
@@ -53,8 +53,8 @@
                 <div class="cell">
                     <p>{{name}}</p>
                 </div>
-                <paper-ripple fit affirmative ng-click="changeWeather(name)"></paper-ripple>
+                <paper-ripple fit ng-click="changeWeather(name)"></paper-ripple>
             </div>
         </paper-shadow>
     </div>
-</paper-action-dialog>
+</paper-dialog>

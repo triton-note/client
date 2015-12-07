@@ -7,7 +7,7 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
-import 'package:paper_elements/paper_action_dialog.dart';
+import 'package:paper_elements/paper_dialog.dart';
 import 'package:paper_elements/paper_tabs.dart';
 import 'package:paper_elements/paper_toggle_button.dart';
 
@@ -38,7 +38,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   Getter<CoreAnimatedPages> _pages;
   Getter<PaperTabs> _tabs;
-  Getter<PaperActionDialog> _filterDialog;
+  Getter<PaperDialog> _filterDialog;
 
   int _selectedTab;
   int get _selectedIndex => _selectedTab;
@@ -59,7 +59,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
       _pages.value.selected = _selectedTab = int.parse(target.selected.toString());
       _logger.fine("Selected tab: ${_selectedTab}: ${selectedPage.id}");
     });
-    _filterDialog = new CachedValue(() => root.querySelector('paper-action-dialog#distributions-filter'));
+    _filterDialog = new CachedValue(() => root.querySelector('paper-dialog#distributions-filter'));
 
     dmap = new _Dmap(this);
   }
@@ -77,7 +77,11 @@ class DistributionsPage extends MainFrame implements DetachAware {
       ..style.top = "${button.getBoundingClientRect().bottom}px"
       ..style.left = "0"
       ..style.right = "0"
-      ..toggle();
+      ..open();
+  }
+
+  renewFilter() {
+    closeDialog(_filterDialog.value);
   }
 }
 

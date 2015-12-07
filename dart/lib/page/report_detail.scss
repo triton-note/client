@@ -46,14 +46,12 @@ div#more-menu {
     }
   }
   
-  paper-action-dialog {
+  paper-dialog {
     @include border-radius(3px);
     font-size: 16px;
-    paper-button[dismissive] {
-      color: red;
-    }
-    paper-button[affirmative] {
-      color: blue;
+    
+    .buttons {
+      margin-top: 16px;
     }
   }
 }

@@ -10,7 +10,7 @@ import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
-import 'package:paper_elements/paper_action_dialog.dart';
+import 'package:paper_elements/paper_dialog.dart';
 import 'package:paper_elements/paper_autogrow_textarea.dart';
 import 'package:paper_elements/paper_toast.dart';
 
@@ -129,21 +129,21 @@ class _MoreMenu {
   }
 
   String dialogMessage;
-  Completer<bool> dialogResult;
+  Completer<bool> _dialogResult;
 
-  dialogOk() => dialogResult.complete(true);
-  dialogCancel() => dialogResult.complete(false);
+  dialogOk() => _dialogResult.complete(true);
+  dialogCancel() => _dialogResult.complete(false);
 
   dialog(String message, void whenOk()) {
     dialogMessage = message;
     toggle();
 
-    dialogResult = new Completer();
-    final dialog = _root.querySelector('#more-menu paper-action-dialog') as PaperActionDialog;
+    _dialogResult = new Completer();
+    final dialog = _root.querySelector('#more-menu paper-dialog') as PaperDialog;
     dialog.open();
-    dialogResult.future.then((ok) {
+    _dialogResult.future.then((ok) async {
+      closeDialog(dialog);
       if (ok) whenOk();
-      else toast("Cancelled");
     });
   }
 

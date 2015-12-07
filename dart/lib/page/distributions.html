@@ -18,10 +18,12 @@
             <span flex>Distributions</span>
             
             <paper-icon-button icon="filter-list" ng-click="openFilter($event)"></paper-icon-button>
-            <paper-action-dialog id="distributions-filter" transition="core-transition-top" backdrop>
+            <paper-dialog id="distributions-filter" transition="core-transition-top" backdrop>
                 <distributions-filter setter="filter"></distributions-filter>
-                <paper-button affirmative style="color: green">OK</paper-button>
-            </paper-action-dialog>
+                <div style="text-align: right">
+                    <paper-button style="color: green" ng-click="renewFilter()">OK</paper-button>
+                </div>
+            </paper-dialog>
             
             <div class="tabs">
                 <paper-tabs selected="0">

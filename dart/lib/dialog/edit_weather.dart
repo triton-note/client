@@ -5,13 +5,14 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:paper_elements/paper_action_dialog.dart';
+import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('EditWeatherDialog');
 
@@ -27,7 +28,7 @@ class EditWeatherDialog extends ShadowRootAware {
 
   ShadowRoot _root;
   bool get withTemperature => withoutTemperature == null || withoutTemperature.toLowerCase() == "false";
-  CachedValue<PaperActionDialog> _dialog;
+  CachedValue<PaperDialog> _dialog;
   TemperatureUnit _tUnit;
 
   EditWeatherDialog() {
@@ -36,7 +37,7 @@ class EditWeatherDialog extends ShadowRootAware {
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
-    _dialog = new CachedValue(() => _root.querySelector('paper-action-dialog'));
+    _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
   }
 
   open() {
@@ -57,6 +58,7 @@ class EditWeatherDialog extends ShadowRootAware {
     }
     return _temperatureValue;
   }
+
   set temperatureValue(int v) {
     if (v == null || _tUnit == null) return;
     if (_temperatureValue == v) return;
@@ -68,11 +70,12 @@ class EditWeatherDialog extends ShadowRootAware {
     _logger.finest("Setting timer for closing weather dialog.");
     if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
     _weatherDialogTimer = new Timer(new Duration(seconds: 3), () {
-      if (_dialog.value.opened) _dialog.value.toggle();
+      if (_dialog.value.opened) closeDialog(_dialog.value);
     });
   }
 
   changeWeather(String nominal) {
+    closeDialog(_dialog.value);
     value.nominal = nominal;
     value.iconUrl = weatherIcon(nominal);
   }

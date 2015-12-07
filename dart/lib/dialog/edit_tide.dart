@@ -4,11 +4,12 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:paper_elements/paper_action_dialog.dart';
+import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('EditTideDialog');
 
@@ -24,11 +25,11 @@ class EditTideDialog extends ShadowRootAware {
   @NgTwoWay('value') Tide value;
 
   ShadowRoot _root;
-  CachedValue<PaperActionDialog> _dialog;
+  CachedValue<PaperDialog> _dialog;
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
-    _dialog = new CachedValue(() => _root.querySelector('paper-action-dialog'));
+    _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
   }
 
   open() {
@@ -36,6 +37,7 @@ class EditTideDialog extends ShadowRootAware {
   }
 
   changeTide(String name) {
+    closeDialog(_dialog.value);
     final tide = enumByName(Tide.values, name);
     if (tide != null) value = tide;
   }
