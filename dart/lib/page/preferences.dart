@@ -74,13 +74,19 @@ class PreferencesPage extends MainFrame implements DetachAware {
     measures.temperature = toggle.checked ? TemperatureUnit.Cels : TemperatureUnit.Fahr;
   }
 
-  void changeFacebook(event) {
+  changeFacebook(event) async {
     final toggle = event.target as PaperToggleButton;
     _logger.fine(() => "Toggle Facebook: ${toggle.checked}");
-    if (toggle.checked) {
-      FBConnect.login();
-    } else {
-      FBConnect.logout();
+    try {
+      if (toggle.checked) {
+        await FBConnect.login();
+      } else {
+        await FBConnect.logout();
+      }
+    } catch (ex) {
+      _logger.warning(() => "Error: ${ex}");
     }
+    final token = await FBConnect.getToken();
+    toggle.checked = token != null;
   }
 }
