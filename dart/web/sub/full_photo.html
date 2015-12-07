@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html ng-app>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1, maximum-scale=4, user-scalable=yes, width=device-width">
+
+<link rel="import" href="packages/core_elements/core_animation.html">
+<link rel="import" href="packages/core_elements/core_icons.html">
+<link rel="import" href="packages/paper_elements/paper_fab.html">
+
+<link rel="stylesheet" href="full_photo.css">
+
+</head>
+
+<body style="margin: 0">
+    <div id="photo">
+        <img ng-src="{{url}}">
+        <float-buttons>
+            <paper-fab mini icon="close" ng-click="closeFullsize()"></paper-fab>
+        </float-buttons>
+    </div>
+    
+    <script type="application/dart" src="full_photo.dart"></script>
+</body>
+</html>

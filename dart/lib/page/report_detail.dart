@@ -5,7 +5,6 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_dropdown.dart';
@@ -18,6 +17,7 @@ import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
+import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart' as Loc;
 import 'package:triton_note/model/value_unit.dart';
@@ -76,10 +76,9 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    photo = new _PhotoSize(root);
-
     _report.then((v) async {
       report = v;
+      photo = new _PhotoSize(root, report.photo);
       comment = new _Comment(root, _onChanged, report);
       catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
       conditions = new _Conditions(report.condition, _onChanged);
@@ -368,19 +367,22 @@ class _Location {
 }
 
 class _PhotoSize {
-  static const buttonsTimeout = const Duration(seconds: 5);
-
   final ShadowRoot _root;
-  CachedValue<Element> _toolbar, _buttons;
-  CachedValue<CoreAnimatedPages> _pages;
+  final Photo _photo;
+  final CachedValue<Element> _toolbar;
+  final CachedValue<CoreAnimatedPages> _pages;
 
-  Timer _buttonsTimer;
-  bool _buttonsShow;
+  _PhotoSize(ShadowRoot root, this._photo)
+      : _root = root,
+        _toolbar = new CachedValue(() => root.querySelector('core-toolbar')),
+        _pages = new CachedValue(() => root.querySelector('core-animated-pages')) {
+    final fullHeight = _root.querySelector('#mainFrame').clientHeight;
+    final divFullsize = _root.querySelector('#fullPhoto #photo');
+    divFullsize.style.height = "${fullHeight}px";
 
-  _PhotoSize(this._root) {
-    _toolbar = new CachedValue(() => _root.querySelector('core-toolbar'));
-    _pages = new CachedValue(() => _root.querySelector('core-animated-pages'));
-    _buttons = new CachedValue(() => _root.querySelector('#fullPhoto #buttons'));
+    window.on['FULLPHOTO_CLOSE'].listen((event) {
+      closeFullsize();
+    });
   }
 
   int _width;
@@ -388,7 +390,6 @@ class _PhotoSize {
     if (_width == null) {
       final divNormal = _root.querySelector('#normal #photo');
       if (divNormal != null && 0 < divNormal.clientWidth) {
-        _init(divNormal);
         _width = divNormal.clientWidth;
       }
     }
@@ -397,47 +398,13 @@ class _PhotoSize {
 
   int get height => width;
 
-  _init(Element divNormal) async {
-    final fullHeight = _root.querySelector('#mainFrame').clientHeight;
-    final divFullsize = _root.querySelector('#fullPhoto #photo');
-    divFullsize.style.height = "${fullHeight}px";
+  String get encodedUrl => _photo.original.url == null ? null : Uri.encodeComponent(_photo.original.url);
 
-    divNormal.onDoubleClick.listen((event) => _openFullsize());
-    divFullsize.onClick.listen((event) => _showButtons());
-  }
-
-  _showButtons() {
-    _logger.fine("show fullphoto buttons");
-    if (_buttonsTimer != null) _buttonsTimer.cancel();
-    _buttonsTimer = new Timer(buttonsTimeout, _hideButtons);
-    if (!_buttonsShow) _animateButtons(_buttonsShow = true);
-  }
-
-  _hideButtons() {
-    _logger.fine("hide fullphoto buttons");
-    _animateButtons(_buttonsShow = false);
-  }
-
-  _animateButtons(bool show) {
-    final move = _buttons.value.clientHeight;
-    final list = [
-      {'transform': "translateY(${-move}px)"},
-      {'transform': "none"}
-    ];
-    final frames = show ? list : list.reversed.toList();
-
-    new CoreAnimation()
-      ..target = _buttons.value
-      ..duration = 300
-      ..fill = "forwards"
-      ..keyframes = frames
-      ..play();
-  }
-
-  _openFullsize() {
-    _pages.value.selected = 1;
-    _toolbar.value.style.display = "none";
-    _showButtons();
+  openFullsize() {
+    if (encodedUrl != null) {
+      _pages.value.selected = 1;
+      _toolbar.value.style.display = "none";
+    }
   }
 
   closeFullsize() {
