@@ -36,6 +36,11 @@ class CognitoIdentity {
   static JsObject get _credentials => context['AWS']['config']['credentials'];
   static set _credentials(JsObject obj) => context['AWS']['config']['credentials'] = obj;
 
+  static Map get _logins => _jsmap(_credentials['params']['Logins']);
+  static set _logins(Map map) => _credentials['params']['Logins'] = new JsObject.jsify(map);
+
+  static clearIdentityId() => _credentials['params']['IdentityId'] = null;
+
   static Completer<CognitoIdentity> _onCredential = null;
   static Future<CognitoIdentity> get credential async {
     await _initialize();
@@ -63,7 +68,7 @@ class CognitoIdentity {
           } catch (ex) {
             _logger.warning(() => "Retry to obtain credential: ${ex}");
             await _refresh(() {
-              _credentials['params']['IdentityId'] = null;
+              clearIdentityId();
             });
           }
           FabricAnswers.eventLogin(method: "Cognito");
@@ -80,13 +85,14 @@ class CognitoIdentity {
   static Future<Null> _setToken(String service, String token) async {
     _logger.fine("SignIn: ${service}");
 
-    final logins = _jsmap(_credentials['params']['Logins']);
+    final map = _logins;
 
-    if (!logins.containsKey(service)) {
-      logins[service] = token;
+    if (!map.containsKey(service)) {
+      map[service] = token;
       await _refresh(() {
         _logger.finest(() => "Added token: ${service}");
-        _credentials['params']['Logins'] = new JsObject.jsify(logins);
+        _logins = map;
+        clearIdentityId();
       });
       FabricAnswers.eventLogin(method: service);
       _ConnectedServices.set(service, true);
@@ -98,14 +104,14 @@ class CognitoIdentity {
   static Future<Null> _removeToken(String service) async {
     _logger.fine("SignOut: ${service}");
 
-    final Map logins = _jsmap(_credentials['params']['Logins']);
+    final Map map = _logins;
 
-    if (logins.containsKey(service)) {
-      logins.remove(service);
+    if (map.containsKey(service)) {
+      map.remove(service);
       await _refresh(() {
         _logger.finest(() => "Removed token: ${service}");
-        _credentials['params']['Logins'] = new JsObject.jsify(logins);
-        _credentials['params']['IdentityId'] = null;
+        _logins = map;
+        clearIdentityId();
       });
       _ConnectedServices.set(service, false);
     } else {
