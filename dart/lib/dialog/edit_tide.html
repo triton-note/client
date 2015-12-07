@@ -1,4 +1,4 @@
-<paper-action-dialog id="tide-dialog" transition="core-transition-center" backdrop>
+<paper-dialog id="tide-dialog" transition="core-transition-center" backdrop>
     <style>
         #tide-dialog .row {
             position: relative;
@@ -36,7 +36,7 @@
             <div class="cell">
                 <p>{{name}}</p>
             </div>
-            <paper-ripple fit affirmative ng-click="changeTide(name)"></paper-ripple>
+            <paper-ripple fit ng-click="changeTide(name)"></paper-ripple>
         </div>
     </div>
-</paper-action-dialog>
+</paper-dialog>
