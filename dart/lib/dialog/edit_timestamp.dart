@@ -4,9 +4,10 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:paper_elements/paper_action_dialog.dart';
+import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/util/getter_setter.dart';
+import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('EditTimestampDialog');
 
@@ -24,19 +25,26 @@ class EditTimestampDialog extends ShadowRootAware {
   bool get withOclock => withoutOclock == null || withoutOclock.toLowerCase() == "false";
   int tmpOclock = 0;
   DateTime tmpDate = new DateTime.now();
+  CachedValue<PaperDialog> _dialog;
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
+    _dialog = new CachedValue(() => _root.querySelector('paper-dialog#timestamp-dialog'));
   }
 
   toggle() {
     value = value.toLocal();
     tmpOclock = value.hour;
     tmpDate = new DateTime(value.year, value.month, value.day);
-    _root.querySelector('paper-action-dialog#timestamp-dialog') as PaperActionDialog..toggle();
+    _dialog.value.toggle();
   }
 
   commit() {
+    closeDialog(_dialog.value);
     value = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
+  }
+
+  cancel() {
+    closeDialog(_dialog.value);
   }
 }

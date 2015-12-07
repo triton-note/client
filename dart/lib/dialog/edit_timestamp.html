@@ -1,4 +1,4 @@
-<paper-action-dialog id="timestamp-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
+<paper-dialog id="timestamp-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
 	<style>
 		#timestamp-dialog paper-shadow {
 			margin-bottom: 10px;
@@ -21,6 +21,10 @@
 			*zoom: 1;
 			*display: inline;
 		}
+        #timestamp-dialog .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
 	</style>
 	
     <div ng-if="withOclock">
@@ -39,6 +43,8 @@
 		<calendar value="tmpDate" start-of-week="1"></calendar>
 	</paper-shadow>
 	
-	<paper-button dismissive style="color: red">Cancel</paper-button>
-	<paper-button affirmative style="color: green" ng-click="commit()">OK</paper-button>
-</paper-action-dialog>
+    <div class="buttons">
+    	<paper-button style="color: red" ng-click="cancel()">Cancel</paper-button>
+    	<paper-button style="color: green" ng-click="commit()">OK</paper-button>
+    </div>
+</paper-dialog>
