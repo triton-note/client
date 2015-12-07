@@ -1,4 +1,4 @@
-<paper-action-dialog id="fish-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
+<paper-dialog id="fish-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
 	<style>
 		#fish-dialog .rounded {
 			margin-bottom: 20px;
@@ -31,6 +31,12 @@
 			-webkit-border-radius: 3px;
             border-radius: 3px;
 		}
+        #fish-dialog .buttons {
+            display: flex;
+        }
+        #fish-dialog .buttons paper-button {
+            margin: 0;
+        }
 	</style>
 	
 	<paper-shadow class="rounded name">
@@ -58,7 +64,9 @@
 		</div>
 	</paper-shadow>
 	
-	<paper-button dismissive style="color: red">Cancel</paper-button>
-	<paper-button dismissive style="color: red" ng-click="delete()">Delete</paper-button>
-	<paper-button affirmative style="color: green" ng-click="commit()">OK</paper-button>
-</paper-action-dialog>
+    <div class="buttons">
+    	<paper-button style="color: red" ng-click="cancel()">Cancel</paper-button>
+    	<paper-button style="color: red" ng-click="delete()">Delete</paper-button>
+    	<paper-button style="color: green" ng-click="commit()">OK</paper-button>
+    </div>
+</paper-dialog>

@@ -4,13 +4,14 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:paper_elements/paper_action_dialog.dart';
+import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('EditFishDialog');
 
@@ -24,7 +25,7 @@ class EditFishDialog extends ShadowRootAware {
 
   Measures _measures;
   ShadowRoot _root;
-  CachedValue<PaperActionDialog> _dialog;
+  CachedValue<PaperDialog> _dialog;
 
   GetterSetter<Fishes> _original;
   Fishes tmpFish;
@@ -50,7 +51,7 @@ class EditFishDialog extends ShadowRootAware {
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
-    _dialog = new CachedValue(() => _root.querySelector('paper-action-dialog'));
+    _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
   }
 
   open(GetterSetter<Fishes> value) {
@@ -72,6 +73,7 @@ class EditFishDialog extends ShadowRootAware {
 
   commit() {
     _logger.fine("Commit fish: ${tmpFish}");
+    closeDialog(_dialog.value);
     final fish = tmpFish.clone();
 
     if (fish.length != null && fish.length.value == 0) fish.length = null;
@@ -83,6 +85,11 @@ class EditFishDialog extends ShadowRootAware {
 
   delete() {
     _logger.fine("Deleting fish");
+    closeDialog(_dialog.value);
     _original.value = null;
+  }
+
+  cancel() {
+    closeDialog(_dialog.value);
   }
 }
