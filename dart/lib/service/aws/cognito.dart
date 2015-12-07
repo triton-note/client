@@ -87,6 +87,7 @@ class CognitoIdentity {
       await _refresh(() {
         _logger.finest(() => "Added token: ${service}");
         _credentials['params']['Logins'] = new JsObject.jsify(logins);
+        _credentials['params']['IdentityId'] = null;
       });
       FabricAnswers.eventLogin(method: service);
       _ConnectedServices.set(service, true);
