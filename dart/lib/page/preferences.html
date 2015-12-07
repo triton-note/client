@@ -25,7 +25,7 @@
                     <paper-spinner active></paper-spinner>
                 </div>
             </div>
-            <div ng-if="isReady">
+            <div class="page" ng-if="isReady">
                 <div id="unit">
                     <div class="header">
                         <p>Units</p>
@@ -60,6 +60,23 @@
                                 <p>°F</p>
                                 <paper-toggle-button ng-change="changeTemperature($event)"></paper-toggle-button>
                                 <p>°C</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="social">
+                    <div class="header">
+                        <p>Facebook Login</p>
+                    </div>
+                    
+                    <div class="content">
+                        <div id="connection">
+                            <div class="toggle">
+                                <p>Disconnect</p>
+                                <paper-toggle-button ng-change="changeFacebook($event)"></paper-toggle-button>
+                                <p>Connect</p>
+                            </div>
+                            <div>
                             </div>
                         </div>
                     </div>

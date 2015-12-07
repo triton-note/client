@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/value_unit.dart';
+import 'package:triton_note/service/facebook.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/main_frame.dart';
 
@@ -31,15 +32,20 @@ class PreferencesPage extends MainFrame implements DetachAware {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
+    toggleButton(String parent) => root.querySelector("${parent} paper-toggle-button") as PaperToggleButton;
+
     UserPreferences.current.then((c) {
       measures = c.measures;
       new Future.delayed(new Duration(milliseconds: 10), () {
-        root.querySelector('#unit #length paper-toggle-button') as PaperToggleButton
-          ..checked = measures.length == LengthUnit.cm;
-        root.querySelector('#unit #weight paper-toggle-button') as PaperToggleButton
-          ..checked = measures.weight == WeightUnit.g;
-        root.querySelector('#unit #temperature paper-toggle-button') as PaperToggleButton
-          ..checked = measures.temperature == TemperatureUnit.Cels;
+        toggleButton('#unit #length').checked = measures.length == LengthUnit.cm;
+        toggleButton('#unit #weight').checked = measures.weight == WeightUnit.g;
+        toggleButton('#unit #temperature').checked = measures.temperature == TemperatureUnit.Cels;
+      });
+    });
+
+    FBConnect.getToken().then((token) {
+      new Future.delayed(new Duration(milliseconds: 10), () {
+        toggleButton('#social #connection').checked = token != null;
       });
     });
   }
@@ -66,5 +72,15 @@ class PreferencesPage extends MainFrame implements DetachAware {
     final toggle = event.target as PaperToggleButton;
     _logger.fine("Toggle Temperature: ${toggle.checked}");
     measures.temperature = toggle.checked ? TemperatureUnit.Cels : TemperatureUnit.Fahr;
+  }
+
+  void changeFacebook(event) {
+    final toggle = event.target as PaperToggleButton;
+    _logger.fine(() => "Toggle Facebook: ${toggle.checked}");
+    if (toggle.checked) {
+      FBConnect.login();
+    } else {
+      FBConnect.logout();
+    }
   }
 }
