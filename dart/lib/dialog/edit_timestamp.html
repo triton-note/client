@@ -2,28 +2,33 @@
 	<style>
 		#timestamp-dialog paper-shadow {
 			margin-bottom: 10px;
-			padding-left: 10px;
-			padding-right: 10px;
+			padding: 4px;
 			-moz-border-radius: 3px;
 			-webkit-border-radius: 3px;
 			border-radius: 3px;
 		}
-		#timestamp-dialog #oclock {
-			text-align: center;
-		}
 		#timestamp-dialog #oclock p {
 			font-size: 16px;
 		}
-		#timestamp-dialog #oclock div>* {
-			display: inline-block;
-			vertical-align: middle;
-			*vertical-align: auto;
-			*zoom: 1;
-			*display: inline;
+		#timestamp-dialog #oclock div {
+			display: flex;
+            align-items: center;
+            justify-content: space-between;
 		}
         #timestamp-dialog .buttons {
             display: flex;
+            flex-wrap: wrap-reverse;
             justify-content: space-between;
+        }
+        #timestamp-dialog .buttons > * {
+            margin: 0;
+        }
+        #timestamp-dialog .buttons paper-button.negative {
+            color: red;
+        }
+        #timestamp-dialog .buttons paper-button.positive {
+            color: green;
+            margin-left: auto;
         }
 	</style>
 	
@@ -35,8 +40,6 @@
     			<p>O'clock</p>
     		</div>
     	</paper-shadow>
-    	
-    	<br>
     </div>
 	
 	<paper-shadow z="1">
@@ -44,7 +47,7 @@
 	</paper-shadow>
 	
     <div class="buttons">
-    	<paper-button style="color: red" ng-click="cancel()">Cancel</paper-button>
-    	<paper-button style="color: green" ng-click="commit()">OK</paper-button>
+    	<paper-button class="negative" ng-click="cancel()">Cancel</paper-button>
+    	<paper-button class="positive" ng-click="commit()">OK</paper-button>
     </div>
 </paper-dialog>
