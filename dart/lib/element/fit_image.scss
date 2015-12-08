@@ -1,7 +1,6 @@
 @import "../../web/styles/common";
 
 #fit_image-frame {
-  @include inline-block();
   background: #eee;
   overflow: hidden;
 }
