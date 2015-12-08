@@ -130,6 +130,7 @@ class _Dmap extends _Section {
   bool get isReady => center == null;
   PagingList<Catches> aroundHere;
   Timer _refreshTimer;
+  HeatmapLayer heatmap;
 
   _initGMap(GoogleMap gmap) {
     _logger.info("Setting GoogeMap up");
@@ -155,9 +156,22 @@ class _Dmap extends _Section {
     _logger.finer(() => "List in around: ${aroundHere}");
   }
 
-  toggleDensity(Event event) {
+  toggleDensity(Event event) async {
     final target = event.target as PaperToggleButton;
     _logger.finer("Toggle map density: ${target.checked}");
+
+    if (target.checked) {
+      final allList = new List.from(aroundHere.list);
+      while (aroundHere.hasMore) {
+        allList.addAll(await aroundHere.more(100));
+      }
+      final data = allList.map((Catches c) => {'location': c.location.geoinfo, 'weight': c.fish.count});
+      heatmap?.setMap(null);
+      heatmap = new HeatmapLayer(data);
+      heatmap.setMap(await gmapSetter.future);
+    } else {
+      heatmap?.setMap(null);
+    }
   }
 
   void detach() {

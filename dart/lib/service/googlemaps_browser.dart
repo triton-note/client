@@ -27,7 +27,7 @@ Future<Null> _append() async {
     final elem = document.createElement('script');
     elem.type = 'text/javascript';
     elem.src =
-        "https://maps.googleapis.com/maps/api/js?v=3&key=${(await Settings).googleKey}&sensor=true&callback=${initializer}";
+        "https://maps.googleapis.com/maps/api/js?v=3&key=${(await Settings).googleKey}&libraries=visualization&sensor=true&callback=${initializer}";
 
     final first = document.getElementsByTagName('script')[0];
     first.parentNode.insertBefore(elem, first);
@@ -178,4 +178,20 @@ class LatLngBounds {
   ClosedInterval get intervalLongitude => _iLng;
 
   bool contains(GeoInfo o) => _iLat.contains(o.latitude) && _iLng.contains(o.longitude);
+}
+
+class HeatmapLayer {
+  final JsObject _src;
+
+  HeatmapLayer(List<Map> weighted)
+      : _src = new JsObject(context['google']['maps']['visualization']['HeatmapLayer'], [
+          new JsObject.jsify({
+            'data': weighted.map((x) {
+              x['location'] = _toLatLng(x['location']);
+              return x;
+            })
+          })
+        ]);
+
+  setMap(GoogleMap gmap) => _src.callMethod('setMap', [gmap?._src]);
 }
