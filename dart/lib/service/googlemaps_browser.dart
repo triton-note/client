@@ -69,6 +69,7 @@ class GoogleMap implements Wrapper {
     final pos = _src.callMethod('getCenter', []);
     return _fromLatLng(pos);
   }
+
   set center(GeoInfo pos) {
     _logger.fine("Setting gmap center: ${pos}");
     _src.callMethod('setCenter', [_toLatLng(pos)]);
@@ -86,6 +87,7 @@ class GoogleMap implements Wrapper {
   clearMarkers() {
     _markers.forEach((m) => m.remove());
   }
+
   putMarker(GeoInfo pos, [Map options = const {}]) {
     final marker = new Marker(pos, this, options);
     _markers.add(marker);
@@ -118,8 +120,11 @@ class MapOptions {
     return value;
   }
 
-  bool get mapTypeControl => _src['mapTypeControl'];
+  bool get mapTypeControl => get('mapTypeControl');
   set mapTypeControl(bool v) => put('mapTypeControl', v);
+
+  bool get draggable => get('draggable');
+  set draggable(bool v) => put('draggable', v);
 }
 
 class Marker implements Wrapper {
@@ -137,13 +142,15 @@ class Marker implements Wrapper {
     _logger.finest("Created marker options: ${result}");
     return result;
   }
+
   final GeoInfo position;
   final JsObject _src;
 
   Marker(GeoInfo pos, GoogleMap gmap, Map options)
       : this.position = pos,
-        this._src = new JsObject(context['google']['maps']['Marker'],
-            [new JsObject.jsify(collectOptions(options, {'map': gmap, 'position': pos}))]);
+        this._src = new JsObject(context['google']['maps']['Marker'], [
+          new JsObject.jsify(collectOptions(options, {'map': gmap, 'position': pos}))
+        ]);
 
   set map(GoogleMap map) => _src.callMethod('setMap', [map == null ? null : map._src]);
 

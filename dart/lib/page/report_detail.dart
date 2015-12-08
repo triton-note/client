@@ -325,8 +325,12 @@ class _Location {
       return (panel == null) ? null : panel.scroller;
     });
     setGMap = new Setter<GoogleMap>((v) {
-      _gmap = v;
-      _gmap.putMarker(_location.geoinfo);
+      _gmap = v
+        ..options.draggable = false
+        ..putMarker(_location.geoinfo);
+      _root.querySelector('#location expandable-gmap')
+        ..on['expanding'].listen((event) => _gmap.options.draggable = true)
+        ..on['shrinking'].listen((event) => _gmap.options.draggable = false);
     });
 
     _blinkInput = new CachedValue(() => _root.querySelectorAll('#location .editor input').toList(growable: false));

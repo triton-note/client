@@ -2,8 +2,7 @@
 	<style>
 		#fish-dialog .rounded {
 			margin-bottom: 20px;
-			padding-left: 10px;
-			padding-right: 10px;
+			padding: 4px;
 			-moz-border-radius: 3px;
 			-webkit-border-radius: 3px;
 			border-radius: 3px;
@@ -14,15 +13,10 @@
 		#fish-dialog .sizes .length {
 			border-bottom: solid 1px blue;
 		}
-		#fish-dialog .row > * {
-			display: inline-block;
-			vertical-align: middle;
-			*vertical-align: auto;
-			*zoom: 1;
-			*display: inline;
-		}
-		#fish-dialog .row p {
-			width: 120px;
+		#fish-dialog .row {
+			display: flex;
+			align-items: center;
+            justify-content: space-between;
 		}
 		#fish-dialog .row num-input::shadow .value {
 			padding: 3px;
@@ -33,9 +27,18 @@
 		}
         #fish-dialog .buttons {
             display: flex;
+            flex-wrap: wrap-reverse;
+            justify-content: space-between;
         }
-        #fish-dialog .buttons paper-button {
+        #fish-dialog .buttons > * {
             margin: 0;
+        }
+        #fish-dialog .buttons paper-button.negative {
+            color: red;
+        }
+        #fish-dialog .buttons paper-button.positive {
+            color: green;
+            margin-left: auto;
         }
 	</style>
 	
@@ -54,19 +57,19 @@
 	
 	<paper-shadow class="rounded sizes">
 		<div class="row size length">
-			<p>Length ({{lengthUnit}})</p>
+			<p>Length<br/>({{lengthUnit}})</p>
 			<num-input value="tmpFishLength" min="0" digits="3"></num-input>
 		</div>
 		
 		<div class="row size weight">
-			<p>Weight ({{weightUnit}})</p>
+			<p>Weight<br/>({{weightUnit}})</p>
 			<num-input value="tmpFishWeight" min="0" digits="3"></num-input>
 		</div>
 	</paper-shadow>
-	
+
     <div class="buttons">
-    	<paper-button style="color: red" ng-click="cancel()">Cancel</paper-button>
-    	<paper-button style="color: red" ng-click="delete()">Delete</paper-button>
-    	<paper-button style="color: green" ng-click="commit()">OK</paper-button>
+        <paper-button class="negative" ng-click="delete()">Delete</paper-button>
+    	<paper-button class="negative" ng-click="cancel()">Cancel</paper-button>
+    	<paper-button class="positive" ng-click="commit()">OK</paper-button>
     </div>
 </paper-dialog>

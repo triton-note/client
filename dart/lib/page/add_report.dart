@@ -232,14 +232,19 @@ class _GMap {
       return (panel == null) ? null : panel.scroller;
     });
     setGMap = new Setter<GoogleMap>((v) {
-      _gmap = v;
-      _gmap.putMarker(_geoinfo.value);
-      _gmap.onClick = (pos) {
-        _logger.fine("Point map: ${pos}");
-        _geoinfo.value = pos;
-        _gmap.clearMarkers();
-        _gmap.putMarker(pos);
-      };
+      _gmap = v
+        ..putMarker(_geoinfo.value)
+        ..options.draggable = false
+        ..onClick = (pos) {
+          _logger.fine("Point map: ${pos}");
+          _geoinfo.value = pos;
+          _gmap.clearMarkers();
+          _gmap.putMarker(pos);
+        };
+
+      _root.querySelector('#location expandable-gmap')
+        ..on['expanding'].listen((event) => _gmap.options.draggable = true)
+        ..on['shrinking'].listen((event) => _gmap.options.draggable = false);
     });
   }
 }
