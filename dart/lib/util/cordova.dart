@@ -17,7 +17,9 @@ void onDeviceReady(proc(String)) {
     _onDeviceReady = new Completer<String>();
     if (isCordova) {
       document.on['deviceready'].listen((event) {
+        _logger.info(() => "Ready!");
         _onDeviceReady.complete("cordova");
+        if (!isAndroid) hideStatusBar();
       });
     } else _onDeviceReady.complete("browser");
   }
@@ -29,6 +31,14 @@ void hideSplashScreen() {
   if (splash != null) {
     _logger.info("Hide SplashScreen.");
     splash.callMethod('hide', []);
+  }
+}
+
+void hideStatusBar() {
+  final bar = context['StatusBar'];
+  if (bar != null) {
+    _logger.info("Hide StatusBar");
+    bar.callMethod('hide', []);
   }
 }
 

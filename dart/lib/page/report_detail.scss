@@ -56,41 +56,32 @@ div#more-menu {
   }
 }
 
-#base {
-  margin: 0;
-}
-
-#normal {
-  #photo {
+#photo {
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
+  position: relative;
+  
+  .loading {
     @include display-flex();
     @include align-items(center);
     @include justify-content(center);
-    
-    .loading {
-      @include display-flex();
-      @include align-items(center);
-      @include justify-content(center);
-      background-color: #eee;
-    }
+    background-color: #eee;
   }
-}
-
-#fullPhoto {
-  #buttons {
-    position: absolute;
-    top: 0;
-    left: 0;
-    background: transparent;
-    
+  
+  float-buttons::shadow {
     paper-fab {
       margin: 10px;
       background-color: black;
     }
   }
   
-  #photo {
-    overflow: scroll;
-    background: #eee;
+  iframe {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
   }
 }
 

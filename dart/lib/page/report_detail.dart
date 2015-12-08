@@ -5,8 +5,6 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:core_elements/core_animation.dart';
-import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
@@ -76,10 +74,9 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    photo = new _PhotoSize(root);
-
     _report.then((v) async {
       report = v;
+      photo = new _PhotoSize(root);
       comment = new _Comment(root, _onChanged, report);
       catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
       conditions = new _Conditions(report.condition, _onChanged);
@@ -368,27 +365,15 @@ class _Location {
 }
 
 class _PhotoSize {
-  static const buttonsTimeout = const Duration(seconds: 5);
-
   final ShadowRoot _root;
-  CachedValue<Element> _toolbar, _buttons;
-  CachedValue<CoreAnimatedPages> _pages;
 
-  Timer _buttonsTimer;
-  bool _buttonsShow;
-
-  _PhotoSize(this._root) {
-    _toolbar = new CachedValue(() => _root.querySelector('core-toolbar'));
-    _pages = new CachedValue(() => _root.querySelector('core-animated-pages'));
-    _buttons = new CachedValue(() => _root.querySelector('#fullPhoto #buttons'));
-  }
+  _PhotoSize(this._root);
 
   int _width;
   int get width {
     if (_width == null) {
-      final divNormal = _root.querySelector('#normal #photo');
+      final divNormal = _root.querySelector('#photo');
       if (divNormal != null && 0 < divNormal.clientWidth) {
-        _init(divNormal);
         _width = divNormal.clientWidth;
       }
     }
@@ -396,54 +381,6 @@ class _PhotoSize {
   }
 
   int get height => width;
-
-  _init(Element divNormal) async {
-    final fullHeight = _root.querySelector('#mainFrame').clientHeight;
-    final divFullsize = _root.querySelector('#fullPhoto #photo');
-    divFullsize.style.height = "${fullHeight}px";
-
-    divNormal.onDoubleClick.listen((event) => _openFullsize());
-    divFullsize.onClick.listen((event) => _showButtons());
-  }
-
-  _showButtons() {
-    _logger.fine("show fullphoto buttons");
-    if (_buttonsTimer != null) _buttonsTimer.cancel();
-    _buttonsTimer = new Timer(buttonsTimeout, _hideButtons);
-    if (!_buttonsShow) _animateButtons(_buttonsShow = true);
-  }
-
-  _hideButtons() {
-    _logger.fine("hide fullphoto buttons");
-    _animateButtons(_buttonsShow = false);
-  }
-
-  _animateButtons(bool show) {
-    final move = _buttons.value.clientHeight;
-    final list = [
-      {'transform': "translateY(${-move}px)"},
-      {'transform': "none"}
-    ];
-    final frames = show ? list : list.reversed.toList();
-
-    new CoreAnimation()
-      ..target = _buttons.value
-      ..duration = 300
-      ..fill = "forwards"
-      ..keyframes = frames
-      ..play();
-  }
-
-  _openFullsize() {
-    _pages.value.selected = 1;
-    _toolbar.value.style.display = "none";
-    _showButtons();
-  }
-
-  closeFullsize() {
-    _toolbar.value.style.display = "block";
-    _pages.value.selected = 0;
-  }
 }
 
 class _Conditions {

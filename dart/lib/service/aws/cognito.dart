@@ -170,7 +170,7 @@ class CognitoIdentity {
 
   CognitoIdentity()
       : this.id = _credentials['identityId'],
-        this.logins = new Map.unmodifiable(_jsmap(_credentials['params']['Logins'])) {
+        this.logins = new Map.unmodifiable(_logins) {
     _logger.finer(() => "CognitoIdentity(${id}) [${logins.keys.join(', ')}]");
     assert(id != null);
   }
