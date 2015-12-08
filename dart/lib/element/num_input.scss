@@ -1,12 +1,9 @@
 @import "../../web/styles/common";
 
 div.root {
-  @include inline-block();
-  
-  &>* {
-    @include inline-block();
-    vertical-align: center;
-  }
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
   
   .value {
     margin-left: 0px;
@@ -16,18 +13,17 @@ div.root {
   }
   
   div.buttons {
-    margin-top: 2px;
-    margin-bottom: 2px;
-    margin-right: 5px;
-    text-align: center;
+    @include display-flex();
+    @include flex-direction(column);
+    @include align-items(center);
+    @include justify-content(center);
     
     div.button {
       position: relative;
-      display: block;
-      margin-top: 2px;
-      margin-bottom: 2px;
-      margin-left: 2px;
-      margin-right: 2px;
+      @include display-flex();
+      @include align-items(center);
+      @include justify-content(center);
+      margin: 2px;
       
       border: solid 2px #eee;
       @include border-radius(4px);
