@@ -22,19 +22,18 @@ import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('DistributionsPage');
 
-const FILTER_CHANGED_EVENT = 'FILTER_CHANGED_EVENT';
-
 @Component(
     selector: 'distributions',
     templateUrl: 'packages/triton_note/page/distributions.html',
     cssUrl: 'packages/triton_note/page/distributions.css',
     useShadowDom: true)
 class DistributionsPage extends MainFrame implements DetachAware {
+  static const FILTER_CHANGED_EVENT = 'FILTER_CHANGED_EVENT';
+
   DistributionsPage(Router router) : super(router);
 
   final Getter<DistributionsFilter> filter = new PipeValue();
 
-  ShadowRoot _root;
   Getter<Element> scroller;
   Getter<Element> scrollBase;
   Getter<Element> toolbar;
@@ -52,7 +51,6 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
-    _root = sr;
 
     _pages = new CachedValue(() => root.querySelector('core-animated-pages'));
     scroller = new CachedValue(() => (root.querySelector('core-header-panel[main]') as CoreHeaderPanel).scroller);
@@ -86,7 +84,13 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   renewFilter() {
     closeDialog(_filterDialog.value);
-    _root.dispatchEvent(new CustomEvent(FILTER_CHANGED_EVENT));
+    _pages.value.dispatchEvent(new CustomEvent(FILTER_CHANGED_EVENT));
+  }
+
+  _listenRenew(proc()) {
+    _pages.value.on[FILTER_CHANGED_EVENT].listen((event) {
+      proc();
+    });
   }
 }
 
@@ -114,9 +118,7 @@ class _Dmap extends _Section {
     }
     gmapSetter.future.then(_initGMap);
 
-    _parent._root.on[FILTER_CHANGED_EVENT].listen((event) {
-      _refresh();
-    });
+    _parent._listenRenew(_refresh);
   }
 
   final FuturedValue<GoogleMap> gmapSetter = new FuturedValue();
