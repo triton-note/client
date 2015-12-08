@@ -88,7 +88,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
   }
 
   _listenRenew(proc()) {
-    _pages.value.on[FILTER_CHANGED_EVENT].listen((event) {
+    _pages.value.on[FILTER_CHANGED_EVENT].listen((event) async {
       proc();
     });
   }
@@ -100,9 +100,13 @@ abstract class _Section {
 
   _Section(DistributionsPage parent, String id)
       : this._parent = parent,
-        this._section = parent.root.querySelector("core-animated-pages section#${id}");
+        this._section = parent.root.querySelector("core-animated-pages section#${id}") {
+    _parent._listenRenew(refresh);
+  }
 
   void detach();
+
+  refresh();
 }
 
 class _Dmap extends _Section {
@@ -117,8 +121,6 @@ class _Dmap extends _Section {
       });
     }
     gmapSetter.future.then(_initGMap);
-
-    _parent._listenRenew(_refresh);
   }
 
   final FuturedValue<GoogleMap> gmapSetter = new FuturedValue();
@@ -140,13 +142,13 @@ class _Dmap extends _Section {
       _bounds = gmap.bounds;
       _logger.finer(() => "Map moved: ${_lastCenter}, ${_bounds}");
       if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
-      _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, _refresh);
+      _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, refresh);
     }
     gmap.on('dragend', dragend);
     new Future.delayed(new Duration(seconds: 1), dragend);
   }
 
-  _refresh() async {
+  refresh() async {
     _logger.finer("Refreshing list around: ${_bounds}, ${aroundHere}");
     aroundHere = new PagingList(await Catches.inArea(_bounds, _parent.filter.value));
     _section.click();
