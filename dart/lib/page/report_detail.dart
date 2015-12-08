@@ -5,7 +5,6 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
-import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
@@ -17,7 +16,6 @@ import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
-import 'package:triton_note/model/photo.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart' as Loc;
 import 'package:triton_note/model/value_unit.dart';
@@ -78,7 +76,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
 
     _report.then((v) async {
       report = v;
-      photo = new _PhotoSize(root, report.photo);
+      photo = new _PhotoSize(root);
       comment = new _Comment(root, _onChanged, report);
       catches = new _Catches(root, _onChanged, new Getter(() => report.fishes));
       conditions = new _Conditions(report.condition, _onChanged);
@@ -368,27 +366,13 @@ class _Location {
 
 class _PhotoSize {
   final ShadowRoot _root;
-  final Photo _photo;
-  final CachedValue<Element> _toolbar;
-  final CachedValue<CoreAnimatedPages> _pages;
 
-  _PhotoSize(ShadowRoot root, this._photo)
-      : _root = root,
-        _toolbar = new CachedValue(() => root.querySelector('core-toolbar')),
-        _pages = new CachedValue(() => root.querySelector('core-animated-pages')) {
-    final fullHeight = _root.querySelector('#mainFrame').clientHeight;
-    final divFullsize = _root.querySelector('#fullPhoto #photo');
-    divFullsize.style.height = "${fullHeight}px";
-
-    window.on['FULLPHOTO_CLOSE'].listen((event) {
-      closeFullsize();
-    });
-  }
+  _PhotoSize(this._root);
 
   int _width;
   int get width {
     if (_width == null) {
-      final divNormal = _root.querySelector('#normal #photo');
+      final divNormal = _root.querySelector('#photo');
       if (divNormal != null && 0 < divNormal.clientWidth) {
         _width = divNormal.clientWidth;
       }
@@ -397,20 +381,6 @@ class _PhotoSize {
   }
 
   int get height => width;
-
-  String get encodedUrl => _photo.original.url == null ? null : Uri.encodeComponent(_photo.original.url);
-
-  openFullsize() {
-    if (encodedUrl != null) {
-      _pages.value.selected = 1;
-      _toolbar.value.style.display = "none";
-    }
-  }
-
-  closeFullsize() {
-    _toolbar.value.style.display = "block";
-    _pages.value.selected = 0;
-  }
 }
 
 class _Conditions {

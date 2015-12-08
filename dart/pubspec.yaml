@@ -34,8 +34,5 @@ transformers:
 - sass:
     compass: true
     style: compressed
-- angular:
-    entry_points:
-    - web/main.dart
-    - web/sub/full_photo.dart
+- angular
 - polymer
