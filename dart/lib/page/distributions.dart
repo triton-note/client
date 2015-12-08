@@ -22,6 +22,8 @@ import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('DistributionsPage');
 
+const FILTER_CHANGED_EVENT = 'FILTER_CHANGED_EVENT';
+
 @Component(
     selector: 'distributions',
     templateUrl: 'packages/triton_note/page/distributions.html',
@@ -32,6 +34,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   final Getter<DistributionsFilter> filter = new PipeValue();
 
+  ShadowRoot _root;
   Getter<Element> scroller;
   Getter<Element> scrollBase;
   Getter<Element> toolbar;
@@ -49,6 +52,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+    _root = sr;
 
     _pages = new CachedValue(() => root.querySelector('core-animated-pages'));
     scroller = new CachedValue(() => (root.querySelector('core-header-panel[main]') as CoreHeaderPanel).scroller);
@@ -82,6 +86,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   renewFilter() {
     closeDialog(_filterDialog.value);
+    _root.dispatchEvent(new CustomEvent(FILTER_CHANGED_EVENT));
   }
 }
 
@@ -108,10 +113,15 @@ class _Dmap extends _Section {
       });
     }
     gmapSetter.future.then(_initGMap);
+
+    _parent._root.on[FILTER_CHANGED_EVENT].listen((event) {
+      _refresh();
+    });
   }
 
   final FuturedValue<GoogleMap> gmapSetter = new FuturedValue();
 
+  LatLngBounds _bounds;
   GeoInfo get center => _lastCenter;
   bool get isReady => center == null;
   PagingList<Catches> aroundHere;
@@ -125,18 +135,18 @@ class _Dmap extends _Section {
 
     dragend() {
       _lastCenter = gmap.center;
-      final bounds = gmap.bounds;
-      _logger.finer(() => "Map moved: ${_lastCenter}, ${bounds}");
+      _bounds = gmap.bounds;
+      _logger.finer(() => "Map moved: ${_lastCenter}, ${_bounds}");
       if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
-      _refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
+      _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, _refresh);
     }
     gmap.on('dragend', dragend);
     new Future.delayed(new Duration(seconds: 1), dragend);
   }
 
-  _refresh(LatLngBounds bounds) async {
-    _logger.finer("Refreshing list around: ${bounds}, ${aroundHere}");
-    aroundHere = new PagingList(await Catches.inArea(bounds, _parent.filter.value));
+  _refresh() async {
+    _logger.finer("Refreshing list around: ${_bounds}, ${aroundHere}");
+    aroundHere = new PagingList(await Catches.inArea(_bounds, _parent.filter.value));
     _section.click();
     _logger.finer(() => "List in around: ${aroundHere}");
   }
