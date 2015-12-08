@@ -37,5 +37,5 @@ transformers:
 - angular:
     entry_points:
     - web/main.dart
-    - web/full_photo.dart
+    - web/sub/full_photo.dart
 - polymer
