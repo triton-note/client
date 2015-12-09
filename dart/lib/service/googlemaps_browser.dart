@@ -88,16 +88,26 @@ class GoogleMap implements Wrapper {
   set showMyLocationButton(bool v) {
     final c = _src['controls'][context['google']['maps']['ControlPosition']['RIGHT_BOTTOM']];
     if (v) {
+      final iconMyLocation = '/img/icons/mylocation.png';
+      final iconSpinner = '/img/icons/spinner.gif';
+
       final host = document.createElement('div')..style.backgroundColor = 'transparent';
       final img = document.createElement('img') as ImageElement
         ..width = 24
         ..height = 24
-        ..src = '/img/icons/mylocation.png'
+        ..src = iconMyLocation
         ..style.opacity = '0.6';
       host.append(img);
 
       host.onClick.listen((event) async {
-        panTo(await location());
+        img.src = iconSpinner;
+        try {
+          panTo(await location());
+        } catch (ex) {
+          _logger.warning(() => "Failed to get my location: ${ex}");
+        } finally {
+          img.src = iconMyLocation;
+        }
       });
 
       c.callMethod('push', [host]);
