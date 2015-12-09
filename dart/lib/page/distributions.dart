@@ -146,6 +146,10 @@ class _DMap extends _Section {
     final cb = document.createElement('div')
       ..style.backgroundColor = 'white'
       ..style.opacity = '0.6'
+      ..style.borderRadius = '12px'
+      ..style.width = '24px'
+      ..style.height = '24px'
+      ..style.margin = '2px'
       ..append(document.createElement('img') as ImageElement
         ..width = 24
         ..height = 24
