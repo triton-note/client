@@ -1,7 +1,6 @@
 library triton_note.page.distributions;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
@@ -48,7 +47,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
   set _selectedIndex(int v) => _pages.value.selected = _tabs.value.selected = _selectedTab = v;
   Element get selectedPage => root.querySelectorAll("core-animated-pages section")[_selectedIndex];
 
-  _Dmap dmap;
+  _Section dmap, dtime;
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
@@ -64,11 +63,13 @@ class DistributionsPage extends MainFrame implements DetachAware {
     });
     _filterDialog = new CachedValue(() => root.querySelector('paper-dialog#distributions-filter'));
 
-    dmap = new _Dmap(this);
+    dmap = new _DMap(this);
+    dtime = new _DTimeLine(this);
   }
 
   void detach() {
     dmap.detach();
+    dtime.detach();
   }
 
   void openFilter(event) {
@@ -110,11 +111,11 @@ abstract class _Section {
   refresh();
 }
 
-class _Dmap extends _Section {
+class _DMap extends _Section {
   static const refreshDur = const Duration(seconds: 1);
   static GeoInfo _lastCenter;
 
-  _Dmap(DistributionsPage parent) : super(parent, 'dmap') {
+  _DMap(DistributionsPage parent) : super(parent, 'dmap') {
     _logger.fine("Creating ${this}: lastPos=${_lastCenter}");
     if (_lastCenter == null) {
       Geo.location().then((v) {
@@ -128,10 +129,9 @@ class _Dmap extends _Section {
 
   LatLngBounds _bounds;
   GeoInfo get center => _lastCenter;
-  bool get isReady => center == null;
   PagingList<Catches> aroundHere;
   Timer _refreshTimer;
-  HeatmapLayer heatmap;
+  HeatmapLayer _heatmap;
   bool _isHeated = false;
   Map<int, Marker> _chooses = {};
 
@@ -181,11 +181,11 @@ class _Dmap extends _Section {
         await aroundHere.more(100);
       }
       final data = aroundHere.list.map((Catches c) => {'location': c.location.geoinfo, 'weight': c.fish.count});
-      heatmap?.setMap(null);
-      heatmap = new HeatmapLayer(data);
-      heatmap.setMap(await gmapSetter.future);
+      _heatmap?.setMap(null);
+      _heatmap = new HeatmapLayer(data);
+      _heatmap.setMap(await gmapSetter.future);
     } else {
-      heatmap?.setMap(null);
+      _heatmap?.setMap(null);
     }
   }
 
@@ -205,4 +205,12 @@ class _Dmap extends _Section {
       _chooses.remove(index);
     }
   }
+}
+
+class _DTimeLine extends _Section {
+  _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
+
+  refresh() async {}
+
+  void detach() {}
 }

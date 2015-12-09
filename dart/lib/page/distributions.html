@@ -29,7 +29,6 @@
                 <paper-tabs selected="0">
                     <paper-tab>MAP</paper-tab>
                     <paper-tab>TIME LINE</paper-tab>
-                    <paper-tab>RANKING</paper-tab>
                 </paper-tabs>
             </div>
         </core-toolbar>
@@ -51,7 +50,7 @@
                                         <p>{{ catches.fish | fishFilter }}</p>
                                     </div>
                                     <div class="date">
-                                        <p>{{ catches.dateAt | date:'yyyy-MM-dd' }}</p>
+                                        <p>{{ catches.dateAt | date:"yyyy-MM-dd ha" }}</p>
                                     </div>
                                 </div>
                                 <div id="content">
@@ -73,13 +72,7 @@
             
             <section id="dtime">
                 <div>
-                    <p>Page 1</p>
-                </div>
-            </section>
-            
-            <section id="drank">
-                <div>
-                    <p>Page 2</p>
+                    <p>Time Line</p>
                 </div>
             </section>
         </core-animated-pages>
