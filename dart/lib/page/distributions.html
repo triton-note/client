@@ -45,7 +45,7 @@
                     </div>
                     <infinite-scroll pager="dmap.aroundHere" page-size="10">
                         <div id="content">
-                            <collapser ng-repeat="catches in dmap.aroundHere.list">
+                            <collapser ng-repeat="catches in dmap.aroundHere.list" opened="dmap[$index]">
                                 <div id="header">
                                     <div class="fish">
                                         <p>{{ catches.fish | fishFilter }}</p>

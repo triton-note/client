@@ -1,6 +1,7 @@
 library triton_note.page.distributions;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
@@ -9,7 +10,6 @@ import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:paper_elements/paper_dialog.dart';
 import 'package:paper_elements/paper_tabs.dart';
-import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
@@ -133,6 +133,7 @@ class _Dmap extends _Section {
   Timer _refreshTimer;
   HeatmapLayer heatmap;
   bool _isHeated = false;
+  Map<int, Marker> _chooses = {};
 
   _initGMap(GoogleMap gmap) {
     _logger.info("Setting GoogeMap up");
@@ -195,5 +196,18 @@ class _Dmap extends _Section {
 
   void detach() {
     if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
+  }
+
+  bool operator [](int index) => _chooses.containsKey(index);
+  operator []=(int index, bool opened) async {
+    _logger.finest(() => "Choose catches: ${index}=${opened}");
+    if (opened) {
+      final gmap = await gmapSetter.future;
+      final marker = gmap.putMarker(aroundHere.list[index].location.geoinfo);
+      _chooses[index] = marker;
+    } else {
+      _chooses[index]?.remove();
+      _chooses.remove(index);
+    }
   }
 }
