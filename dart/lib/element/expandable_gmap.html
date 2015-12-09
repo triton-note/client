@@ -2,9 +2,3 @@
 <div id="google-maps">
     <paper-spinner active="{{ !isReady }}"></paper-spinner>
 </div>
-<div id="toggle">
-	<paper-button ng-click="toggle()" disabled="{{ !isReady }}">
-		<core-icon icon="{{ isExpanded ? 'expand-less' : 'expand-more' }}"></core-icon>
-		{{ isExpanded ? "Shrink Map" : "Expand Map" }}
-	</paper-button>
-</div>

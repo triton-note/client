@@ -12,15 +12,3 @@
     margin-right: auto;
   }
 }
-
-#toggle {
-  width: 100%;
-  
-  paper-button {
-    margin-left: auto;
-    margin-right: auto;
-    
-    @include font-light(12px);
-    color: #0dd;
-  }
-}

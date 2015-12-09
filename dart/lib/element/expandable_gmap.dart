@@ -10,6 +10,7 @@ import 'package:core_elements/core_animation.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/getter_setter.dart';
+import 'package:triton_note/util/icons.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 
 final _logger = new Logger('ExpandableGMapElement');
@@ -40,22 +41,41 @@ class ExpandableGMapElement extends ShadowRootAware {
 
   Element get gmapHost => _root?.querySelector('#google-maps');
 
-  Completer<GoogleMap> _readyGMap;
+  Completer<GoogleMap> _gmapReady;
   bool get isReady {
-    if (_readyGMap == null) {
-      if (center != null && shrinkedHeightReal != null) {
-        _readyGMap = new Completer();
-        makeGoogleMap(gmapHost, center).then((v) {
-          _readyGMap.complete(v);
-          if (setGMap != null) setGMap.value = v;
-          curCenter = v.center;
-          v.on('center_changed', () {
-            if (!_isChanging) curCenter = v.center;
-          });
+    if (_gmapReady == null && center != null && shrinkedHeightReal != null) {
+      _gmapReady = new Completer();
+      _logger.finest(() => "Making google maps...");
+
+      makeGoogleMap(gmapHost, center).then((gmap) {
+        _gmapReady.complete(gmap);
+        if (setGMap != null) setGMap.value = gmap;
+
+        curCenter = gmap.center;
+        gmap.on('center_changed', () {
+          if (!_isChanging) curCenter = gmap.center;
         });
-      }
+
+        final host = document.createElement('div')
+          ..style.backgroundColor = 'white'
+          ..style.opacity = '0.6';
+        final img = document.createElement('img') as ImageElement
+          ..width = 24
+          ..height = 24
+          ..src = ICON_EXPAND;
+        host.append(img);
+
+        host.onClick.listen((event) async {
+          img.src = isExpanded ? ICON_EXPAND : ICON_SHRINK;
+          _isChanging = true;
+          _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
+          _toggle();
+        });
+
+        gmap.addCustomButton(host);
+      });
     }
-    return _readyGMap != null && _readyGMap.isCompleted;
+    return _gmapReady?.isCompleted ?? false;
   }
 
   @override
@@ -81,14 +101,9 @@ class ExpandableGMapElement extends ShadowRootAware {
     checkWidth();
   }
 
-  toggle() {
-    _isChanging = true;
-    _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
-    _toggle();
-  }
-
   _toggle() async {
-    final gmap = await _readyGMap.future;
+    final gmap = await _gmapReady.future;
+
     final fixScroll = nofixScroll == null || nofixScroll.toLowerCase() == "false";
     final scroller = getScroller.value;
     final base = getBase.value;
@@ -170,15 +185,10 @@ class ExpandableGMapElement extends ShadowRootAware {
 
       toolbarOriginalHeight = (toolbar == null) ? 0 : toolbar.getBoundingClientRect().height.round();
       if (expandedHeight == null) {
-        final button = _root.querySelector('#toggle');
-        final int buttonHeight =
-            (button.getBoundingClientRect().bottom - gmap.hostElement.getBoundingClientRect().bottom).round();
-
         _logger.finest("Toolbar height: ${toolbarOriginalHeight}");
         _logger.finest("Window height: ${window.innerHeight}");
-        _logger.finest("Toggle area: ${button}:${buttonHeight}");
 
-        expandedHeight = window.innerHeight - offset - buttonHeight + toolbarOriginalHeight;
+        expandedHeight = window.innerHeight - offset + toolbarOriginalHeight;
       }
       scroll(expandedHeight, Math.max(0, curPos));
       isExpanded = true;
