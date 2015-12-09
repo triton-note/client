@@ -138,6 +138,8 @@ class _Dmap extends _Section {
       ..on['expanding'].listen((event) => gmap.options.mapTypeControl = true)
       ..on['shrinking'].listen((event) => gmap.options.mapTypeControl = false);
 
+    gmap.showMyLocationButton = true;
+
     dragend() {
       _lastCenter = gmap.center;
       _bounds = gmap.bounds;
