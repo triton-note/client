@@ -111,7 +111,7 @@ abstract class _Section {
 }
 
 class _Dmap extends _Section {
-  static const refreshDur = const Duration(seconds: 3);
+  static const refreshDur = const Duration(seconds: 1);
   static GeoInfo _lastCenter;
 
   _Dmap(DistributionsPage parent) : super(parent, 'dmap') {
@@ -143,31 +143,26 @@ class _Dmap extends _Section {
 
     gmap.showMyLocationButton = true;
 
-    final host = document.createElement('div')
+    final cb = document.createElement('div')
       ..style.backgroundColor = 'white'
-      ..style.opacity = '0.6';
-    final img = document.createElement('img') as ImageElement
-      ..width = 24
-      ..height = 24
-      ..src = ICON_HEATMAP;
-    host.append(img);
-
-    host.onClick.listen((event) async {
-      host.style.backgroundColor = _isHeated ? 'white' : 'red';
+      ..style.opacity = '0.6'
+      ..append(document.createElement('img') as ImageElement
+        ..width = 24
+        ..height = 24
+        ..src = ICON_HEATMAP);
+    cb.onClick.listen((_) {
+      cb.style.backgroundColor = _isHeated ? 'white' : 'red';
       _toggleHeatmap();
     });
+    gmap.addCustomButton(cb);
 
-    gmap.addCustomButton(host);
-
-    dragend() {
+    gmap.on('bounds_changed', () {
       _lastCenter = gmap.center;
       _bounds = gmap.bounds;
       _logger.finer(() => "Map moved: ${_lastCenter}, ${_bounds}");
       if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
       _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, refresh);
-    }
-    gmap.on('dragend', dragend);
-    new Future.delayed(new Duration(seconds: 1), dragend);
+    });
   }
 
   refresh() async {
