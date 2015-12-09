@@ -48,7 +48,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
   set _selectedIndex(int v) => _pages.value.selected = _tabs.value.selected = _selectedTab = v;
   Element get selectedPage => root.querySelectorAll("core-animated-pages section")[_selectedIndex];
 
-  _Dmap dmap;
+  _Section dmap, dtime, drank;
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
@@ -64,11 +64,15 @@ class DistributionsPage extends MainFrame implements DetachAware {
     });
     _filterDialog = new CachedValue(() => root.querySelector('paper-dialog#distributions-filter'));
 
-    dmap = new _Dmap(this);
+    dmap = new _DMap(this);
+    dtime = new _DTimeLine(this);
+    drank = new _DRanking(this);
   }
 
   void detach() {
     dmap.detach();
+    dtime.detach();
+    drank.detach();
   }
 
   void openFilter(event) {
@@ -110,11 +114,11 @@ abstract class _Section {
   refresh();
 }
 
-class _Dmap extends _Section {
+class _DMap extends _Section {
   static const refreshDur = const Duration(seconds: 1);
   static GeoInfo _lastCenter;
 
-  _Dmap(DistributionsPage parent) : super(parent, 'dmap') {
+  _DMap(DistributionsPage parent) : super(parent, 'dmap') {
     _logger.fine("Creating ${this}: lastPos=${_lastCenter}");
     if (_lastCenter == null) {
       Geo.location().then((v) {
@@ -205,4 +209,20 @@ class _Dmap extends _Section {
       _chooses.remove(index);
     }
   }
+}
+
+class _DTimeLine extends _Section {
+  _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
+
+  refresh() async {}
+
+  void detach() {}
+}
+
+class _DRanking extends _Section {
+  _DRanking(DistributionsPage parent) : super(parent, 'drank');
+
+  refresh() async {}
+
+  void detach() {}
 }
