@@ -129,10 +129,9 @@ class _DMap extends _Section {
 
   LatLngBounds _bounds;
   GeoInfo get center => _lastCenter;
-  bool get isReady => center == null;
   PagingList<Catches> aroundHere;
   Timer _refreshTimer;
-  HeatmapLayer heatmap;
+  HeatmapLayer _heatmap;
   bool _isHeated = false;
   Map<int, Marker> _chooses = {};
 
@@ -182,11 +181,11 @@ class _DMap extends _Section {
         await aroundHere.more(100);
       }
       final data = aroundHere.list.map((Catches c) => {'location': c.location.geoinfo, 'weight': c.fish.count});
-      heatmap?.setMap(null);
-      heatmap = new HeatmapLayer(data);
-      heatmap.setMap(await gmapSetter.future);
+      _heatmap?.setMap(null);
+      _heatmap = new HeatmapLayer(data);
+      _heatmap.setMap(await gmapSetter.future);
     } else {
-      heatmap?.setMap(null);
+      _heatmap?.setMap(null);
     }
   }
 
