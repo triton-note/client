@@ -60,6 +60,8 @@ class GoogleMap implements Wrapper {
   final MapOptions options;
   final Element hostElement;
 
+  int _myLocationButton;
+
   final List<Marker> _markers = [];
 
   GoogleMap(JsObject src, Map options, this.hostElement)
@@ -85,8 +87,17 @@ class GoogleMap implements Wrapper {
     _src.callMethod('panTo', [_toLatLng(pos)]);
   }
 
+  int addCustomButton(DivElement bd, [String position = 'TOP_RIGHT']) {
+    final c = _src['controls'][context['google']['maps']['ControlPosition'][position]];
+    return c.callMethod('push', [bd]) - 1;
+  }
+
+  void removeCustomButton(int index, [String position = 'TOP_RIGHT']) {
+    final c = _src['controls'][context['google']['maps']['ControlPosition'][position]];
+    c.callMethod('removeAt', [index]);
+  }
+
   set showMyLocationButton(bool v) {
-    final c = _src['controls'][context['google']['maps']['ControlPosition']['RIGHT_BOTTOM']];
     if (v) {
       final iconMyLocation = '/img/icons/mylocation.png';
       final iconSpinner = '/img/icons/spinner.gif';
@@ -110,9 +121,9 @@ class GoogleMap implements Wrapper {
         }
       });
 
-      c.callMethod('push', [host]);
+      _myLocationButton = addCustomButton(host, 'RIGHT_BOTTOM');
     } else {
-      c.callMethod('clear', []);
+      if (_myLocationButton != null) removeCustomButton(_myLocationButton, 'RIGHT_BOTTOM');
     }
   }
 
