@@ -37,6 +37,7 @@ class ExpandableGMapElement extends ShadowRootAware {
   bool isExpanded = false;
   int toolbarOriginalHeight;
   GeoInfo curCenter;
+  bool _isChanging = false;
 
   Completer<GoogleMap> _readyGMap;
   bool get isReady {
@@ -57,7 +58,9 @@ class ExpandableGMapElement extends ShadowRootAware {
           _readyGMap.complete(v);
           if (setGMap != null) setGMap.value = v;
           curCenter = v.center;
-          v.on('dragend', () => curCenter = v.center);
+          v.on('center_changed', () {
+            if (!_isChanging) curCenter = v.center;
+          });
         });
       }
     }
@@ -69,10 +72,11 @@ class ExpandableGMapElement extends ShadowRootAware {
     _root = sr;
   }
 
-  toggle() => alfterRippling(() {
+  toggle() {
+    _isChanging = true;
     _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
     _toggle();
-  });
+  }
 
   _toggle() async {
     final gmap = await _readyGMap.future;
@@ -89,7 +93,10 @@ class ExpandableGMapElement extends ShadowRootAware {
           "Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, scrollTo: ${scrollTo}, duration: ${animationDur}");
 
       moveToolbar(bool hide) {
-        final frames = [{'height': "${toolbarOriginalHeight}px"}, {'height': "0"}];
+        final frames = [
+          {'height': "${toolbarOriginalHeight}px"},
+          {'height': "0"}
+        ];
         new CoreAnimation()
           ..target = toolbar
           ..duration = animationDur.inMilliseconds
@@ -103,7 +110,10 @@ class ExpandableGMapElement extends ShadowRootAware {
         ..target = base
         ..duration = duration
         ..fill = "both"
-        ..keyframes = [{'transform': "none"}, {'transform': translation}]
+        ..keyframes = [
+          {'transform': "none"},
+          {'transform': translation}
+        ]
         ..play();
 
       onFinish() {
@@ -111,10 +121,12 @@ class ExpandableGMapElement extends ShadowRootAware {
           shift("none", 0);
           scroller.scrollTop = scrollTo;
         });
+        _isChanging = false;
       }
       if (move != 0) {
         shift("translateY(${-move}px)", animationDur.inMilliseconds);
       }
+
       new CoreAnimation()
         ..target = gmap.hostElement
         ..duration = animationDur.inMilliseconds
