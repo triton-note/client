@@ -181,11 +181,10 @@ class _Dmap extends _Section {
     _logger.finer("Toggle map density: ${_isHeated}");
 
     if (_isHeated) {
-      final allList = new List.from(aroundHere.list);
       while (aroundHere.hasMore) {
-        allList.addAll(await aroundHere.more(100));
+        await aroundHere.more(100);
       }
-      final data = allList.map((Catches c) => {'location': c.location.geoinfo, 'weight': c.fish.count});
+      final data = aroundHere.list.map((Catches c) => {'location': c.location.geoinfo, 'weight': c.fish.count});
       heatmap?.setMap(null);
       heatmap = new HeatmapLayer(data);
       heatmap.setMap(await gmapSetter.future);
