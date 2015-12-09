@@ -7,6 +7,7 @@ import 'dart:js';
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/service/geolocation.dart';
 import 'package:triton_note/util/geometry.dart';
 import 'package:triton_note/settings.dart';
 
@@ -82,6 +83,27 @@ class GoogleMap implements Wrapper {
 
   panTo(GeoInfo pos) {
     _src.callMethod('panTo', [_toLatLng(pos)]);
+  }
+
+  set showMyLocationButton(bool v) {
+    final c = _src['controls'][context['google']['maps']['ControlPosition']['RIGHT_BOTTOM']];
+    if (v) {
+      final host = document.createElement('div')..style.backgroundColor = 'transparent';
+      final img = document.createElement('img') as ImageElement
+        ..width = 24
+        ..height = 24
+        ..src = '/img/icons/mylocation.png'
+        ..style.opacity = '0.6';
+      host.append(img);
+
+      host.onClick.listen((event) async {
+        panTo(await location());
+      });
+
+      c.callMethod('push', [host]);
+    } else {
+      c.callMethod('clear', []);
+    }
   }
 
   clearMarkers() {
