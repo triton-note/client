@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/geolocation.dart';
 import 'package:triton_note/util/geometry.dart';
+import 'package:triton_note/util/icons.dart';
 import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('GoogleMaps');
@@ -99,25 +100,22 @@ class GoogleMap implements Wrapper {
 
   set showMyLocationButton(bool v) {
     if (v) {
-      final iconMyLocation = '/img/icons/mylocation.png';
-      final iconSpinner = '/img/icons/spinner.gif';
-
       final host = document.createElement('div')..style.backgroundColor = 'transparent';
       final img = document.createElement('img') as ImageElement
         ..width = 24
         ..height = 24
-        ..src = iconMyLocation
+        ..src = ICON_MYLOCATION
         ..style.opacity = '0.6';
       host.append(img);
 
       host.onClick.listen((event) async {
-        img.src = iconSpinner;
+        img.src = ICON_SPINNER;
         try {
           panTo(await location());
         } catch (ex) {
           _logger.warning(() => "Failed to get my location: ${ex}");
         } finally {
-          img.src = iconMyLocation;
+          img.src = ICON_MYLOCATION;
         }
       });
 
