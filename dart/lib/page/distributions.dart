@@ -47,7 +47,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
   set _selectedIndex(int v) => _pages.value.selected = _tabs.value.selected = _selectedTab = v;
   Element get selectedPage => root.querySelectorAll("core-animated-pages section")[_selectedIndex];
 
-  _Section dmap, dtime, drank;
+  _Section dmap, dtime;
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
@@ -65,13 +65,11 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
     dmap = new _DMap(this);
     dtime = new _DTimeLine(this);
-    drank = new _DRanking(this);
   }
 
   void detach() {
     dmap.detach();
     dtime.detach();
-    drank.detach();
   }
 
   void openFilter(event) {
@@ -212,14 +210,6 @@ class _DMap extends _Section {
 
 class _DTimeLine extends _Section {
   _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
-
-  refresh() async {}
-
-  void detach() {}
-}
-
-class _DRanking extends _Section {
-  _DRanking(DistributionsPage parent) : super(parent, 'drank');
 
   refresh() async {}
 
