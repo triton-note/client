@@ -16,6 +16,7 @@ import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/catches.dart';
 import 'package:triton_note/util/distributions_filters.dart';
+import 'package:triton_note/util/icons.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/pager.dart';
@@ -131,6 +132,7 @@ class _Dmap extends _Section {
   PagingList<Catches> aroundHere;
   Timer _refreshTimer;
   HeatmapLayer heatmap;
+  bool _isHeated = false;
 
   _initGMap(GoogleMap gmap) {
     _logger.info("Setting GoogeMap up");
@@ -139,6 +141,22 @@ class _Dmap extends _Section {
       ..on['shrinking'].listen((event) => gmap.options.mapTypeControl = false);
 
     gmap.showMyLocationButton = true;
+
+    final host = document.createElement('div')
+      ..style.backgroundColor = 'white'
+      ..style.opacity = '0.6';
+    final img = document.createElement('img') as ImageElement
+      ..width = 24
+      ..height = 24
+      ..src = ICON_HEATMAP;
+    host.append(img);
+
+    host.onClick.listen((event) async {
+      host.style.backgroundColor = _isHeated ? 'white' : 'red';
+      _toggleHeatmap();
+    });
+
+    gmap.addCustomButton(host);
 
     dragend() {
       _lastCenter = gmap.center;
@@ -158,11 +176,11 @@ class _Dmap extends _Section {
     _logger.finer(() => "List in around: ${aroundHere}");
   }
 
-  toggleDensity(Event event) async {
-    final target = event.target as PaperToggleButton;
-    _logger.finer("Toggle map density: ${target.checked}");
+  _toggleHeatmap() async {
+    _isHeated = !_isHeated;
+    _logger.finer("Toggle map density: ${_isHeated}");
 
-    if (target.checked) {
+    if (_isHeated) {
       final allList = new List.from(aroundHere.list);
       while (aroundHere.hasMore) {
         allList.addAll(await aroundHere.more(100));

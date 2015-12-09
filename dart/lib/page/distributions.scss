@@ -7,19 +7,6 @@ core-toolbar {
 section#dmap {
   #gmap {
     position: relative;
-    
-    .switch {
-      position: absolute;
-      right: 8px;
-      bottom: 8px;
-      @include display-flex();
-      @include align-items(center);
-      @include font-light(14px);
-      
-      paper-toggle-button {
-        margin: 8px;
-      }
-    }
   }
   
   #around {
