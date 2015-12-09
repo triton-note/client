@@ -10,7 +10,6 @@ import 'package:core_elements/core_animation.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/getter_setter.dart';
-import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 
 final _logger = new Logger('ExpandableGMapElement');
@@ -39,22 +38,14 @@ class ExpandableGMapElement extends ShadowRootAware {
   GeoInfo curCenter;
   bool _isChanging = false;
 
+  Element get gmapHost => _root?.querySelector('#google-maps');
+
   Completer<GoogleMap> _readyGMap;
   bool get isReady {
-    if (_root != null && _readyGMap == null) {
-      final div = _root.querySelector('#google-maps');
-      if (shrinkedHeightReal == null) {
-        final w = div.clientWidth;
-        _logger.finest("Checking width of host div: ${w}");
-        if (w > 0) {
-          shrinkedHeightReal = (shrinkedHeight != null) ? shrinkedHeight : (w * 2 / (1 + Math.sqrt(5))).round();
-          _logger.fine("Shrinked height: ${shrinkedHeightReal}");
-          div.style.height = "${shrinkedHeightReal}px";
-        }
-      }
+    if (_readyGMap == null) {
       if (center != null && shrinkedHeightReal != null) {
         _readyGMap = new Completer();
-        makeGoogleMap(div, center).then((v) {
+        makeGoogleMap(gmapHost, center).then((v) {
           _readyGMap.complete(v);
           if (setGMap != null) setGMap.value = v;
           curCenter = v.center;
@@ -70,6 +61,24 @@ class ExpandableGMapElement extends ShadowRootAware {
   @override
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
+
+    int preWidth;
+    final dur = new Duration(milliseconds: 30);
+    checkWidth() => new Timer(dur, () {
+          final w = gmapHost.clientWidth;
+          _logger.finest("Checking width of host div: ${w}");
+          if (w > 0) {
+            if (w != preWidth) {
+              preWidth = w;
+            } else {
+              shrinkedHeightReal = (shrinkedHeight != null) ? shrinkedHeight : (w * 2 / (1 + Math.sqrt(5))).round();
+              _logger.fine("Shrinked height: ${shrinkedHeightReal}");
+              gmapHost.style.height = "${shrinkedHeightReal}px";
+            }
+          }
+          if (shrinkedHeightReal == null) checkWidth();
+        });
+    checkWidth();
   }
 
   toggle() {
