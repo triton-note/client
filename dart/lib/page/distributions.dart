@@ -156,7 +156,9 @@ class _DMap extends _Section {
         ..src = ICON_FIRE_MONO);
     cb.onClick.listen((_) {
       cb.style.backgroundColor = _isHeated ? 'white' : 'red';
-      _toggleHeatmap();
+      _isHeated = !_isHeated;
+      _logger.finer("Show heatmap: ${_isHeated}");
+      _showHeatmap();
     });
     gmap.addCustomButton(cb);
 
@@ -174,12 +176,10 @@ class _DMap extends _Section {
     aroundHere = new PagingList(await Catches.inArea(_bounds, _parent.filter.value));
     _section.click();
     _logger.finer(() => "List in around: ${aroundHere}");
+    _showHeatmap();
   }
 
-  _toggleHeatmap() async {
-    _isHeated = !_isHeated;
-    _logger.finer("Toggle map density: ${_isHeated}");
-
+  _showHeatmap() async {
     if (_isHeated) {
       while (aroundHere.hasMore) {
         await aroundHere.more(100);
