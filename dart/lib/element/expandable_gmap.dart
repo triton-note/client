@@ -10,7 +10,7 @@ import 'package:core_elements/core_animation.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/getter_setter.dart';
-import 'package:triton_note/util/main_frame.dart';
+import 'package:triton_note/util/icons.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 
 final _logger = new Logger('ExpandableGMapElement');
@@ -37,45 +37,73 @@ class ExpandableGMapElement extends ShadowRootAware {
   bool isExpanded = false;
   int toolbarOriginalHeight;
   GeoInfo curCenter;
+  bool _isChanging = false;
 
-  Completer<GoogleMap> _readyGMap;
+  Element get gmapHost => _root?.querySelector('#google-maps');
+
+  Completer<GoogleMap> _gmapReady;
   bool get isReady {
-    if (_root != null && _readyGMap == null) {
-      final div = _root.querySelector('#google-maps');
-      if (shrinkedHeightReal == null) {
-        final w = div.clientWidth;
-        _logger.finest("Checking width of host div: ${w}");
-        if (w > 0) {
-          shrinkedHeightReal = (shrinkedHeight != null) ? shrinkedHeight : (w * 2 / (1 + Math.sqrt(5))).round();
-          _logger.fine("Shrinked height: ${shrinkedHeightReal}");
-          div.style.height = "${shrinkedHeightReal}px";
-        }
-      }
-      if (center != null && shrinkedHeightReal != null) {
-        _readyGMap = new Completer();
-        makeGoogleMap(div, center).then((v) {
-          _readyGMap.complete(v);
-          if (setGMap != null) setGMap.value = v;
-          curCenter = v.center;
-          v.on('dragend', () => curCenter = v.center);
+    if (_gmapReady == null && center != null && shrinkedHeightReal != null) {
+      _gmapReady = new Completer();
+      _logger.finest(() => "Making google maps...");
+
+      makeGoogleMap(gmapHost, center).then((gmap) {
+        _gmapReady.complete(gmap);
+        if (setGMap != null) setGMap.value = gmap;
+
+        curCenter = gmap.center;
+        gmap.on('center_changed', () {
+          if (!_isChanging) curCenter = gmap.center;
         });
-      }
+
+        final host = document.createElement('div')
+          ..style.backgroundColor = 'white'
+          ..style.opacity = '0.6';
+        final img = document.createElement('img') as ImageElement
+          ..width = 24
+          ..height = 24
+          ..src = ICON_EXPAND;
+        host.append(img);
+
+        host.onClick.listen((event) async {
+          img.src = isExpanded ? ICON_EXPAND : ICON_SHRINK;
+          _isChanging = true;
+          _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
+          _toggle();
+        });
+
+        gmap.addCustomButton(host);
+      });
     }
-    return _readyGMap != null && _readyGMap.isCompleted;
+    return _gmapReady?.isCompleted ?? false;
   }
 
   @override
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
+
+    int preWidth;
+    final dur = new Duration(milliseconds: 30);
+    checkWidth() => new Timer(dur, () {
+          final w = gmapHost.clientWidth;
+          _logger.finest("Checking width of host div: ${w}");
+          if (w > 0) {
+            if (w != preWidth) {
+              preWidth = w;
+            } else {
+              shrinkedHeightReal = (shrinkedHeight != null) ? shrinkedHeight : (w * 2 / (1 + Math.sqrt(5))).round();
+              _logger.fine("Shrinked height: ${shrinkedHeightReal}");
+              gmapHost.style.height = "${shrinkedHeightReal}px";
+            }
+          }
+          if (shrinkedHeightReal == null) checkWidth();
+        });
+    checkWidth();
   }
 
-  toggle() => alfterRippling(() {
-    _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
-    _toggle();
-  });
-
   _toggle() async {
-    final gmap = await _readyGMap.future;
+    final gmap = await _gmapReady.future;
+
     final fixScroll = nofixScroll == null || nofixScroll.toLowerCase() == "false";
     final scroller = getScroller.value;
     final base = getBase.value;
@@ -89,7 +117,10 @@ class ExpandableGMapElement extends ShadowRootAware {
           "Animation of map: height: ${curHeight} -> ${nextHeight}, move: ${move}, scrollTo: ${scrollTo}, duration: ${animationDur}");
 
       moveToolbar(bool hide) {
-        final frames = [{'height': "${toolbarOriginalHeight}px"}, {'height': "0"}];
+        final frames = [
+          {'height': "${toolbarOriginalHeight}px"},
+          {'height': "0"}
+        ];
         new CoreAnimation()
           ..target = toolbar
           ..duration = animationDur.inMilliseconds
@@ -103,7 +134,10 @@ class ExpandableGMapElement extends ShadowRootAware {
         ..target = base
         ..duration = duration
         ..fill = "both"
-        ..keyframes = [{'transform': "none"}, {'transform': translation}]
+        ..keyframes = [
+          {'transform': "none"},
+          {'transform': translation}
+        ]
         ..play();
 
       onFinish() {
@@ -111,10 +145,12 @@ class ExpandableGMapElement extends ShadowRootAware {
           shift("none", 0);
           scroller.scrollTop = scrollTo;
         });
+        _isChanging = false;
       }
       if (move != 0) {
         shift("translateY(${-move}px)", animationDur.inMilliseconds);
       }
+
       new CoreAnimation()
         ..target = gmap.hostElement
         ..duration = animationDur.inMilliseconds
@@ -149,15 +185,10 @@ class ExpandableGMapElement extends ShadowRootAware {
 
       toolbarOriginalHeight = (toolbar == null) ? 0 : toolbar.getBoundingClientRect().height.round();
       if (expandedHeight == null) {
-        final button = _root.querySelector('#toggle');
-        final int buttonHeight =
-            (button.getBoundingClientRect().bottom - gmap.hostElement.getBoundingClientRect().bottom).round();
-
         _logger.finest("Toolbar height: ${toolbarOriginalHeight}");
         _logger.finest("Window height: ${window.innerHeight}");
-        _logger.finest("Toggle area: ${button}:${buttonHeight}");
 
-        expandedHeight = window.innerHeight - offset - buttonHeight + toolbarOriginalHeight;
+        expandedHeight = window.innerHeight - offset + toolbarOriginalHeight;
       }
       scroll(expandedHeight, Math.max(0, curPos));
       isExpanded = true;

@@ -7,7 +7,9 @@ import 'dart:js';
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/service/geolocation.dart';
 import 'package:triton_note/util/geometry.dart';
+import 'package:triton_note/util/icons.dart';
 import 'package:triton_note/settings.dart';
 
 final _logger = new Logger('GoogleMaps');
@@ -27,7 +29,7 @@ Future<Null> _append() async {
     final elem = document.createElement('script');
     elem.type = 'text/javascript';
     elem.src =
-        "https://maps.googleapis.com/maps/api/js?v=3&key=${(await Settings).googleKey}&sensor=true&callback=${initializer}";
+        "https://maps.googleapis.com/maps/api/js?v=3&key=${(await Settings).googleKey}&libraries=visualization&sensor=true&callback=${initializer}";
 
     final first = document.getElementsByTagName('script')[0];
     first.parentNode.insertBefore(elem, first);
@@ -59,6 +61,8 @@ class GoogleMap implements Wrapper {
   final MapOptions options;
   final Element hostElement;
 
+  int _myLocationButton;
+
   final List<Marker> _markers = [];
 
   GoogleMap(JsObject src, Map options, this.hostElement)
@@ -82,6 +86,43 @@ class GoogleMap implements Wrapper {
 
   panTo(GeoInfo pos) {
     _src.callMethod('panTo', [_toLatLng(pos)]);
+  }
+
+  int addCustomButton(DivElement bd, [String position = 'TOP_RIGHT']) {
+    final c = _src['controls'][context['google']['maps']['ControlPosition'][position]];
+    return c.callMethod('push', [bd]) - 1;
+  }
+
+  void removeCustomButton(int index, [String position = 'TOP_RIGHT']) {
+    final c = _src['controls'][context['google']['maps']['ControlPosition'][position]];
+    c.callMethod('removeAt', [index]);
+  }
+
+  set showMyLocationButton(bool v) {
+    if (v) {
+      final host = document.createElement('div')..style.backgroundColor = 'transparent';
+      final img = document.createElement('img') as ImageElement
+        ..width = 24
+        ..height = 24
+        ..src = ICON_MYLOCATION
+        ..style.opacity = '0.6';
+      host.append(img);
+
+      host.onClick.listen((event) async {
+        img.src = ICON_SPINNER;
+        try {
+          panTo(await location());
+        } catch (ex) {
+          _logger.warning(() => "Failed to get my location: ${ex}");
+        } finally {
+          img.src = ICON_MYLOCATION;
+        }
+      });
+
+      _myLocationButton = addCustomButton(host, 'RIGHT_BOTTOM');
+    } else {
+      if (_myLocationButton != null) removeCustomButton(_myLocationButton, 'RIGHT_BOTTOM');
+    }
   }
 
   clearMarkers() {
@@ -178,4 +219,20 @@ class LatLngBounds {
   ClosedInterval get intervalLongitude => _iLng;
 
   bool contains(GeoInfo o) => _iLat.contains(o.latitude) && _iLng.contains(o.longitude);
+}
+
+class HeatmapLayer {
+  final JsObject _src;
+
+  HeatmapLayer(List<Map> weighted)
+      : _src = new JsObject(context['google']['maps']['visualization']['HeatmapLayer'], [
+          new JsObject.jsify({
+            'data': weighted.map((x) {
+              x['location'] = _toLatLng(x['location']);
+              return x;
+            })
+          })
+        ]);
+
+  setMap(GoogleMap gmap) => _src.callMethod('setMap', [gmap?._src]);
 }

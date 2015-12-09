@@ -1,6 +1,7 @@
 library triton_note.page.distributions;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
@@ -9,13 +10,13 @@ import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:paper_elements/paper_dialog.dart';
 import 'package:paper_elements/paper_tabs.dart';
-import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/catches.dart';
 import 'package:triton_note/util/distributions_filters.dart';
+import 'package:triton_note/util/icons.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/pager.dart';
@@ -28,6 +29,8 @@ final _logger = new Logger('DistributionsPage');
     cssUrl: 'packages/triton_note/page/distributions.css',
     useShadowDom: true)
 class DistributionsPage extends MainFrame implements DetachAware {
+  static const FILTER_CHANGED_EVENT = 'FILTER_CHANGED_EVENT';
+
   DistributionsPage(Router router) : super(router);
 
   final Getter<DistributionsFilter> filter = new PipeValue();
@@ -82,6 +85,13 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   renewFilter() {
     closeDialog(_filterDialog.value);
+    _pages.value.dispatchEvent(new CustomEvent(FILTER_CHANGED_EVENT));
+  }
+
+  _listenRenew(proc()) {
+    _pages.value.on[FILTER_CHANGED_EVENT].listen((event) async {
+      proc();
+    });
   }
 }
 
@@ -91,13 +101,17 @@ abstract class _Section {
 
   _Section(DistributionsPage parent, String id)
       : this._parent = parent,
-        this._section = parent.root.querySelector("core-animated-pages section#${id}");
+        this._section = parent.root.querySelector("core-animated-pages section#${id}") {
+    _parent._listenRenew(refresh);
+  }
 
   void detach();
+
+  refresh();
 }
 
 class _Dmap extends _Section {
-  static const refreshDur = const Duration(seconds: 3);
+  static const refreshDur = const Duration(seconds: 1);
   static GeoInfo _lastCenter;
 
   _Dmap(DistributionsPage parent) : super(parent, 'dmap') {
@@ -112,10 +126,14 @@ class _Dmap extends _Section {
 
   final FuturedValue<GoogleMap> gmapSetter = new FuturedValue();
 
+  LatLngBounds _bounds;
   GeoInfo get center => _lastCenter;
   bool get isReady => center == null;
   PagingList<Catches> aroundHere;
   Timer _refreshTimer;
+  HeatmapLayer heatmap;
+  bool _isHeated = false;
+  Map<int, Marker> _chooses = {};
 
   _initGMap(GoogleMap gmap) {
     _logger.info("Setting GoogeMap up");
@@ -123,30 +141,68 @@ class _Dmap extends _Section {
       ..on['expanding'].listen((event) => gmap.options.mapTypeControl = true)
       ..on['shrinking'].listen((event) => gmap.options.mapTypeControl = false);
 
-    dragend() {
+    gmap.showMyLocationButton = true;
+
+    final cb = document.createElement('div')
+      ..style.backgroundColor = 'white'
+      ..style.opacity = '0.6'
+      ..append(document.createElement('img') as ImageElement
+        ..width = 24
+        ..height = 24
+        ..src = ICON_HEATMAP);
+    cb.onClick.listen((_) {
+      cb.style.backgroundColor = _isHeated ? 'white' : 'red';
+      _toggleHeatmap();
+    });
+    gmap.addCustomButton(cb);
+
+    gmap.on('bounds_changed', () {
       _lastCenter = gmap.center;
-      final bounds = gmap.bounds;
-      _logger.finer(() => "Map moved: ${_lastCenter}, ${bounds}");
+      _bounds = gmap.bounds;
+      _logger.finer(() => "Map moved: ${_lastCenter}, ${_bounds}");
       if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
-      _refreshTimer = (bounds == null) ? null : new Timer(refreshDur, () => _refresh(bounds));
-    }
-    gmap.on('dragend', dragend);
-    new Future.delayed(new Duration(seconds: 1), dragend);
+      _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, refresh);
+    });
   }
 
-  _refresh(LatLngBounds bounds) async {
-    _logger.finer("Refreshing list around: ${bounds}, ${aroundHere}");
-    aroundHere = new PagingList(await Catches.inArea(bounds, _parent.filter.value));
+  refresh() async {
+    _logger.finer("Refreshing list around: ${_bounds}, ${aroundHere}");
+    aroundHere = new PagingList(await Catches.inArea(_bounds, _parent.filter.value));
     _section.click();
     _logger.finer(() => "List in around: ${aroundHere}");
   }
 
-  toggleDensity(Event event) {
-    final target = event.target as PaperToggleButton;
-    _logger.finer("Toggle map density: ${target.checked}");
+  _toggleHeatmap() async {
+    _isHeated = !_isHeated;
+    _logger.finer("Toggle map density: ${_isHeated}");
+
+    if (_isHeated) {
+      while (aroundHere.hasMore) {
+        await aroundHere.more(100);
+      }
+      final data = aroundHere.list.map((Catches c) => {'location': c.location.geoinfo, 'weight': c.fish.count});
+      heatmap?.setMap(null);
+      heatmap = new HeatmapLayer(data);
+      heatmap.setMap(await gmapSetter.future);
+    } else {
+      heatmap?.setMap(null);
+    }
   }
 
   void detach() {
     if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
+  }
+
+  bool operator [](int index) => _chooses.containsKey(index);
+  operator []=(int index, bool opened) async {
+    _logger.finest(() => "Choose catches: ${index}=${opened}");
+    if (opened) {
+      final gmap = await gmapSetter.future;
+      final marker = gmap.putMarker(aroundHere.list[index].location.geoinfo);
+      _chooses[index] = marker;
+    } else {
+      _chooses[index]?.remove();
+      _chooses.remove(index);
+    }
   }
 }

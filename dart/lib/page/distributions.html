@@ -18,7 +18,7 @@
             <span flex>Distributions</span>
             
             <paper-icon-button icon="filter-list" ng-click="openFilter($event)"></paper-icon-button>
-            <paper-dialog id="distributions-filter" transition="core-transition-top" backdrop>
+            <paper-dialog id="distributions-filter" transition="core-transition-top" backdrop autoCloseDisabled>
                 <distributions-filter setter="filter"></distributions-filter>
                 <div style="text-align: right">
                     <paper-button style="color: green" ng-click="renewFilter()">OK</paper-button>
@@ -38,12 +38,6 @@
             <section id="dmap">
                 <div id="gmap">
                     <expandable-gmap center="dmap.center" set-gmap="dmap.gmapSetter" get-scroller="scroller" get-base="scrollBase" get-toolbar="toolbar"></expandable-gmap>
-                    
-                    <div class="switch">
-                        <p>each</p>
-                        <paper-toggle-button ng-change="dmap.toggleDensity($event)"></paper-toggle-button>
-                        <p>density</p>
-                    </div>
                 </div>
                 <div id="around">
                     <div class="header">
@@ -51,7 +45,7 @@
                     </div>
                     <infinite-scroll pager="dmap.aroundHere" page-size="10">
                         <div id="content">
-                            <collapser ng-repeat="catches in dmap.aroundHere.list">
+                            <collapser ng-repeat="catches in dmap.aroundHere.list" opened="dmap[$index]">
                                 <div id="header">
                                     <div class="fish">
                                         <p>{{ catches.fish | fishFilter }}</p>
