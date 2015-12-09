@@ -149,7 +149,7 @@ class _DMap extends _Section {
       ..append(document.createElement('img') as ImageElement
         ..width = 24
         ..height = 24
-        ..src = ICON_HEATMAP);
+        ..src = ICON_FIRE_MONO);
     cb.onClick.listen((_) {
       cb.style.backgroundColor = _isHeated ? 'white' : 'red';
       _toggleHeatmap();
