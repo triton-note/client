@@ -1,7 +1,6 @@
 library triton_note.page.distributions;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
