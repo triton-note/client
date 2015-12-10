@@ -39,11 +39,16 @@ section#dmap {
 }
 
 section#dtime {
-  #chart {
-    width: 100%;
+  #control {
+    @include display-flex();
     
+    paper-dropdown-menu {
+      margin-left: 55%;
+    }
+  }
+  #chart {
     .canvas {
-      width: 100%;
+      margin: 4px;
     }
   }
 }

@@ -71,10 +71,17 @@
             </section>
             
             <section id="dtime">
+                <div id="control">
+                    <paper-dropdown-menu label="Select...">
+                        <paper-dropdown class="dropdown">
+                            <core-menu class="menu">
+                                <paper-item ng-repeat="key in dtime.selectionNames" ng-click="dtime.select(key)">{{ dtime.selection(key) }}</paper-item>
+                            </core-menu>
+                        </paper-dropdown>
+                    </paper-dropdown-menu>
+                </div>
                 <div id="chart">
                     <div class="canvas"></div>
-                </div>
-                <div id="control">
                 </div>
             </section>
         </core-animated-pages>

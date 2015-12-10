@@ -235,7 +235,27 @@ class _DMap extends _Section {
 class _DTimeLine extends _Section {
   static final _logger = new Logger('DistributionsPage.TimeLine');
 
+  static const selections = const {
+    'HOUR': 'Hours in Day',
+    'MONTH': 'Months in Year',
+    'MOON': 'by Moon age',
+    'TIDE': 'by Tide'
+  };
+
   _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
+
+  bool isCalculating = false;
+
+  List<String> get selectionNames => selections.keys;
+  String selection(String key) => selections[key];
+
+  String _selected;
+  void select(String v) {
+    _logger.finest(() => "Selected: ${v}");
+    if (selections.contains(v)) {
+      _selected = v;
+    }
+  }
 
   refresh() async {}
 
