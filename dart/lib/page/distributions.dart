@@ -66,7 +66,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
     scroller = new CachedValue(() => (root.querySelector('core-header-panel[main]') as CoreHeaderPanel).scroller);
     scrollBase = _pages;
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
-    _tabs = new CachedValue(() => root.querySelector('paper-tabs'));
+    _tabs = new CachedValue(() => root.querySelector('core-toolbar paper-tabs'));
     _filterDialog = new CachedValue(() => root.querySelector('paper-dialog#distributions-filter'));
 
     sections = [dmap = new _DMap(this), dtime = new _DTimeLine(this)];
@@ -128,7 +128,7 @@ abstract class _Section {
   _Section(DistributionsPage parent, String id)
       : this._parent = parent,
         this.id = id,
-        this._section = parent.root.querySelector("core-animated-pages section#${id}");
+        this._section = parent.root.querySelector("core-animated-pages > section#${id}");
 
   PagingList<Catches> get _catchesPager => _parent.catchesPager;
   Future<List<Catches>> get _catchesList => _parent._catchesList;
