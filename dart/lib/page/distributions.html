@@ -21,7 +21,7 @@
             <paper-dialog id="distributions-filter" transition="core-transition-top" backdrop autoCloseDisabled>
                 <distributions-filter setter="filter"></distributions-filter>
                 <div style="text-align: right">
-                    <paper-button style="color: green" ng-click="renewFilter()">OK</paper-button>
+                    <paper-button style="color: green" ng-click="closeFilter()">OK</paper-button>
                 </div>
             </paper-dialog>
             
@@ -42,9 +42,9 @@
                     <div class="header">
                         <p>Catches round here</p>
                     </div>
-                    <infinite-scroll pager="dmap.aroundHere" page-size="10">
+                    <infinite-scroll pager="catchesPager" page-size="10">
                         <div id="content">
-                            <collapser ng-repeat="catches in dmap.aroundHere.list" opened="dmap[$index]">
+                            <collapser ng-repeat="catches in catchesPager.list" opened="dmap[$index]">
                                 <div id="header">
                                     <div class="fish">
                                         <p>{{ catches.fish | fishFilter }}</p>

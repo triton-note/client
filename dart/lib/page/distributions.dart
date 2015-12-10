@@ -28,8 +28,6 @@ final _logger = new Logger('DistributionsPage');
     cssUrl: 'packages/triton_note/page/distributions.css',
     useShadowDom: true)
 class DistributionsPage extends MainFrame implements DetachAware {
-  static const FILTER_CHANGED_EVENT = 'FILTER_CHANGED_EVENT';
-
   DistributionsPage(Router router) : super(router);
 
   final Getter<DistributionsFilter> filter = new PipeValue();
@@ -47,7 +45,17 @@ class DistributionsPage extends MainFrame implements DetachAware {
   set _selectedIndex(int v) => _pages.value.selected = _tabs.value.selected = _selectedTab = v;
   Element get selectedPage => root.querySelectorAll("core-animated-pages section")[_selectedIndex];
 
-  _Section dmap, dtime;
+  PagingList<Catches> catchesPager;
+  Future<List<Catches>> get _catchesList async {
+    while (catchesPager.hasMore) {
+      await catchesPager.more(100);
+    }
+    return catchesPager.list;
+  }
+
+  _DMap dmap;
+  _DTimeLine dtime;
+  List<_Section> sections;
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
@@ -57,14 +65,26 @@ class DistributionsPage extends MainFrame implements DetachAware {
     scrollBase = _pages;
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
     _tabs = new CachedValue(() => root.querySelector('paper-tabs'));
+    _filterDialog = new CachedValue(() => root.querySelector('paper-dialog#distributions-filter'));
+
+    sections = [dmap = new _DMap(this), dtime = new _DTimeLine(this)];
+
     listenOn(_tabs.value, 'core-select', (target) {
       _pages.value.selected = _selectedTab = int.parse(target.selected.toString());
       _logger.fine("Selected tab: ${_selectedTab}: ${selectedPage.id}");
     });
-    _filterDialog = new CachedValue(() => root.querySelector('paper-dialog#distributions-filter'));
-
-    dmap = new _DMap(this);
-    dtime = new _DTimeLine(this);
+    _pages.value.on['core-animated-pages-transition-prepare'].listen((event) {
+      sections.forEach((s) {
+        if (s.id != selectedPage.id) s.inactivating();
+        else s.activating();
+      });
+    });
+    _pages.value.on['core-animated-pages-transition-end'].listen((event) {
+      sections.forEach((s) {
+        if (s.id != selectedPage.id) s.inactivated();
+        else s.activated();
+      });
+    });
   }
 
   void detach() {
@@ -84,14 +104,16 @@ class DistributionsPage extends MainFrame implements DetachAware {
       ..open();
   }
 
-  renewFilter() {
+  void closeFilter() {
     closeDialog(_filterDialog.value);
-    _pages.value.dispatchEvent(new CustomEvent(FILTER_CHANGED_EVENT));
+    _refresh();
   }
 
-  _listenRenew(proc()) {
-    _pages.value.on[FILTER_CHANGED_EVENT].listen((event) async {
-      proc();
+  _refresh() async {
+    _logger.finer("Refreshing list around: ${dmap._bounds}, ${catchesPager}");
+    catchesPager = new PagingList(await Catches.inArea(dmap._bounds, filter.value));
+    sections.forEach((s) {
+      s.refresh();
     });
   }
 }
@@ -99,20 +121,31 @@ class DistributionsPage extends MainFrame implements DetachAware {
 abstract class _Section {
   final DistributionsPage _parent;
   final Element _section;
+  final String id;
 
   _Section(DistributionsPage parent, String id)
       : this._parent = parent,
-        this._section = parent.root.querySelector("core-animated-pages section#${id}") {
-    _parent._listenRenew(refresh);
-  }
+        this.id = id,
+        this._section = parent.root.querySelector("core-animated-pages section#${id}");
+
+  PagingList<Catches> get _catchesPager => _parent.catchesPager;
+  Future<List<Catches>> get _catchesList => _parent._catchesList;
 
   void detach();
 
   refresh();
+
+  activating() {}
+  activated() {}
+
+  inactivating() {}
+  inactivated() {}
 }
 
 class _DMap extends _Section {
-  static const refreshDur = const Duration(seconds: 1);
+  static final _logger = new Logger('DistributionsPage.Map');
+
+  static const refreshDur = const Duration(seconds: 2);
   static GeoInfo _lastCenter;
 
   _DMap(DistributionsPage parent) : super(parent, 'dmap') {
@@ -129,7 +162,6 @@ class _DMap extends _Section {
 
   LatLngBounds _bounds;
   GeoInfo get center => _lastCenter;
-  PagingList<Catches> aroundHere;
   Timer _refreshTimer;
   HeatmapLayer _heatmap;
   bool _isHeated = false;
@@ -160,24 +192,22 @@ class _DMap extends _Section {
       _bounds = gmap.bounds;
       _logger.finer(() => "Map moved: ${_lastCenter}, ${_bounds}");
       if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
-      _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, refresh);
+      _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, _parent._refresh);
     });
   }
 
   refresh() async {
-    _logger.finer("Refreshing list around: ${_bounds}, ${aroundHere}");
-    aroundHere = new PagingList(await Catches.inArea(_bounds, _parent.filter.value));
     _section.click();
-    _logger.finer(() => "List in around: ${aroundHere}");
     _showHeatmap();
+  }
+
+  void detach() {
+    if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
   }
 
   _showHeatmap() async {
     if (_isHeated) {
-      while (aroundHere.hasMore) {
-        await aroundHere.more(100);
-      }
-      final data = aroundHere.list.map((Catches c) => {'location': c.location.geoinfo, 'weight': c.fish.count});
+      final data = (await _catchesList).map((Catches c) => {'location': c.location.geoinfo, 'weight': c.fish.count});
       _heatmap?.setMap(null);
       _heatmap = new HeatmapLayer(data);
       _heatmap.setMap(await gmapSetter.future);
@@ -186,16 +216,12 @@ class _DMap extends _Section {
     }
   }
 
-  void detach() {
-    if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
-  }
-
   bool operator [](int index) => _chooses.containsKey(index);
   operator []=(int index, bool opened) async {
     _logger.finest(() => "Choose catches: ${index}=${opened}");
     if (opened) {
       final gmap = await gmapSetter.future;
-      final marker = gmap.putMarker(aroundHere.list[index].location.geoinfo);
+      final marker = gmap.putMarker(_catchesPager.list[index].location.geoinfo);
       _chooses[index] = marker;
     } else {
       _chooses[index]?.remove();
@@ -205,6 +231,8 @@ class _DMap extends _Section {
 }
 
 class _DTimeLine extends _Section {
+  static final _logger = new Logger('DistributionsPage.TimeLine');
+
   _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
 
   refresh() async {}
