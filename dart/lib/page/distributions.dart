@@ -17,7 +17,7 @@ import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/catches.dart';
 import 'package:triton_note/util/distributions_filters.dart';
 import 'package:triton_note/util/icons.dart';
-import 'package:triton_note/util/chart.dart';
+import 'package:triton_note/util/chart.dart' as chart;
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/pager.dart';
@@ -244,7 +244,8 @@ class _DTimeLine extends _Section {
 
   _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
 
-  bool isCalculating = false;
+  Completer<chart.Data> _chartData;
+  bool get isCalculating => !_chartData?.isCompleted ?? false;
 
   List<String> get selectionNames => selections.keys;
   String selection(String key) => selections[key];
@@ -254,28 +255,78 @@ class _DTimeLine extends _Section {
     _logger.finest(() => "Selected: ${v}");
     if (selections.contains(v)) {
       _selected = v;
+      refresh();
     }
   }
 
-  refresh() async {}
+  refresh() async {
+    _calculate();
+    _draw();
+  }
 
   void detach() {}
 
-  activated() {
-    _show(_section.querySelector('#chart .canvas'));
-  }
+  CanvasRenderingContext2D get _canvas {
+    final host = _section.querySelector('#chart .canvas');
+    final id = 'chart-canvas';
 
-  inactivated() {
-    _section.querySelector('#chart .canvas canvas')?.remove();
-  }
+    final found = host.querySelector("canvas#${id}") as CanvasElement;
+    if (found != null) return found.context2D;
 
-  void _show(DivElement host) {
     final canvas = document.createElement('canvas') as CanvasElement
+      ..id = id
       ..width = host.clientWidth
       ..height = window.innerHeight - host.getBoundingClientRect().top.round() - 4;
     host.append(canvas);
-    final ctx = canvas.context2D;
+    return canvas.context2D;
+  }
 
+  _draw() async {
+    if (_chartData == null) return;
+    final data = await _chartData.future;
+
+    new chart.Chart(_canvas).Line(data, new chart.Options(responsive: true));
+  }
+
+  _calculate() async {
+    final key = _selected;
+    if (key == null) return;
+
+    await _chartData?.future;
+    _chartData = new Completer();
+
+    makeDataSet(String label, int r, int g, int b, List data) {
+      rgba([double a = 1.0]) => "rgba(${r}, ${g}, ${b}, ${a})";
+      return new chart.DataSet(
+          label: label,
+          fillColor: rgba(0.2),
+          strokeColor: rgba(),
+          pointColor: rgba(),
+          pointStrokeColor: "#fff",
+          pointHighlightFill: "#fff",
+          pointHighlightStroke: rgba(),
+          data: data);
+    }
+
+    complete(List<String> labels, List<chart.DataSet> sets) {
+      final data = new chart.Data(labels: labels, datasets: sets);
+      _chartData.complete(data);
+    }
+
+    final List<Catches> allList = await _catchesList;
+
+    _calcHour() {}
+    _calcMonth() {}
+    _calcMoon() {}
+    _calcTide() {}
+
+    if (key == "HOUR") _calcHour();
+    if (key == "MONTH") _calcMonth();
+    if (key == "MOON") _calcMoon();
+    if (key == "TIDE") _calcTide();
+  }
+
+  _show(DivElement host) async {
     final rnd = new Random();
 
     final data = new Data(labels: [
@@ -322,7 +373,5 @@ class _DTimeLine extends _Section {
             rnd.nextInt(100)
           ])
     ]);
-
-    new Chart(ctx).Line(data, new Options(responsive: true));
   }
 }
