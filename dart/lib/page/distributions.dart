@@ -2,7 +2,7 @@ library triton_note.page.distributions;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:math';
+import 'dart:collection';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
@@ -17,6 +17,7 @@ import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/catches.dart';
 import 'package:triton_note/util/distributions_filters.dart';
 import 'package:triton_note/util/icons.dart';
+import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/chart.dart' as chart;
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
@@ -235,12 +236,27 @@ class _DMap extends _Section {
 class _DTimeLine extends _Section {
   static final _logger = new Logger('DistributionsPage.TimeLine');
 
-  static const selections = const {
+  static const Map<String, String> selections = const {
     'HOUR': 'Hours in Day',
     'MONTH': 'Months in Year',
     'MOON': 'by Moon age',
     'TIDE': 'by Tide'
   };
+
+  static const List<String> nameOfMonths = const [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ];
 
   _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
 
@@ -253,14 +269,16 @@ class _DTimeLine extends _Section {
   String _selected;
   void select(String v) {
     _logger.finest(() => "Selected: ${v}");
-    if (selections.contains(v)) {
+    if (selections.containsKey(v)) {
       _selected = v;
       refresh();
     }
   }
 
+  List<Map<String, String>> labels = [];
+
   refresh() async {
-    _calculate();
+    await _calculate();
     _draw();
   }
 
@@ -285,6 +303,7 @@ class _DTimeLine extends _Section {
     if (_chartData == null) return;
     final data = await _chartData.future;
 
+    _logger.fine(() => "Drawing chart to canvas");
     new chart.Chart(_canvas).Line(data, new chart.Options(responsive: true));
   }
 
@@ -295,83 +314,92 @@ class _DTimeLine extends _Section {
     await _chartData?.future;
     _chartData = new Completer();
 
-    makeDataSet(String label, int r, int g, int b, List data) {
-      rgba([double a = 1.0]) => "rgba(${r}, ${g}, ${b}, ${a})";
-      return new chart.DataSet(
-          label: label,
-          fillColor: rgba(0.2),
-          strokeColor: rgba(),
-          pointColor: rgba(),
-          pointStrokeColor: "#fff",
-          pointHighlightFill: "#fff",
-          pointHighlightStroke: rgba(),
-          data: data);
-    }
+    final List<Catches> allList = await _catchesList;
 
-    complete(List<String> labels, List<chart.DataSet> sets) {
-      final data = new chart.Data(labels: labels, datasets: sets);
+    Map<String, List<Catches>> getTop3() {
+      final result = new LinkedHashMap();
+      result['Total'] = allList;
+
+      if (_parent.filter.value.fish.isActiveName) {
+        final Map<String, List<Catches>> store = {};
+        final Map<String, int> counter = {};
+        capitalize(String text) => text[0].toUpperCase() + text.substring(1).toLowerCase();
+
+        allList.forEach((c) {
+          final key = capitalize(c.fish.name);
+          final list = store[key] ?? [];
+          list.add(c);
+          store[key] = list;
+          counter[key] = (counter[key] ?? 0) + c.fish.count;
+        });
+        final sorted = store.keys.toList()..sort((a, b) => counter[a] - counter[b]);
+        sorted.sublist(3).forEach((key) {
+          store.remove(key);
+        });
+        sorted.sublist(0, 2).forEach((key) {
+          result[key] = store[key];
+        });
+      }
+      return result;
+    }
+    final top3 = getTop3();
+    final colors = [
+      [223, 223, 223],
+      [239, 143, 47],
+      [143, 239, 47],
+      [47, 143, 239]
+    ];
+
+    complete(List<String> keys, String keyOf(Catches c)) {
+      final sets = [];
+      top3.keys.forEach((label) {
+        final data = new List.filled(keys.length, 0);
+        top3[label].forEach((c) {
+          final index = keys.indexOf(keyOf(c));
+          data[index] = data[index] + c.fish.count;
+        });
+        _logger.finer(() => "Making DataSet: ${label}: ${data}");
+
+        rgba([double a = 1.0]) => "rgba(${colors[sets.length].join(',')},${a})";
+        sets.add(new chart.DataSet(
+            label: label,
+            fillColor: rgba(0.2),
+            strokeColor: rgba(),
+            pointColor: rgba(),
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: rgba(),
+            data: data));
+      });
+
+      labels = sets.map((ds) => {'color': ds.strokeColor, 'label': ds.label}).toList();
+      _logger.finer(() => "Completing making data: ${keys}, ${labels}");
+
+      final data = new chart.Data(labels: keys, datasets: sets);
       _chartData.complete(data);
     }
 
-    final List<Catches> allList = await _catchesList;
-
-    _calcHour() {}
-    _calcMonth() {}
-    _calcMoon() {}
-    _calcTide() {}
+    _calcHour() {
+      _logger.info(() => "Calculating count by hour...");
+      complete(new List.generate(24, (i) => "${i}"), (c) => "${c.dateAt.hour}");
+    }
+    _calcMonth() {
+      _logger.info(() => "Calculating count by month...");
+      complete(new List.generate(12, (i) => nameOfMonths[i]), (c) => nameOfMonths[c.dateAt.month - 1]);
+    }
+    _calcMoon() {
+      _logger.info(() => "Calculating count by moon...");
+      complete(new List.generate(30, (i) => "${i}"), (c) => "${c.condition.moon}");
+    }
+    _calcTide() {
+      _logger.info(() => "Calculating count by tide...");
+      final keys = [Tide.Ebb, Tide.Low, Tide.Flood, Tide.High].map((x) => nameOfEnum(x)).toList();
+      complete(keys, (c) => nameOfEnum(c.condition.tide));
+    }
 
     if (key == "HOUR") _calcHour();
     if (key == "MONTH") _calcMonth();
     if (key == "MOON") _calcMoon();
     if (key == "TIDE") _calcTide();
-  }
-
-  _show(DivElement host) async {
-    final rnd = new Random();
-
-    final data = new Data(labels: [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July"
-    ], datasets: <DataSet>[
-      new DataSet(
-          label: "My First dataset",
-          fillColor: "rgba(220,220,220,0.2)",
-          strokeColor: "rgba(220,220,220,1)",
-          pointColor: "rgba(220,220,220,1)",
-          pointStrokeColor: "#fff",
-          pointHighlightFill: "#fff",
-          pointHighlightStroke: "rgba(220,220,220,1)",
-          data: [
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100)
-          ]),
-      new DataSet(
-          label: "My Second dataset",
-          fillColor: "rgba(151,187,205,0.2)",
-          strokeColor: "rgba(151,187,205,1)",
-          pointColor: "rgba(151,187,205,1)",
-          pointStrokeColor: "#fff",
-          pointHighlightFill: "#fff",
-          pointHighlightStroke: "rgba(151,187,205,1)",
-          data: [
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100),
-            rnd.nextInt(100)
-          ])
-    ]);
   }
 }

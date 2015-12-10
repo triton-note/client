@@ -39,11 +39,39 @@ section#dmap {
 }
 
 section#dtime {
+  $label_size: 12px;
+  
   #control {
     @include display-flex();
+    margin: 4px;
+    height: ($label_size * 1.8 * 4);
     
     paper-dropdown-menu {
-      margin-left: 55%;
+      width: 150px;
+      margin-left: 8px;
+    }
+    
+    .labels {
+      @include display-flex();
+      @include flex-direction(column);
+      @include justify-content(space-around);
+      margin-left: 40px;
+      
+      .label {
+        @include display-flex();
+        align-items: center;
+        
+        .color {
+          border: solid 1px #eee;
+          width: $label_size;
+          height: $label_size;
+        }
+        label {
+          margin-left: 8px;
+          @include font-light($label_size);
+          text-overflow: ellipsis;
+        }
+      }
     }
   }
   #chart {

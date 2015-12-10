@@ -79,6 +79,12 @@
                             </core-menu>
                         </paper-dropdown>
                     </paper-dropdown-menu>
+                    <div class="labels">
+                        <div class="label" ng-repeat="label in dtime.labels">
+                            <div class="color" style="background-color: {{ label['color'] }}"></div>
+                            <label>{{ label['label'] }}</label>
+                        </div>
+                    </div>
                 </div>
                 <div id="chart">
                     <div class="canvas"></div>
