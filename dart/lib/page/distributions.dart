@@ -251,12 +251,10 @@ class _DTimeLine extends _Section {
 
   void _show(DivElement host) {
     final hostW = host.clientWidth;
-    final hostH = host.clientHeight;
-    _logger.finest(() => "Chart host size: w:${hostW}, h:${hostH}");
-
     final canvas = document.createElement('canvas') as CanvasElement
-      ..width = hostW
-      ..height = hostH;
+      ..style.marginLeft = '4px'
+      ..width = hostW - 4
+      ..height = (hostW * 2 / (1 + sqrt(5))).round() + 32;
     host.append(canvas);
     final ctx = canvas.context2D;
 
