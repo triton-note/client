@@ -270,11 +270,9 @@ class _DTimeLine extends _Section {
   }
 
   void _show(DivElement host) {
-    final hostW = host.clientWidth;
     final canvas = document.createElement('canvas') as CanvasElement
-      ..style.marginLeft = '4px'
-      ..width = hostW - 4
-      ..height = (hostW * 2 / (1 + sqrt(5))).round() + 32;
+      ..width = host.clientWidth
+      ..height = window.innerHeight - host.getBoundingClientRect().top.round() - 4;
     host.append(canvas);
     final ctx = canvas.context2D;
 
