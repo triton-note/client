@@ -143,24 +143,23 @@ class _DMap extends _Section {
 
     gmap.showMyLocationButton = true;
 
-    final cb = document.createElement('div')
+    gmap.addCustomButton(document.createElement('div')
       ..style.backgroundColor = 'white'
       ..style.opacity = '0.6'
-      ..style.borderRadius = '12px'
-      ..style.width = '24px'
-      ..style.height = '24px'
-      ..style.margin = '2px'
       ..append(document.createElement('img') as ImageElement
         ..width = 24
         ..height = 24
-        ..src = ICON_FIRE_MONO);
-    cb.onClick.listen((_) {
-      cb.style.backgroundColor = _isHeated ? 'white' : 'red';
-      _isHeated = !_isHeated;
-      _logger.finer("Show heatmap: ${_isHeated}");
-      _showHeatmap();
-    });
-    gmap.addCustomButton(cb);
+        ..style.borderRadius = '12px'
+        ..style.margin = 'auto'
+        ..src = ICON_FIRE_MONO)
+      ..onClick.listen((event) {
+        if (event.target is ImageElement) {
+          event.target.style.backgroundColor = _isHeated ? 'transparent' : 'red';
+          _isHeated = !_isHeated;
+          _logger.finer("Show heatmap: ${_isHeated}");
+          _showHeatmap();
+        }
+      }));
 
     gmap.on('bounds_changed', () {
       _lastCenter = gmap.center;
