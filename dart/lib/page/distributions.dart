@@ -2,6 +2,7 @@ library triton_note.page.distributions;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
@@ -16,6 +17,7 @@ import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/catches.dart';
 import 'package:triton_note/util/distributions_filters.dart';
 import 'package:triton_note/util/icons.dart';
+import 'package:triton_note/util/chart.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/pager.dart';
@@ -238,4 +240,73 @@ class _DTimeLine extends _Section {
   refresh() async {}
 
   void detach() {}
+
+  activated() {
+    _show(_section.querySelector('#chart .canvas'));
+  }
+
+  inactivated() {
+    _section.querySelector('#chart .canvas canvas')?.remove();
+  }
+
+  void _show(DivElement host) {
+    final hostW = host.clientWidth;
+    final hostH = host.clientHeight;
+    _logger.finest(() => "Chart host size: w:${hostW}, h:${hostH}");
+
+    final canvas = document.createElement('canvas') as CanvasElement
+      ..width = hostW
+      ..height = hostH;
+    host.append(canvas);
+    final ctx = canvas.context2D;
+
+    final rnd = new Random();
+
+    final data = new Data(labels: [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July"
+    ], datasets: <DataSet>[
+      new DataSet(
+          label: "My First dataset",
+          fillColor: "rgba(220,220,220,0.2)",
+          strokeColor: "rgba(220,220,220,1)",
+          pointColor: "rgba(220,220,220,1)",
+          pointStrokeColor: "#fff",
+          pointHighlightFill: "#fff",
+          pointHighlightStroke: "rgba(220,220,220,1)",
+          data: [
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100)
+          ]),
+      new DataSet(
+          label: "My Second dataset",
+          fillColor: "rgba(151,187,205,0.2)",
+          strokeColor: "rgba(151,187,205,1)",
+          pointColor: "rgba(151,187,205,1)",
+          pointStrokeColor: "#fff",
+          pointHighlightFill: "#fff",
+          pointHighlightStroke: "rgba(151,187,205,1)",
+          data: [
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100),
+            rnd.nextInt(100)
+          ])
+    ]);
+
+    new Chart(ctx).Line(data, new Options(responsive: true));
+  }
 }
