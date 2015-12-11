@@ -59,6 +59,8 @@ class DistributionsPage extends MainFrame implements DetachAware {
   _DMap dmap;
   _DTimeLine dtime;
   List<_Section> sections;
+  final Completer<Null> _onReady = new Completer();
+  bool get isReady => _onReady.isCompleted;
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
@@ -72,10 +74,10 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
     sections = [dmap = new _DMap(this), dtime = new _DTimeLine(this)];
 
-    listenOn(_tabs.value, 'core-select', (target) {
-      _pages.value.selected = _selectedTab = int.parse(target.selected.toString());
-      _logger.fine("Selected tab: ${_selectedTab}: ${selectedPage.id}");
+    Future.wait(sections.map((s) => s._onReady.future).toList()).then((_) {
+      _onReady.complete();
     });
+
     _pages.value.on['core-animated-pages-transition-prepare'].listen((event) {
       sections.forEach((s) {
         if (s.id != selectedPage.id) s.inactivating();
@@ -88,6 +90,25 @@ class DistributionsPage extends MainFrame implements DetachAware {
         else s.activated();
       });
     });
+
+    _tabReady();
+  }
+
+  _tabReady() async {
+    await _onReady.future;
+
+    final dur = const Duration(milliseconds: 100);
+    listen() {
+      if (_tabs.value != null) {
+        listenOn(_tabs.value, 'core-select', (target) {
+          _pages.value.selected = _selectedTab = int.parse(target.selected.toString());
+          _logger.fine("Selected tab: ${_selectedTab}: ${selectedPage.id}");
+        });
+      } else {
+        new Future.delayed(dur, listen);
+      }
+    }
+    listen();
   }
 
   void detach() {
@@ -125,6 +146,7 @@ abstract class _Section {
   final DistributionsPage _parent;
   final Element _section;
   final String id;
+  final Completer<Null> _onReady = new Completer();
 
   _Section(DistributionsPage parent, String id)
       : this._parent = parent,
@@ -163,6 +185,7 @@ class _DMap extends _Section {
 
   final FuturedValue<GoogleMap> gmapSetter = new FuturedValue();
 
+  bool get isReady => _onReady.isCompleted;
   LatLngBounds _bounds;
   GeoInfo get center => _lastCenter;
   Timer _refreshTimer;
@@ -193,6 +216,8 @@ class _DMap extends _Section {
     gmap.on('bounds_changed', () {
       _lastCenter = gmap.center;
       _bounds = gmap.bounds;
+      if (!_onReady.isCompleted) _onReady.complete();
+
       _logger.finer(() => "Map moved: ${_lastCenter}, ${_bounds}");
       if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
       _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, _parent._refresh);
@@ -269,7 +294,9 @@ class _DTimeLine extends _Section {
     const [47, 143, 239]
   ];
 
-  _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
+  _DTimeLine(DistributionsPage parent) : super(parent, 'dtime') {
+    _onReady.complete();
+  }
 
   DivElement get chartHost => _section.querySelector('#chart');
   bool get isCalculating => labels == null;
