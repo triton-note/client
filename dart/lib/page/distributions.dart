@@ -258,10 +258,17 @@ class _DTimeLine extends _Section {
     "December"
   ];
 
+  static const List<List<int>> colors = const [
+    const [223, 223, 223],
+    const [239, 143, 47],
+    const [143, 239, 47],
+    const [47, 143, 239]
+  ];
+
   _DTimeLine(DistributionsPage parent) : super(parent, 'dtime');
 
-  Completer<chart.Data> _chartData;
-  bool get isCalculating => !_chartData?.isCompleted ?? false;
+  DivElement get chartHost => _section.querySelector('#chart');
+  bool get isCalculating => labels == null;
 
   List<String> get selectionNames => selections.keys;
   String selection(String key) => selections[key];
@@ -278,128 +285,133 @@ class _DTimeLine extends _Section {
   List<Map<String, String>> labels = [];
 
   refresh() async {
-    await _calculate();
-    _draw();
+    _logger.finest(() => "Refreshing...");
+    _calculate(_selected);
   }
 
   void detach() {}
 
+  activated() {
+    final height = window.innerHeight - chartHost.getBoundingClientRect().top.round() - 4;
+    chartHost.style.height = "${height}px";
+  }
+
   CanvasRenderingContext2D get _canvas {
-    final host = _section.querySelector('#chart .canvas');
-    final id = 'chart-canvas';
+    chartHost.querySelector("canvas")?.remove();
 
-    final found = host.querySelector("canvas#${id}") as CanvasElement;
-    if (found != null) return found.context2D;
+    final canvas = document.createElement("canvas") as CanvasElement
+      ..width = chartHost.clientWidth
+      ..height = chartHost.clientHeight;
 
-    final canvas = document.createElement('canvas') as CanvasElement
-      ..id = id
-      ..width = host.clientWidth
-      ..height = window.innerHeight - host.getBoundingClientRect().top.round() - 4;
-    host.append(canvas);
+    chartHost.children.insert(0, canvas);
     return canvas.context2D;
   }
 
-  _draw() async {
-    if (_chartData == null) return;
-    final data = await _chartData.future;
-
+  _draw(chart.Data data) async {
     _logger.fine(() => "Drawing chart to canvas");
     new chart.Chart(_canvas).Line(data, new chart.Options(responsive: true));
   }
 
-  _calculate() async {
-    final key = _selected;
-    if (key == null) return;
-
-    await _chartData?.future;
-    _chartData = new Completer();
-
+  Future<Map<String, List<Catches>>> _getTop3() async {
     final List<Catches> allList = await _catchesList;
 
-    Map<String, List<Catches>> getTop3() {
-      final result = new LinkedHashMap();
-      result['Total'] = allList;
+    final result = new LinkedHashMap();
+    result['Total'] = allList;
 
-      if (_parent.filter.value.fish.isActiveName) {
-        final Map<String, List<Catches>> store = {};
-        final Map<String, int> counter = {};
-        capitalize(String text) => text[0].toUpperCase() + text.substring(1).toLowerCase();
+    if (_parent.filter.value.fish.isActiveName) {
+      final Map<String, List<Catches>> store = {};
+      final Map<String, int> counter = {};
+      capitalize(String text) => text[0].toUpperCase() + text.substring(1).toLowerCase();
 
-        allList.forEach((c) {
-          final key = capitalize(c.fish.name);
-          final list = store[key] ?? [];
-          list.add(c);
-          store[key] = list;
-          counter[key] = (counter[key] ?? 0) + c.fish.count;
-        });
-        final sorted = store.keys.toList()..sort((a, b) => counter[a] - counter[b]);
-        sorted.sublist(3).forEach((key) {
-          store.remove(key);
-        });
-        sorted.sublist(0, 2).forEach((key) {
-          result[key] = store[key];
-        });
-      }
-      return result;
-    }
-    final top3 = getTop3();
-    final colors = [
-      [223, 223, 223],
-      [239, 143, 47],
-      [143, 239, 47],
-      [47, 143, 239]
-    ];
-
-    complete(List<String> keys, String keyOf(Catches c)) {
-      final sets = [];
-      top3.keys.forEach((label) {
-        final data = new List.filled(keys.length, 0);
-        top3[label].forEach((c) {
-          final index = keys.indexOf(keyOf(c));
-          data[index] = data[index] + c.fish.count;
-        });
-        _logger.finer(() => "Making DataSet: ${label}: ${data}");
-
-        rgba([double a = 1.0]) => "rgba(${colors[sets.length].join(',')},${a})";
-        sets.add(new chart.DataSet(
-            label: label,
-            fillColor: rgba(0.2),
-            strokeColor: rgba(),
-            pointColor: rgba(),
-            pointStrokeColor: "#fff",
-            pointHighlightFill: "#fff",
-            pointHighlightStroke: rgba(),
-            data: data));
+      allList.forEach((c) {
+        final key = capitalize(c.fish.name);
+        final list = store[key] ?? [];
+        list.add(c);
+        store[key] = list;
+        counter[key] = (counter[key] ?? 0) + c.fish.count;
       });
-
-      labels = sets.map((ds) => {'color': ds.strokeColor, 'label': ds.label}).toList();
-      _logger.finer(() => "Completing making data: ${keys}, ${labels}");
-
-      final data = new chart.Data(labels: keys, datasets: sets);
-      _chartData.complete(data);
+      final sorted = store.keys.toList()..sort((a, b) => counter[a] - counter[b]);
+      sorted.sublist(3).forEach((key) {
+        store.remove(key);
+      });
+      sorted.sublist(0, 2).forEach((key) {
+        result[key] = store[key];
+      });
     }
+    return result;
+  }
+
+  _drawData(List<String> keys, String keyOf(Catches c)) async {
+    final top3 = await _getTop3();
+    final sets = [];
+    top3.keys.forEach((label) {
+      final data = new List.filled(keys.length, 0);
+      top3[label].forEach((c) {
+        final index = keys.indexOf(keyOf(c));
+        if (index >= 0) data[index] = data[index] + c.fish.count;
+      });
+      _logger.finer(() => "Making DataSet: ${label}: ${data}");
+
+      rgba([double a = 1.0]) => "rgba(${colors[sets.length].join(',')},${a})";
+      sets.add(new chart.DataSet(
+          label: label,
+          fillColor: rgba(0.2),
+          strokeColor: rgba(),
+          pointColor: rgba(),
+          pointStrokeColor: "#fff",
+          pointHighlightFill: "#fff",
+          pointHighlightStroke: rgba(),
+          data: data));
+    });
+
+    labels = sets.map((ds) => {'color': ds.strokeColor, 'label': ds.label}).toList();
+    _logger.finer(() => "Completing making data: ${keys}, ${labels}");
+
+    _draw(new chart.Data(labels: keys, datasets: sets));
+  }
+
+  _calculate(String way) async {
+    labels = null;
 
     _calcHour() {
       _logger.info(() => "Calculating count by hour...");
-      complete(new List.generate(24, (i) => "${i}"), (c) => "${c.dateAt.hour}");
+      _drawData(new List.generate(24, (i) => "${i}"), (c) => "${c.dateAt.hour}");
     }
     _calcMonth() {
       _logger.info(() => "Calculating count by month...");
-      complete(new List.generate(12, (i) => nameOfMonths[i]), (c) => nameOfMonths[c.dateAt.month - 1]);
+      int begin = 0, end = 11;
+      if (_parent.filter.value.term.isActiveSeason) {
+        begin = _parent.filter.value.term.seasonBegin - 1;
+        end = _parent.filter.value.term.seasonEnd - 1;
+      }
+      final keys = new List.generate(end - begin + 1, (i) => nameOfMonths[i + begin]);
+      _drawData(keys, (c) => nameOfMonths[c.dateAt.month - 1]);
     }
     _calcMoon() {
       _logger.info(() => "Calculating count by moon...");
-      complete(new List.generate(30, (i) => "${i}"), (c) => "${c.condition.moon}");
+      _drawData(new List.generate(30, (i) => "${i}"), (c) => "${c.condition.moon}");
     }
     _calcTide() {
       _logger.info(() => "Calculating count by tide...");
       final keys = [Tide.Ebb, Tide.Low, Tide.Flood, Tide.High].map((x) => nameOfEnum(x)).toList();
-      complete(keys, (c) => nameOfEnum(c.condition.tide));
+      _drawData(keys, (c) => nameOfEnum(c.condition.tide));
     }
 
-    if (key == "HOUR") _calcHour();
-    if (key == "MONTH") _calcMonth();
-    if (key == "MOON") _calcMoon();
-    if (key == "TIDE") _calcTide();
+    switch (way) {
+      case 'HOUR':
+        _calcHour();
+        break;
+      case 'MONTH':
+        _calcMonth();
+        break;
+      case 'MOON':
+        _calcMoon();
+        break;
+      case 'TIDE':
+        _calcTide();
+        break;
+      default:
+        labels = [];
+    }
   }
 }

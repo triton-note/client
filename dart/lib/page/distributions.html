@@ -87,7 +87,9 @@
                     </div>
                 </div>
                 <div id="chart">
-                    <div class="canvas"></div>
+                    <div class="spinner">
+                        <paper-spinner ng-if="dtime.isCalculating" class="gray" active></paper-spinner>
+                    </div>
                 </div>
             </section>
         </core-animated-pages>

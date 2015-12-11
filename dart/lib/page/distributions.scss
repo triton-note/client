@@ -43,19 +43,17 @@ section#dtime {
   
   #control {
     @include display-flex();
-    margin: 4px;
+    @include justify-content(space-around);
     height: ($label_size * 1.8 * 4);
     
     paper-dropdown-menu {
       width: 150px;
-      margin-left: 8px;
     }
     
     .labels {
       @include display-flex();
       @include flex-direction(column);
       @include justify-content(space-around);
-      margin-left: 40px;
       
       .label {
         @include display-flex();
@@ -65,9 +63,9 @@ section#dtime {
           border: solid 1px #eee;
           width: $label_size;
           height: $label_size;
+          margin-right: ($label_size / 2);
         }
         label {
-          margin-left: 8px;
           @include font-light($label_size);
           text-overflow: ellipsis;
         }
@@ -75,8 +73,18 @@ section#dtime {
     }
   }
   #chart {
-    .canvas {
-      margin: 4px;
+    position: relative;
+    margin: 4px;
+    
+    .spinner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      @include display-flex();
+      @include align-items(center);
+      @include justify-content(center);
     }
   }
 }
