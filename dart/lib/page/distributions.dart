@@ -74,10 +74,6 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
     sections = [dmap = new _DMap(this), dtime = new _DTimeLine(this)];
 
-    Future.wait(sections.map((s) => s._onReady.future).toList()).then((_) {
-      _onReady.complete();
-    });
-
     _pages.value.on['core-animated-pages-transition-prepare'].listen((event) {
       sections.forEach((s) {
         if (s.id != selectedPage.id) s.inactivating();
@@ -95,7 +91,8 @@ class DistributionsPage extends MainFrame implements DetachAware {
   }
 
   _tabReady() async {
-    await _onReady.future;
+    await Future.wait(sections.map((s) => s._onReady.future).toList());
+    _onReady.complete();
 
     final dur = const Duration(milliseconds: 100);
     listen() {
