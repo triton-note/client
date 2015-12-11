@@ -21,11 +21,11 @@
             <paper-dialog id="distributions-filter" transition="core-transition-top" backdrop autoCloseDisabled>
                 <distributions-filter setter="filter"></distributions-filter>
                 <div style="text-align: right">
-                    <paper-button style="color: green" ng-click="renewFilter()">OK</paper-button>
+                    <paper-button style="color: green" ng-click="closeFilter()">OK</paper-button>
                 </div>
             </paper-dialog>
             
-            <div class="tabs">
+            <div class="tabs" ng-if="isReady">
                 <paper-tabs selected="0">
                     <paper-tab>MAP</paper-tab>
                     <paper-tab>TIME LINE</paper-tab>
@@ -39,18 +39,23 @@
                     <expandable-gmap center="dmap.center" set-gmap="dmap.gmapSetter" get-scroller="scroller" get-base="scrollBase" get-toolbar="toolbar"></expandable-gmap>
                 </div>
                 <div id="around">
-                    <div class="header">
+                    <div class="page-loading" ng-if="!dmap.isReady">
+                        <div>
+                            <paper-spinner active></paper-spinner>
+                        </div>
+                    </div>
+                    <div class="header" ng-if="dmap.isReady">
                         <p>Catches round here</p>
                     </div>
-                    <infinite-scroll pager="dmap.aroundHere" page-size="10">
+                    <infinite-scroll pager="catchesPager" page-size="10">
                         <div id="content">
-                            <collapser ng-repeat="catches in dmap.aroundHere.list" opened="dmap[$index]">
+                            <collapser ng-repeat="catches in catchesPager.list" opened="dmap[$index]">
                                 <div id="header">
                                     <div class="fish">
                                         <p>{{ catches.fish | fishFilter }}</p>
                                     </div>
                                     <div class="date">
-                                        <p>{{ catches.dateAt | date:"yyyy-MM-dd ha" }}</p>
+                                        <p>{{ catches.dateAt | date:"h a, yyyy-MM-dd" }}</p>
                                     </div>
                                 </div>
                                 <div id="content">
@@ -71,8 +76,25 @@
             </section>
             
             <section id="dtime">
-                <div>
-                    <p>Time Line</p>
+                <div id="control">
+                    <paper-dropdown-menu label="Select...">
+                        <paper-dropdown class="dropdown">
+                            <core-menu class="menu">
+                                <paper-item ng-repeat="key in dtime.selectionNames" ng-click="dtime.select(key)">{{ dtime.selection(key) }}</paper-item>
+                            </core-menu>
+                        </paper-dropdown>
+                    </paper-dropdown-menu>
+                    <div class="labels">
+                        <div class="label" ng-repeat="label in dtime.labels">
+                            <div class="color" style="background-color: {{ label['color'] }}"></div>
+                            <label>{{ label['label'] }}</label>
+                        </div>
+                    </div>
+                </div>
+                <div id="chart">
+                    <div class="spinner">
+                        <paper-spinner class="gray" active="{{ dtime.isCalculating }}"></paper-spinner>
+                    </div>
                 </div>
             </section>
         </core-animated-pages>

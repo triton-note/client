@@ -207,7 +207,7 @@ class _PagingQuery<T extends DBRecord> implements Pager<T> {
   void reset() => _lastEvaluatedKey.reset();
 
   Future<List<T>> more(int pageSize) =>
-      table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKey);
+      !hasMore ? [] : table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKey);
 }
 
 class _PagingScan<T extends DBRecord> implements Pager<T> {
@@ -223,7 +223,8 @@ class _PagingScan<T extends DBRecord> implements Pager<T> {
 
   void reset() => _lastEvaluatedKey.reset();
 
-  Future<List<T>> more(int pageSize) => table.scan(expression, names, values, pageSize, _lastEvaluatedKey);
+  Future<List<T>> more(int pageSize) =>
+      !hasMore ? [] : table.scan(expression, names, values, pageSize, _lastEvaluatedKey);
 }
 
 class _ContentDecoder {
@@ -260,6 +261,8 @@ class _ContentEncoder {
     if (value is List) return {'L': value.map((a) => encode(a))};
     if (value is String) return {'S': value};
     if (value is num) return {'N': value.toString()};
+    if (value is DateTime) return {'N': value.toUtc().millisecondsSinceEpoch.toString()};
+    throw "Unsupported dynamo value: ${value}";
   }
 
   static Map toDynamoMap(Map map) {

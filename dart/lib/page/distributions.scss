@@ -39,9 +39,52 @@ section#dmap {
 }
 
 section#dtime {
+  $label_size: 12px;
   
-}
-
-section#drate {
-  
+  #control {
+    @include display-flex();
+    @include justify-content(space-around);
+    height: ($label_size * 1.8 * 4);
+    
+    paper-dropdown-menu {
+      width: 150px;
+    }
+    
+    .labels {
+      @include display-flex();
+      @include flex-direction(column);
+      @include justify-content(space-around);
+      
+      .label {
+        @include display-flex();
+        align-items: center;
+        
+        .color {
+          border: solid 1px #eee;
+          width: $label_size;
+          height: $label_size;
+          margin-right: ($label_size / 2);
+        }
+        label {
+          @include font-light($label_size);
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+  #chart {
+    position: relative;
+    margin: 4px;
+    
+    .spinner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      @include display-flex();
+      @include align-items(center);
+      @include justify-content(center);
+    }
+  }
 }

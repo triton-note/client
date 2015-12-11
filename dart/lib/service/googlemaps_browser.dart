@@ -88,9 +88,17 @@ class GoogleMap implements Wrapper {
     _src.callMethod('panTo', [_toLatLng(pos)]);
   }
 
-  int addCustomButton(DivElement bd, [String position = 'TOP_RIGHT']) {
+  int addCustomIcon(proc(ImageElement div), [String position = 'TOP_RIGHT']) {
+    final img = document.createElement('img') as ImageElement
+      ..width = 24
+      ..height = 24;
+    final div = document.createElement('div')
+      ..style.backgroundColor = '#eee'
+      ..style.opacity = '0.6'
+      ..append(img);
+    proc(img);
     final c = _src['controls'][context['google']['maps']['ControlPosition'][position]];
-    return c.callMethod('push', [bd]) - 1;
+    return c.callMethod('push', [div]) - 1;
   }
 
   void removeCustomButton(int index, [String position = 'TOP_RIGHT']) {
@@ -100,26 +108,21 @@ class GoogleMap implements Wrapper {
 
   set showMyLocationButton(bool v) {
     if (v) {
-      final host = document.createElement('div')..style.backgroundColor = 'transparent';
-      final img = document.createElement('img') as ImageElement
-        ..width = 24
-        ..height = 24
-        ..src = ICON_MYLOCATION
-        ..style.opacity = '0.6';
-      host.append(img);
-
-      host.onClick.listen((event) async {
-        img.src = ICON_SPINNER;
-        try {
-          panTo(await location());
-        } catch (ex) {
-          _logger.warning(() => "Failed to get my location: ${ex}");
-        } finally {
-          img.src = ICON_MYLOCATION;
-        }
-      });
-
-      _myLocationButton = addCustomButton(host, 'RIGHT_BOTTOM');
+      _myLocationButton = addCustomIcon((img) {
+        img
+          ..parent.style.backgroundColor = 'transparent'
+          ..src = ICON_MYLOCATION
+          ..onClick.listen((_) async {
+            img.src = ICON_SPINNER;
+            try {
+              panTo(await location());
+            } catch (ex) {
+              _logger.warning(() => "Failed to get my location: ${ex}");
+            } finally {
+              img.src = ICON_MYLOCATION;
+            }
+          });
+      }, 'RIGHT_BOTTOM');
     } else {
       if (_myLocationButton != null) removeCustomButton(_myLocationButton, 'RIGHT_BOTTOM');
     }

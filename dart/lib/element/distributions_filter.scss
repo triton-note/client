@@ -146,10 +146,14 @@
         
         #season {
           &>div {
+            @include display-flex();
+            @include align-items(baseline);
             &>p {
-              margin-left: 10px;
-              margin-right: 10px;
               @include font-light(14px);
+            }
+            paper-dropdown-menu {
+              margin-left: 20px;
+              margin-right: 20px;
             }
           }
         }

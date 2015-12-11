@@ -28,12 +28,13 @@
     	            <paper-spinner active></paper-spinner>
                 </div>
 		    </div>
-		    <div ng-if="reports != null">
-                <infinite-scroll pager="reports" page-size="20">
+		    <div ng-if="reports != null" class="list">
+                <div class="no-reports">
+                    <paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
+                </div>
+                
+                <infinite-scroll pager="reports" page-size="pageSize">
                     <div id="content">
-                        <div class="no-reports" ng-if="reports.list.isEmpty && !reports.hasMore">
-                            <paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
-                        </div>
         		        <div class="report-row" ng-repeat="report in reports.list">
         		        	<div class="head">
                                 <div class="image">

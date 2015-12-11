@@ -140,6 +140,21 @@ class _Conditions extends _FilterParams with DistributionsFilter_Conditions {
 }
 
 class _Term extends _FilterParams with DistributionsFilter_Term {
+  static const List<String> _nameOfMonths = const [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "June",
+    "July",
+    "Aug",
+    "Sept",
+    "Oct",
+    "Nov",
+    "Dec"
+  ];
+
   _Term(ShadowRoot root) : super('term', root) {
     ['interval', 'recent', 'season'].forEach((name) {
       _checkboxListen(name, (box) {
@@ -153,7 +168,7 @@ class _Term extends _FilterParams with DistributionsFilter_Term {
 
   bool get isActiveInterval => isActive('interval');
   bool get isActiveRecent => isActive('recent') && recentValue != null && recentValue > 0;
-  bool get isActiveSeason => isActive('season');
+  bool get isActiveSeason => isActive('season') && seasonBegin > 0 && seasonEnd > 0;
 
   int recentValue;
   String recentUnitName = nameOfEnum(DistributionsFilter_Term_RecentUnit.values.first);
@@ -161,8 +176,9 @@ class _Term extends _FilterParams with DistributionsFilter_Term {
       enumByName(DistributionsFilter_Term_RecentUnit.values, recentUnitName);
   final List<String> recentUnitList = DistributionsFilter_Term_RecentUnit.values.map(nameOfEnum);
 
-  int seasonBegin = 1;
-  int seasonEnd = 2;
+  List<String> get nameOfMonths => _nameOfMonths;
+  int seasonBegin = 0;
+  int seasonEnd = 0;
 
   DateTime intervalFrom = new DateTime.now();
   Getter<EditTimestampDialog> intervalFromDialog = new PipeValue();

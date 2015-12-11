@@ -56,23 +56,16 @@ class ExpandableGMapElement extends ShadowRootAware {
           if (!_isChanging) curCenter = gmap.center;
         });
 
-        final host = document.createElement('div')
-          ..style.backgroundColor = 'white'
-          ..style.opacity = '0.6';
-        final img = document.createElement('img') as ImageElement
-          ..width = 24
-          ..height = 24
-          ..src = ICON_EXPAND;
-        host.append(img);
-
-        host.onClick.listen((event) async {
-          img.src = isExpanded ? ICON_EXPAND : ICON_SHRINK;
-          _isChanging = true;
-          _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
-          _toggle();
+        gmap.addCustomIcon((img) {
+          img
+            ..src = ICON_EXPAND
+            ..onClick.listen((_) async {
+              img.src = isExpanded ? ICON_EXPAND : ICON_SHRINK;
+              _isChanging = true;
+              _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
+              _toggle();
+            });
         });
-
-        gmap.addCustomButton(host);
       });
     }
     return _gmapReady?.isCompleted ?? false;

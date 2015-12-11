@@ -1,10 +1,9 @@
 @import "../../web/styles/common";
 
-infinite-scroll::shadow div#content {  
+.list {  
   .no-reports {
-    display: block;
-    width: 100%;
-    margin-top: 20%;
+    top: -50px;
+    opacity: 0;
     text-align: center;
     
     paper-button {
@@ -12,7 +11,9 @@ infinite-scroll::shadow div#content {
       color: white;
     }
   }
+}
 
+infinite-scroll::shadow div#content { 
   .report-row {
     position: relative;
     margin-bottom: 10px;

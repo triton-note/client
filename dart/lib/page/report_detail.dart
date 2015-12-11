@@ -22,6 +22,7 @@ import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/facebook.dart';
+import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/enums.dart';
@@ -96,6 +97,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   set timestamp(DateTime v) {
     if (report != null && v != null && v != report.dateAt) {
       report.dateAt = v;
+      conditions._update(v);
       _onChanged(v);
     }
   }
@@ -414,6 +416,11 @@ class _Conditions {
 
   dialogWeather() => weatherDialog.value.open();
   dialogTide() => tideDialog.value.open();
+
+  _update(DateTime now) async {
+    final moon = await Moon.at(now);
+    _src.moon = moon.age.round();
+  }
 }
 
 class _WeatherWrapper implements Loc.Weather {
