@@ -1,9 +1,11 @@
 library triton_note.page.reports_list;
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
+import 'package:core_elements/core_animation.dart';
 
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/reports.dart';
@@ -25,8 +27,6 @@ class ReportsListPage extends MainFrame {
 
   ReportsListPage(Router router) : super(router);
 
-  bool get noReports => reports != null && reports.list.isEmpty && !reports.hasMore;
-
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
@@ -35,6 +35,24 @@ class ReportsListPage extends MainFrame {
 
       await paging.more(pageSize);
       reports = paging;
+
+      new Future.delayed(ripplingDuration, () {
+        if (reports.list.isEmpty && !reports.hasMore) {
+          final target = sr.querySelector('.list .no-reports');
+          final dy = (window.innerHeight / 4).round();
+
+          _logger.finest(() => "Show add_first_report button: ${target}: +${dy}");
+          new CoreAnimation()
+            ..target = target
+            ..duration = 300
+            ..fill = "both"
+            ..keyframes = [
+              {'transform': "none", 'opacity': '0'},
+              {'transform': "translate(0px, ${dy}px)", 'opacity': '1'}
+            ]
+            ..play();
+        }
+      });
     });
   }
 
