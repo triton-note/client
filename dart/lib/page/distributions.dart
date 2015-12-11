@@ -294,6 +294,7 @@ class _DTimeLine extends _Section {
   activated() {
     final height = window.innerHeight - chartHost.getBoundingClientRect().top.round() - 4;
     chartHost.style.height = "${height}px";
+    refresh();
   }
 
   CanvasRenderingContext2D get _canvas {
