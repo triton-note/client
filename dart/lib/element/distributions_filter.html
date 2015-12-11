@@ -205,7 +205,7 @@
                     <p>in Month</p>
                 </core-label>
                 <div>
-                    <paper-dropdown-menu label="Select...">
+                    <paper-dropdown-menu label="...">
                         <paper-dropdown layered class="dropdown">
                             <core-menu class="menu">
                                 <paper-item ng-repeat="key in term.nameOfMonths" ng-click="term.seasonBegin = $index + 1">{{ key }}</paper-item>
@@ -213,7 +213,7 @@
                         </paper-dropdown>
                     </paper-dropdown-menu>
                     <p>TO</p>
-                    <paper-dropdown-menu label="Select...">
+                    <paper-dropdown-menu label="...">
                         <paper-dropdown layered class="dropdown">
                             <core-menu class="menu">
                                 <paper-item ng-repeat="key in term.nameOfMonths" ng-click="term.seasonEnd = $index + 1">{{ key }}</paper-item>
