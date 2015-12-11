@@ -39,7 +39,12 @@
                     <expandable-gmap center="dmap.center" set-gmap="dmap.gmapSetter" get-scroller="scroller" get-base="scrollBase" get-toolbar="toolbar"></expandable-gmap>
                 </div>
                 <div id="around">
-                    <div class="header">
+                    <div class="page-loading" ng-if="!dmap.isReady">
+                        <div>
+                            <paper-spinner active></paper-spinner>
+                        </div>
+                    </div>
+                    <div class="header" ng-if="dmap.isReady">
                         <p>Catches round here</p>
                     </div>
                     <infinite-scroll pager="catchesPager" page-size="10">
