@@ -200,6 +200,10 @@ class _DMap extends _Section {
   }
 
   refresh() async {
+    _chooses.keys.toList().forEach((index) {
+      _chooses[index].remove();
+      _chooses.remove(index);
+    });
     _section.click();
     _showHeatmap();
   }
