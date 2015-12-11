@@ -19,16 +19,22 @@ final _logger = new Logger('ReportsListPage');
     cssUrl: 'packages/triton_note/page/reports_list.css',
     useShadowDom: true)
 class ReportsListPage extends MainFrame {
+  final pageSize = 20;
+
   PagingList<Report> reports;
 
   ReportsListPage(Router router) : super(router);
 
+  bool get noReports => reports != null && reports.list.isEmpty && !reports.hasMore;
+
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    Reports.paging.then((paging) {
-      reports = paging;
+    Reports.paging.then((paging) async {
       hideSplashScreen();
+
+      await paging.more(pageSize);
+      reports = paging;
     });
   }
 

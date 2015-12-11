@@ -29,9 +29,9 @@
                 </div>
 		    </div>
 		    <div ng-if="reports != null">
-                <infinite-scroll pager="reports" page-size="20">
+                <infinite-scroll pager="reports" page-size="pageSize">
                     <div id="content">
-                        <div class="no-reports" ng-if="reports.list.isEmpty && !reports.hasMore">
+                        <div class="no-reports" ng-if="noReports">
                             <paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
                         </div>
         		        <div class="report-row" ng-repeat="report in reports.list">
