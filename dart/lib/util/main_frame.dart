@@ -47,12 +47,12 @@ closeDialog(PaperDialog dialog) async {
         }
       });
 
-      document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
-        _logger.finest(() => "Clearing overlay: ${e}");
-        e.remove();
-      });
       cleared.complete();
     }
+    document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
+      _logger.finest(() => "Clearing overlay: ${e}");
+      e.remove();
+    });
   });
 
   return cleared.future;
