@@ -260,6 +260,8 @@ class _ContentEncoder {
     if (value is List) return {'L': value.map((a) => encode(a))};
     if (value is String) return {'S': value};
     if (value is num) return {'N': value.toString()};
+    if (value is DateTime) return {'N': value.toUtc().millisecondsSinceEpoch.toString()};
+    throw "Unsupported dynamo value: ${value}";
   }
 
   static Map toDynamoMap(Map map) {
