@@ -29,7 +29,7 @@
                 </div>
 		    </div>
 		    <div ng-if="reports != null" class="list">
-                <div class="no-reports">
+                <div class="no-reports" ng-if="noReports">
                     <paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
                 </div>
                 

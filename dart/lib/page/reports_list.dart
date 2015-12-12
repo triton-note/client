@@ -24,6 +24,7 @@ class ReportsListPage extends MainFrame {
   final pageSize = 20;
 
   PagingList<Report> reports;
+  bool noReports = false;
 
   ReportsListPage(Router router) : super(router);
 
@@ -35,9 +36,10 @@ class ReportsListPage extends MainFrame {
 
       await paging.more(pageSize);
       reports = paging;
+      noReports = reports.list.isEmpty && !reports.hasMore;
 
       new Future.delayed(new Duration(seconds: 1), () {
-        if (reports.list.isEmpty && !reports.hasMore) {
+        if (noReports) {
           final target = sr.querySelector('.list .no-reports');
           final dy = (window.innerHeight / 4).round();
 
