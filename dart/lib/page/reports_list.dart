@@ -36,7 +36,7 @@ class ReportsListPage extends MainFrame {
       await paging.more(pageSize);
       reports = paging;
 
-      new Future.delayed(ripplingDuration, () {
+      new Future.delayed(new Duration(seconds: 1), () {
         if (reports.list.isEmpty && !reports.hasMore) {
           final target = sr.querySelector('.list .no-reports');
           final dy = (window.innerHeight / 4).round();
@@ -44,7 +44,8 @@ class ReportsListPage extends MainFrame {
           _logger.finest(() => "Show add_first_report button: ${target}: +${dy}");
           new CoreAnimation()
             ..target = target
-            ..duration = 300
+            ..duration = 180
+            ..easing = 'ease-in'
             ..fill = "both"
             ..keyframes = [
               {'transform': "none", 'opacity': '0'},
