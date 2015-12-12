@@ -331,8 +331,16 @@ class _Location {
         ..options.draggable = false
         ..putMarker(_location.geoinfo);
       _root.querySelector('#location expandable-gmap')
-        ..on['expanding'].listen((event) => _gmap.showMyLocationButton = _gmap.options.draggable = true)
-        ..on['shrinking'].listen((event) => _gmap.showMyLocationButton = _gmap.options.draggable = false);
+        ..on['expanding'].listen((event) {
+          _gmap.showMyLocationButton = true;
+          _gmap.options.draggable = true;
+          _gmap.options.disableDoubleClickZoom = false;
+        })
+        ..on['shrinking'].listen((event) {
+          _gmap.showMyLocationButton = false;
+          _gmap.options.draggable = false;
+          _gmap.options.disableDoubleClickZoom = true;
+        });
     });
 
     _blinkInput = new CachedValue(() => _root.querySelectorAll('#location .editor input').toList(growable: false));

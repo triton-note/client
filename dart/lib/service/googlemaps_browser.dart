@@ -169,6 +169,9 @@ class MapOptions {
 
   bool get draggable => get('draggable');
   set draggable(bool v) => put('draggable', v);
+
+  bool get disableDoubleClickZoom => get('disableDoubleClickZoom');
+  set disableDoubleClickZoom(bool v) => put('disableDoubleClickZoom', v);
 }
 
 class Marker implements Wrapper {
