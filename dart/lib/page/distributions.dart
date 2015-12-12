@@ -360,10 +360,10 @@ class _DTimeLine extends _Section {
         counter[key] = (counter[key] ?? 0) + c.fish.count;
       });
       final sorted = store.keys.toList()..sort((a, b) => counter[a] - counter[b]);
-      sorted.sublist(3).forEach((key) {
+      if (sorted.length > 3) sorted.sublist(3).forEach((key) {
         store.remove(key);
       });
-      sorted.sublist(0, 2).forEach((key) {
+      sorted.take(3).forEach((key) {
         result[key] = store[key];
       });
     }
