@@ -7,7 +7,8 @@
       		<span flex>New Report</span>
       		
     		<div class="submit">
-    			<paper-fab mini icon="done" class="green" ng-click="submit()"></paper-fab>
+    			<paper-fab mini icon="done" class="green" ng-click="submit()" ng-if="!isSubmitting"></paper-fab>
+                <paper-spinner active ng-if="isSubmitting"></paper-spinner>
 			</div>
     	
     	</core-toolbar>

@@ -190,6 +190,8 @@ class AddReportPage extends MainFrame {
   //********************************
   // Submit
 
+  bool isSubmitting = false;
+
   void _submitable() {
     final div = root.querySelector('core-toolbar div.submit');
     _logger.fine("Appearing submit button: ${div}");
@@ -210,7 +212,8 @@ class AddReportPage extends MainFrame {
   submit() => rippling(() async {
         _logger.finest("Submitting report: ${report}");
         if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
-        Reports.add(report);
+        isSubmitting = true;
+        await Reports.add(report);
         back();
       });
 }
