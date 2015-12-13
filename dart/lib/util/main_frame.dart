@@ -37,16 +37,7 @@ closeDialog(PaperDialog dialog) async {
   new Timer.periodic(ripplingDuration, (_) {
     if (!cleared.isCompleted) {
       _logger.warning(() => "Time over: clear overlay manually...");
-
-      final id = "paper-dialog#${dialog.id}";
-      document.body.querySelectorAll('core-overlay-layer overlay-host').forEach((overlay) {
-        final style = overlay.shadowRoot.querySelector(id)?.style;
-        if (style != null) {
-          _logger.finest(() => "${id}.style.display: ${style.display} -> none");
-          style.display = 'none';
-        }
-      });
-
+      dialog.style.display = 'none';
       cleared.complete();
     }
     document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
