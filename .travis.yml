@@ -15,6 +15,7 @@ env:
     - PLATFORM=ios
 
 before_install:
+  - brew update || brew update
   - rvm use 2.2.3 --install --disable-binary
   - sudo easy_install pip && sudo pip install awscli
   - aws s3 cp s3://${AWS_S3_BUCKET}/${PROJECT_REPO_SLUG}/persistent.tar.bz2 - | tar jxf -
@@ -24,7 +25,6 @@ before_install:
 install:
   - gem install bundler --no-document
   - bundle install
-  - brew update || brew update
 
 script:
   - fastlane enable_crash_reporting
