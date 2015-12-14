@@ -34,7 +34,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
   DistributionsPage(Router router) : super(router);
 
   final Getter<DistributionsFilter> filter = new PipeValue();
-  final Getter<DistributionsFilterDialog> filterDialog = new PipeValue();
+  final FuturedValue<DistributionsFilterDialog> filterDialog = new FuturedValue();
 
   Getter<Element> scroller;
   Getter<Element> scrollBase;
@@ -70,7 +70,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
     scrollBase = _pages;
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
     _tabs = new CachedValue(() => root.querySelector('core-toolbar paper-tabs'));
-    filterDialog.value.onClossing(_refresh);
+    filterDialog.future.then((dialog) => dialog.onClossing(_refresh));
 
     sections = [dmap = new _DMap(this), dtime = new _DTimeLine(this)];
 
@@ -113,7 +113,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
     dtime.detach();
   }
 
-  openFilter() => filterDialog.value.open();
+  openFilter() async => (await filterDialog.future).open();
 
   _refresh() async {
     _logger.finer("Refreshing list around: ${dmap._bounds}, ${catchesPager}");
