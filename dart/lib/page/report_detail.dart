@@ -131,7 +131,7 @@ class _MoreMenu {
     _root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
   }
 
-  dialog(String message, void whenOk()) {
+  confirm(String message, whenOk()) {
     confirmDialog.value
       ..message = message
       ..onClossing(() {
@@ -145,7 +145,7 @@ class _MoreMenu {
     ..text = msg
     ..show();
 
-  publish() => dialog("Publish to Facebook ?", () async {
+  publish() => confirm("Publish to Facebook ?", () async {
         try {
           final published = await FBPublish.publish(_report);
           _onChanged(published);
@@ -156,7 +156,7 @@ class _MoreMenu {
         }
       });
 
-  delete() => dialog("Delete this report ?", () async {
+  delete() => confirm("Delete this report ?", () async {
         await Reports.remove(_report.id);
         _back();
       });
