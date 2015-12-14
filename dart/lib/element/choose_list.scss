@@ -1,35 +1,7 @@
 @import "../../web/styles/common";
 
-#base {
-  position: relative;
-}
-
 #value {
-  position: relative;
   @include display-flex();
   @include align-items(center);
 }
 
-paper-dropdown {
-  top: 38px;
-  left: 0;
-  right: 0;
-  
-  .list {
-    @include display-flex();
-    @include flex-direction(column);
-    @include justify-content(space-around);
-    .item {
-      position: relative;
-      
-      p {
-        $font_size: 14px;
-        
-        margin-top: ($font_size / 3);
-        margin-bottom: ($font_size / 3);
-        margin-left: $font_size;
-        @include font-light($font_size);
-      }
-    }
-  }
-}

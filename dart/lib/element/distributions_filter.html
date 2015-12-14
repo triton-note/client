@@ -156,9 +156,9 @@
                 </div>
                 <div ng-if="term.isActiveSeason">
                     <span>(</span>
-                    <span>{{ term.nameOfMonths[term.seasonBegin - 1] }}</span>
+                    <span>{{ term.seasonBeginMonth }}</span>
                     <span> 〜 </span>
-                    <span>{{ term.nameOfMonths[term.seasonEnd - 1] }}</span>
+                    <span>{{ term.seasonEndMonth }}</span>
                     <span>)</span>
                 </div>
             </div>
@@ -205,21 +205,9 @@
                     <p>in Month</p>
                 </core-label>
                 <div>
-                    <paper-dropdown-menu label="...">
-                        <paper-dropdown layered class="dropdown">
-                            <core-menu class="menu">
-                                <paper-item ng-repeat="key in term.nameOfMonths" ng-click="term.seasonBegin = $index + 1">{{ key }}</paper-item>
-                            </core-menu>
-                        </paper-dropdown>
-                    </paper-dropdown-menu>
+                    <choose-list value="term.seasonBeginMonth" list="term.nameOfMonths"></choose-list>
                     <p>TO</p>
-                    <paper-dropdown-menu label="...">
-                        <paper-dropdown layered class="dropdown">
-                            <core-menu class="menu">
-                                <paper-item ng-repeat="key in term.nameOfMonths" ng-click="term.seasonEnd = $index + 1">{{ key }}</paper-item>
-                            </core-menu>
-                        </paper-dropdown>
-                    </paper-dropdown-menu>
+                    <choose-list value="term.seasonEndMonth" list="term.nameOfMonths"></choose-list>
                 </div>
             </div>
         </div>
