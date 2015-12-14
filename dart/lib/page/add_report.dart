@@ -223,7 +223,6 @@ class AddReportPage extends MainFrame {
             closeDialog(dialog);
           });
           dialog.open();
-        } finally {
           isSubmitting = false;
         }
       });
