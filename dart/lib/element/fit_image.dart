@@ -75,7 +75,7 @@ class FitImageElement {
       ..width = fit.width.floor()
       ..height = fit.height.floor();
     new CoreAnimation()
-      ..duration = 2000
+      ..duration = 600
       ..keyframes = [
         {'opacity': 0},
         {'opacity': 1}
