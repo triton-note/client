@@ -25,6 +25,7 @@ install:
   - gem install bundler --no-document
   - bundle install
   - brew update || brew update
+  - dart --version || (brew tap dart-lang/dart && brew install dart)
 
 script:
   - fastlane enable_crash_reporting

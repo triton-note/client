@@ -102,13 +102,6 @@ module Fastlane
         if File.directory? File.join('build', 'web') then
           puts "Skipping dart build"
         else
-          system('type brew')
-          system('brew --version')
-          if !system("dart --version") then
-            puts "Installing dart..."
-            system('brew tap dart-lang/dart')
-            system('brew install dart')
-          end
           puts "Dart Building..."
           system("pub get")
           system("pub build")
