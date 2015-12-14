@@ -15,7 +15,9 @@ final _logger = new Logger('CalendarElement');
     templateUrl: 'packages/triton_note/element/calendar.html',
     cssUrl: 'packages/triton_note/element/calendar.css',
     useShadowDom: true)
-class CalendarElement extends ShadowRootAware with AttachAware {
+class CalendarElement extends ShadowRootAware {
+  static const REFRESH = 'REFRESH';
+
   static const maxPages = 10;
   static const weekNames = const ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sut'];
   static const day1 = const Duration(days: 1);
@@ -24,10 +26,10 @@ class CalendarElement extends ShadowRootAware with AttachAware {
   @NgTwoWay('value') DateTime value;
   @NgAttr('start-of-week') String startOfWeekAttr;
 
-  @override
-  void attach() {
+  _refresh() {
     startOfWeek = startOfWeekAttr == null ? 0 : int.parse(startOfWeekAttr);
     value = new DateTime(value.year, value.month, value.day);
+    _logger.finest(() => "Setting current value: ${value}");
     pageA_currentFirst = new DateTime(value.year, value.month);
 
     weekNamesList = [];
@@ -39,6 +41,10 @@ class CalendarElement extends ShadowRootAware with AttachAware {
   @override
   void onShadowRoot(ShadowRoot shadowRoot) {
     _pages = shadowRoot.querySelector('core-animated-pages') as CoreAnimatedPages..selected = 0;
+    _logger.finest(() => "Opening Calendar");
+    shadowRoot.host.on[REFRESH].listen((event) {
+      _pageA_currentFirst = null;
+    });
   }
 
   int startOfWeek;
@@ -48,7 +54,13 @@ class CalendarElement extends ShadowRootAware with AttachAware {
   List<List<DateTime>> pageA_weeks, pageB_weeks;
   DateTime today;
 
-  DateTime get pageA_currentFirst => _pageA_currentFirst;
+  DateTime get pageA_currentFirst {
+    if (_pageA_currentFirst == null) {
+      _refresh();
+    }
+    return _pageA_currentFirst;
+  }
+
   set pageA_currentFirst(DateTime v) {
     pageA_weeks = weeks(v);
     _pageA_currentFirst = v;
