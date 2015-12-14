@@ -69,6 +69,9 @@ abstract class MainDialog {
   open() {
     if (_onOpenning != null) _onOpenning();
     realDialog.open();
+    document.addEventListener('backbutton', (event) {
+      close();
+    }, false);
   }
 
   close() async {

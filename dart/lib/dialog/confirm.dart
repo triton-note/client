@@ -22,7 +22,7 @@ class ConfirmDialog extends MainDialog implements ShadowRootAware {
   PaperDialog get realDialog => _dialog.value;
 
   String message;
-  bool result;
+  bool result = false;
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
