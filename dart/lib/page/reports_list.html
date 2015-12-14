@@ -35,7 +35,7 @@
                 
                 <infinite-scroll pager="reports" page-size="pageSize">
                     <div id="content">
-        		        <div class="report-row" ng-repeat="report in reports.list">
+        		        <div class="report-row" ng-repeat="report in reports.list" ng-click="goReport(report.id)">
         		        	<div class="head">
                                 <div class="image">
                                     <div class="loading" ng-if="report.photo.reduced.thumbnail.url == null">
@@ -59,8 +59,6 @@
         	                <div class="comment">
         	                	<p>{{report.comment}}</p>
         	                </div>
-        	                
-            				<paper-ripple fit ng-click="goReport(report.id)"></paper-ripple>
         		        </div>
                     </div>
                 </infinite-scroll>

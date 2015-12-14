@@ -45,7 +45,7 @@ abstract class MainFrame extends ShadowRootAware {
   }
 
   void back() {
-    rippling(window.history.back);
+    window.history.back();
   }
 
   void _goByMenu(String routeId) => rippling(() {
