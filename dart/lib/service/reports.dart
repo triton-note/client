@@ -152,7 +152,8 @@ class _PagerReports implements Pager<Report> {
   Future<List<Report>> more(int pageSize) async {
     try {
       await _ready.future;
-      final list = await _db.more(pageSize);
+      final cached = await Reports._cachedList;
+      final list = (await _db.more(pageSize)).where((r) => cached.every((c) => c.id != r.id));
       await Future.wait(list.map(Reports._loadFishes));
       _logger.finer(() => "Loaded reports: ${list}");
       return list;
