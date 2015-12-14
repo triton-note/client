@@ -34,6 +34,8 @@ class EditFishDialog extends ShadowRootAware {
     UserPreferences.current.then((c) => _measures = c.measures);
   }
 
+  bool get isCommitable => (tmpFish?.name?.isNotEmpty ?? false) && tmpFishCount > 0;
+
   // count
   int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
   set tmpFishCount(int v) => (tmpFish == null) ? null : tmpFish.count = (v == null || v == 0) ? 1 : v;
@@ -72,6 +74,8 @@ class EditFishDialog extends ShadowRootAware {
   }
 
   commit() {
+    if (!isCommitable) return;
+
     _logger.fine("Commit fish: ${tmpFish}");
     closeDialog(_dialog.value);
     final fish = tmpFish.clone();
