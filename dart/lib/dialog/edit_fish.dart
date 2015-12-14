@@ -20,12 +20,13 @@ final _logger = new Logger('EditFishDialog');
     templateUrl: 'packages/triton_note/dialog/edit_fish.html',
     cssUrl: 'packages/triton_note/dialog/edit_fish.css',
     useShadowDom: true)
-class EditFishDialog extends ShadowRootAware {
+class EditFishDialog extends MainDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<EditFishDialog> v) => v == null ? null : v.value = this;
 
   Measures _measures;
   ShadowRoot _root;
   CachedValue<PaperDialog> _dialog;
+  PaperDialog get realDialog => _dialog.value;
 
   GetterSetter<Fishes> _original;
   Fishes tmpFish;
@@ -38,7 +39,7 @@ class EditFishDialog extends ShadowRootAware {
 
   // count
   int get tmpFishCount => (tmpFish == null) ? null : tmpFish.count;
-  set tmpFishCount(int v) => (tmpFish == null) ? null : tmpFish.count = (v == null || v == 0) ? 1 : v;
+  set tmpFishCount(int v) => (tmpFish == null) ? null : tmpFish.count = (v == null) ? null : v;
 
   // lenth
   int get tmpFishLength => (tmpFish == null) ? null : tmpFish.length.value.round();
@@ -56,12 +57,12 @@ class EditFishDialog extends ShadowRootAware {
     _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
   }
 
-  open(GetterSetter<Fishes> value) {
+  openWith(GetterSetter<Fishes> value) {
     UserPreferences.current.then((_) {
       _original = value;
       final fish = _original.value.clone();
 
-      if (fish.count == null || fish.count == 0) fish.count = 1;
+      if (fish.count == null || fish.count < 1) fish.count = 1;
       fish.length =
           (fish.length == null) ? new Length.of(_measures.length, 0) : fish.length.convertTo(_measures.length);
       fish.weight =
@@ -69,7 +70,7 @@ class EditFishDialog extends ShadowRootAware {
       _logger.fine("Editing fish: ${fish}");
 
       tmpFish = fish;
-      _dialog.value.toggle();
+      open();
     });
   }
 
@@ -77,7 +78,7 @@ class EditFishDialog extends ShadowRootAware {
     if (!isCommitable) return;
 
     _logger.fine("Commit fish: ${tmpFish}");
-    closeDialog(_dialog.value);
+    close();
     final fish = tmpFish.clone();
 
     if (fish.length != null && fish.length.value == 0) fish.length = null;
@@ -89,11 +90,11 @@ class EditFishDialog extends ShadowRootAware {
 
   delete() {
     _logger.fine("Deleting fish");
-    closeDialog(_dialog.value);
+    close();
     _original.value = null;
   }
 
   cancel() {
-    closeDialog(_dialog.value);
+    close();
   }
 }

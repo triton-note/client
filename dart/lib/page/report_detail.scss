@@ -45,15 +45,6 @@ div#more-menu {
       }
     }
   }
-  
-  paper-dialog {
-    @include border-radius(3px);
-    font-size: 16px;
-    
-    .buttons {
-      margin-top: 16px;
-    }
-  }
 }
 
 #photo {

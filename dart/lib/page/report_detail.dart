@@ -8,10 +8,10 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
-import 'package:paper_elements/paper_dialog.dart';
 import 'package:paper_elements/paper_autogrow_textarea.dart';
 import 'package:paper_elements/paper_toast.dart';
 
+import 'package:triton_note/dialog/confirm.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
@@ -119,7 +119,13 @@ class _MoreMenu {
   final OnChanged _onChanged;
   final _back;
 
-  _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
+  final ConfirmDialog confirmDialog;
+  final PipeValue<bool> dialogResult = new PipeValue();
+
+  _MoreMenu(ShadowRoot sr, this._report, this._onChanged, void back())
+      : this._root = sr,
+        this._back = back,
+        this.confirmDialog = sr.querySelector('#more-menu confirm-dialog') as ConfirmDialog;
 
   bool get publishable => _report?.published?.facebook == null;
 
@@ -127,23 +133,12 @@ class _MoreMenu {
     _root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
   }
 
-  String dialogMessage;
-  Completer<bool> _dialogResult;
-
-  dialogOk() => _dialogResult.complete(true);
-  dialogCancel() => _dialogResult.complete(false);
-
   dialog(String message, void whenOk()) {
-    dialogMessage = message;
-    toggle();
-
-    _dialogResult = new Completer();
-    final dialog = _root.querySelector('#more-menu paper-dialog') as PaperDialog;
-    dialog.open();
-    _dialogResult.future.then((ok) async {
-      closeDialog(dialog);
-      if (ok) whenOk();
+    confirmDialog.message = message;
+    confirmDialog.onClossing(() {
+      if (confirmDialog.result) whenOk();
     });
+    confirmDialog.open();
   }
 
   toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
@@ -264,7 +259,7 @@ class _Catches {
   add() => alfterRippling(() {
         _logger.fine("Add new fish");
         final fish = new Fishes.fromMap({'count': 1});
-        dialog.value.open(new GetterSetter(() => fish, (v) {
+        dialog.value.openWith(new GetterSetter(() => fish, (v) {
           list.value.add(v);
           _onChanged(list.value);
         }));
@@ -272,7 +267,7 @@ class _Catches {
 
   edit(index) => alfterRippling(() {
         _logger.fine("Edit at $index");
-        dialog.value.open(new GetterSetter(() => list.value[index], (v) {
+        dialog.value.openWith(new GetterSetter(() => list.value[index], (v) {
           if (v == null) {
             list.value.removeAt(index);
           } else {

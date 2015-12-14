@@ -8,9 +8,9 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
-import 'package:paper_elements/paper_dialog.dart';
 import 'package:paper_elements/paper_tabs.dart';
 
+import 'package:triton_note/dialog/distributions_filter.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
@@ -41,7 +41,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   Getter<CoreAnimatedPages> _pages;
   Getter<PaperTabs> _tabs;
-  Getter<PaperDialog> _filterDialog;
+  Getter<DistributionsFilterDialog> _filterDialog;
 
   int _selectedTab;
   int get _selectedIndex => _selectedTab;
@@ -70,7 +70,8 @@ class DistributionsPage extends MainFrame implements DetachAware {
     scrollBase = _pages;
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
     _tabs = new CachedValue(() => root.querySelector('core-toolbar paper-tabs'));
-    _filterDialog = new CachedValue(() => root.querySelector('paper-dialog#distributions-filter'));
+    _filterDialog = new CachedValue(() => root.querySelector('distributions-filter-dialog'));
+    _filterDialog.value.onClossing(_refresh);
 
     sections = [dmap = new _DMap(this), dtime = new _DTimeLine(this)];
 
@@ -113,22 +114,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
     dtime.detach();
   }
 
-  void openFilter(event) {
-    final button = event.target as Element;
-    _logger.finest("Open filter dialog");
-    _filterDialog.value
-      ..shadowRoot.querySelector('#scroller').style.padding = "0"
-      ..style.margin = "0"
-      ..style.top = "${button.getBoundingClientRect().bottom}px"
-      ..style.left = "0"
-      ..style.right = "0"
-      ..open();
-  }
-
-  void closeFilter() {
-    closeDialog(_filterDialog.value);
-    _refresh();
-  }
+  void openFilter() => _filterDialog.value.open();
 
   _refresh() async {
     _logger.finer("Refreshing list around: ${dmap._bounds}, ${catchesPager}");

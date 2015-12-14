@@ -16,7 +16,7 @@ final _logger = new Logger('EditTimestampDialog');
     templateUrl: 'packages/triton_note/dialog/edit_timestamp.html',
     cssUrl: 'packages/triton_note/dialog/edit_timestamp.css',
     useShadowDom: true)
-class EditTimestampDialog extends ShadowRootAware {
+class EditTimestampDialog extends MainDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<EditTimestampDialog> v) => v == null ? null : v.value = this;
   @NgTwoWay('value') DateTime value;
   @NgAttr('without-oclock') String withoutOclock;
@@ -26,25 +26,26 @@ class EditTimestampDialog extends ShadowRootAware {
   int tmpOclock = 0;
   DateTime tmpDate = new DateTime.now();
   CachedValue<PaperDialog> _dialog;
+  PaperDialog get realDialog => _dialog.value;
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     _dialog = new CachedValue(() => _root.querySelector('paper-dialog#timestamp-dialog'));
   }
 
-  toggle() {
+  open() {
     value = value.toLocal();
     tmpOclock = value.hour;
     tmpDate = new DateTime(value.year, value.month, value.day);
-    _dialog.value.toggle();
+    super.open();
   }
 
   commit() {
-    closeDialog(_dialog.value);
+    close();
     value = new DateTime(tmpDate.year, tmpDate.month, tmpDate.day, tmpOclock);
   }
 
   cancel() {
-    closeDialog(_dialog.value);
+    close();
   }
 }

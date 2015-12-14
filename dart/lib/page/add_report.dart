@@ -9,6 +9,7 @@ import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
 import 'package:paper_elements/paper_dialog.dart';
 
+import 'package:triton_note/dialog/alert.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
@@ -33,7 +34,7 @@ final _logger = new Logger('AddReportPage');
     templateUrl: 'packages/triton_note/page/add_report.html',
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
-class AddReportPage extends MainFrame {
+class AddReportPage extends MainFrame implements DetachAware {
   Report report;
 
   final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
@@ -64,6 +65,8 @@ class AddReportPage extends MainFrame {
         }));
     conditions = new _Conditions(root, new Getter(() => report.condition));
   }
+
+  void detach() {}
 
   /**
    * Choosing photo and get conditions and inference.
@@ -178,7 +181,7 @@ class AddReportPage extends MainFrame {
 
   editFish(int index) {
     if (0 <= index && index < report.fishes.length) {
-      fishDialog.value.open(new GetterSetter(() => report.fishes[index], (v) {
+      fishDialog.value.openWith(new GetterSetter(() => report.fishes[index], (v) {
         if (v == null) {
           report.fishes..removeAt(index);
         } else {
@@ -218,11 +221,9 @@ class AddReportPage extends MainFrame {
           back();
         } catch (ex) {
           _logger.warning(() => "Failed to submit: ${ex}");
-          final dialog = divSubmit.querySelector('paper-dialog') as PaperDialog;
-          dialog.querySelector('paper-button').onClick.listen((event) {
-            closeDialog(dialog);
-          });
-          dialog.open();
+          divSubmit.querySelector('alert-dialog') as AlertDialog
+            ..message = "Failed to add your report. Please try again later."
+            ..open();
           isSubmitting = false;
         }
       });

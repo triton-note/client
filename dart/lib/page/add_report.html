@@ -12,12 +12,7 @@
                     <paper-spinner active ng-if="isSubmitting"></paper-spinner>
                 </div>
                 
-                <paper-dialog backdrop autoCloseDisabled layered="false" transition="core-transition-center">
-                    <p>Failed to add your report.<br/>Please try again later.</p>
-                    <div class="buttons">
-                        <paper-button>OK</paper-button>
-                    </div>
-                </paper-dialog>
+                <alert-dialog></alert-dialog>
 			</div>
     	
     	</core-toolbar>

@@ -41,7 +41,7 @@ class FitImageElement {
     final fit = real.putInto(base);
     _logger.fine("Real:${real} -> Base:${base} => Fit:${fit}");
     if (real.width == 0 && real.height == 0) {
-      _logger.waring(() => "No size: ${real}");
+      _logger.warning(() => "No size: ${real}");
       return;
     }
 

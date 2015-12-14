@@ -26,29 +26,6 @@ void listenOn(Element target, String eventType, void proc(Element target)) {
   });
 }
 
-closeDialog(PaperDialog dialog) async {
-  final cleared = new Completer();
-
-  dialog.on['core-overlay-close-completed'].listen((event) {
-    if (!cleared.isCompleted) cleared.complete();
-  });
-  dialog.close();
-
-  new Timer.periodic(ripplingDuration, (_) {
-    if (!cleared.isCompleted) {
-      _logger.warning(() => "Time over: clear overlay manually...");
-      dialog.style.display = 'none';
-      cleared.complete();
-    }
-    document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
-      _logger.finest(() => "Clearing overlay: ${e}");
-      e.remove();
-    });
-  });
-
-  return cleared.future;
-}
-
 class MainFrame extends ShadowRootAware {
   final Router router;
   ShadowRoot _root;
@@ -80,4 +57,42 @@ class MainFrame extends ShadowRootAware {
   void goPreferences() => _goByMenu('preferences');
   void goDistributions() => _goByMenu('distributions');
   void goExperiment() => _goByMenu('experiment');
+}
+
+abstract class MainDialog {
+  PaperDialog get realDialog;
+  var _onOpenning, _onClossing;
+
+  onOpening(proc()) => _onOpenning = proc;
+  onClossing(proc()) => _onClossing = proc;
+
+  open() {
+    if (_onOpenning != null) _onOpenning();
+    realDialog.open();
+  }
+
+  close() async {
+    final cleared = new Completer();
+
+    if (_onClossing != null) _onClossing();
+
+    realDialog.on['core-overlay-close-completed'].listen((event) {
+      if (!cleared.isCompleted) cleared.complete();
+    });
+    realDialog.close();
+
+    new Timer.periodic(ripplingDuration, (_) {
+      if (!cleared.isCompleted) {
+        _logger.warning(() => "Time over: clear overlay manually...");
+        realDialog.style.display = 'none';
+        cleared.complete();
+      }
+      document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
+        _logger.finest(() => "Clearing overlay: ${e}");
+        e.remove();
+      });
+    });
+
+    return cleared.future;
+  }
 }

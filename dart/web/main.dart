@@ -6,6 +6,9 @@ import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
 import 'package:triton_note/formatter/temperature_formatter.dart';
 import 'package:triton_note/formatter/tide_formatter.dart';
+import 'package:triton_note/dialog/alert.dart';
+import 'package:triton_note/dialog/confirm.dart';
+import 'package:triton_note/dialog/distributions_filter.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
@@ -49,6 +52,9 @@ class AppModule extends Module {
     bind(TemperatureFormatter);
     bind(TideFormatter);
 
+    bind(AlertDialog);
+    bind(ConfirmDialog);
+    bind(DistributionsFilterDialog);
     bind(EditFishDialog);
     bind(EditTimestampDialog);
     bind(EditTideDialog);
