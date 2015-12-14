@@ -54,7 +54,7 @@ typedef void OnChanged(newValue);
     templateUrl: 'packages/triton_note/page/report_detail.html',
     cssUrl: 'packages/triton_note/page/report_detail.css',
     useShadowDom: true)
-class ReportDetailPage extends MainFrame implements DetachAware {
+class ReportDetailPage extends SubFrame {
   Future<Report> _report;
   Report report;
   _Comment comment;
@@ -87,6 +87,7 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   }
 
   void detach() {
+    super.detach();
     if (_submitTimer != null && _submitTimer.isActive) {
       _submitTimer.cancel();
       _update();

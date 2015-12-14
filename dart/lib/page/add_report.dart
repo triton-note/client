@@ -33,7 +33,7 @@ final _logger = new Logger('AddReportPage');
     templateUrl: 'packages/triton_note/page/add_report.html',
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
-class AddReportPage extends MainFrame implements DetachAware {
+class AddReportPage extends SubFrame {
   Report report;
 
   final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
@@ -65,8 +65,6 @@ class AddReportPage extends MainFrame implements DetachAware {
         }));
     conditions = new _Conditions(root, new Getter(() => report.condition));
   }
-
-  void detach() {}
 
   /**
    * Choosing photo and get conditions and inference.

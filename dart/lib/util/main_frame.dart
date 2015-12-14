@@ -26,7 +26,7 @@ void listenOn(Element target, String eventType, void proc(Element target)) {
   });
 }
 
-class MainFrame extends ShadowRootAware {
+abstract class MainFrame extends ShadowRootAware {
   final Router router;
   ShadowRoot _root;
   ShadowRoot get root => _root;
@@ -57,6 +57,20 @@ class MainFrame extends ShadowRootAware {
   void goPreferences() => _goByMenu('preferences');
   void goDistributions() => _goByMenu('distributions');
   void goExperiment() => _goByMenu('experiment');
+}
+
+abstract class SubFrame extends MainFrame implements AttachAware, DetachAware {
+  SubFrame(Router router) : super(router);
+
+  void attach() {
+    document.addEventListener('backbutton', (event) {
+      back();
+    }, false);
+  }
+
+  void detach() {
+    document.addEventListener('backbutton', (event) {}, false);
+  }
 }
 
 abstract class MainDialog {
