@@ -17,6 +17,8 @@ final _logger = new Logger('AlertDialog');
     cssUrl: 'packages/triton_note/dialog/alert.css',
     useShadowDom: true)
 class AlertDialog extends MainDialog implements ShadowRootAware {
+  @NgOneWayOneTime('setter') set setter(Setter<AlertDialog> v) => v == null ? null : v.value = this;
+
   ShadowRoot _root;
   CachedValue<PaperDialog> _dialog;
   PaperDialog get realDialog => _dialog.value;

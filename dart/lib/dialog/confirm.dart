@@ -17,6 +17,8 @@ final _logger = new Logger('ConfirmDialog');
     cssUrl: 'packages/triton_note/dialog/confirm.css',
     useShadowDom: true)
 class ConfirmDialog extends MainDialog implements ShadowRootAware {
+  @NgOneWayOneTime('setter') set setter(Setter<ConfirmDialog> v) => v == null ? null : v.value = this;
+
   ShadowRoot _root;
   CachedValue<PaperDialog> _dialog;
   PaperDialog get realDialog => _dialog.value;

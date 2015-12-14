@@ -7,7 +7,6 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
-import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/dialog/alert.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
@@ -39,6 +38,7 @@ class AddReportPage extends MainFrame implements DetachAware {
 
   final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
   final PipeValue<EditFishDialog> fishDialog = new PipeValue();
+  final PipeValue<AlertDialog> alertDialog = new PipeValue();
 
   _GMap gmap;
   _Conditions conditions;
@@ -221,7 +221,7 @@ class AddReportPage extends MainFrame implements DetachAware {
           back();
         } catch (ex) {
           _logger.warning(() => "Failed to submit: ${ex}");
-          divSubmit.querySelector('alert-dialog') as AlertDialog
+          alertDialog.value
             ..message = "Failed to add your report. Please try again later."
             ..open();
           isSubmitting = false;

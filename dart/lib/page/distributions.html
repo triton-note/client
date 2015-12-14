@@ -18,7 +18,7 @@
             <span flex>Distributions</span>
             
             <paper-icon-button icon="filter-list" ng-click="openFilter()"></paper-icon-button>
-            <distributions-filter-dialog></distributions-filter-dialog>
+            <distributions-filter-dialog setter="filterDialog" filter="filter"></distributions-filter-dialog>
             
             <div class="tabs" ng-if="isReady">
                 <paper-tabs selected="0">

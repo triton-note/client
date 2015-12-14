@@ -119,13 +119,10 @@ class _MoreMenu {
   final OnChanged _onChanged;
   final _back;
 
-  final ConfirmDialog confirmDialog;
+  Getter<ConfirmDialog> confirmDialog = new PipeValue();
   final PipeValue<bool> dialogResult = new PipeValue();
 
-  _MoreMenu(ShadowRoot sr, this._report, this._onChanged, void back())
-      : this._root = sr,
-        this._back = back,
-        this.confirmDialog = sr.querySelector('#more-menu confirm-dialog') as ConfirmDialog;
+  _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
 
   bool get publishable => _report?.published?.facebook == null;
 
@@ -134,11 +131,12 @@ class _MoreMenu {
   }
 
   dialog(String message, void whenOk()) {
-    confirmDialog.message = message;
-    confirmDialog.onClossing(() {
-      if (confirmDialog.result) whenOk();
-    });
-    confirmDialog.open();
+    confirmDialog.value
+      ..message = message
+      ..onClossing(() {
+        if (confirmDialog.value.result) whenOk();
+      })
+      ..open();
   }
 
   toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
