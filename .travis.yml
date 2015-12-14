@@ -24,6 +24,7 @@ before_install:
 install:
   - gem install bundler --no-document
   - bundle install
+  - brew update || brew update
 
 script:
   - fastlane enable_crash_reporting
