@@ -26,7 +26,7 @@ install:
   - bundle install
   - brew update || brew update
   - dart --version || (brew tap dart-lang/dart && brew install dart)
-  - [ "$PLATFORM" == "android" ] && (brew install android && export ANDROID_HOME=$(brew --prefix android))
+  - test "$PLATFORM" == "android" && (brew install android && export ANDROID_HOME=$(brew --prefix android))
 
 script:
   - fastlane enable_crash_reporting
