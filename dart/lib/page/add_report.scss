@@ -1,7 +1,24 @@
 @import "../../web/styles/common";
 
-.submit {
-  display: none;
+#submit {
+  .action {
+    display: none;
+  }
+  
+  paper-dialog {
+    @include border-radius(3px);
+    font-size: 16px;
+    
+    .buttons {
+      @include display-flex();
+      @include justify-content(flex-end);
+      
+      paper-button {
+        color: blue;
+        margin-top: 16px;
+      } 
+    }
+  }
 }
 
 div#pre {

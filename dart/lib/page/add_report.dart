@@ -7,6 +7,7 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
+import 'package:paper_elements/paper_dialog.dart';
 
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
@@ -191,15 +192,14 @@ class AddReportPage extends MainFrame {
   // Submit
 
   bool isSubmitting = false;
+  DivElement get divSubmit => root.querySelector('core-toolbar div#submit');
 
   void _submitable() {
-    final div = root.querySelector('core-toolbar div.submit');
-    _logger.fine("Appearing submit button: ${div}");
-    div.style.display = "block";
+    _logger.fine("Appearing submit button");
     final x = document.body.clientWidth;
     final y = (x / 5).round();
     new CoreAnimation()
-      ..target = div
+      ..target = (divSubmit.querySelector('.action')..style.display = 'block')
       ..duration = 300
       ..fill = "both"
       ..keyframes = [
@@ -213,8 +213,19 @@ class AddReportPage extends MainFrame {
         _logger.finest("Submitting report: ${report}");
         if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
         isSubmitting = true;
-        await Reports.add(report);
-        back();
+        try {
+          await Reports.add(report);
+          back();
+        } catch (ex) {
+          _logger.warning(() => "Failed to submit: ${ex}");
+          final dialog = divSubmit.querySelector('paper-dialog') as PaperDialog;
+          dialog.querySelector('paper-button').onClick.listen((event) {
+            closeDialog(dialog);
+          });
+          dialog.open();
+        } finally {
+          isSubmitting = false;
+        }
       });
 }
 

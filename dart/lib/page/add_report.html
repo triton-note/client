@@ -6,9 +6,18 @@
     	
       		<span flex>New Report</span>
       		
-    		<div class="submit">
-    			<paper-fab mini icon="done" class="green" ng-click="submit()" ng-if="!isSubmitting"></paper-fab>
-                <paper-spinner active ng-if="isSubmitting"></paper-spinner>
+    		<div id="submit">
+                <div class="action">
+        			<paper-fab mini icon="done" class="green" ng-click="submit()" ng-if="!isSubmitting"></paper-fab>
+                    <paper-spinner active ng-if="isSubmitting"></paper-spinner>
+                </div>
+                
+                <paper-dialog backdrop autoCloseDisabled layered="false" transition="core-transition-center">
+                    <p>Failed to add your report.<br/>Please try again later.</p>
+                    <div class="buttons">
+                        <paper-button>OK</paper-button>
+                    </div>
+                </paper-dialog>
 			</div>
     	
     	</core-toolbar>
