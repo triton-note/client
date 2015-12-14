@@ -28,13 +28,11 @@ class CalendarElement extends ShadowRootAware {
 
   _refresh() {
     startOfWeek = startOfWeekAttr == null ? 0 : int.parse(startOfWeekAttr);
-    value = new DateTime(value.year, value.month, value.day);
-    _logger.finest(() => "Setting current value: ${value}");
-    pageA_currentFirst = new DateTime(value.year, value.month);
-
-    weekNamesList = [];
-    for (var i = 0; i < 7; i++) {
-      weekNamesList.add(weekNames[(startOfWeek + i) % 7]);
+    weekNamesList = new List.generate(7, (i) => weekNames[(startOfWeek + i) % 7]).toList();
+    if (value != null) {
+      value = new DateTime(value.year, value.month, value.day);
+      _logger.finest(() => "Setting current value: ${value}");
+      pageA_currentFirst = new DateTime(value.year, value.month);
     }
   }
 
