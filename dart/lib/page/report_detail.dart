@@ -63,7 +63,7 @@ class ReportDetailPage extends SubFrame {
   _Location location;
   _Conditions conditions;
   _MoreMenu moreMenu;
-  GetterSetter<EditTimestampDialog> editTimestamp = new PipeValue();
+  Getter<EditTimestampDialog> editTimestamp = new PipeValue();
   Timer _submitTimer;
 
   ReportDetailPage(Router router, RouteProvider routeProvider) : super(router) {

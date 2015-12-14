@@ -36,9 +36,9 @@ final _logger = new Logger('AddReportPage');
 class AddReportPage extends SubFrame {
   Report report;
 
-  final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
-  final PipeValue<EditFishDialog> fishDialog = new PipeValue();
-  final PipeValue<AlertDialog> alertDialog = new PipeValue();
+  final Getter<EditTimestampDialog> dateOclock = new PipeValue();
+  final Getter<EditFishDialog> fishDialog = new PipeValue();
+  final Getter<AlertDialog> alertDialog = new PipeValue();
 
   _GMap gmap;
   _Conditions conditions;
