@@ -7,6 +7,7 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
+import 'package:core_elements/core_dropdown.dart';
 
 import 'package:triton_note/dialog/alert.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
@@ -15,6 +16,7 @@ import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/service/facebook.dart';
 import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
@@ -192,6 +194,7 @@ class AddReportPage extends SubPage {
 
   bool isSubmitting = false;
   DivElement get divSubmit => root.querySelector('core-toolbar div#submit');
+  CoreDropdown get dropdownSubmit => divSubmit.querySelector('core-dropdown');
 
   void _submitable() {
     _logger.fine("Appearing submit button");
@@ -208,20 +211,31 @@ class AddReportPage extends SubPage {
       ..play();
   }
 
-  submit() => rippling(() async {
+  submit(bool publish) => rippling(() async {
         _logger.finest("Submitting report: ${report}");
+        dropdownSubmit.close();
         if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
         isSubmitting = true;
-        try {
-          await Reports.add(report);
-          back();
-        } catch (ex) {
-          _logger.warning(() => "Failed to submit: ${ex}");
-          alertDialog.value
-            ..message = "Failed to add your report. Please try again later."
-            ..open();
-          isSubmitting = false;
+
+        doit(String name, Future proc()) async {
+          try {
+            await proc();
+            return true;
+          } catch (ex) {
+            _logger.warning(() => "Failed to ${name}: ${ex}");
+            alertDialog.value
+              ..message = "Failed to ${name} your report. Please try again later."
+              ..open();
+            return false;
+          }
         }
+
+        final ok = await doit('add', () => Reports.add(report));
+        if (ok) {
+          if (publish) await doit('publish', () => FBPublish.publish(report));
+          back();
+        }
+        isSubmitting = false;
       });
 }
 
