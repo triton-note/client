@@ -8,6 +8,8 @@ import 'package:logging/logging.dart';
 import 'package:paper_elements/paper_dialog.dart';
 import 'package:core_elements/core_drawer_panel.dart';
 
+import 'package:triton_note/util/cordova.dart';
+
 final _logger = new Logger('MainFrame');
 
 const ripplingDuration = const Duration(milliseconds: 250);
@@ -70,9 +72,26 @@ abstract class MainPage extends _AbstractPage {
 
   MainPage(this.router);
 
+  bool _drawerOpened = false;
   CoreDrawerPanel get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
-  openMenu() => drawerPanel.openDrawer();
-  backButton() => openMenu();
+
+  openMenu() {
+    drawerPanel.openDrawer();
+    _drawerOpened = true;
+  }
+
+  closeMenu() {
+    drawerPanel.closeDrawer();
+    _drawerOpened = false;
+  }
+
+  backButton() {
+    if (_drawerOpened) {
+      closeMenu();
+    } else {
+      exit();
+    }
+  }
 
   void _goByMenu(String routeId) => rippling(() {
         _logger.info("Going to ${routeId}");
