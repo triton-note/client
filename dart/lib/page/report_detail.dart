@@ -134,14 +134,12 @@ class _MoreMenu extends _PartOfPage {
   _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
 
   bool get publishable => _report?.published?.facebook == null;
+  CoreDropdown get dropdown => _root.querySelector('#more-menu core-dropdown');
 
   void detach() {}
 
-  toggle() {
-    _root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
-  }
-
   confirm(String message, whenOk()) {
+    dropdown.close();
     confirmDialog.value
       ..message = message
       ..onClossing(() {
