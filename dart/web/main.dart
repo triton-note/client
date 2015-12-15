@@ -105,6 +105,7 @@ void main() {
           zone.run(() {
             Polymer.onReady.then((_) {
               applicationFactory().addModule(new AppModule()).run();
+              document.querySelector('#app-loading').style.display = 'none';
             });
           });
         });

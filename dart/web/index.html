@@ -44,17 +44,21 @@
 <link rel="stylesheet" href="styles/main.css">
 
 </head>
-<body unresolved>
+<body>
 
 	<div style="display: none">
 		<paper-input-decorator></paper-input-decorator>
 	</div>
+    
+    <div id="app-loading" unresolved>
+        <img src="img/icons/spinner.gif">
+    </div>
 	
 	<ng-view></ng-view>
     
     <div id="options">
-        <paper-dialog id="fileChooser" heading="Choose file" transition="core-transition-center" backdrop autoCloseDisabled>
-            <input type="file" id="fileInput"></input>
+        <paper-dialog id="fileChooser" heading="Choose file" transition="core-transition-center" backdrop autoclosedisabled>
+            <input type="file" id="fileInput">
         </paper-dialog>
     </div>
 
