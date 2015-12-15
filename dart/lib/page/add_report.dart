@@ -232,7 +232,10 @@ class AddReportPage extends SubPage {
 
         final ok = await doit('add', () => Reports.add(report));
         if (ok) {
-          if (publish) await doit('publish', () => FBPublish.publish(report));
+          if (publish) {
+            final published = await doit('publish', () => FBPublish.publish(report));
+            if (published) Reports.update(report);
+          }
           back();
         }
         isSubmitting = false;
