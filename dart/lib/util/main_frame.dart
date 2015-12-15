@@ -71,13 +71,13 @@ abstract class MainPage extends _AbstractPage {
   MainPage(this.router);
 
   CoreDrawerPanel get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
-  toggleMenu() => drawerPanel.togglePanel();
-  backButton() => drawerPanel.openDrawer();
+  openMenu() => drawerPanel.openDrawer();
+  backButton() => openMenu();
 
   void _goByMenu(String routeId) => rippling(() {
         _logger.info("Going to ${routeId}");
+        drawerPanel.closeDrawer();
         router.go(routeId, {});
-        toggleMenu();
       });
   void goReportsList() => _goByMenu('reports-list');
   void goPreferences() => _goByMenu('preferences');
