@@ -30,7 +30,7 @@ final _logger = new Logger('DistributionsPage');
     templateUrl: 'packages/triton_note/page/distributions.html',
     cssUrl: 'packages/triton_note/page/distributions.css',
     useShadowDom: true)
-class DistributionsPage extends MainPage implements DetachAware {
+class DistributionsPage extends MainPage {
   DistributionsPage(Router router) : super(router);
 
   final Getter<DistributionsFilter> filter = new PipeValue();
@@ -109,6 +109,7 @@ class DistributionsPage extends MainPage implements DetachAware {
   }
 
   void detach() {
+    super.detach();
     dmap.detach();
     dtime.detach();
   }
