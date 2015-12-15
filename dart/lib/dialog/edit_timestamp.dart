@@ -36,7 +36,6 @@ class EditTimestampDialog extends AbstractDialog implements ShadowRootAware {
     _calendar = new CachedValue(() => _root.querySelector('calendar'));
 
     onOpening(() {
-      value = value.toLocal();
       tmpOclock = value.hour;
       tmpDate = new DateTime(value.year, value.month, value.day);
       _calendar.value.dispatchEvent(new CustomEvent(CalendarElement.REFRESH));

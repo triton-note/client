@@ -22,10 +22,10 @@ class Reports {
   });
 
   static final DynamoDB_Table<Report> TABLE_REPORT = new DynamoDB_Table("REPORT", "REPORT_ID", (Map map) {
-    return new Report.fromData(
-        map[DynamoDB.CONTENT], map['REPORT_ID'], new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true));
+    return new Report.fromData(map[DynamoDB.CONTENT], map['REPORT_ID'],
+        new DateTime.fromMillisecondsSinceEpoch(map['DATE_AT'], isUtc: true).toLocal());
   }, (Report obj) {
-    return {DynamoDB.CONTENT: obj.toMap(), 'REPORT_ID': obj.id, 'DATE_AT': obj.dateAt.toUtc().millisecondsSinceEpoch};
+    return {DynamoDB.CONTENT: obj.toMap(), 'REPORT_ID': obj.id, 'DATE_AT': obj.dateAt};
   });
 
   static Future<PagingList<Report>> paging = cognitoId.then((id) => new PagingList(new _PagerReports(id)));

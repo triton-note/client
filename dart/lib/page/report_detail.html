@@ -38,7 +38,7 @@
 		    	</div>
 		    	
 		    	<div id="dateAt">
-		    		<p>{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
+		    		<p>{{ report.dateAt | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
 			    	<div class="edit-button">
 			    		<paper-icon-button icon="create" ng-click="editTimestamp.value.open()"></paper-icon-button>
 			    		<edit-timestamp-dialog value="timestamp" setter="editTimestamp"></edit-timestamp-dialog>
