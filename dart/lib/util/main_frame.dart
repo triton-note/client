@@ -113,7 +113,7 @@ abstract class AbstractDialog extends _Backable {
   PaperDialog get realDialog;
   var _onOpenning, _onClossing;
 
-  final Completer<Null> _closed = new Completer();
+  Completer<Null> _closed;
 
   backButton() => close();
 
@@ -121,6 +121,9 @@ abstract class AbstractDialog extends _Backable {
   onClossing(proc()) => _onClossing = proc;
 
   open() {
+    if (!(_closed?.isCompleted ?? true)) return;
+    _closed = new Completer();
+
     if (_onOpenning != null) _onOpenning();
     realDialog.open();
 
