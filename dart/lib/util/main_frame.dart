@@ -94,6 +94,8 @@ abstract class AbstractDialog extends _Backable {
   PaperDialog get realDialog;
   var _onOpenning, _onClossing;
 
+  final Completer<Null> _closed = new Completer();
+
   backButton() => close();
 
   onOpening(proc()) => _onOpenning = proc;
@@ -102,25 +104,27 @@ abstract class AbstractDialog extends _Backable {
   open() {
     if (_onOpenning != null) _onOpenning();
     realDialog.open();
+
+    realDialog.on['core-overlay-close-completed'].listen((event) {
+      if (!_closed.isCompleted) _closed.complete();
+    });
+
     _pushMe();
+    _closed.future.then((_) {
+      _popMe();
+    });
   }
 
   close() async {
-    final cleared = new Completer();
-
     if (_onClossing != null) _onClossing();
 
-    realDialog.on['core-overlay-close-completed'].listen((event) {
-      if (!cleared.isCompleted) cleared.complete();
-    });
     realDialog.close();
-    _popMe();
 
     new Timer.periodic(ripplingDuration, (_) {
-      if (!cleared.isCompleted) {
+      if (!_closed.isCompleted) {
         _logger.warning(() => "Time over: clear overlay manually...");
         realDialog.style.display = 'none';
-        cleared.complete();
+        _closed.complete();
       }
       document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
         _logger.finest(() => "Clearing overlay: ${e}");
@@ -128,6 +132,6 @@ abstract class AbstractDialog extends _Backable {
       });
     });
 
-    return cleared.future;
+    return _closed.future;
   }
 }
