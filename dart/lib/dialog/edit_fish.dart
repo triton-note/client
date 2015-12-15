@@ -20,7 +20,7 @@ final _logger = new Logger('EditFishDialog');
     templateUrl: 'packages/triton_note/dialog/edit_fish.html',
     cssUrl: 'packages/triton_note/dialog/edit_fish.css',
     useShadowDom: true)
-class EditFishDialog extends MainDialog implements ShadowRootAware {
+class EditFishDialog extends AbstractDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<EditFishDialog> v) => v == null ? null : v.value = this;
 
   Measures _measures;

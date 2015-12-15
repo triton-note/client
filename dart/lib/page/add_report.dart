@@ -33,7 +33,7 @@ final _logger = new Logger('AddReportPage');
     templateUrl: 'packages/triton_note/page/add_report.html',
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
-class AddReportPage extends SubFrame {
+class AddReportPage extends SubPage {
   Report report;
 
   final Getter<EditTimestampDialog> dateOclock = new PipeValue();
@@ -50,8 +50,6 @@ class AddReportPage extends SubFrame {
 
   bool isReady = false;
   bool get isLoading => report?.photo?.reduced?.mainview?.url == null;
-
-  AddReportPage(Router router) : super(router);
 
   @override
   void onShadowRoot(ShadowRoot sr) {

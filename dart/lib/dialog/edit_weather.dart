@@ -21,7 +21,7 @@ final _logger = new Logger('EditWeatherDialog');
     templateUrl: 'packages/triton_note/dialog/edit_weather.html',
     cssUrl: 'packages/triton_note/dialog/edit_weather.css',
     useShadowDom: true)
-class EditWeatherDialog extends MainDialog implements ShadowRootAware {
+class EditWeatherDialog extends AbstractDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<EditWeatherDialog> v) => v == null ? null : v.value = this;
   @NgOneWay('value') Weather value;
   @NgAttr('without-temperature') String withoutTemperature;

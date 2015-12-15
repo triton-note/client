@@ -6,6 +6,7 @@ import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:paper_elements/paper_dialog.dart';
+import 'package:core_elements/core_drawer_panel.dart';
 
 final _logger = new Logger('MainFrame');
 
@@ -26,27 +27,52 @@ void listenOn(Element target, String eventType, void proc(Element target)) {
   });
 }
 
-abstract class MainFrame extends ShadowRootAware {
-  final Router router;
+abstract class _Backable {
+  static List<_Backable> _current;
+
+  _pushMe() {
+    if (_current == null) {
+      _current = [];
+
+      _logger.finest(() => "Listen on 'backbutton'");
+      document.addEventListener('backbutton', (event) {
+        if (_current.isNotEmpty) _current.last.backButton();
+      }, false);
+    }
+    _current.add(this);
+    _logger.finest(() => "Pushed current page: ${_current}");
+  }
+
+  _popMe() {
+    _current.remove(this);
+    _logger.finest(() => "Poped current page: ${_current}");
+  }
+
+  backButton();
+}
+
+abstract class _AbstractPage extends _Backable implements ShadowRootAware, AttachAware, DetachAware {
   ShadowRoot _root;
   ShadowRoot get root => _root;
-  get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
-
-  MainFrame(this.router);
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
   }
 
+  void attach() => _pushMe();
+  void detach() => _popMe();
+
   rippling(proc()) => alfterRippling(proc);
+}
 
-  void toggleMenu() {
-    drawerPanel.togglePanel();
-  }
+abstract class MainPage extends _AbstractPage {
+  final Router router;
 
-  void back() {
-    window.history.back();
-  }
+  MainPage(this.router);
+
+  CoreDrawerPanel get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
+  toggleMenu() => drawerPanel.togglePanel();
+  backButton() => drawerPanel.openDrawer();
 
   void _goByMenu(String routeId) => rippling(() {
         _logger.info("Going to ${routeId}");
@@ -59,23 +85,16 @@ abstract class MainFrame extends ShadowRootAware {
   void goExperiment() => _goByMenu('experiment');
 }
 
-abstract class SubFrame extends MainFrame implements AttachAware, DetachAware {
-  SubFrame(Router router) : super(router);
-
-  void attach() {
-    document.addEventListener('backbutton', (event) {
-      back();
-    }, false);
-  }
-
-  void detach() {
-    document.addEventListener('backbutton', (event) {}, false);
-  }
+abstract class SubPage extends _AbstractPage {
+  back() => window.history.back();
+  backButton() => back();
 }
 
-abstract class MainDialog {
+abstract class AbstractDialog extends _Backable {
   PaperDialog get realDialog;
   var _onOpenning, _onClossing;
+
+  backButton() => close();
 
   onOpening(proc()) => _onOpenning = proc;
   onClossing(proc()) => _onClossing = proc;
@@ -83,9 +102,7 @@ abstract class MainDialog {
   open() {
     if (_onOpenning != null) _onOpenning();
     realDialog.open();
-    document.addEventListener('backbutton', (event) {
-      close();
-    }, false);
+    _pushMe();
   }
 
   close() async {
@@ -97,6 +114,7 @@ abstract class MainDialog {
       if (!cleared.isCompleted) cleared.complete();
     });
     realDialog.close();
+    _popMe();
 
     new Timer.periodic(ripplingDuration, (_) {
       if (!cleared.isCompleted) {

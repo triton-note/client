@@ -18,7 +18,7 @@ final _logger = new Logger('EditTideDialog');
     templateUrl: 'packages/triton_note/dialog/edit_tide.html',
     cssUrl: 'packages/triton_note/dialog/edit_tide.css',
     useShadowDom: true)
-class EditTideDialog extends MainDialog implements ShadowRootAware {
+class EditTideDialog extends AbstractDialog implements ShadowRootAware {
   static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
 
   @NgOneWayOneTime('setter') set setter(Setter<EditTideDialog> v) => v == null ? null : v.value = this;

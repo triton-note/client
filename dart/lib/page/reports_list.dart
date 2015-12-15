@@ -20,7 +20,7 @@ final _logger = new Logger('ReportsListPage');
     templateUrl: 'packages/triton_note/page/reports_list.html',
     cssUrl: 'packages/triton_note/page/reports_list.css',
     useShadowDom: true)
-class ReportsListPage extends MainFrame {
+class ReportsListPage extends MainPage {
   final pageSize = 20;
 
   PagingList<Report> reports;

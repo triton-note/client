@@ -54,8 +54,11 @@ typedef void OnChanged(newValue);
     templateUrl: 'packages/triton_note/page/report_detail.html',
     cssUrl: 'packages/triton_note/page/report_detail.css',
     useShadowDom: true)
-class ReportDetailPage extends SubFrame {
-  Future<Report> _report;
+class ReportDetailPage extends SubPage {
+  final Future<Report> _report;
+
+  ReportDetailPage(RouteProvider rp) : this._report = Reports.get(rp.parameters['reportId']);
+
   Report report;
   _Comment comment;
   _Catches catches;
@@ -63,13 +66,9 @@ class ReportDetailPage extends SubFrame {
   _Location location;
   _Conditions conditions;
   _MoreMenu moreMenu;
+
   Getter<EditTimestampDialog> editTimestamp = new PipeValue();
   Timer _submitTimer;
-
-  ReportDetailPage(Router router, RouteProvider routeProvider) : super(router) {
-    final String reportId = routeProvider.parameters['reportId'];
-    _report = Reports.get(reportId);
-  }
 
   @override
   void onShadowRoot(ShadowRoot sr) {

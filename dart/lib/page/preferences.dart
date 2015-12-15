@@ -19,7 +19,7 @@ final _logger = new Logger('PreferencesPage');
     templateUrl: 'packages/triton_note/page/preferences.html',
     cssUrl: 'packages/triton_note/page/preferences.css',
     useShadowDom: true)
-class PreferencesPage extends MainFrame implements DetachAware {
+class PreferencesPage extends MainPage implements DetachAware {
   static const submitDuration = const Duration(seconds: 20);
 
   Measures measures;
