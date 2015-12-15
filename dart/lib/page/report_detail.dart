@@ -66,6 +66,7 @@ class ReportDetailPage extends SubPage {
   _Location location;
   _Conditions conditions;
   _MoreMenu moreMenu;
+  List<_PartOfPage> _parts;
 
   Getter<EditTimestampDialog> editTimestamp = new PipeValue();
   Timer _submitTimer;
@@ -82,11 +83,15 @@ class ReportDetailPage extends SubPage {
       conditions = new _Conditions(report.condition, _onChanged);
       location = new _Location(root, report.location, _onChanged);
       moreMenu = new _MoreMenu(root, report, _onChanged, back);
+
+      _parts = [photo, comment, catches, conditions, location, moreMenu];
     });
   }
 
   void detach() {
     super.detach();
+    _parts.forEach((p) => p.detach());
+
     if (_submitTimer != null && _submitTimer.isActive) {
       _submitTimer.cancel();
       _update();
@@ -113,7 +118,11 @@ class ReportDetailPage extends SubPage {
   }
 }
 
-class _MoreMenu {
+abstract class _PartOfPage {
+  void detach();
+}
+
+class _MoreMenu extends _PartOfPage {
   final ShadowRoot _root;
   final Report _report;
   final OnChanged _onChanged;
@@ -125,6 +134,8 @@ class _MoreMenu {
   _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
 
   bool get publishable => _report?.published?.facebook == null;
+
+  void detach() {}
 
   toggle() {
     _root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
@@ -161,7 +172,7 @@ class _MoreMenu {
       });
 }
 
-class _Comment {
+class _Comment extends _PartOfPage {
   final ShadowRoot _root;
   final OnChanged _onChanged;
   final Report _report;
@@ -183,6 +194,10 @@ class _Comment {
     if (v == null || _report.comment == v) return;
     _report.comment = v;
     _onChanged(v);
+  }
+
+  void detach() {
+    _blinker.stop();
   }
 
   toggle(event) {
@@ -209,7 +224,7 @@ class _Comment {
   }
 }
 
-class _Catches {
+class _Catches extends _PartOfPage {
   static const frameButton = const [
     const {'opacity': 0.05},
     const {'opacity': 1}
@@ -232,6 +247,10 @@ class _Catches {
 
     _blinker = new Blinker(blinkDuration, blinkDownDuration,
         [new BlinkTarget(_addButton, frameButton), new BlinkTarget(_fishItems, frameBackground, frameBackgroundDown)]);
+  }
+
+  void detach() {
+    _blinker.stop();
   }
 
   toggle(event) {
@@ -276,7 +295,7 @@ class _Catches {
       });
 }
 
-class _Location {
+class _Location extends _PartOfPage {
   static const frameBorder = const [
     const {'border': "solid 2px #fee"},
     const {'border': "solid 2px #f88"}
@@ -343,6 +362,10 @@ class _Location {
         [new BlinkTarget(_blinkInput, frameBackground), new BlinkTarget(_blinkBorder, frameBorder, frameBorderStop)]);
   }
 
+  void detach() {
+    _blinker.stop();
+  }
+
   toggle(event) {
     final button = event.target as PaperIconButton;
     _logger.fine("Toggle edit: ${button.icon}");
@@ -371,10 +394,12 @@ class _Location {
   }
 }
 
-class _PhotoSize {
+class _PhotoSize extends _PartOfPage {
   final ShadowRoot _root;
 
   _PhotoSize(this._root);
+
+  void detach() {}
 
   int _width;
   int get width {
@@ -390,7 +415,7 @@ class _PhotoSize {
   int get height => width;
 }
 
-class _Conditions {
+class _Conditions extends _PartOfPage {
   final Loc.Condition _src;
   final OnChanged _onChanged;
   final _WeatherWrapper weather;
@@ -401,6 +426,8 @@ class _Conditions {
       : this._src = src,
         this._onChanged = onChanged,
         this.weather = new _WeatherWrapper(src.weather, onChanged);
+
+  void detach() {}
 
   Loc.Tide get tide => _src.tide;
   set tide(Loc.Tide v) {
