@@ -21,7 +21,7 @@ final _logger = new Logger('EditWeatherDialog');
     templateUrl: 'packages/triton_note/dialog/edit_weather.html',
     cssUrl: 'packages/triton_note/dialog/edit_weather.css',
     useShadowDom: true)
-class EditWeatherDialog extends ShadowRootAware {
+class EditWeatherDialog extends AbstractDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<EditWeatherDialog> v) => v == null ? null : v.value = this;
   @NgOneWay('value') Weather value;
   @NgAttr('without-temperature') String withoutTemperature;
@@ -29,6 +29,7 @@ class EditWeatherDialog extends ShadowRootAware {
   ShadowRoot _root;
   bool get withTemperature => withoutTemperature == null || withoutTemperature.toLowerCase() == "false";
   CachedValue<PaperDialog> _dialog;
+  PaperDialog get realDialog => _dialog.value;
   TemperatureUnit _tUnit;
 
   EditWeatherDialog() {
@@ -38,10 +39,6 @@ class EditWeatherDialog extends ShadowRootAware {
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
-  }
-
-  open() {
-    _dialog.value.toggle();
   }
 
   String get temperatureUnit => _tUnit == null ? null : "°${nameOfEnum(_tUnit)[0]}";
@@ -70,12 +67,12 @@ class EditWeatherDialog extends ShadowRootAware {
     _logger.finest("Setting timer for closing weather dialog.");
     if (_weatherDialogTimer != null) _weatherDialogTimer.cancel();
     _weatherDialogTimer = new Timer(new Duration(seconds: 3), () {
-      if (_dialog.value.opened) closeDialog(_dialog.value);
+      if (_dialog.value.opened) close();
     });
   }
 
   changeWeather(String nominal) {
-    closeDialog(_dialog.value);
+    close();
     value.nominal = nominal;
     value.iconUrl = weatherIcon(nominal);
   }

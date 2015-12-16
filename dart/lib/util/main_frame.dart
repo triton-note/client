@@ -6,6 +6,9 @@ import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:paper_elements/paper_dialog.dart';
+import 'package:core_elements/core_drawer_panel.dart';
+
+import 'package:triton_note/util/cordova.dart';
 
 final _logger = new Logger('MainFrame');
 
@@ -26,67 +29,131 @@ void listenOn(Element target, String eventType, void proc(Element target)) {
   });
 }
 
-closeDialog(PaperDialog dialog) async {
-  final cleared = new Completer();
+abstract class _Backable {
+  static List<_Backable> _current;
 
-  dialog.on['core-overlay-close-completed'].listen((event) {
-    if (!cleared.isCompleted) cleared.complete();
-  });
-  dialog.close();
+  _pushMe() {
+    if (_current == null) {
+      _current = [];
 
-  new Timer.periodic(ripplingDuration, (_) {
-    if (!cleared.isCompleted) {
-      _logger.warning(() => "Time over: clear overlay manually...");
-
-      final id = "paper-dialog#${dialog.id}";
-      document.body.querySelectorAll('core-overlay-layer overlay-host').forEach((overlay) {
-        final style = overlay.shadowRoot.querySelector(id)?.style;
-        if (style != null) {
-          _logger.finest(() => "${id}.style.display: ${style.display} -> none");
-          style.display = 'none';
-        }
-      });
-
-      cleared.complete();
+      _logger.finest(() => "Listen on 'backbutton'");
+      document.addEventListener('backbutton', (event) {
+        if (_current.isNotEmpty) _current.last.backButton();
+      }, false);
     }
-    document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
-      _logger.finest(() => "Clearing overlay: ${e}");
-      e.remove();
-    });
-  });
+    _current.add(this);
+    _logger.finest(() => "Pushed current page: ${_current}");
+  }
 
-  return cleared.future;
+  _popMe() {
+    _current.remove(this);
+    _logger.finest(() => "Poped current page: ${_current}");
+  }
+
+  backButton();
 }
 
-class MainFrame extends ShadowRootAware {
-  final Router router;
+abstract class _AbstractPage extends _Backable implements ShadowRootAware, AttachAware, DetachAware {
   ShadowRoot _root;
   ShadowRoot get root => _root;
-  get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
-
-  MainFrame(this.router);
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
   }
 
-  rippling(proc()) => alfterRippling(proc);
+  void attach() => _pushMe();
+  void detach() => _popMe();
 
-  void toggleMenu() {
-    drawerPanel.togglePanel();
+  rippling(proc()) => alfterRippling(proc);
+}
+
+abstract class MainPage extends _AbstractPage {
+  final Router router;
+
+  MainPage(this.router);
+
+  bool _drawerOpened = false;
+  CoreDrawerPanel get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
+
+  openMenu() {
+    drawerPanel.openDrawer();
+    _drawerOpened = true;
   }
 
-  void back() {
-    rippling(window.history.back);
+  closeMenu() {
+    drawerPanel.closeDrawer();
+    _drawerOpened = false;
+  }
+
+  backButton() {
+    if (_drawerOpened) {
+      closeMenu();
+    } else {
+      exit();
+    }
   }
 
   void _goByMenu(String routeId) => rippling(() {
         _logger.info("Going to ${routeId}");
+        drawerPanel.closeDrawer();
         router.go(routeId, {});
-        toggleMenu();
       });
   void goReportsList() => _goByMenu('reports-list');
   void goPreferences() => _goByMenu('preferences');
   void goDistributions() => _goByMenu('distributions');
   void goExperiment() => _goByMenu('experiment');
+}
+
+abstract class SubPage extends _AbstractPage {
+  back() => window.history.back();
+  backButton() => back();
+}
+
+abstract class AbstractDialog extends _Backable {
+  PaperDialog get realDialog;
+  var _onOpenning, _onClossing;
+
+  Completer<Null> _closed;
+
+  backButton() => close();
+
+  onOpening(proc()) => _onOpenning = proc;
+  onClossing(proc()) => _onClossing = proc;
+
+  open() {
+    if (!(_closed?.isCompleted ?? true)) return;
+    _closed = new Completer();
+
+    if (_onOpenning != null) _onOpenning();
+    realDialog.open();
+
+    realDialog.on['core-overlay-close-completed'].listen((event) {
+      if (!_closed.isCompleted) _closed.complete();
+    });
+
+    _pushMe();
+    _closed.future.then((_) {
+      _popMe();
+    });
+  }
+
+  close() async {
+    if (_onClossing != null) _onClossing();
+
+    realDialog.close();
+
+    new Timer(ripplingDuration, () {
+      if (!_closed.isCompleted) {
+        _logger.warning(() => "Time over: clear overlay manually...");
+        realDialog.style.display = 'none';
+        _closed.complete();
+      }
+      document.body.querySelectorAll('.core-overlay-backdrop').forEach((e) {
+        _logger.finest(() => "Clearing overlay: ${e}");
+        e.remove();
+      });
+    });
+
+    return _closed.future;
+  }
 }

@@ -177,8 +177,12 @@ class _Term extends _FilterParams with DistributionsFilter_Term {
   final List<String> recentUnitList = DistributionsFilter_Term_RecentUnit.values.map(nameOfEnum);
 
   List<String> get nameOfMonths => _nameOfMonths;
-  int seasonBegin = 0;
-  int seasonEnd = 0;
+  int seasonBegin = 1;
+  String get seasonBeginMonth => _nameOfMonths[seasonBegin - 1];
+  set seasonBeginMonth(String v) => seasonBegin = _nameOfMonths.indexOf(v) + 1;
+  int seasonEnd = 12;
+  String get seasonEndMonth => _nameOfMonths[seasonEnd - 1];
+  set seasonEndMonth(String v) => seasonEnd = _nameOfMonths.indexOf(v) + 1;
 
   DateTime intervalFrom = new DateTime.now();
   Getter<EditTimestampDialog> intervalFromDialog = new PipeValue();

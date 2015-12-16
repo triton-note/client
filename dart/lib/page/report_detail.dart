@@ -8,10 +8,10 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_dropdown.dart';
 import 'package:paper_elements/paper_icon_button.dart';
-import 'package:paper_elements/paper_dialog.dart';
 import 'package:paper_elements/paper_autogrow_textarea.dart';
 import 'package:paper_elements/paper_toast.dart';
 
+import 'package:triton_note/dialog/confirm.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
@@ -54,8 +54,11 @@ typedef void OnChanged(newValue);
     templateUrl: 'packages/triton_note/page/report_detail.html',
     cssUrl: 'packages/triton_note/page/report_detail.css',
     useShadowDom: true)
-class ReportDetailPage extends MainFrame implements DetachAware {
-  Future<Report> _report;
+class ReportDetailPage extends SubPage {
+  final Future<Report> _report;
+
+  ReportDetailPage(RouteProvider rp) : this._report = Reports.get(rp.parameters['reportId']);
+
   Report report;
   _Comment comment;
   _Catches catches;
@@ -63,13 +66,10 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   _Location location;
   _Conditions conditions;
   _MoreMenu moreMenu;
-  GetterSetter<EditTimestampDialog> editTimestamp = new PipeValue();
-  Timer _submitTimer;
+  List<_PartOfPage> _parts;
 
-  ReportDetailPage(Router router, RouteProvider routeProvider) : super(router) {
-    final String reportId = routeProvider.parameters['reportId'];
-    _report = Reports.get(reportId);
-  }
+  Getter<EditTimestampDialog> editTimestamp = new PipeValue();
+  Timer _submitTimer;
 
   @override
   void onShadowRoot(ShadowRoot sr) {
@@ -83,10 +83,15 @@ class ReportDetailPage extends MainFrame implements DetachAware {
       conditions = new _Conditions(report.condition, _onChanged);
       location = new _Location(root, report.location, _onChanged);
       moreMenu = new _MoreMenu(root, report, _onChanged, back);
+
+      _parts = [photo, comment, catches, conditions, location, moreMenu];
     });
   }
 
   void detach() {
+    super.detach();
+    _parts.forEach((p) => p.detach());
+
     if (_submitTimer != null && _submitTimer.isActive) {
       _submitTimer.cancel();
       _update();
@@ -113,37 +118,34 @@ class ReportDetailPage extends MainFrame implements DetachAware {
   }
 }
 
-class _MoreMenu {
+abstract class _PartOfPage {
+  void detach();
+}
+
+class _MoreMenu extends _PartOfPage {
   final ShadowRoot _root;
   final Report _report;
   final OnChanged _onChanged;
   final _back;
 
+  Getter<ConfirmDialog> confirmDialog = new PipeValue();
+  final PipeValue<bool> dialogResult = new PipeValue();
+
   _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
 
   bool get publishable => _report?.published?.facebook == null;
+  CoreDropdown get dropdown => _root.querySelector('#more-menu core-dropdown');
 
-  toggle() {
-    _root.querySelector('#more-menu core-dropdown') as CoreDropdown..toggle();
-  }
+  void detach() {}
 
-  String dialogMessage;
-  Completer<bool> _dialogResult;
-
-  dialogOk() => _dialogResult.complete(true);
-  dialogCancel() => _dialogResult.complete(false);
-
-  dialog(String message, void whenOk()) {
-    dialogMessage = message;
-    toggle();
-
-    _dialogResult = new Completer();
-    final dialog = _root.querySelector('#more-menu paper-dialog') as PaperDialog;
-    dialog.open();
-    _dialogResult.future.then((ok) async {
-      closeDialog(dialog);
-      if (ok) whenOk();
-    });
+  confirm(String message, whenOk()) {
+    dropdown.close();
+    confirmDialog.value
+      ..message = message
+      ..onClossing(() {
+        if (confirmDialog.value.result) whenOk();
+      })
+      ..open();
   }
 
   toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
@@ -151,7 +153,7 @@ class _MoreMenu {
     ..text = msg
     ..show();
 
-  publish() => dialog("Publish to Facebook ?", () async {
+  publish() => confirm("Publish to Facebook ?", () async {
         try {
           final published = await FBPublish.publish(_report);
           _onChanged(published);
@@ -162,13 +164,13 @@ class _MoreMenu {
         }
       });
 
-  delete() => dialog("Delete this report ?", () async {
+  delete() => confirm("Delete this report ?", () async {
         await Reports.remove(_report.id);
         _back();
       });
 }
 
-class _Comment {
+class _Comment extends _PartOfPage {
   final ShadowRoot _root;
   final OnChanged _onChanged;
   final Report _report;
@@ -190,6 +192,10 @@ class _Comment {
     if (v == null || _report.comment == v) return;
     _report.comment = v;
     _onChanged(v);
+  }
+
+  void detach() {
+    _blinker.stop();
   }
 
   toggle(event) {
@@ -216,7 +222,7 @@ class _Comment {
   }
 }
 
-class _Catches {
+class _Catches extends _PartOfPage {
   static const frameButton = const [
     const {'opacity': 0.05},
     const {'opacity': 1}
@@ -239,6 +245,10 @@ class _Catches {
 
     _blinker = new Blinker(blinkDuration, blinkDownDuration,
         [new BlinkTarget(_addButton, frameButton), new BlinkTarget(_fishItems, frameBackground, frameBackgroundDown)]);
+  }
+
+  void detach() {
+    _blinker.stop();
   }
 
   toggle(event) {
@@ -264,7 +274,7 @@ class _Catches {
   add() => alfterRippling(() {
         _logger.fine("Add new fish");
         final fish = new Fishes.fromMap({'count': 1});
-        dialog.value.open(new GetterSetter(() => fish, (v) {
+        dialog.value.openWith(new GetterSetter(() => fish, (v) {
           list.value.add(v);
           _onChanged(list.value);
         }));
@@ -272,7 +282,7 @@ class _Catches {
 
   edit(index) => alfterRippling(() {
         _logger.fine("Edit at $index");
-        dialog.value.open(new GetterSetter(() => list.value[index], (v) {
+        dialog.value.openWith(new GetterSetter(() => list.value[index], (v) {
           if (v == null) {
             list.value.removeAt(index);
           } else {
@@ -283,7 +293,7 @@ class _Catches {
       });
 }
 
-class _Location {
+class _Location extends _PartOfPage {
   static const frameBorder = const [
     const {'border': "solid 2px #fee"},
     const {'border': "solid 2px #f88"}
@@ -331,8 +341,16 @@ class _Location {
         ..options.draggable = false
         ..putMarker(_location.geoinfo);
       _root.querySelector('#location expandable-gmap')
-        ..on['expanding'].listen((event) => _gmap.showMyLocationButton = _gmap.options.draggable = true)
-        ..on['shrinking'].listen((event) => _gmap.showMyLocationButton = _gmap.options.draggable = false);
+        ..on['expanding'].listen((event) {
+          _gmap.showMyLocationButton = true;
+          _gmap.options.draggable = true;
+          _gmap.options.disableDoubleClickZoom = false;
+        })
+        ..on['shrinking'].listen((event) {
+          _gmap.showMyLocationButton = false;
+          _gmap.options.draggable = false;
+          _gmap.options.disableDoubleClickZoom = true;
+        });
     });
 
     _blinkInput = new CachedValue(() => _root.querySelectorAll('#location .editor input').toList(growable: false));
@@ -340,6 +358,10 @@ class _Location {
 
     _blinker = new Blinker(blinkDuration, blinkDownDuration,
         [new BlinkTarget(_blinkInput, frameBackground), new BlinkTarget(_blinkBorder, frameBorder, frameBorderStop)]);
+  }
+
+  void detach() {
+    _blinker.stop();
   }
 
   toggle(event) {
@@ -370,10 +392,12 @@ class _Location {
   }
 }
 
-class _PhotoSize {
+class _PhotoSize extends _PartOfPage {
   final ShadowRoot _root;
 
   _PhotoSize(this._root);
+
+  void detach() {}
 
   int _width;
   int get width {
@@ -389,7 +413,7 @@ class _PhotoSize {
   int get height => width;
 }
 
-class _Conditions {
+class _Conditions extends _PartOfPage {
   final Loc.Condition _src;
   final OnChanged _onChanged;
   final _WeatherWrapper weather;
@@ -400,6 +424,8 @@ class _Conditions {
       : this._src = src,
         this._onChanged = onChanged,
         this.weather = new _WeatherWrapper(src.weather, onChanged);
+
+  void detach() {}
 
   Loc.Tide get tide => _src.tide;
   set tide(Loc.Tide v) {

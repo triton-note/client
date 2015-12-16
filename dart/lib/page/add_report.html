@@ -6,8 +6,19 @@
     	
       		<span flex>New Report</span>
       		
-    		<div class="submit">
-    			<paper-fab mini icon="done" class="green" ng-click="submit()"></paper-fab>
+    		<div id="submit">
+                <div class="action">
+        			<paper-fab mini icon="done" class="green" ng-click="dropdownSubmit.open()" ng-if="!isSubmitting"></paper-fab>
+                    <paper-spinner active ng-if="isSubmitting"></paper-spinner>
+                </div>
+                
+                <core-dropdown halign="right"">
+                    <div class="menu">
+                        <paper-item class="publish" ng-click="submit(true)"><core-icon icon="send"></core-icon>Add and Publish</paper-item>
+                        <paper-item class="add" ng-click="submit(false)"><core-icon icon="add-circle"></core-icon>Just Add</paper-item>
+                    </div>
+                </core-dropdown>
+                <alert-dialog setter="alertDialog"></alert-dialog>
 			</div>
     	
     	</core-toolbar>
@@ -24,7 +35,7 @@
 	   		<div id="input" ng-if="isReady">
 		    	<div id="date">
 		    		<div class="buttons">
-		        		<paper-button ng-click="dateOclock.value.toggle()">{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
+		        		<paper-button ng-click="dateOclock.value.open()">{{ report.dateAt | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
 		        	</div>
 		        	<edit-timestamp-dialog value="report.dateAt" setter="dateOclock"></edit-timestamp-dialog>
 	        	</div>

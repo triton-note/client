@@ -1,7 +1,41 @@
 @import "../../web/styles/common";
 
-.submit {
-  display: none;
+#submit {
+  .action {
+    display: none;
+  }
+  
+  core-dropdown {
+    top: 38px;
+    color: #111;
+    
+    .menu {
+      @include display-flex();
+      @include flex-direction(column);
+      padding: 8px;
+      @include font-bold(16px);
+      
+      &>* {
+        margin: 5px;
+        @include border-radius(4px);
+        
+        &>core-icon {
+          margin-right: 8px;
+        }
+      }
+      
+      .publish {
+        $base-color: #3296FF;
+        color: $base-color;
+        background: tint($base-color, 80%);
+      }
+      .add {
+        $base-color: #32C880;
+        color: $base-color;
+        background: tint($base-color, 80%);
+      }
+    }
+  }
 }
 
 div#pre {
@@ -91,8 +125,6 @@ div#catches {
 }
 
 div#date {
-  margin-top: 10px;
-  
   .buttons {
     paper-button {
       background: white;

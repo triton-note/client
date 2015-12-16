@@ -22,7 +22,7 @@ class NumInputElement {
   int get minValue => min == null ? null : int.parse(min);
   int get maxValue => max == null ? null : int.parse(max);
 
-  int get curValue => value == null ? 0 : value;
+  int get curValue => value ?? (minValue ?? 0);
   set curValue(int v) {
     final s = v.toString();
     int a = 0;
@@ -31,7 +31,7 @@ class NumInputElement {
     } catch (ex) {
       _logger.info("Invalid integer: ${s}");
     }
-    return value = a;
+    return value = _limit(a);
   }
 
   _loop(int v) {
@@ -47,9 +47,10 @@ class NumInputElement {
   }
 
   up() {
-    curValue = _limit(curValue + 1);
+    curValue = curValue + 1;
   }
+
   down() {
-    curValue = _limit(curValue - 1);
+    curValue = curValue - 1;
   }
 }

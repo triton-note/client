@@ -18,7 +18,7 @@ final _logger = new Logger('EditTideDialog');
     templateUrl: 'packages/triton_note/dialog/edit_tide.html',
     cssUrl: 'packages/triton_note/dialog/edit_tide.css',
     useShadowDom: true)
-class EditTideDialog extends ShadowRootAware {
+class EditTideDialog extends AbstractDialog implements ShadowRootAware {
   static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
 
   @NgOneWayOneTime('setter') set setter(Setter<EditTideDialog> v) => v == null ? null : v.value = this;
@@ -26,18 +26,15 @@ class EditTideDialog extends ShadowRootAware {
 
   ShadowRoot _root;
   CachedValue<PaperDialog> _dialog;
+  PaperDialog get realDialog => _dialog.value;
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
   }
 
-  open() {
-    _dialog.value.toggle();
-  }
-
   changeTide(String name) {
-    closeDialog(_dialog.value);
+    close();
     final tide = enumByName(Tide.values, name);
     if (tide != null) value = tide;
   }

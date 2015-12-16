@@ -7,13 +7,16 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
+import 'package:core_elements/core_dropdown.dart';
 
+import 'package:triton_note/dialog/alert.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/service/facebook.dart';
 import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
@@ -32,11 +35,12 @@ final _logger = new Logger('AddReportPage');
     templateUrl: 'packages/triton_note/page/add_report.html',
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
-class AddReportPage extends MainFrame {
+class AddReportPage extends SubPage {
   Report report;
 
-  final PipeValue<EditTimestampDialog> dateOclock = new PipeValue();
-  final PipeValue<EditFishDialog> fishDialog = new PipeValue();
+  final Getter<EditTimestampDialog> dateOclock = new PipeValue();
+  final Getter<EditFishDialog> fishDialog = new PipeValue();
+  final Getter<AlertDialog> alertDialog = new PipeValue();
 
   _GMap gmap;
   _Conditions conditions;
@@ -48,8 +52,6 @@ class AddReportPage extends MainFrame {
 
   bool isReady = false;
   bool get isLoading => report?.photo?.reduced?.mainview?.url == null;
-
-  AddReportPage(Router router) : super(router);
 
   @override
   void onShadowRoot(ShadowRoot sr) {
@@ -177,7 +179,7 @@ class AddReportPage extends MainFrame {
 
   editFish(int index) {
     if (0 <= index && index < report.fishes.length) {
-      fishDialog.value.open(new GetterSetter(() => report.fishes[index], (v) {
+      fishDialog.value.openWith(new GetterSetter(() => report.fishes[index], (v) {
         if (v == null) {
           report.fishes..removeAt(index);
         } else {
@@ -190,14 +192,16 @@ class AddReportPage extends MainFrame {
   //********************************
   // Submit
 
+  bool isSubmitting = false;
+  DivElement get divSubmit => root.querySelector('core-toolbar div#submit');
+  CoreDropdown get dropdownSubmit => divSubmit.querySelector('core-dropdown');
+
   void _submitable() {
-    final div = root.querySelector('core-toolbar div.submit');
-    _logger.fine("Appearing submit button: ${div}");
-    div.style.display = "block";
+    _logger.fine("Appearing submit button");
     final x = document.body.clientWidth;
     final y = (x / 5).round();
     new CoreAnimation()
-      ..target = div
+      ..target = (divSubmit.querySelector('.action')..style.display = 'block')
       ..duration = 300
       ..fill = "both"
       ..keyframes = [
@@ -207,11 +211,34 @@ class AddReportPage extends MainFrame {
       ..play();
   }
 
-  submit() => rippling(() async {
+  submit(bool publish) => rippling(() async {
         _logger.finest("Submitting report: ${report}");
+        dropdownSubmit.close();
         if (report.location.name == null || report.location.name.isEmpty) report.location.name = "My Spot";
-        Reports.add(report);
-        back();
+        isSubmitting = true;
+
+        doit(String name, Future proc()) async {
+          try {
+            await proc();
+            return true;
+          } catch (ex) {
+            _logger.warning(() => "Failed to ${name}: ${ex}");
+            alertDialog.value
+              ..message = "Failed to ${name} your report. Please try again later."
+              ..open();
+            return false;
+          }
+        }
+
+        final ok = await doit('add', () => Reports.add(report));
+        if (ok) {
+          if (publish) {
+            final published = await doit('publish', () => FBPublish.publish(report));
+            if (published) Reports.update(report);
+          }
+          back();
+        }
+        isSubmitting = false;
       });
 }
 
@@ -243,8 +270,16 @@ class _GMap {
         };
 
       _root.querySelector('#location expandable-gmap')
-        ..on['expanding'].listen((event) => _gmap.showMyLocationButton = _gmap.options.draggable = true)
-        ..on['shrinking'].listen((event) => _gmap.showMyLocationButton = _gmap.options.draggable = false);
+        ..on['expanding'].listen((event) {
+          _gmap.showMyLocationButton = true;
+          _gmap.options.draggable = true;
+          _gmap.options.disableDoubleClickZoom = false;
+        })
+        ..on['shrinking'].listen((event) {
+          _gmap.showMyLocationButton = false;
+          _gmap.options.draggable = false;
+          _gmap.options.disableDoubleClickZoom = true;
+        });
     });
   }
 }

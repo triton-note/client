@@ -40,6 +40,10 @@
             color: green;
             margin-left: auto;
         }
+        #fish-dialog .buttons paper-button.disabled  {
+            color: gray;
+            background-color: #eee;
+        }
 	</style>
 	
 	<paper-shadow class="rounded name">
@@ -51,7 +55,7 @@
 		
 		<div class="row count">
 			<p>Count</p>
-			<num-input value="tmpFishCount" min="0"></num-input>
+			<num-input value="tmpFishCount" min="1"></num-input>
 		</div>
 	</paper-shadow>
 	
@@ -70,6 +74,6 @@
     <div class="buttons">
         <paper-button class="negative" ng-click="delete()">Delete</paper-button>
     	<paper-button class="negative" ng-click="cancel()">Cancel</paper-button>
-    	<paper-button class="positive" ng-click="commit()">OK</paper-button>
+    	<paper-button class="positive" ng-click="commit()" ng-class="{'disabled': !isCommitable}">OK</paper-button>
     </div>
 </paper-dialog>

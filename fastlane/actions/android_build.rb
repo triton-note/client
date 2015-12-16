@@ -14,13 +14,7 @@ module Fastlane
       end
 
       def self.update_sdk(names)
-        begin
-          content = sh('android list sdk --extended')
-        rescue
-          system('brew install android')
-          ENV['ANDROID_HOME'] = sh('brew --prefix android')
-          retry
-        end
+        content = sh('android list sdk --extended')
 
         availables = content.split("\n").map { |line|
           /^id: +\d+ or "(.*)"$/.match line

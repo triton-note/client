@@ -1,0 +1,25 @@
+<paper-dialog id="confirm-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
+    <style>
+        #confirm-dialog {
+            border-radius: 3px;
+            font-size: 16px;
+        }
+        
+        #confirm-dialog .buttons {
+            margin-top: 16px;
+        }
+        #confirm-dialog .buttons paper-button.negative {
+            color: red;
+        }
+        #confirm-dialog .buttons paper-button.positive {
+            color: green;
+            margin-left: auto;
+        }
+    </style>
+
+    <p>{{ message }}</p>
+    <div class="buttons">
+        <paper-button class="negative" ng-click="done(false)">CANCEL</paper-button>
+        <paper-button class="positive" ng-click="done(true)">OK</paper-button>
+    </div>
+</paper-dialog>

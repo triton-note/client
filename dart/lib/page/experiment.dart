@@ -16,7 +16,7 @@ final _logger = new Logger('ExperimentPage');
     templateUrl: 'packages/triton_note/page/experiment.html',
     cssUrl: 'packages/triton_note/page/experiment.css',
     useShadowDom: true)
-class ExperimentPage extends MainFrame {
+class ExperimentPage extends MainPage {
   ExperimentPage(Router router) : super(router) {}
 
   fbToken() async {

@@ -1,5 +1,5 @@
 <core-drawer-panel id="mainFrame">
-    <core-header-panel drawer>
+    <core-header-panel drawer mode="waterfall">
         <core-toolbar>
             <div>Menu</div>
         </core-toolbar>
@@ -13,17 +13,12 @@
     <core-header-panel main mode="waterfall">
         <core-toolbar>
         
-            <paper-icon-button icon="menu" ng-click="toggleMenu()"></paper-icon-button>
+            <paper-icon-button icon="menu" ng-click="openMenu()"></paper-icon-button>
         
             <span flex>Distributions</span>
             
-            <paper-icon-button icon="filter-list" ng-click="openFilter($event)"></paper-icon-button>
-            <paper-dialog id="distributions-filter" transition="core-transition-top" backdrop autoCloseDisabled>
-                <distributions-filter setter="filter"></distributions-filter>
-                <div style="text-align: right">
-                    <paper-button style="color: green" ng-click="closeFilter()">OK</paper-button>
-                </div>
-            </paper-dialog>
+            <paper-icon-button icon="filter-list" ng-click="openFilter()"></paper-icon-button>
+            <distributions-filter-dialog setter="filterDialog" filter="filter"></distributions-filter-dialog>
             
             <div class="tabs" ng-if="isReady">
                 <paper-tabs selected="0">

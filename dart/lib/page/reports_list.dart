@@ -20,10 +20,11 @@ final _logger = new Logger('ReportsListPage');
     templateUrl: 'packages/triton_note/page/reports_list.html',
     cssUrl: 'packages/triton_note/page/reports_list.css',
     useShadowDom: true)
-class ReportsListPage extends MainFrame {
+class ReportsListPage extends MainPage {
   final pageSize = 20;
 
   PagingList<Report> reports;
+  bool noReports = false;
 
   ReportsListPage(Router router) : super(router);
 
@@ -35,16 +36,18 @@ class ReportsListPage extends MainFrame {
 
       await paging.more(pageSize);
       reports = paging;
+      noReports = reports.list.isEmpty && !reports.hasMore;
 
-      new Future.delayed(ripplingDuration, () {
-        if (reports.list.isEmpty && !reports.hasMore) {
+      new Future.delayed(new Duration(seconds: 1), () {
+        if (noReports) {
           final target = sr.querySelector('.list .no-reports');
           final dy = (window.innerHeight / 4).round();
 
           _logger.finest(() => "Show add_first_report button: ${target}: +${dy}");
           new CoreAnimation()
             ..target = target
-            ..duration = 300
+            ..duration = 180
+            ..easing = 'ease-in'
             ..fill = "both"
             ..keyframes = [
               {'transform': "none", 'opacity': '0'},
@@ -56,9 +59,9 @@ class ReportsListPage extends MainFrame {
     });
   }
 
-  goReport(String id) => rippling(() {
-        router.go('report-detail', {'reportId': id});
-      });
+  goReport(String id) {
+    router.go('report-detail', {'reportId': id});
+  }
 
   addReport() {
     router.go('add', {});

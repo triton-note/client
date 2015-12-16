@@ -6,7 +6,7 @@
       		<span flex>Report Detail</span>
       		
             <div id="more-menu" ng-if="moreMenu != null">
-                <paper-icon-button icon="more-vert" ng-click="moreMenu.toggle()"></paper-icon-button>
+                <paper-icon-button icon="more-vert" ng-click="moreMenu.dropdown.toggle()"></paper-icon-button>
                 <core-dropdown halign="right"">
                     <div class="menu">
                         <paper-item class="publish" ng-click="moreMenu.publish()" ng-if="moreMenu.publishable"><core-icon icon="send"></core-icon>Publish</paper-item>
@@ -14,13 +14,7 @@
                     </div>
                 </core-dropdown>
                 
-                <paper-dialog backdrop autoCloseDisabled layered="false" transition="core-transition-center">
-                    <p>{{ moreMenu.dialogMessage }}</p>
-                    <div class="buttons">
-                        <paper-button style="color: red" ng-click="moreMenu.dialogCancel()">CANCEL</paper-button>
-                        <paper-button style="color: blue" ng-click="moreMenu.dialogOk()">OK</paper-button>
-                    </div>
-                </paper-dialog>
+                <confirm-dialog setter="moreMenu.confirmDialog"></confirm-dialog>
                 
                 <paper-toast class="capsule"></paper-toast>
             </div>
@@ -44,9 +38,9 @@
 		    	</div>
 		    	
 		    	<div id="dateAt">
-		    		<p>{{ report.dateAt.toLocal() | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
+		    		<p>{{ report.dateAt | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
 			    	<div class="edit-button">
-			    		<paper-icon-button icon="create" ng-click="editTimestamp.value.toggle()"></paper-icon-button>
+			    		<paper-icon-button icon="create" ng-click="editTimestamp.value.open()"></paper-icon-button>
 			    		<edit-timestamp-dialog value="timestamp" setter="editTimestamp"></edit-timestamp-dialog>
 			    	</div>
 		    	</div>

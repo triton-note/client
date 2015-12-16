@@ -8,9 +8,9 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_header_panel.dart';
-import 'package:paper_elements/paper_dialog.dart';
 import 'package:paper_elements/paper_tabs.dart';
 
+import 'package:triton_note/dialog/distributions_filter.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
@@ -30,10 +30,11 @@ final _logger = new Logger('DistributionsPage');
     templateUrl: 'packages/triton_note/page/distributions.html',
     cssUrl: 'packages/triton_note/page/distributions.css',
     useShadowDom: true)
-class DistributionsPage extends MainFrame implements DetachAware {
+class DistributionsPage extends MainPage {
   DistributionsPage(Router router) : super(router);
 
   final Getter<DistributionsFilter> filter = new PipeValue();
+  final FuturedValue<DistributionsFilterDialog> filterDialog = new FuturedValue();
 
   Getter<Element> scroller;
   Getter<Element> scrollBase;
@@ -41,7 +42,6 @@ class DistributionsPage extends MainFrame implements DetachAware {
 
   Getter<CoreAnimatedPages> _pages;
   Getter<PaperTabs> _tabs;
-  Getter<PaperDialog> _filterDialog;
 
   int _selectedTab;
   int get _selectedIndex => _selectedTab;
@@ -70,7 +70,7 @@ class DistributionsPage extends MainFrame implements DetachAware {
     scrollBase = _pages;
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
     _tabs = new CachedValue(() => root.querySelector('core-toolbar paper-tabs'));
-    _filterDialog = new CachedValue(() => root.querySelector('paper-dialog#distributions-filter'));
+    filterDialog.future.then((dialog) => dialog.onClossing(_refresh));
 
     sections = [dmap = new _DMap(this), dtime = new _DTimeLine(this)];
 
@@ -109,26 +109,12 @@ class DistributionsPage extends MainFrame implements DetachAware {
   }
 
   void detach() {
+    super.detach();
     dmap.detach();
     dtime.detach();
   }
 
-  void openFilter(event) {
-    final button = event.target as Element;
-    _logger.finest("Open filter dialog");
-    _filterDialog.value
-      ..shadowRoot.querySelector('#scroller').style.padding = "0"
-      ..style.margin = "0"
-      ..style.top = "${button.getBoundingClientRect().bottom}px"
-      ..style.left = "0"
-      ..style.right = "0"
-      ..open();
-  }
-
-  void closeFilter() {
-    closeDialog(_filterDialog.value);
-    _refresh();
-  }
+  openFilter() async => (await filterDialog.future).open();
 
   _refresh() async {
     _logger.finer("Refreshing list around: ${dmap._bounds}, ${catchesPager}");
@@ -360,10 +346,10 @@ class _DTimeLine extends _Section {
         counter[key] = (counter[key] ?? 0) + c.fish.count;
       });
       final sorted = store.keys.toList()..sort((a, b) => counter[a] - counter[b]);
-      sorted.sublist(3).forEach((key) {
+      if (sorted.length > 3) sorted.sublist(3).forEach((key) {
         store.remove(key);
       });
-      sorted.sublist(0, 2).forEach((key) {
+      sorted.take(3).forEach((key) {
         result[key] = store[key];
       });
     }

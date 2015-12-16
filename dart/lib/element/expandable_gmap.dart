@@ -20,7 +20,7 @@ final _logger = new Logger('ExpandableGMapElement');
     templateUrl: 'packages/triton_note/element/expandable_gmap.html',
     cssUrl: 'packages/triton_note/element/expandable_gmap.css',
     useShadowDom: true)
-class ExpandableGMapElement extends ShadowRootAware {
+class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
   static const animationDur = const Duration(milliseconds: 300);
 
   @NgAttr('nofix-scroll') String nofixScroll; // Optional (default: false, means fix scroll on expanded)
@@ -77,21 +77,30 @@ class ExpandableGMapElement extends ShadowRootAware {
 
     int preWidth;
     final dur = new Duration(milliseconds: 30);
-    checkWidth() => new Timer(dur, () {
-          final w = gmapHost.clientWidth;
-          _logger.finest("Checking width of host div: ${w}");
-          if (w > 0) {
-            if (w != preWidth) {
-              preWidth = w;
-            } else {
-              shrinkedHeightReal = (shrinkedHeight != null) ? shrinkedHeight : (w * 2 / (1 + Math.sqrt(5))).round();
-              _logger.fine("Shrinked height: ${shrinkedHeightReal}");
-              gmapHost.style.height = "${shrinkedHeightReal}px";
-            }
+    checkWidth() {
+      _checkingTimer = new Timer(dur, () {
+        final w = gmapHost.clientWidth;
+        _logger.finest("Checking width of host div: ${w}");
+        if (w > 0) {
+          if (w != preWidth) {
+            preWidth = w;
+          } else {
+            shrinkedHeightReal = (shrinkedHeight != null) ? shrinkedHeight : (w * 2 / (1 + Math.sqrt(5))).round();
+            _logger.fine("Shrinked height: ${shrinkedHeightReal}");
+            gmapHost.style.height = "${shrinkedHeightReal}px";
           }
-          if (shrinkedHeightReal == null) checkWidth();
-        });
+        }
+        if (shrinkedHeightReal == null) checkWidth();
+        else _checkingTimer == null;
+      });
+    }
     checkWidth();
+  }
+
+  Timer _checkingTimer;
+
+  void detach() {
+    _checkingTimer?.cancel();
   }
 
   _toggle() async {
