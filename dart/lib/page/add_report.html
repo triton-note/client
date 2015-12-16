@@ -24,13 +24,11 @@
     	</core-toolbar>
     	
     	<div>
-    		<div id="pre" ng-if="!isReady">
-    			<div>
-					<paper-button id="take" raised ng-click="choosePhoto(true)">TAKE</paper-button>
-    			</div>
-    			<div>
-					<paper-button id="choose" raised ng-click="choosePhoto(false)">CHOOSE</paper-button>
-				</div>
+    		<div ng-if="!isReady" class="page-loading">
+                <div>
+                    <paper-spinner active></paper-spinner>
+                </div>
+    			<photo-way-dialog setter="photoWayDialog"></photo-way-dialog>
     		</div>
 	   		<div id="input" ng-if="isReady">
 		    	<div id="date">
