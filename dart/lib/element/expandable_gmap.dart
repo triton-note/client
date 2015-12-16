@@ -76,11 +76,10 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
     _root = sr;
 
     int preWidth;
-    final dur = new Duration(milliseconds: 30);
+    final dur = const Duration(milliseconds: 100);
     checkWidth() {
       _checkingTimer = new Timer(dur, () {
         final w = gmapHost.clientWidth;
-        _logger.finest("Checking width of host div: ${w}");
         if (w > 0) {
           if (w != preWidth) {
             preWidth = w;

@@ -1,68 +1,199 @@
+
 <core-drawer-panel id="mainFrame">
     <core-header-panel drawer mode="waterfall">
         <core-toolbar>
-	        <div>Menu</div>
-	    </core-toolbar>
-	    <core-menu>
+            <div>Menu</div>
+        </core-toolbar>
+        <core-menu>
             <core-item icon="view-list" label="Reports List" ng-click="goReportsList()"></core-item>
-	        <core-item icon="settings" label="Preferences" ng-click="goPreferences()"></core-item>
+            <core-item icon="settings" label="Preferences" ng-click="goPreferences()"></core-item>
             <core-item icon="track-changes" label="Distributions" ng-click="goDistributions()"></core-item>
             <core-item icon="report" label="Experiment" ng-click="goExperiment()"></core-item>
-	    </core-menu>
-	</core-header-panel>
-
+        </core-menu>
+    </core-header-panel>
+    
     <core-header-panel main mode="waterfall">
-    	<core-toolbar>
-    	
-			<paper-icon-button icon="menu" ng-click="openMenu()"></paper-icon-button>
-    	
-      		<span flex>Report List</span>
-      		
-   			<paper-fab mini icon="add" class="red" ng-click="addReport()"></paper-fab>
-    	
-    	</core-toolbar>
-    	
-    	<div>
-		    <div ng-if="reports == null" class="page-loading">
-                <div>
-    	            <paper-spinner active></paper-spinner>
-                </div>
-		    </div>
-		    <div ng-if="reports != null" class="list">
-                <div class="no-reports" ng-if="noReports">
-                    <paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
-                </div>
-                
-                <infinite-scroll pager="reports" page-size="pageSize">
-                    <div id="content">
-        		        <div class="report-row" ng-repeat="report in reports.list" ng-click="goReport(report.id)">
-        		        	<div class="head">
-                                <div class="image">
-                                    <div class="loading" ng-if="report.photo.reduced.thumbnail.url == null">
-                                        <paper-spinner active class="gray"></paper-spinner>
-                                    </div>
-                                    <div ng-if="report.photo.reduced.thumbnail.url != null">
-                                        <fit-image width="100" height="100" shrink="true" url="report.photo.reduced.thumbnail.url"></fit-image>
-                                    </div>
-                                </div>
-        			        	<div class="desc">
-        		                	<div class="spot">
-        		                		<p>{{report.location.name}}, {{report.dateAt | date:"yyyy-MM-dd" }}</p>
-        		                	</div>
-        			                <div class="fishes">
-        				        		<div ng-repeat="fish in report.fishes">
-        				        			<p>{{fish | fishFilter }}</p>
-        				        		</div>
-        			                </div>
-        		                </div>
-        	                </div>
-        	                <div class="comment">
-        	                	<p>{{report.comment}}</p>
-        	                </div>
-        		        </div>
+        <core-toolbar ng-if="selectedPage == 0">
+            <paper-icon-button icon="menu" ng-click="openMenu()"></paper-icon-button>
+        
+            <span flex>Report List</span>
+            
+            <paper-fab mini icon="add" class="red" ng-click="addReport()"></paper-fab>
+        </core-toolbar>
+
+        <core-toolbar ng-if="selectedPage == 1">
+            <paper-icon-button icon="arrow-back" ng-click="backToList()"></paper-icon-button>
+            
+            <span flex>Report Detail</span>
+            
+            <div id="more-menu" ng-if="moreMenu != null">
+                <paper-icon-button icon="more-vert" ng-click="moreMenu.dropdown.toggle()"></paper-icon-button>
+                <core-dropdown halign="right"">
+                    <div class="menu">
+                        <paper-item class="publish" ng-click="moreMenu.publish()" ng-if="moreMenu.publishable"><core-icon icon="send"></core-icon>Publish</paper-item>
+                        <paper-item class="delete" ng-click="moreMenu.delete()"><core-icon icon="delete"></core-icon>Delete</paper-item>
                     </div>
-                </infinite-scroll>
+                </core-dropdown>
+                
+                <confirm-dialog setter="moreMenu.confirmDialog"></confirm-dialog>
+                
+                <paper-toast class="capsule"></paper-toast>
             </div>
-        </div>
+        </core-toolbar>
+                    
+        <core-animated-pages transitions="slide-from-right">
+            <section id="list">
+    		    <div ng-if="reports == null" class="page-loading">
+                    <div>
+        	            <paper-spinner active></paper-spinner>
+                    </div>
+    		    </div>
+    		    <div ng-if="reports != null" class="list">
+                    <div class="no-reports" ng-if="noReports">
+                        <paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
+                    </div>
+                    
+                    <infinite-scroll pager="reports" page-size="pageSize">
+                        <div id="content">
+            		        <div class="report-row" ng-repeat="report in reports.list" ng-click="goReport($index)">
+            		        	<div class="head">
+                                    <div class="image">
+                                        <div class="loading" ng-if="report.photo.reduced.thumbnail.url == null">
+                                            <paper-spinner active class="gray"></paper-spinner>
+                                        </div>
+                                        <div ng-if="report.photo.reduced.thumbnail.url != null">
+                                            <fit-image width="100" height="100" shrink="true" url="report.photo.reduced.thumbnail.url" fitSetter="fitSetter($index)"></fit-image>
+                                        </div>
+                                    </div>
+            			        	<div class="desc">
+            		                	<div class="spot">
+            		                		<p>{{ report.location.name }}, {{ report.dateAt | date:"yyyy-MM-dd" }}</p>
+            		                	</div>
+            			                <div class="fishes">
+            				        		<div ng-repeat="fish in report.fishes">
+            				        			<p>{{fish | fishFilter }}</p>
+            				        		</div>
+            			                </div>
+            		                </div>
+            	                </div>
+            	                <div class="comment">
+            	                	<p>{{report.comment}}</p>
+            	                </div>
+            		        </div>
+                        </div>
+                    </infinite-scroll>
+                </div>
+            
+            </section>
+            <section id="detail">
+                <div>
+                    <div id="photo">
+                        <div style="width: {{ photo.width }}px; height: {{ photo.height }}px">
+                            <div class="loading">
+                                <img width="{{ photo.width }}" height="{{ photo.height }}" ng-src="{{ report.photo.reduced.thumbnail.url }}">
+                            </div>
+                            <div class="loaded">
+                                <img width="{{ photo.width }}" height="{{ photo.height }}" ng-src="{{ report.photo.reduced.mainview.url }}" ng-load="photo.loaded($event)">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="dateAt">
+                        <p>{{ report.dateAt | date:"EEE, MMM d, yyyy, 'about' h a" }}</p>
+                        <div class="edit-button">
+                            <paper-icon-button icon="create" ng-click="editTimestamp.value.open()"></paper-icon-button>
+                            <edit-timestamp-dialog value="timestamp" setter="editTimestamp"></edit-timestamp-dialog>
+                        </div>
+                    </div>
+                    
+                    <div id="condition">
+                        <div class="weather">
+                            <p>{{conditions.weather.nominal}} / {{conditions.weather.temperature | temperatureFilter }}</p>
+                            <img ng-src="{{conditions.weather.iconUrl}}">
+                            <div class="edit-button" ng-if="conditions.weather.nominal != null">
+                                <paper-icon-button icon="create" ng-click="conditions.dialogWeather()"></paper-icon-button>
+                                <edit-weather-dialog value="conditions.weather" setter="conditions.weatherDialog"></edit-weather-dialog>
+                            </div>
+                        </div>
+                        <div class="tide">
+                            <p>{{conditions.tideName}}</p>
+                            <img ng-src="{{conditions.tideImage}}">
+                            <div class="edit-button" ng-if="conditions.tide != null">
+                                <paper-icon-button icon="create" ng-click="conditions.dialogTide()"></paper-icon-button>
+                                <edit-tide-dialog value="conditions.tide" setter="conditions.tideDialog"></edit-tide-dialog>
+                            </div>
+                        </div>
+                        <div class="moon">
+                            <p>Phase: {{conditions.moon}}</p>
+                            <img ng-src="{{conditions.moonImage}}">
+                        </div>
+                    </div>
+                    
+                    <div id="fishes">
+                        <div class="header">
+                            <p>Catches</p>
+                            <p class="empty" ng-if="!catches.isEditing && (report.fishes == null || report.fishes.isEmpty)">Empty</p>
+                            <paper-icon-button class="add" ng-if="catches.isEditing" icon="add" ng-click="catches.add()"></paper-icon-button>
+                            <div class="edit-button">
+                                <paper-icon-button icon="create" ng-click="catches.toggle($event)"></paper-icon-button>
+                                <edit-fish-dialog setter="catches.dialog"></edit-fish-dialog>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="item" ng-repeat="fish in report.fishes">
+                                <p>{{fish | fishFilter }}</p>
+                                <paper-ripple fit ng-if="catches.isEditing" ng-click="catches.edit($index)"></paper-ripple>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="comment">
+                        <div class="header">
+                            <p>Note</p>
+                            <p class="empty" ng-if="comment.isEmpty">Empty</p>
+                            <div class="edit-button">
+                                <paper-icon-button icon="create" ng-click="comment.toggle($event)"></paper-icon-button>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="viewer" ng-if="!comment.isEditing">
+                                <expandable-text text="comment.text" shrinked-lines="3"></expandable-text>
+                            </div>
+                            <div class="editor" ng-if="comment.isEditing">
+                                <paper-input-decorator label="Empty">
+                                    <paper-autogrow-textarea>
+                                        <textarea ng-model="comment.text"></textarea>
+                                    </paper-autogrow-textarea>
+                                </paper-input-decorator>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="location">
+                        <div class="header">
+                            <p>Location</p>
+                            <div class="edit-button">
+                                <paper-icon-button icon="create" ng-click="location.toggle($event)"></paper-icon-button>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="name">
+                                <div class="viewer" ng-if="!location.isEditing">
+                                    <p>{{location.spotName}}</p>
+                                </div>
+                                <div class="editor" ng-if="location.isEditing">
+                                    <paper-input-decorator label="Spot Name">
+                                        <input ng-model="location.spotName">
+                                    </paper-input-decorator>
+                                </div>
+                            </div>
+                            <div class="gmap">
+                                <expandable-gmap center="location.geoinfo" set-gmap="location.setGMap" get-scroller="location.getScroller" get-base="location.getBase"></expandable-gmap>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </core-animated-pages>
     </core-header-panel>
 </core-drawer-panel>

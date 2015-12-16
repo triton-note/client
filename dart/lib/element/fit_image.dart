@@ -6,6 +6,7 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 
+import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/geometry.dart';
 
 final _logger = new Logger('FitImageElement');
@@ -21,6 +22,7 @@ class FitImageElement {
   @NgOneWay('url') String url;
   @NgOneWay('shrink') bool shrink;
   @NgOneWay('changable') bool changable;
+  @NgOneWay('fitSetter') Setter<Size> fitSetter;
   @NgAttr('align') String alignName;
 
   bool _loaded = false;
@@ -84,5 +86,7 @@ class FitImageElement {
       ..fill = "forwards"
       ..target = target
       ..play();
+
+    fitSetter?.value = fit;
   }
 }

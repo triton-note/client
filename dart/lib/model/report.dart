@@ -35,7 +35,7 @@ class _ReportImpl implements Report {
         _location = new CachedProp<Location>.forMap(data, 'location', (map) => new Location.fromMap(map)),
         _condition = new CachedProp<Condition>.forMap(data, 'condition', (map) => new Condition.fromMap(map));
 
-  Map toMap() => new Map.from(_data);
+  Map toMap() => JSON.decode(JSON.encode(_data));
 
   final String id;
   DateTime dateAt;
@@ -118,7 +118,7 @@ class _FishesImpl implements Fishes {
         _weight = new CachedProp<Weight>.forValueUnit(data, 'weight', (value) => new Weight.standard(value)),
         _length = new CachedProp<Length>.forValueUnit(data, 'length', (value) => new Length.standard(value));
 
-  Map toMap() => new Map.from(_data);
+  Map toMap() => JSON.decode(JSON.encode(_data));
 
   final String id;
   String reportId;

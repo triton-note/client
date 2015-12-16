@@ -34,9 +34,14 @@ class Reports {
   static Future<Report> _fromCache(String id) async =>
       (await _cachedList).firstWhere((r) => r.id == id, orElse: () => null);
 
-  static Future<List<Report>> _addToCache(Report adding) async => (await _cachedList)
-    ..add(adding)
-    ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
+  static Future<Null> _sort() async {
+    (await _cachedList).sort((a, b) => b.dateAt.compareTo(a.dateAt));
+  }
+
+  static Future<Null> _addToCache(Report adding) async {
+    (await _cachedList).add(adding);
+    await _sort();
+  }
 
   static Future<Null> _loadFishes(Report report) async {
     final list = await TABLE_CATCH.query(
@@ -96,6 +101,7 @@ class Reports {
 
     await Future.wait([adding, marging, deleting, updating]);
     _logger.finest("Count of cached list: ${(await _cachedList).length}");
+    await _sort();
   }
 
   static Future<Null> add(Report reportSrc) async {
