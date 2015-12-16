@@ -71,6 +71,9 @@ class _ReportImpl implements Report {
         ..clear()
         ..addAll(other._data);
       this.dateAt = other.dateAt;
+      this.published = other.published;
+      this.location = other.location;
+      this.condition = other.condition;
     } else {
       throw "Unrecognized obj: ${other}";
     }
@@ -152,6 +155,8 @@ class _FishesImpl implements Fishes {
         ..clear()
         ..addAll(other._data);
       this.reportId = other.reportId;
+      this.weight = other.weight;
+      this.length = other.length;
     } else {
       throw "Unrecognized obj: ${other}";
     }
