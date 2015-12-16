@@ -16,7 +16,7 @@ class FishFormatter {
   }
 
   String call(Fishes fish, [int digits = 0]) {
-    if (_measures == null) return null;
+    if (fish == null || _measures == null) return null;
 
     final length = fish.length == null ? null : fish.length.convertTo(_measures.length);
     final weight = fish.weight == null ? null : fish.weight.convertTo(_measures.weight);

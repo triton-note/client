@@ -15,7 +15,7 @@ class TemperatureFormatter {
   }
 
   String call(Temperature src, [int digits = 0]) {
-    if (_measures == null) return null;
+    if (src == null || _measures == null) return null;
 
     final dst = src.convertTo(_measures.temperature);
     return "${round(dst.value, digits)} °${nameOfEnum(dst.unit)[0]}";

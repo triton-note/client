@@ -8,6 +8,6 @@ import 'package:triton_note/util/enums.dart';
 @Formatter(name: 'tideFilter')
 class TideFormatter {
   String call(Tide src) {
-    return nameOfEnum(src);
+    return (src == null) ? null : nameOfEnum(src);
   }
 }
