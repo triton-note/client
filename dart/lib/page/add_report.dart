@@ -14,6 +14,7 @@ import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
+import 'package:triton_note/dialog/photo_way.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/facebook.dart';
@@ -38,6 +39,7 @@ final _logger = new Logger('AddReportPage');
 class AddReportPage extends SubPage {
   Report report;
 
+  final FuturedValue<PhotoWayDialog> photoWayDialog = new FuturedValue();
   final Getter<EditTimestampDialog> dateOclock = new PipeValue();
   final Getter<EditFishDialog> fishDialog = new PipeValue();
   final Getter<AlertDialog> alertDialog = new PipeValue();
@@ -57,6 +59,15 @@ class AddReportPage extends SubPage {
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
+    photoWayDialog.future.then((dialog) {
+      dialog.onClossing(() {
+        final take = dialog.take;
+        if (take != null) _choosePhoto(take);
+        else back();
+      });
+      dialog.open();
+    });
+
     gmap = new _GMap(
         root,
         new GetterSetter(() => report.location.name, (v) => report.location.name = v),
@@ -69,7 +80,7 @@ class AddReportPage extends SubPage {
   /**
    * Choosing photo and get conditions and inference.
    */
-  choosePhoto(bool take) async {
+  _choosePhoto(bool take) async {
     try {
       _onSubmitable.then((_) => _submitable());
 
