@@ -105,6 +105,14 @@ class ReportsListPage extends MainPage {
     _pages.value.selected = 1;
   }
 
+  backButton() {
+    if (_pages.value.selected == 0) {
+      super.backButton();
+    } else {
+      backToList();
+    }
+  }
+
   backToList() {
     _pages.value.selected = 0;
 
