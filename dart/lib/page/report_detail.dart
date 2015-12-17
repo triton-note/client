@@ -271,7 +271,7 @@ class _Catches extends _PartOfPage {
     }
   }
 
-  add() => alfterRippling(() {
+  add() => afterRippling(() {
         _logger.fine("Add new fish");
         final fish = new Fishes.fromMap({'count': 1});
         dialog.value.openWith(new GetterSetter(() => fish, (v) {
@@ -280,7 +280,7 @@ class _Catches extends _PartOfPage {
         }));
       });
 
-  edit(index) => alfterRippling(() {
+  edit(index) => afterRippling(() {
         _logger.fine("Edit at $index");
         dialog.value.openWith(new GetterSetter(() => list.value[index], (v) {
           if (v == null) {
