@@ -16,7 +16,6 @@
 infinite-scroll::shadow div#content { 
   .report-row {
     position: relative;
-    margin-bottom: 10px;
     padding-top: 0px;
     padding-bottom: 4px;
     padding-left: 8px;
@@ -76,6 +75,10 @@ infinite-scroll::shadow div#content {
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
       }
+    }
+    
+    & > [fit] {
+      opacity: 0;
     }
   }
 }

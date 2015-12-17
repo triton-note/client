@@ -60,7 +60,7 @@
         	                	<p>{{report.comment}}</p>
         	                </div>
                             
-                            <paper-ripple fit ng-click="goReport(report.id)"></paper-ripple>
+                            <paper-ripple fit ng-click="goReport($event, report.id)"></paper-ripple>
         		        </div>
                     </div>
                 </infinite-scroll>

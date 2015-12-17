@@ -59,8 +59,11 @@ class ReportsListPage extends MainPage {
     });
   }
 
-  goReport(String id) {
-    router.go('report-detail', {'reportId': id});
+  goReport(Event event, String id) {
+    event.target as Element..style.opacity = '1';
+    afterRippling(() {
+      router.go('report-detail', {'reportId': id});
+    });
   }
 
   addReport() {
