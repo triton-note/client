@@ -14,7 +14,7 @@ final _logger = new Logger('MainFrame');
 
 const ripplingDuration = const Duration(milliseconds: 250);
 
-Future alfterRippling(Proc()) {
+Future afterRippling(Proc()) {
   return new Future.delayed(ripplingDuration, Proc);
 }
 
@@ -64,7 +64,7 @@ abstract class _AbstractPage extends _Backable implements ShadowRootAware, Attac
   void attach() => _pushMe();
   void detach() => _popMe();
 
-  rippling(proc()) => alfterRippling(proc);
+  rippling(proc()) => afterRippling(proc);
 }
 
 abstract class MainPage extends _AbstractPage {

@@ -61,7 +61,7 @@ class ExpandableTextElement extends ShadowRootAware {
     }
   }
 
-  toggle() => alfterRippling(() async {
+  toggle() => afterRippling(() async {
     final list = [{'height': "${shrinkedHeight}px"}, {'height': "${expandedHeight}px"}];
     final frames = isExpanded ? list.reversed.toList() : list;
 

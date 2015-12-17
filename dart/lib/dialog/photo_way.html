@@ -2,33 +2,26 @@
     <style>
         #photo-way-dialog {
             top: 20%;
-            height: 30%;
             border-radius: 3px;
-        }
-        #photo-way-dialog > div {
-            height: 100%;
-            display: flex;
-            align-items: baseline;
-            flex-direction: column;
-            justify-content: space-between;
-            font-size: 16px;
         }
         
         #photo-way-dialog p {
             margin: 0;
             font-size: 20px;
         }
-        #photo-way-dialog paper-button#take {
+        #photo-way-dialog .buttons {
+            margin-top: 16px;
+        }
+        #photo-way-dialog .buttons paper-button#take {
             background: lightgreen;
         }
-        #photo-way-dialog paper-button#choose {
+        #photo-way-dialog .buttons paper-button#choose {
             background: orange;
         }
     </style>
 
-    
-    <div>
-        <p>Photo ...</p>
+    <p>Photo ...</p>
+    <div class="buttons">
         <paper-button id="take" raised ng-click="done(true)">TAKE</paper-button>
         <paper-button id="choose" raised ng-click="done(false)">CHOOSE</paper-button>
     </div>
