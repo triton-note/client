@@ -109,7 +109,7 @@ class PhotoShop {
         context['navigator']['camera'].callMethod('getPicture', [
           (data) async {
             try {
-              _logger.finest(() => "Loaging choosed photo data: ${data}");
+              _logger.finest(() => "Loaging choosed photo data...");
               final list = new Base64Decoder().convert(data);
               final blob = new Blob([new Uint8List.fromList(list)], CONTENT_TYPE);
               _logger.fine(() => "Get photo data: ${blob}");
