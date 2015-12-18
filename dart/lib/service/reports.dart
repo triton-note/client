@@ -28,13 +28,12 @@ class Reports {
     return {DynamoDB.CONTENT: obj.toMap(), 'REPORT_ID': obj.id, 'DATE_AT': obj.dateAt};
   });
 
-  static Future<PagingList<Report>> paging = cognitoId.then((id) => new PagingList(new _PagerReports(id)));
-  static Future<List<Report>> get _cachedList async => (await paging).list;
+  static final PagingList<Report> paging = new PagingList(new _PagerReports());
+  static List<Report> get _cachedList => paging.list;
 
-  static Future<Report> _fromCache(String id) async =>
-      (await _cachedList).firstWhere((r) => r.id == id, orElse: () => null);
+  static Report _fromCache(String id) => _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
 
-  static Future<List<Report>> _addToCache(Report adding) async => (await _cachedList)
+  static List<Report> _addToCache(Report adding) => _cachedList
     ..add(adding)
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
@@ -47,7 +46,7 @@ class Reports {
   }
 
   static Future<Report> get(String id) async {
-    final found = await _fromCache(id);
+    final found = _fromCache(id);
     if (found != null) {
       return found.clone();
     } else {
@@ -60,12 +59,12 @@ class Reports {
 
   static Future<Null> remove(String id) async {
     _logger.fine("Removing report.id: ${id}");
-    (await _cachedList).removeWhere((r) => r.id == id);
+    _cachedList.removeWhere((r) => r.id == id);
     await TABLE_REPORT.delete(id);
   }
 
   static Future<Null> update(Report newReport) async {
-    final oldReport = await _fromCache(newReport.id);
+    final oldReport = _fromCache(newReport.id);
     assert(oldReport != null);
 
     _logger.finest("Update report:\n old=${oldReport}\n new=${newReport}");
@@ -95,7 +94,7 @@ class Reports {
         : new Future.value(null);
 
     await Future.wait([adding, marging, deleting, updating]);
-    _logger.finest("Count of cached list: ${(await _cachedList).length}");
+    _logger.finest("Count of cached list: ${_cachedList.length}");
   }
 
   static Future<Null> add(Report reportSrc) async {
@@ -117,32 +116,29 @@ class _PagerReports implements Pager<Report> {
 
   Pager<Report> _db;
   Completer<Null> _ready;
-  String currentId;
 
-  _PagerReports(this.currentId) {
+  _PagerReports() {
     _refreshDb();
 
-    CognitoIdentity.addChaningHook((String oldId, String newId) async {
-      if (oldId != null) await Photo.moveCognitoId(oldId, newId);
-      cognitoId.then((id) {
-        currentId = newId;
-        _refreshDb();
-      });
-    });
+    CognitoIdentity.addChaningHook(_refreshDb);
   }
 
-  toString() => "PagerReports[${currentId}](ready=${_ready?.isCompleted ?? false})";
+  toString() => "PagerReports(ready=${_ready?.isCompleted ?? false})";
 
-  _refreshDb() {
+  _refreshDb([String oldId, String newId]) async {
     if (_ready != null && !_ready.isCompleted) _ready.completeError(changedEx);
     _ready = new Completer();
+    _db = null;
+    Reports.paging.reset();
+
+    if (oldId != null && newId != null) await Photo.moveCognitoId(oldId, newId);
+    final currentId = await cognitoId;
+    assert(currentId == newId || newId == null);
 
     _logger.info(() => "Refresh pager: cognito id is changed to ${currentId}");
     _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
-    Reports.paging.then((paging) {
-      paging.reset();
-      _ready.complete();
-    });
+
+    _ready.complete();
   }
 
   bool get hasMore => _db?.hasMore ?? true;
@@ -152,7 +148,7 @@ class _PagerReports implements Pager<Report> {
   Future<List<Report>> more(int pageSize) async {
     try {
       await _ready.future;
-      final cached = await Reports._cachedList;
+      final cached = Reports._cachedList;
       final list = (await _db.more(pageSize)).where((r) => cached.every((c) => c.id != r.id));
       await Future.wait(list.map(Reports._loadFishes));
       _logger.finer(() => "Loaded reports: ${list}");
