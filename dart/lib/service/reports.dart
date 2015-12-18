@@ -132,13 +132,14 @@ class _PagerReports implements Pager<Report> {
     Reports.paging.reset();
 
     if (oldId != null && newId != null) await Photo.moveCognitoId(oldId, newId);
-    final currentId = await cognitoId;
-    assert(currentId == newId || newId == null);
+    cognitoId.then((currentId) {
+      assert(currentId == newId || newId == null);
 
-    _logger.info(() => "Refresh pager: cognito id is changed to ${currentId}");
-    _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
+      _logger.info(() => "Refresh pager: cognito id is changed to ${currentId}");
+      _db = Reports.TABLE_REPORT.queryPager("COGNITO_ID-DATE_AT-index", DynamoDB.COGNITO_ID, currentId, false);
 
-    _ready.complete();
+      _ready.complete();
+    });
   }
 
   bool get hasMore => _db?.hasMore ?? true;
