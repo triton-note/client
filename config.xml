@@ -23,5 +23,5 @@
     <preference name="AutoHideSplashScreen" value="false" />
 
     <engine name='android' spec='~5.0.0'/>
-    <engine name='ios' spec='~4.0.0'/>
+    <engine name='ios' spec='~3.9.2'/>
 </widget>
