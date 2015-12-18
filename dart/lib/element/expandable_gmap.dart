@@ -36,7 +36,8 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
   int shrinkedHeightReal;
   bool isExpanded = false;
   int toolbarOriginalHeight;
-  GeoInfo curCenter;
+  GeoInfo _curCenter;
+  double _curZoom;
   bool _isChanging = false;
 
   Element get gmapHost => _root?.querySelector('#google-maps');
@@ -51,9 +52,13 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
         _gmapReady.complete(gmap);
         if (setGMap != null) setGMap.value = gmap;
 
-        curCenter = gmap.center;
+        _curCenter = gmap.center;
         gmap.on('center_changed', () {
-          if (!_isChanging) curCenter = gmap.center;
+          if (!_isChanging) _curCenter = gmap.center;
+        });
+        _curZoom = gmap.zoom;
+        gmap.on('zoom_changed', () {
+          if (!_isChanging) _curZoom = gmap.zoom;
         });
 
         gmap.addCustomIcon((img) {
@@ -161,7 +166,8 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
           final delta = (nextHeight - curHeight) * timeFractal;
           target.style.height = "${curHeight + delta.round()}px";
           gmap.triggerResize();
-          gmap.panTo(curCenter);
+          gmap.panTo(_curCenter);
+          gmap.zoom = _curZoom;
           if (timeFractal == 1) onFinish();
         }
         ..play();
