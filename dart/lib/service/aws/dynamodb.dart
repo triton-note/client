@@ -194,37 +194,48 @@ class LastEvaluatedKey {
   }
 }
 
-class _PagingQuery<T extends DBRecord> implements Pager<T> {
-  final DynamoDB_Table<T> table;
-  final String indexName, hashKeyName, hashKeyValue;
-  final bool isForward;
+abstract class _PagingDB<T extends DBRecord> implements Pager<T> {
+  final DynamoDB_Table<T> _table;
   final LastEvaluatedKey _lastEvaluatedKey = new LastEvaluatedKey();
+  Completer<List<T>> _asking;
 
-  _PagingQuery(this.table, this.indexName, this.isForward, this.hashKeyName, this.hashKeyValue);
+  _PagingDB(this._table);
 
   bool get hasMore => !_lastEvaluatedKey.isOver;
 
   void reset() => _lastEvaluatedKey.reset();
 
-  Future<List<T>> more(int pageSize) =>
-      !hasMore ? [] : table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKey);
+  Future<List<T>> _doMore(int pageSize);
+
+  Future<List<T>> more(int pageSize) async {
+    if (!hasMore) return [];
+    if (_asking?.isCompleted ?? true) {
+      _asking = new Completer();
+      _asking.complete(await _doMore(pageSize));
+    }
+    return _asking.future;
+  }
 }
 
-class _PagingScan<T extends DBRecord> implements Pager<T> {
-  final DynamoDB_Table<T> table;
+class _PagingQuery<T extends DBRecord> extends _PagingDB<T> {
+  final String indexName, hashKeyName, hashKeyValue;
+  final bool isForward;
+
+  _PagingQuery(DynamoDB_Table<T> table, this.indexName, this.isForward, this.hashKeyName, this.hashKeyValue)
+      : super(table);
+
+  Future<List<T>> _doMore(int pageSize) =>
+      _table.query(indexName, {hashKeyName: hashKeyValue}, isForward, pageSize, _lastEvaluatedKey);
+}
+
+class _PagingScan<T extends DBRecord> extends _PagingDB<T> {
   final String expression;
   final Map<String, String> names;
   final Map<String, dynamic> values;
-  final LastEvaluatedKey _lastEvaluatedKey = new LastEvaluatedKey();
 
-  _PagingScan(this.table, this.expression, this.names, this.values);
+  _PagingScan(DynamoDB_Table<T> table, this.expression, this.names, this.values) : super(table);
 
-  bool get hasMore => !_lastEvaluatedKey.isOver;
-
-  void reset() => _lastEvaluatedKey.reset();
-
-  Future<List<T>> more(int pageSize) =>
-      !hasMore ? [] : table.scan(expression, names, values, pageSize, _lastEvaluatedKey);
+  Future<List<T>> _doMore(int pageSize) => _table.scan(expression, names, values, pageSize, _lastEvaluatedKey);
 }
 
 class _ContentDecoder {
