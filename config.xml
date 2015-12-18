@@ -11,9 +11,7 @@
     <access origin="*" />
     <preference name="fullscreen" value="false" />
     <preference name="Orientation" value="portrait" />
-    <preference name="webviewbounce" value="false" />
-    <preference name="UIWebViewBounce" value="false" />
-    <preference name="DisallowOverscroll" value="false" />
+    <preference name="DisallowOverscroll" value="true" />
     <preference name="BackupWebStorage" value="local" />
     <preference name="android-minSdkVersion" value="21" />
     <preference name="AndroidPersistentFileLocation" value="Internal" />
