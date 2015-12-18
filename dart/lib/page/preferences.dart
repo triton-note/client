@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:paper_elements/paper_toggle_button.dart';
 
 import 'package:triton_note/model/value_unit.dart';
+import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/facebook.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/util/main_frame.dart';
@@ -43,9 +44,9 @@ class PreferencesPage extends MainPage {
       });
     });
 
-    FBConnect.getToken().then((token) {
+    CognitoIdentity.credential.then((cred) {
       new Future.delayed(new Duration(milliseconds: 10), () {
-        toggleButton('#social #connection').checked = token != null;
+        toggleButton('#social #connection').checked = cred.hasFacebook();
       });
     });
   }
@@ -87,7 +88,6 @@ class PreferencesPage extends MainPage {
     } catch (ex) {
       _logger.warning(() => "Error: ${ex}");
     }
-    final token = await FBConnect.getToken();
-    toggle.checked = token != null;
+    toggle.checked = (await CognitoIdentity.credential).hasFacebook();
   }
 }
