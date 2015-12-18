@@ -158,6 +158,8 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
         shift("translateY(${-move}px)", animationDur.inMilliseconds);
       }
 
+      gmap.zoom = _curZoom;
+
       new CoreAnimation()
         ..target = gmap.hostElement
         ..duration = animationDur.inMilliseconds
@@ -167,7 +169,6 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
           target.style.height = "${curHeight + delta.round()}px";
           gmap.triggerResize();
           gmap.panTo(_curCenter);
-          gmap.zoom = _curZoom;
           if (timeFractal == 1) onFinish();
         }
         ..play();
