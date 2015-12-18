@@ -23,7 +23,9 @@ final _logger = new Logger('ReportsListPage');
 class ReportsListPage extends MainPage {
   final pageSize = 20;
 
-  final PagingList<Report> _reports = Reports.paging;
+  final PagingList<Report> reports = Reports.paging;
+
+  bool get noReports => reports.list.isEmpty && !reports.hasMore;
 
   ReportsListPage(Router router) : super(router);
 
@@ -31,15 +33,9 @@ class ReportsListPage extends MainPage {
     super.onShadowRoot(sr);
 
     hideSplashScreen();
-  }
 
-  bool get _isEmpty => _reports.list.isEmpty && !_reports.hasMore;
-  bool noReports = false;
-
-  PagingList<Report> get reports {
-    if (_isEmpty != noReports) {
-      noReports = _isEmpty;
-      if (noReports) new Future.delayed(new Duration(seconds: 3), () {
+    reports.more(pageSize).then((_) {
+      new Future.delayed(const Duration(seconds: 2), () {
         if (noReports) {
           final target = root.querySelector('.list .no-reports');
           final dy = (window.innerHeight / 4).round();
@@ -57,8 +53,7 @@ class ReportsListPage extends MainPage {
             ..play();
         }
       });
-    }
-    return _reports;
+    });
   }
 
   goReport(Event event, String id) {
