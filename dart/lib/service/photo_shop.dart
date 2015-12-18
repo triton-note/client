@@ -1,8 +1,10 @@
 library triton_note.service.photo_shop;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
+import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
 
@@ -99,18 +101,17 @@ class PhotoShop {
       if (isCordova) {
         final params = {
           'correctOrientation': true,
-          'mediaType': context['navigator']['camera']['MediaType']['PICTURE'],
-          'encodingType': context['Camera']['EncodingType']['JPEG'],
-          'destinationType': context['Camera']['DestinationType']['FILE_URI'],
+          'destinationType': context['Camera']['DestinationType']['DATA_URL'],
           'sourceType': take
               ? context['Camera']['PictureSourceType']['CAMERA']
               : context['Camera']['PictureSourceType']['PHOTOLIBRARY']
         };
         context['navigator']['camera'].callMethod('getPicture', [
-          (uri) async {
+          (data) async {
             try {
-              _logger.finest(() => "Loaging choosed photo uri: ${uri}");
-              final blob = await readAsBlob(uri, CONTENT_TYPE);
+              _logger.finest(() => "Loaging choosed photo data...");
+              final list = new Base64Decoder().convert(data);
+              final blob = new Blob([new Uint8List.fromList(list)], CONTENT_TYPE);
               _logger.fine(() => "Get photo data: ${blob}");
               _onChoose.complete(blob);
             } catch (ex) {
