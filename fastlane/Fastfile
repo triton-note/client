@@ -131,14 +131,29 @@ platform :android do
     if is_ci? then
       release_note
 
-      into_platform do
-        if !is_multi? then
+      if !is_multi? then
+        into_platform do
           crashlytics(
           apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
           api_token: ENV["FABRIC_API_KEY"],
           build_secret: ENV["FABRIC_BUILD_SECRET"],
           notes_path: ENV["RELEASE_NOTE_PATH"],
           groups: ENV["FABRIC_CRASHLYTICS_GROUPS"]
+          )
+        end
+      else
+        track_name = ENV['BUILD_MODE']
+        if track_name == 'release' then
+          track_name = 'production'
+        end
+        apkname = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', 'android-*-release.apk')
+        Dir.glob(apkname).each do |apk|
+          supply(
+          apk: apk,
+          package_name: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'],
+          track: track_name,
+          issuer: ENV['ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_EMAIL'],
+          key: persistent('android', 'service_account_key.p12')
           )
         end
       end
