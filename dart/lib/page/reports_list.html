@@ -23,17 +23,12 @@
     	</core-toolbar>
     	
     	<div>
-		    <div ng-if="reports == null" class="page-loading">
-                <div>
-    	            <paper-spinner active></paper-spinner>
-                </div>
-		    </div>
-		    <div ng-if="reports != null" class="list">
+		    <div class="list">
                 <div class="no-reports" ng-if="noReports">
-                    <paper-button ng-click="addReport()">ADD FIRST REPORT NOW !</paper-button>
+                    <paper-button ng-click="addReport()">ADD YOUR FIRST REPORT NOW !</paper-button>
                 </div>
                 
-                <infinite-scroll pager="reports" page-size="pageSize">
+                <infinite-scroll pager="reports" page-size="{{ pageSize }}">
                     <div id="content">
         		        <div class="report-row" ng-repeat="report in reports.list">
         		        	<div class="head">

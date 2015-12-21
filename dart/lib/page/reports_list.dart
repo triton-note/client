@@ -23,24 +23,21 @@ final _logger = new Logger('ReportsListPage');
 class ReportsListPage extends MainPage {
   final pageSize = 20;
 
-  PagingList<Report> reports;
-  bool noReports = false;
+  final PagingList<Report> reports = Reports.paging;
+
+  bool get noReports => reports.list.isEmpty && !reports.hasMore;
 
   ReportsListPage(Router router) : super(router);
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
 
-    Reports.paging.then((paging) async {
-      hideSplashScreen();
+    hideSplashScreen();
 
-      await paging.more(pageSize);
-      reports = paging;
-      noReports = reports.list.isEmpty && !reports.hasMore;
-
-      new Future.delayed(new Duration(seconds: 1), () {
+    reports.more(pageSize).then((_) {
+      new Future.delayed(const Duration(seconds: 2), () {
         if (noReports) {
-          final target = sr.querySelector('.list .no-reports');
+          final target = root.querySelector('.list .no-reports');
           final dy = (window.innerHeight / 4).round();
 
           _logger.finest(() => "Show add_first_report button: ${target}: +${dy}");
