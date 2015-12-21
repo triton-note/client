@@ -99,6 +99,22 @@ platform :ios do
             ]
             system(command.join ' ')
           end
+        else
+          if ENV['BUILD_MODE'] == 'beta' then
+            pilot(
+            app_identifier: ENV['IOS_BUNDLE_ID'],
+            changelog: File.open(ENV['RELEASE_NOTE_PATH']).read
+            )
+          end
+          if ENV['BUILD_MODE'] == 'release' then
+            deliver(
+            app_identifier: ENV['IOS_BUNDLE_ID'],
+            release_notes: {'en-US' => File.open(ENV['RELEASE_NOTE_PATH']).read},
+            submit_for_review: true,
+            automatic_release: true,
+            force: true
+            )
+          end
         end
       end
     end
