@@ -24,12 +24,20 @@ class Catches {
     final geoinfo = exp.putName("geoinfo");
     final latitude = exp.putName("latitude");
     final longitude = exp.putName("longitude");
-    final vLatU = exp.putValue(bounds.northEast.latitude);
-    final vLatD = exp.putValue(bounds.southWest.latitude);
-    final vLngU = exp.putValue(bounds.northEast.longitude);
-    final vLngD = exp.putValue(bounds.southWest.longitude);
-    exp.addCond("${content}.${location}.${geoinfo}.${latitude} BETWEEN ${vLatD} AND ${vLatU}");
-    exp.addCond("${content}.${location}.${geoinfo}.${longitude} BETWEEN ${vLngD} AND ${vLngU}");
+
+    between(String key, double upper, double lower) {
+      final name = "${content}.${location}.${geoinfo}.${key}";
+      final vUpper = exp.putValue(upper);
+      final vLower = exp.putValue(lower);
+      if (upper < lower) {
+        exp.addCond("(${name} >= ${vLower} OR ${name} <= ${vUpper})");
+      } else {
+        exp.addCond("${name} BETWEEN ${vLower} AND ${vUpper}");
+      }
+    }
+    between(latitude, bounds.northEast.latitude, bounds.southWest.latitude);
+    between(longitude, bounds.northEast.longitude, bounds.southWest.longitude);
+
     await exp.ready();
 
     return new _CatchesPager(Reports.TABLE_REPORT.scanPager(exp.expression, exp.names, exp.values), filter);
