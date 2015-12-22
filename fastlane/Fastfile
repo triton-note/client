@@ -162,7 +162,7 @@ platform :android do
         if track_name == 'release' then
           track_name = 'production'
         end
-        ['x86', 'armv7'].each do |arch|
+        ['armv7', 'x86'].each do |arch|
           apk = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', "android-#{arch}-release.apk")
           supply(
           apk: File.absolute_path(apk),
