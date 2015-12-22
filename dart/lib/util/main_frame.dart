@@ -101,7 +101,6 @@ abstract class MainPage extends _AbstractPage {
   void goReportsList() => _goByMenu('reports-list');
   void goPreferences() => _goByMenu('preferences');
   void goDistributions() => _goByMenu('distributions');
-  void goExperiment() => _goByMenu('experiment');
 }
 
 abstract class SubPage extends _AbstractPage {

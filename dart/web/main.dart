@@ -29,7 +29,6 @@ import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/report_detail.dart';
 import 'package:triton_note/page/preferences.dart';
 import 'package:triton_note/page/distributions.dart';
-import 'package:triton_note/page/experiment.dart';
 import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/resource_url_resolver_cordova.dart';
@@ -78,7 +77,6 @@ class AppModule extends Module {
     bind(ReportDetailPage);
     bind(PreferencesPage);
     bind(DistributionsPage);
-    bind(ExperimentPage);
 
     bind(RouteInitializerFn, toValue: getTritonNoteRouteInitializer);
     bind(NgRoutingUsePushState, toValue: new NgRoutingUsePushState.value(false));
