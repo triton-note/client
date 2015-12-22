@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html ng-app>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+<meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:">
+  
+<title>Triton Note</title>
+
+<link href='https://fonts.googleapis.com/css?family=Exo+2:100italic,600,200,300,400,800italic|Roboto+Mono:300' rel='stylesheet' type='text/css'>
+
+<link rel="import" href="packages/polymer/polymer.html">
+<link rel="import" href="packages/core_elements/core_animated_pages.html">
+<link rel="import" href="packages/core_elements/core_animated_pages/transitions/cross_fade.html">
+<link rel="import" href="packages/core_elements/core_animated_pages/transitions/slide_from_right.html">
+<link rel="import" href="packages/core_elements/core_scaffold.html">
+<link rel="import" href="packages/core_elements/core_dropdown.html">
+<link rel="import" href="packages/core_elements/core_header_panel.html">
+<link rel="import" href="packages/core_elements/core_toolbar.html">
+<link rel="import" href="packages/core_elements/core_menu.html">
+<link rel="import" href="packages/core_elements/core_item.html">
+<link rel="import" href="packages/core_elements/core_label.html">
+<link rel="import" href="packages/paper_elements/paper_slider.html">
+<link rel="import" href="packages/paper_elements/paper_button.html">
+<link rel="import" href="packages/paper_elements/paper_checkbox.html">
+<link rel="import" href="packages/paper_elements/paper_dropdown.html">
+<link rel="import" href="packages/paper_elements/paper_dropdown_menu.html">
+<link rel="import" href="packages/paper_elements/paper_fab.html">
+<link rel="import" href="packages/paper_elements/paper_autogrow_textarea.html">
+<link rel="import" href="packages/paper_elements/paper_icon_button.html">
+<link rel="import" href="packages/paper_elements/paper_shadow.html">
+<link rel="import" href="packages/paper_elements/paper_spinner.html">
+<link rel="import" href="packages/paper_elements/paper_item.html">
+<link rel="import" href="packages/paper_elements/paper_dialog.html">
+<link rel="import" href="packages/paper_elements/paper_action_dialog.html">
+<link rel="import" href="packages/paper_elements/paper_radio_button.html">
+<link rel="import" href="packages/paper_elements/paper_radio_group.html">
+<link rel="import" href="packages/paper_elements/paper_tab.html">
+<link rel="import" href="packages/paper_elements/paper_tabs.html">
+<link rel="import" href="packages/paper_elements/paper_toast.html">
+<link rel="import" href="packages/paper_elements/paper_toggle_button.html">
+
+<link rel="stylesheet" href="styles/main.css">
+
+</head>
+<body>
+
+	<div style="display: none">
+		<paper-input-decorator></paper-input-decorator>
+	</div>
+    
+    <div id="app-loading">
+        <img src="img/icons/spinner.gif">
+    </div>
+	
+	<ng-view></ng-view>
+    
+    <div id="options">
+        <paper-dialog id="fileChooser" heading="Choose file" transition="core-transition-center" backdrop autoclosedisabled>
+            <input type="file" id="fileInput">
+        </paper-dialog>
+    </div>
+
+    <script type="text/javascript" src="https://sdk.amazonaws.com/js/aws-sdk-2.2.0.min.js"></script>
+    <script type="text/javascript" src="https://raw.githack.com/aws/amazon-cognito-js/master/dist/amazon-cognito.min.js"></script>
+    <script type="text/javascript" src="https://raw.githack.com/mattiasw/ExifReader/master/js/ExifReader.js"></script>
+    <script type="text/javascript" src="https://raw.githack.com/nnnick/Chart.js/master/Chart.js"></script>
+
+	<script type="text/javascript" src="cordova.js"></script>
+    <script type="application/dart" src="main.dart"></script>
+</body>
+</html>

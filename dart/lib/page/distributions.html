@@ -1,0 +1,98 @@
+<core-drawer-panel id="mainFrame">
+    <core-header-panel drawer mode="waterfall">
+        <core-toolbar>
+            <div>Menu</div>
+        </core-toolbar>
+        <core-menu>
+            <core-item icon="view-list" label="Reports List" ng-click="goReportsList()"></core-item>
+	        <core-item icon="settings" label="Preferences" ng-click="goPreferences()"></core-item>
+            <core-item icon="track-changes" label="Distributions" ng-click="goDistributions()"></core-item>
+        </core-menu>
+    </core-header-panel>
+
+    <core-header-panel main mode="waterfall">
+        <core-toolbar>
+        
+            <paper-icon-button icon="menu" ng-click="openMenu()"></paper-icon-button>
+        
+            <span flex>Distributions</span>
+            
+            <paper-icon-button icon="filter-list" ng-click="openFilter()"></paper-icon-button>
+            <distributions-filter-dialog setter="filterDialog" filter="filter"></distributions-filter-dialog>
+            
+            <div class="tabs" ng-if="isReady">
+                <paper-tabs selected="0">
+                    <paper-tab>MAP</paper-tab>
+                    <paper-tab>TIME LINE</paper-tab>
+                </paper-tabs>
+            </div>
+        </core-toolbar>
+
+        <core-animated-pages transitions="slide-from-right">
+            <section id="dmap">
+                <div id="gmap">
+                    <expandable-gmap center="dmap.center" set-gmap="dmap.gmapSetter" get-scroller="scroller" get-base="scrollBase" get-toolbar="toolbar"></expandable-gmap>
+                </div>
+                <div id="around">
+                    <div class="page-loading" ng-if="!dmap.isReady">
+                        <div>
+                            <paper-spinner active></paper-spinner>
+                        </div>
+                    </div>
+                    <div class="header" ng-if="dmap.isReady">
+                        <p>Catches round here</p>
+                    </div>
+                    <infinite-scroll pager="catchesPager" page-size="10">
+                        <div id="content">
+                            <collapser ng-repeat="catches in catchesPager.list" opened="dmap[$index]">
+                                <div id="header">
+                                    <div class="fish">
+                                        <p>{{ catches.fish | fishFilter }}</p>
+                                    </div>
+                                    <div class="date">
+                                        <p>{{ catches.dateAt | date:"h a, yyyy-MM-dd" }}</p>
+                                    </div>
+                                </div>
+                                <div id="content">
+                                    <div class="weather">
+                                        <p>{{ catches.condition.weather.nominal }} ({{ catches.condition.weather.temperature | temperatureFilter }})</p>
+                                    </div>
+                                    <div class="tide">
+                                        <p>Tide: {{ catches.condition.tide | tideFilter }}</p>
+                                    </div>
+                                    <div class="moon">
+                                        <p>Moon: {{ catches.condition.moon }}</p>
+                                    </div>
+                                </div>
+                            </collapser>
+                        </div>
+                    </infinite-scroll>
+                </div>
+            </section>
+            
+            <section id="dtime">
+                <div id="control">
+                    <paper-dropdown-menu label="Select...">
+                        <paper-dropdown class="dropdown">
+                            <core-menu class="menu">
+                                <paper-item ng-repeat="key in dtime.selectionNames" ng-click="dtime.select(key)">{{ dtime.selection(key) }}</paper-item>
+                            </core-menu>
+                        </paper-dropdown>
+                    </paper-dropdown-menu>
+                    <div class="labels">
+                        <div class="label" ng-repeat="label in dtime.labels">
+                            <div class="color" style="background-color: {{ label['color'] }}"></div>
+                            <label>{{ label['label'] }}</label>
+                        </div>
+                    </div>
+                </div>
+                <div id="chart">
+                    <div class="spinner">
+                        <paper-spinner class="gray" active="{{ dtime.isCalculating }}"></paper-spinner>
+                    </div>
+                </div>
+            </section>
+        </core-animated-pages>
+
+    </core-header-panel>
+</core-drawer-panel>

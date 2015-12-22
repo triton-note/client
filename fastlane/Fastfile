@@ -1,0 +1,188 @@
+require 'xcodeproj'
+
+fastlane_version "1.39.0"
+
+def persistent(*paths)
+  File.absolute_path(File.join('persistent', *paths))
+end
+
+def into_platform &block
+  dir = File.join('..', 'platforms', ENV["FASTLANE_PLATFORM_NAME"], 'fastlane')
+  FileUtils.mkdir_p dir
+  Dir.chdir(dir) do
+    block.call
+  end
+end
+
+before_all do
+  into_mode
+
+  dart
+  cordova(plugins: [
+    'cordova-plugin-crosswalk-webview@~1.4.0',
+    'cordova-plugin-device@~1.1.0',
+    'cordova-plugin-console@~1.0.1',
+    'cordova-plugin-camera@~2.0.0',
+    'cordova-plugin-splashscreen@~3.0.0',
+    'cordova-plugin-statusbar@~2.0.0',
+    'cordova-plugin-geolocation@~2.0.0',
+    'cordova-plugin-whitelist@~1.2.0',
+    'phonegap-plugin-push@~1.4.0',
+    "https://github.com/fathens/Cordova-Plugin-FBConnect.git --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
+    "https://github.com/fathens/Cordova-Plugin-Crashlytics.git --variable API_KEY=#{ENV['FABRIC_API_KEY']}"
+  ])
+end
+
+platform :ios do
+  before_all do
+    set_app_id(id: ENV['IOS_BUNDLE_ID'])
+  end
+
+  lane :build do
+    sh('cordova prepare ios')
+
+    if is_ci?
+      keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
+      puts "Using keychain: #{keychainName}"
+      import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "AppleWWDRCA.cer")
+      import_certificate keychain_name: keychainName, certificate_path: persistent('ios', "Distribution.p12"), certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
+    end
+
+    def is_adhoc?
+      !["release", "beta"].include? ENV['BUILD_MODE']
+    end
+
+    into_platform do
+      if ENV["BUILD_NUM"] != nil then
+        increment_build_number(
+        build_number: ENV["BUILD_NUM"]
+        )
+      end
+
+      sigh(
+      app_identifier: ENV['IOS_BUNDLE_ID'],
+      adhoc: is_adhoc?
+      )
+
+      update_project_provisioning(
+      xcodeproj: "#{ENV["APPLICATION_NAME"]}.xcodeproj",
+      target_filter: ".*",
+      build_configuration: "Release"
+      )
+
+      gym(
+      scheme: ENV["APPLICATION_NAME"],
+      configuration: "Release",
+      use_legacy_build_api: is_adhoc?,
+      include_bitcode: false,
+      silent: true,
+      xcargs: {
+        PROVISIONING_PROFILE: lane_context[SharedValues::SIGH_UDID],
+        PRODUCT_BUNDLE_IDENTIFIER: ENV['IOS_BUNDLE_ID']
+      }.map { |k, v| "#{k.to_s.shellescape}=#{v.shellescape}" }.join(' ')
+      )
+
+      if is_ci? then
+        release_note
+
+        if is_adhoc? then
+          Dir.chdir('..') do
+            command = [
+              File.join('Pods', 'Crashlytics', 'submit'),
+              ENV["FABRIC_API_KEY"],
+              ENV["FABRIC_BUILD_SECRET"],
+              "-ipaPath '#{ENV["APPLICATION_NAME"]}.ipa'",
+              "-notesPath '#{ENV["RELEASE_NOTE_PATH"]}'",
+              "-groupAliases '#{ENV["FABRIC_CRASHLYTICS_GROUPS"]}'",
+              "-notifications YES",
+              "-debug NO"
+            ]
+            system(command.join ' ')
+          end
+        else
+          if ENV['BUILD_MODE'] == 'beta' then
+            pilot(
+            app_identifier: ENV['IOS_BUNDLE_ID'],
+            changelog: File.open(ENV['RELEASE_NOTE_PATH']).read
+            )
+          end
+          if ENV['BUILD_MODE'] == 'release' then
+            deliver(
+            app_identifier: ENV['IOS_BUNDLE_ID'],
+            release_notes: {'en-US' => File.open(ENV['RELEASE_NOTE_PATH']).read},
+            submit_for_review: true,
+            automatic_release: true,
+            force: true
+            )
+          end
+        end
+      end
+    end
+  end
+end
+
+platform :android do
+  before_all do
+    set_app_id(id: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
+  end
+
+  lane :build do
+    def is_multi?
+      ["release", "beta"].include? ENV['BUILD_MODE']
+    end
+
+    android_build(
+    keystore: persistent('android', 'keystore'),
+    multi_apks: is_multi?,
+    sdks: [
+      'platform-tools',
+      'tools',
+      'android-23',
+      'extra-google-m2repository',
+      'extra-android-support',
+      'extra-android-m2repository',
+      'build-tools'
+    ])
+
+    if is_ci? then
+      release_note
+
+      if !is_multi? then
+        into_platform do
+          crashlytics(
+          apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
+          api_token: ENV["FABRIC_API_KEY"],
+          build_secret: ENV["FABRIC_BUILD_SECRET"],
+          notes_path: ENV["RELEASE_NOTE_PATH"],
+          groups: ENV["FABRIC_CRASHLYTICS_GROUPS"]
+          )
+        end
+      else
+        track_name = ENV['BUILD_MODE']
+        if track_name == 'release' then
+          track_name = 'production'
+        end
+        apkname = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', 'android-*-release.apk')
+        Dir.glob(apkname).each do |apk|
+          supply(
+          apk: File.absolute_path(apk),
+          package_name: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'],
+          track: track_name,
+          issuer: ENV['ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_EMAIL'],
+          key: persistent('android', 'service_account_key.p12')
+          )
+        end
+      end
+    end
+  end
+end
+
+after_all do
+  if ENV["BUILD_NUM"] then
+    git_tag(
+    username: ENV['GITHUB_USERNAME'],
+    token: ENV['GITHUB_OAUTH_TOKEN'],
+    tag_name: ['deployed', ENV["FASTLANE_PLATFORM_NAME"], ENV['BUILD_MODE'], ENV["BUILD_NUM"]].join('/')
+    )
+  end
+end

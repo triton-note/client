@@ -1,0 +1,64 @@
+<core-drawer-panel id="mainFrame">
+    <core-header-panel drawer mode="waterfall">
+        <core-toolbar>
+	        <div>Menu</div>
+	    </core-toolbar>
+	    <core-menu>
+            <core-item icon="view-list" label="Reports List" ng-click="goReportsList()"></core-item>
+	        <core-item icon="settings" label="Preferences" ng-click="goPreferences()"></core-item>
+            <core-item icon="track-changes" label="Distributions" ng-click="goDistributions()"></core-item>
+	    </core-menu>
+	</core-header-panel>
+
+    <core-header-panel main mode="waterfall">
+    	<core-toolbar>
+    	
+			<paper-icon-button icon="menu" ng-click="openMenu()"></paper-icon-button>
+    	
+      		<span flex>Report List</span>
+      		
+   			<paper-fab mini icon="add" class="red" ng-click="addReport()"></paper-fab>
+    	
+    	</core-toolbar>
+    	
+    	<div>
+		    <div class="list">
+                <div class="no-reports" ng-if="noReports">
+                    <paper-button ng-click="addReport()">ADD YOUR FIRST REPORT NOW !</paper-button>
+                </div>
+                
+                <infinite-scroll pager="reports" page-size="{{ pageSize }}">
+                    <div id="content">
+        		        <div class="report-row" ng-repeat="report in reports.list">
+        		        	<div class="head">
+                                <div class="image">
+                                    <div class="loading" ng-if="report.photo.reduced.thumbnail.url == null">
+                                        <paper-spinner active class="gray"></paper-spinner>
+                                    </div>
+                                    <div ng-if="report.photo.reduced.thumbnail.url != null">
+                                        <fit-image width="100" height="100" shrink="true" url="report.photo.reduced.thumbnail.url"></fit-image>
+                                    </div>
+                                </div>
+        			        	<div class="desc">
+        		                	<div class="spot">
+        		                		<p>{{report.location.name}}, {{report.dateAt | date:"yyyy-MM-dd" }}</p>
+        		                	</div>
+        			                <div class="fishes">
+        				        		<div ng-repeat="fish in report.fishes">
+        				        			<p>{{fish | fishFilter }}</p>
+        				        		</div>
+        			                </div>
+        		                </div>
+        	                </div>
+        	                <div class="comment">
+        	                	<p>{{report.comment}}</p>
+        	                </div>
+                            
+                            <paper-ripple fit ng-click="goReport($event, report.id)"></paper-ripple>
+        		        </div>
+                    </div>
+                </infinite-scroll>
+            </div>
+        </div>
+    </core-header-panel>
+</core-drawer-panel>

@@ -1,0 +1,19 @@
+@import "compass";
+@import 'font';
+
+body {
+	@include font-normal(16px);
+	color: #555;
+	-webkit-font-smoothing: subpixel-antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+  & > #app-loading {
+    @include display-flex();
+    @include justify-content(center);
+    margin-top: 50%;
+    width: 100%;
+  }
+  & > #options {
+    opacity: 0;
+  }
+}

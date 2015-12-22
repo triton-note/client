@@ -1,0 +1,130 @@
+<core-drawer-panel id="mainFrame">
+    <core-header-panel main mode="waterfall">
+    	<core-toolbar>
+    	
+			<paper-icon-button icon="arrow-back" ng-click="back()"></paper-icon-button>
+    	
+      		<span flex>New Report</span>
+      		
+    		<div id="submit">
+                <div class="action">
+        			<paper-fab mini icon="done" class="green" ng-click="dropdownSubmit.open()" ng-if="!isSubmitting"></paper-fab>
+                    <paper-spinner active ng-if="isSubmitting"></paper-spinner>
+                </div>
+                
+                <core-dropdown halign="right"">
+                    <div class="menu">
+                        <paper-item class="publish" ng-click="submit(true)"><core-icon icon="send"></core-icon>Add and Publish</paper-item>
+                        <paper-item class="add" ng-click="submit(false)"><core-icon icon="add-circle"></core-icon>Just Add</paper-item>
+                    </div>
+                </core-dropdown>
+                <alert-dialog setter="alertDialog"></alert-dialog>
+			</div>
+    	
+    	</core-toolbar>
+    	
+    	<div>
+    		<div ng-if="!isReady" class="page-loading">
+                <div>
+                    <paper-spinner active></paper-spinner>
+                </div>
+    			<photo-way-dialog setter="photoWayDialog"></photo-way-dialog>
+    		</div>
+	   		<div id="input" ng-if="isReady">
+		    	<div id="date">
+		    		<div class="buttons">
+		        		<paper-button ng-click="dateOclock.value.open()">{{ report.dateAt | date:"EEE, MMM d, yyyy, 'about' h a" }}</paper-button>
+		        	</div>
+		        	<edit-timestamp-dialog value="report.dateAt" setter="dateOclock"></edit-timestamp-dialog>
+	        	</div>
+		    	<div id="comment">
+		    		<paper-input-decorator label="Write something to note">
+						<paper-autogrow-textarea>
+							<textarea ng-model="report.comment"></textarea>
+						</paper-autogrow-textarea>
+					</paper-input-decorator>
+				</div>
+			    <div id="photo">
+                    <div ng-if="isLoading">
+                        <paper-spinner active class="gray"></paper-spinner>
+                    </div>
+                    <div ng-if="!isLoading">
+    			        <fit-image url="report.photo.reduced.mainview.url" width="photoWidth" height="photoHeight" shrink="true"></fit-image>
+                    </div> 
+			    </div>
+			    <div id="catches">
+                    <div class="content">
+    			    	<div class="control">
+    			    		<div class="title">
+    			    			<p>Catches</p>
+    			    		</div>
+    			    		<div class="fish-name">
+    			    			<paper-input-decorator label="Fish name">
+    			    				<input ng-model="addingFishName">
+    			    			</paper-input-decorator>
+    			    		</div>
+    			    		<div class="add-button">
+    				    		<paper-fab mini icon="add" ng-click="addFish()"></paper-fab>
+    			    		</div>
+    			    	</div>
+    			    	<div class="list">
+    			    		<div class="item" ng-repeat="fish in report.fishes">
+    		    				<p>{{fish | fishFilter }}</p>
+    		    				<paper-ripple fit ng-click="editFish($index)"></paper-ripple>
+    			    		</div>
+    			    	</div>
+                        <edit-fish-dialog setter="fishDialog"></edit-fish-dialog>
+                    </div>
+			    </div>
+			    <div id="location">
+			    	<div>
+			    		<paper-input-decorator label="Spot Name" floatingLabel>
+			    			<input ng-model="gmap.spotName.value">
+			    		</paper-input-decorator>
+			    	</div>
+			    	
+			    	<expandable-gmap center="gmap.geoinfo" set-gmap="gmap.setGMap" get-scroller="gmap.getScroller" get-base="gmap.getBase"></expandable-gmap>
+			    </div>
+			    <div id="condition">
+			    	<div class="weather">
+			    		<div class="spinning" ng-if="conditions.weatherImage == null">
+			    			<p>Weather</p>
+			    			<paper-spinner active class="red"></paper-spinner>
+			    		</div>
+			    		<div class="stable" ng-if="conditions.weatherImage != null">
+				    		<p>{{conditions.weatherName}}</p>
+				    		<div class="row">
+					    		<img ng-src="{{conditions.weatherImage}}">
+					    		<p>{{conditions.value.weather.temperature | temperatureFilter }}</p>
+				    		</div>
+			    			<paper-ripple fit ng-click="conditions.dialogWeather()"></paper-ripple>
+			    		</div>
+                        <edit-weather-dialog value="conditions.value.weather" setter="conditions.weatherDialog"></edit-weather-dialog>
+			    	</div>
+			    	<div class="tide">
+			    		<div class="spinning" ng-if="conditions.tideImage == null">
+			    			<p>Tide</p>
+			    			<paper-spinner active class="blue"></paper-spinner>
+			    		</div>
+			    		<div class="stable" ng-if="conditions.tideImage != null">
+				    		<p>{{conditions.tideName}}</p>
+			    			<img ng-src="{{conditions.tideImage}}">
+			    			<paper-ripple fit ng-click="conditions.dialogTide()"></paper-ripple>
+			    		</div>
+                        <edit-tide-dialog value="conditions.value.tide" setter="conditions.tideDialog"></edit-tide-dialog>
+			    	</div>
+			    	<div class="moon">
+			    		<div class="spinning" ng-if="conditions.moonImage == null">
+			    			<p>Moon</p>
+			    			<paper-spinner active class="green"></paper-spinner>
+			    		</div>
+			    		<div class="stable" ng-if="conditions.moonImage != null">
+				    		<p>Phase: {{conditions.value.moon}}</p>
+				    		<img ng-src="{{conditions.moonImage}}">
+				    	</div>
+			    	</div>
+			    </div>
+    		</div>
+    	</div>
+    </core-header-panel>
+</core-drawer-panel>

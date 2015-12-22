@@ -1,0 +1,39 @@
+@import "../../web/styles/common";
+
+div.root {
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
+  
+  .value {
+    margin-left: 0px;
+    border: none;
+    text-align: right;
+    @include font-mono();
+  }
+  
+  div.buttons {
+    @include display-flex();
+    @include flex-direction(column);
+    @include align-items(center);
+    @include justify-content(center);
+    
+    div.button {
+      position: relative;
+      @include display-flex();
+      @include align-items(center);
+      @include justify-content(center);
+      margin: 2px;
+      
+      border: solid 2px #eee;
+      @include border-radius(4px);
+      background-color: white;
+      
+      text-align: center;
+      
+      paper-ripple {
+        color: #66f;
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+<paper-dialog id="fish-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
+	<style>
+		#fish-dialog .rounded {
+			margin-bottom: 20px;
+			padding: 4px;
+			-moz-border-radius: 3px;
+			-webkit-border-radius: 3px;
+			border-radius: 3px;
+		}
+		#fish-dialog .fish-name {
+			font-size: 20px;
+		}
+		#fish-dialog .sizes .length {
+			border-bottom: solid 1px blue;
+		}
+		#fish-dialog .row {
+			display: flex;
+			align-items: center;
+            justify-content: space-between;
+		}
+		#fish-dialog .row num-input::shadow .value {
+			padding: 3px;
+			border: solid 1px #ddd;
+			-moz-border-radius: 3px;
+			-webkit-border-radius: 3px;
+            border-radius: 3px;
+		}
+        #fish-dialog .buttons {
+            display: flex;
+            flex-wrap: wrap-reverse;
+            justify-content: space-between;
+        }
+        #fish-dialog .buttons > * {
+            margin: 0;
+        }
+        #fish-dialog .buttons paper-button.negative {
+            color: red;
+        }
+        #fish-dialog .buttons paper-button.positive {
+            color: green;
+            margin-left: auto;
+        }
+        #fish-dialog .buttons paper-button.disabled  {
+            color: gray;
+            background-color: #eee;
+        }
+	</style>
+	
+	<paper-shadow class="rounded name">
+		<div class="row fish-name">
+			<paper-input-decorator floatingLabel label="Fish name">
+				<input ng-model="tmpFish.name">
+			</paper-input-decorator>
+		</div>
+		
+		<div class="row count">
+			<p>Count</p>
+			<num-input value="tmpFishCount" min="1"></num-input>
+		</div>
+	</paper-shadow>
+	
+	<paper-shadow class="rounded sizes">
+		<div class="row size length">
+			<p>Length<br/>({{lengthUnit}})</p>
+			<num-input value="tmpFishLength" min="0" digits="3"></num-input>
+		</div>
+		
+		<div class="row size weight">
+			<p>Weight<br/>({{weightUnit}})</p>
+			<num-input value="tmpFishWeight" min="0" digits="3"></num-input>
+		</div>
+	</paper-shadow>
+
+    <div class="buttons">
+        <paper-button class="negative" ng-click="delete()">Delete</paper-button>
+    	<paper-button class="negative" ng-click="cancel()">Cancel</paper-button>
+    	<paper-button class="positive" ng-click="commit()" ng-class="{'disabled': !isCommitable}">OK</paper-button>
+    </div>
+</paper-dialog>

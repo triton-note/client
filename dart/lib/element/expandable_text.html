@@ -1,0 +1,12 @@
+<div id="text">
+	<p>
+        <span ng-repeat="line in lines">{{line}}<br/></span>
+    </p>
+</div>
+
+<div id="toggle" ng-if="hasMore">
+	<paper-button ng-click="toggle()">
+		<core-icon icon="{{ isExpanded ? 'expand-less' : 'expand-more' }}"></core-icon>
+		{{ isExpanded ? "Shrink" : "Read More..." }}
+	</paper-button>
+</div>

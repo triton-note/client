@@ -1,0 +1,7 @@
+@import "../../web/styles/common";
+
+#value {
+  @include display-flex();
+  @include align-items(center);
+}
+

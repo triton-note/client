@@ -1,0 +1,24 @@
+<style>
+	.value {
+		width: {{(fontSize * numDigits).round()}}px;
+		font-size: {{fontSize}}px;
+	}
+	.buttons .button core-icon {
+		width: {{(fontSize * 1.8).round()}}px;
+		height: {{(fontSize * 1.2).round()}}px;
+	}
+</style>
+<div class="root">
+	<input class="value" type="number" ng-model="curValue">
+	
+	<div class="buttons">
+		<div class="button" ng-click="up()">
+			<core-icon icon="arrow-drop-up"></core-icon>
+			<paper-ripple fit></paper-ripple>
+		</div>
+		<div class="button" ng-click="down()">
+			<core-icon icon="arrow-drop-down"></core-icon>
+			<paper-ripple fit></paper-ripple>
+		</div>
+	</div>
+</div>

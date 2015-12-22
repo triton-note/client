@@ -1,0 +1,6 @@
+packages
+/pubspec.lock
+/build/
+/test/results.xml
+/web/js/
+/web/styles/fonts/

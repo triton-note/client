@@ -1,0 +1,196 @@
+@import "../../web/styles/common";
+
+#submit {
+  .action {
+    display: none;
+  }
+  
+  core-dropdown {
+    top: 38px;
+    color: #111;
+    
+    .menu {
+      @include display-flex();
+      @include flex-direction(column);
+      padding: 8px;
+      @include font-bold(16px);
+      
+      &>* {
+        margin: 5px;
+        @include border-radius(4px);
+        
+        &>core-icon {
+          margin-right: 8px;
+        }
+      }
+      
+      .publish {
+        $base-color: #3296FF;
+        color: $base-color;
+        background: tint($base-color, 80%);
+      }
+      .add {
+        $base-color: #32C880;
+        color: $base-color;
+        background: tint($base-color, 80%);
+      }
+    }
+  }
+}
+
+div#pre {
+  div {
+    display: block;
+    
+    margin-top: 30%;
+    text-align: center;
+  }
+  paper-button#take {
+    background: green;
+  }
+  paper-button#choose {
+    background: orange;
+  }
+}
+
+div#comment {
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+div#photo {
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
+  width: 100%;
+}
+
+div#catches {
+  margin-top: 10px;
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
+  
+  div.content {
+    width: 98%;
+    border: solid 2px #ccc;
+    @include border-radius(8px);
+    
+    .control {
+      display: table;
+      width: 100%;
+      border-bottom: solid 1px #ccc;
+      
+      &>:first-child {
+        padding-left: 10px;
+      }
+      &>:last-child {
+        padding-right: 10px;
+      }
+      
+      &>div {
+        display: table-cell;
+        padding: 5px;
+        vertical-align: middle;
+        *vertical-align: auto;
+        
+        &>p {
+          @include font-bold(20px);
+        }
+      }
+    }
+    .list {
+      $fontSize: 16px;
+      
+      &>:first-child {
+        border-top: 0;
+      }
+      
+      .item {
+        position: relative;
+        display: block;
+        padding-top: $fontSize / 2;
+        padding-bottom: $fontSize / 2;
+        padding-left: $fontSize;
+        padding-right: $fontSize;
+        
+        border-top: solid 1px #eee;
+        
+        &>p {
+          @include font-normal($fontSize);
+        }
+      }
+    }
+  }
+}
+
+div#date {
+  .buttons {
+    paper-button {
+      background: white;
+      text-transform: none;
+      @include font-bold();
+      color: #888;
+    }
+  }
+}
+
+#location {
+  &>div {
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+  
+  expandable-gmap {
+    width: 100%;
+  }
+  
+  .toggle {
+    width: 100%;
+    
+    paper-button {
+      margin-left: auto;
+      margin-right: auto;
+      
+      color: #0dd;
+    }
+  }
+}
+
+div#condition {
+  $border_line: solid 2px #eee;
+  $icon_size: 48px;
+  
+  @include display-flex();
+  margin: 3px;
+  height: 100px;
+  border: $border_line;
+  @include border-radius(8px);
+  
+  &>div {
+    @include flex-grow(1);
+
+    &>div {
+      position: relative;
+      height: 100%;
+      @include display-flex();
+      @include flex-direction(column);
+      @include align-items(center);
+      @include justify-content(space-around);
+    }
+    img {
+      width: $icon_size;
+      height: $icon_size;
+      @include border-radius(4px);
+    }
+    .row {
+      @include display-flex();
+      @include flex-direction(row);
+      @include align-items(center);
+    }
+  }
+  .tide {
+    border-left: $border_line;
+    border-right: $border_line;
+  }
+}

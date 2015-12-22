@@ -1,0 +1,84 @@
+@import "../../web/styles/common";
+
+.list {  
+  .no-reports {
+    top: -50px;
+    opacity: 0;
+    text-align: center;
+    
+    paper-button {
+      background-color: red;
+      color: white;
+    }
+  }
+}
+
+infinite-scroll::shadow div#content { 
+  .report-row {
+    position: relative;
+    padding-top: 0px;
+    padding-bottom: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    
+    border-bottom: solid 10px #eee;
+    
+    .head {
+      display: table;
+      width: 100%;
+      
+      &>* {
+        display: table-cell;
+        vertical-align: top;
+      }
+      
+      .image {
+        width: 100px;
+        padding-top: 10px;
+        text-align: center;
+        
+        .loading {
+          @include display-flex();
+          @include align-items(center);
+          @include justify-content(center);
+          height: 100px;
+          background-color: #eee;
+        }
+      }
+      
+      .desc {
+        position: relative;
+        
+        .spot {
+          padding-top: 2px;
+          @include font-light(14px);
+          text-align: right;
+        }
+        .fishes {
+          margin-top: 8px;
+          margin-left: 10px;
+          @include font-normal(16px);
+          p {
+            margin-bottom: 3px;
+          }
+        }
+      }
+    }
+    
+    .comment {
+      margin-top: 4px;
+      overflow: hidden;
+      @include font-light(16px);
+      
+      p {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+    }
+    
+    & > [fit] {
+      opacity: 0;
+    }
+  }
+}

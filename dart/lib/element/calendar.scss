@@ -1,0 +1,97 @@
+@import "../../web/styles/common";
+
+div.view {
+  display: block;
+  padding: 8px;
+  text-align: center;
+}
+
+div.control {
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
+  width: 100%;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  
+  background-color: #eee;
+  
+  &>div {
+    @include flex-grow(1);
+  }
+  paper-button {    
+    /deep/ .button-content {
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    
+    font-size: 12px;
+    background-color: white;
+    
+    core-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+div.calendar {
+  core-animated-pages {
+    width: 100%;
+    height: 230px;
+    
+    section {
+      padding: 10px;
+      font-size: 12px;
+      
+      &>div {
+        border: solid 1px #ddd;
+        
+        &>div {
+          padding-top: 12px;
+          padding-bottom: 12px;
+          
+          text-align: center;
+          @include font-bold();
+          @include background-image(linear-gradient(#f8f8f8, white));
+        }
+        
+        table {
+          width: 100%;
+          table-layout: fixed;
+          border-collapse: collapse;
+          
+          p {
+            margin-top: 4px;
+            margin-bottom: 4px;
+          }
+          
+          th {
+            color: #888;
+          }
+          
+          td {
+            border: solid 1px #ddd;
+            text-align: center;
+            
+            &.inside {
+              background: white;
+            }
+            &.outside {
+              background: #f8f8f8;
+              color: #ddd;
+            }
+            &.today {
+              border: solid 3px #aaf;
+            }
+            &.selected {
+              background: #eef;
+              color: #00e;
+              @include font-bold();
+            }
+          }
+        }
+      }
+    }
+  }
+}

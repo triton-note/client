@@ -1,0 +1,161 @@
+@import "../../web/styles/common";
+
+.header {
+  @include display-flex();
+  @include align-items(baseline);
+  @include flex-wrap(wrap);
+  @include justify-content(flex-end);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 10px;
+  padding-right: 10px;
+  
+  background-color: $header-color;
+  
+  &>p {
+    @include font-bold(20px);
+    margin-right: auto;
+  }
+  
+  #only-mine {
+    @include display-flex();
+    @include align-items(baseline);
+    paper-toggle-button {
+      margin-left: 8px;
+      margin-right: 8px;
+    }
+  }
+}
+
+.body {
+  collapser::shadow {
+    #header {
+      @include display-flex();
+      @include align-items(baseline);
+      width: 100%;
+      @include font-normal(16px);
+      
+      &>*:first-child {
+        margin-right: auto;
+      }
+      
+      .values {
+        @include display-flex();
+        @include align-items(baseline);
+        @include font-light(14px);
+        
+        &>div {
+          margin-right: 10px;
+        }
+      }
+    }
+    
+    #content {
+      padding: 10px;
+      
+      &>div {
+        @include display-flex();
+        @include align-items(center);
+        @include flex-wrap(wrap);
+        @include justify-content(flex-end);
+        
+        core-label {
+          @include display-flex();
+          @include align-items(center);
+          margin-right: auto;
+          
+          paper-checkbox {
+            margin: 4px;
+          }
+        }
+        
+        &>div {
+          @include display-flex();
+          @include align-items(center);
+        }
+      }
+      
+      &>hr {
+        padding: 0;
+        border: 0;
+        height: 1px;
+        @include background-image(linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0)));
+      }
+    }
+  }
+  
+  #condition {
+    &::shadow {
+      #content {
+        &>div {
+          &>div {
+            position: relative;
+          }
+        }
+        
+        #weather, #tide {
+          &>div {
+            margin-right: auto;
+            text-align: center;
+          }
+        }
+        #tide {
+          img {
+            width: 48px;
+            height: 48px;
+            @include border-radius(4px);
+            margin-left: 8px;
+          }
+        }
+      }
+    }
+  }
+  
+  #term {
+    &::shadow {
+      #content {
+        #interval {
+          &>div {
+            &>p {
+              margin-left: 10px;
+              margin-right: 10px;
+              @include font-light(14px);
+            }
+            &>div {
+              position: relative;
+              margin-left: 10px;
+              margin-right: 10px;
+            }
+          }
+          &>p {
+            margin-left: 10px;
+            margin-right: 10px;
+            @include font-light(14px);
+          }
+        }
+        
+        #recent {
+          num-input {
+            margin-right: 20px;
+          }
+          
+          choose-list {
+            width: 80px;
+          }
+        }
+        
+        #season {
+          &>div {
+            @include display-flex();
+            @include align-items(baseline);
+            &>p {
+              @include font-light(14px);
+              margin-left: 20px;
+              margin-right: 20px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+<paper-dialog id="photo-way-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
+    <style>
+        #photo-way-dialog {
+            top: 20%;
+            border-radius: 3px;
+        }
+        
+        #photo-way-dialog p {
+            margin: 0;
+            font-size: 20px;
+        }
+        #photo-way-dialog .buttons {
+            margin-top: 16px;
+        }
+        #photo-way-dialog .buttons paper-button#take {
+            background: lightgreen;
+        }
+        #photo-way-dialog .buttons paper-button#choose {
+            background: orange;
+        }
+    </style>
+
+    <p>Photo ...</p>
+    <div class="buttons">
+        <paper-button id="take" raised ng-click="done(true)">TAKE</paper-button>
+        <paper-button id="choose" raised ng-click="done(false)">CHOOSE</paper-button>
+    </div>
+</paper-dialog>

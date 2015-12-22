@@ -1,0 +1,245 @@
+@import "../../web/styles/common";
+
+$edit-button-size: 24px;
+$edit-button-padding: 8px;
+.edit-button {
+  position: absolute;
+  bottom: -$edit-button-padding;
+  right: -$edit-button-padding;
+  
+  paper-icon-button {
+    color: green;
+  }
+}
+
+div#more-menu {
+  position: relative;
+  
+  core-dropdown {
+    top: 38px;
+    color: #111;
+    
+    .menu {
+      @include display-flex();
+      @include flex-direction(column);
+      padding: 8px;
+      @include font-bold(16px);
+      
+      &>* {
+        margin: 5px;
+        @include border-radius(4px);
+        
+        &>core-icon {
+          margin-right: 8px;
+        }
+      }
+      
+      .publish {
+        $base-color: #3296FF;
+        color: $base-color;
+        background: tint($base-color, 80%);
+      }
+      .delete {
+        $base-color: #FF3232;
+        color: $base-color;
+        background: tint($base-color, 80%);
+      }
+    }
+  }
+}
+
+#photo {
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
+  position: relative;
+  
+  .loading {
+    @include display-flex();
+    @include align-items(center);
+    @include justify-content(center);
+    background-color: #eee;
+  }
+  
+  float-buttons::shadow {
+    paper-fab {
+      margin: 10px;
+      background-color: black;
+    }
+  }
+  
+  iframe {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+#dateAt {
+  position: relative;
+  
+  width: 100%;
+  margin-top: 4px;
+  
+  text-align: right;
+  @include font-bold();
+  
+  p {
+    margin-right: $edit-button-size + $edit-button-padding;
+  }
+  .edit-button {
+    bottom: -$edit-button-padding - 4px;
+  }
+}
+
+#condition {
+  $imgSize: 48px;
+  $border: solid 2px #eee;
+  
+  display: table;
+  
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  
+  border: $border;
+  @include border-radius(8px);
+  
+  &>div {
+    position: relative;
+    display: table-cell;
+    width: 33%;
+    
+    padding-top: 4px;
+    padding-bottom: 0px;
+    padding-left: 8px;
+    padding-right: 8px;
+    
+    text-align: center;
+    
+    &>p {
+      margin-bottom: 10px;
+    }
+    
+    img {
+      width: $imgSize;
+      height: $imgSize;
+      @include border-radius(4px);
+    }
+  }
+  
+  &>div:nth-child(2n) {
+    border-left: $border;
+    border-right: $border;
+  }
+  
+  .weather {
+    &>p {
+      margin-bottom: 0px;
+    }
+    
+    img {
+      width: $imgSize * 1.5;
+      height: $imgSize * 1.5;
+    }
+  }
+}
+
+.header {
+  position: relative;
+  display: table;
+  width: 100%;
+  vertical-align: baseline;
+  
+  @include font-bold(18px);
+  @include background-image(linear-gradient($header-color, white));
+  
+  &>* {
+    display: table-cell;
+  }
+  &>*:first-child {
+    width: 30%;
+    padding-left: 4px;
+  }
+  .empty {
+    @include font-italic-light(14px);
+  }
+}
+
+#fishes {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: solid 1px #eee;
+  
+  paper-icon-button.add {
+    position: absolute;
+    left: 100px;
+    bottom: -8px;
+    opacity: 0;
+    color: red;
+  }
+  
+  .content {
+    margin-top: 8px;
+    .item {
+      position: relative;
+      margin: 8px;
+    }
+  }
+}
+
+#comment {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: solid 1px #eee;
+  
+  .content {
+    padding: 4px;
+    @include font-normal(16px);
+    
+    .viewer {
+      margin-top: 8px;
+    }
+    
+    .editor {
+      paper-input-decorator {
+        padding-top: 0;
+      }
+    }
+  }
+}
+
+#location {
+  width: 100%;
+  margin-top: 10px;
+  border: solid 1px #eee;
+  
+  .content {
+    .name {
+      margin-left: 4px;
+      margin-right: 4px;
+      
+      .viewer {
+        margin-top: 8px;
+        margin-bottom: 12px;
+      }
+      
+      .editor {
+        paper-input-decorator {
+          padding-top: 0;
+        }
+      }
+    }
+    
+    .gmap {
+      border: solid 2px white;
+    }
+    
+    expandable-gmap {
+      width: 100%;
+    }
+  }
+}

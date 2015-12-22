@@ -1,0 +1,27 @@
+<paper-dialog id="distributions-filter" transition="core-transition-top" backdrop autoCloseDisabled>
+    <style>
+        #distributions-filter::shadow #scroller {
+            padding: 0;
+        }
+        
+        #distributions-filter {
+            margin: 0;
+            top: 64px;
+            left: 0;
+            right: 0;
+        }
+        
+        #distributions-filter > div {
+            text-align: right;
+        }
+        
+        #distributions-filter > div paper-button {
+            color: green;
+        }
+    </style>
+    
+    <distributions-filter setter="filter"></distributions-filter>
+    <div>
+        <paper-button ng-click="close()">OK</paper-button>
+    </div>
+</paper-dialog>

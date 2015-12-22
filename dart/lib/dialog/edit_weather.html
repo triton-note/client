@@ -1,0 +1,60 @@
+<paper-dialog id="weather-dialog" transition="core-transition-center" backdrop>
+    <style>
+        #weather-dialog paper-shadow {
+            margin-bottom: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+            -moz-border-radius: 3px;
+            -webkit-border-radius: 3px;
+            border-radius: 3px;
+        }
+        #weather-dialog #temperature > div {
+            text-align: center;
+        }
+        #weather-dialog .row {
+            position: relative;
+            padding: 10px;
+        }
+        #weather-dialog .first {
+            border-bottom: solid 1px #ccc;
+        }
+        #weather-dialog .middle {
+            border-top: solid 1px #ccc;
+            border-bottom: solid 1px #ccc;
+        }
+        #weather-dialog .last {
+            border-top: solid 1px #ccc;
+        }
+        #weather-dialog .row > * {
+            display: inline-block;
+            vertical-align: middle;
+            *vertical-align: auto;
+            *zoom: 1;
+            *display: inline;
+        }
+    </style>
+    <div>
+        <div ng-if="withTemperature">
+            <paper-shadow id="temperature" z="1">
+                <div class="row">
+                    <num-input value="temperatureValue"></num-input>
+                    <p>{{temperatureUnit}}</p>
+                </div>
+            </paper-shadow>
+            
+            <br>
+        </div>
+        
+        <paper-shadow id="sky" z="1">
+            <div class="row" ng-repeat="name in weatherNames" ng-class="{'first': $first, 'middle': $middle, 'last': $last}">
+                <div class="cell">
+                    <img width="64" height="64" ng-src="{{weatherIcon(name)}}">
+                </div>
+                <div class="cell">
+                    <p>{{name}}</p>
+                </div>
+                <paper-ripple fit ng-click="changeWeather(name)"></paper-ripple>
+            </div>
+        </paper-shadow>
+    </div>
+</paper-dialog>

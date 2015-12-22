@@ -1,0 +1,16 @@
+<div id="base">
+    <div relative id="value">
+        <p>{{ value }}</p>
+        <core-icon icon="arrow-drop-down"></core-icon>
+        <paper-ripple fit ng-click="open()"></paper-ripple>
+    </div>
+    
+    <paper-dropdown layered transition="core-transition-center">
+        <div style="display: flex; flex-direction: column; justify-content: space-around">
+            <div relative ng-repeat="name in list">
+                <p style="margin: 4px 10px 4px 10px; font-size: 14px; font-weight: 200;">{{ name }}</p>
+                <paper-ripple fit ng-click="choose(name)"></paper-ripple>
+            </div>
+        </div>
+    </paper-dropdown>
+</div>

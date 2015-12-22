@@ -1,0 +1,79 @@
+<div class="root">
+	<div class="view">
+		<p>{{ value | date:'longDate' }}</p>
+	</div>
+	<div class="control">
+		<div class="back">
+			<paper-button ng-click="previousMonth()">
+				<core-icon icon="arrow-back"></core-icon>
+			</paper-button>
+		</div>
+		<div class="today">
+			<paper-button ng-click="goToday()">
+				<core-icon icon="today"></core-icon>
+				today
+			</paper-button>
+		</div>
+		<div class="forward">
+			<paper-button ng-click="nextMonth()">
+				<core-icon icon="arrow-forward"></core-icon>
+			</paper-button>
+		</div>
+	</div>
+	<div class="calendar">
+		<core-animated-pages transitions="slide-from-right">
+			<section id="pageA">
+				<div>
+					<div>
+						<p>{{pageA_currentFirst | date:'MMM, yyyy'}}</p>
+					</div>
+					<table>
+						<tr>
+							<th ng-repeat="name in weekNamesList">
+								<p>{{name}}</p>
+							</th>
+						</tr>
+						<tr ng-repeat="week in pageA_weeks">
+							<td ng-repeat="day in week"
+									ng-click="selectDay(day.year, day.month, day.day)"
+									ng-class="{
+										'inside': day.month == pageA_currentFirst.month,
+										'outside': day.month != pageA_currentFirst.month,
+										'today': day == today,
+										'selected': day == value
+									}">
+								<p>{{day.day}}</p>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</section>
+			<section id="pageB">
+				<div>
+					<div>
+						<p>{{pageB_currentFirst | date:'MMM, yyyy'}}</p>
+					</div>
+					<table>
+						<tr>
+							<th ng-repeat="name in weekNamesList">
+								<p>{{name}}</p>
+							</th>
+						</tr>
+						<tr ng-repeat="week in pageB_weeks">
+							<td ng-repeat="day in week"
+									ng-click="selectDay(day.year, day.month, day.day)"
+									ng-class="{
+										'inside': day.month == pageB_currentFirst.month,
+										'outside': day.month != pageB_currentFirst.month,
+										'today': day == today,
+										'selected': day == value
+									}">
+								<p>{{day.day}}</p>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</section>
+		</core-animated-pages>
+	</div>
+</div>
