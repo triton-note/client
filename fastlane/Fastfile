@@ -162,8 +162,8 @@ platform :android do
         if track_name == 'release' then
           track_name = 'production'
         end
-        apkname = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', 'android-*-release.apk')
-        Dir.glob(apkname).each do |apk|
+        ['x86', 'armv7'].each do |arch|
+          apk = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', "android-#{arch}-release.apk")
           supply(
           apk: File.absolute_path(apk),
           package_name: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'],
