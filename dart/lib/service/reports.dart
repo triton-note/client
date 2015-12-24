@@ -31,8 +31,6 @@ class Reports {
   static final PagingList<Report> paging = new PagingList(new _PagerReports());
   static List<Report> get _cachedList => paging.list;
 
-  static Report _fromCache(String id) => _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
-
   static List<Report> _addToCache(Report adding) => _cachedList
     ..add(adding)
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
@@ -46,7 +44,7 @@ class Reports {
   }
 
   static Future<Report> get(String id) async {
-    final found = _fromCache(id);
+    final found = _cachedList.firstWhere((r) => r.id == id, orElse: () => null);
     if (found != null) {
       return found.clone();
     } else {
@@ -64,7 +62,7 @@ class Reports {
   }
 
   static Future<Null> update(Report newReport) async {
-    final oldReport = _fromCache(newReport.id);
+    final oldReport = await get(newReport.id);
     assert(oldReport != null);
 
     _logger.finest("Update report:\n old=${oldReport}\n new=${newReport}");
