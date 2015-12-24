@@ -153,8 +153,6 @@ platform :android do
           )
         end
       when "release"
-        release_note(line_format: '%s')
-
         ['armv7', 'x86'].each do |arch|
           apk = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', "android-#{arch}-release.apk")
           supply(
