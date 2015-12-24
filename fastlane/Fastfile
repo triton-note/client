@@ -83,7 +83,8 @@ platform :ios do
       )
 
       if is_ci? then
-        if is_adhoc? then
+        case ENV['BUILD_MODE']
+        when "beta", "debug"
           release_note
 
           Dir.chdir('..') do
@@ -99,7 +100,7 @@ platform :ios do
             ]
             system(command.join ' ')
           end
-        else
+        when "release"
           release_note(line_format: '%s')
 
           pilot(
@@ -138,7 +139,8 @@ platform :android do
     ])
 
     if is_ci? then
-      if !is_multi? then
+      case ENV['BUILD_MODE']
+      when "beta", "debug"
         release_note
 
         into_platform do
@@ -150,7 +152,7 @@ platform :android do
           groups: ENV["FABRIC_CRASHLYTICS_GROUPS"]
           )
         end
-      else
+      when "release"
         release_note(line_format: '%s')
 
         ['armv7', 'x86'].each do |arch|
