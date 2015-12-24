@@ -49,7 +49,7 @@ platform :ios do
     end
 
     def is_adhoc?
-      !["release", "beta"].include? ENV['BUILD_MODE']
+      !["release"].include? ENV['BUILD_MODE']
     end
 
     into_platform do
@@ -100,21 +100,12 @@ platform :ios do
             system(command.join ' ')
           end
         else
-          if ENV['BUILD_MODE'] == 'beta' then
-            pilot(
-            app_identifier: ENV['IOS_BUNDLE_ID'],
-            changelog: File.open(ENV['RELEASE_NOTE_PATH']).read
-            )
-          end
-          if ENV['BUILD_MODE'] == 'release' then
-            deliver(
-            app_identifier: ENV['IOS_BUNDLE_ID'],
-            release_notes: {'en-US' => File.open(ENV['RELEASE_NOTE_PATH']).read},
-            submit_for_review: true,
-            automatic_release: true,
-            force: true
-            )
-          end
+          pilot(
+          app_identifier: ENV['IOS_BUNDLE_ID'],
+          skip_submission: false,
+          distribute_external: false,
+          changelog: File.open(ENV['RELEASE_NOTE_PATH']).read
+          )
         end
       end
     end
@@ -128,7 +119,7 @@ platform :android do
 
   lane :build do
     def is_multi?
-      ["release", "beta"].include? ENV['BUILD_MODE']
+      ["release"].include? ENV['BUILD_MODE']
     end
 
     android_build(
@@ -158,16 +149,12 @@ platform :android do
           )
         end
       else
-        track_name = ENV['BUILD_MODE']
-        if track_name == 'release' then
-          track_name = 'production'
-        end
         ['armv7', 'x86'].each do |arch|
           apk = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', "android-#{arch}-release.apk")
           supply(
           apk: File.absolute_path(apk),
           package_name: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'],
-          track: track_name,
+          track: 'beta',
           issuer: ENV['ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_EMAIL'],
           key: persistent('android', 'service_account_key.p12')
           )
