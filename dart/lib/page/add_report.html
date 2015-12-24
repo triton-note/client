@@ -91,7 +91,7 @@
 			    			<p>Weather</p>
 			    			<paper-spinner active class="red"></paper-spinner>
 			    		</div>
-			    		<div class="stable" ng-if="conditions.weatherImage != null">
+			    		<div relative class="stable" ng-if="conditions.weatherImage != null">
 				    		<p>{{conditions.weatherName}}</p>
 				    		<div class="row">
 					    		<img ng-src="{{conditions.weatherImage}}">
@@ -106,7 +106,7 @@
 			    			<p>Tide</p>
 			    			<paper-spinner active class="blue"></paper-spinner>
 			    		</div>
-			    		<div class="stable" ng-if="conditions.tideImage != null">
+			    		<div relative class="stable" ng-if="conditions.tideImage != null">
 				    		<p>{{conditions.tideName}}</p>
 			    			<img ng-src="{{conditions.tideImage}}">
 			    			<paper-ripple fit ng-click="conditions.dialogTide()"></paper-ripple>

@@ -170,11 +170,14 @@ div#condition {
     @include flex-grow(1);
 
     &>div {
-      position: relative;
       @include display-flex();
       @include flex-direction(column);
       @include align-items(center);
-      @include justify-content(space-around);
+      @include justify-content(space-between);
+      
+      &>p {
+        margin-bottom: 8px;
+      }
     }
     img {
       width: $icon_size;
