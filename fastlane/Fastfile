@@ -83,9 +83,9 @@ platform :ios do
       )
 
       if is_ci? then
-        release_note
-
         if is_adhoc? then
+          release_note
+
           Dir.chdir('..') do
             command = [
               File.join('Pods', 'Crashlytics', 'submit'),
@@ -100,6 +100,8 @@ platform :ios do
             system(command.join ' ')
           end
         else
+          release_note(line_format: '%s')
+
           pilot(
           app_identifier: ENV['IOS_BUNDLE_ID'],
           skip_submission: false,
@@ -136,9 +138,9 @@ platform :android do
     ])
 
     if is_ci? then
-      release_note
-
       if !is_multi? then
+        release_note
+
         into_platform do
           crashlytics(
           apk_path: File.join('build', 'outputs', 'apk', 'android-release.apk'),
@@ -149,6 +151,8 @@ platform :android do
           )
         end
       else
+        release_note(line_format: '%s')
+
         ['armv7', 'x86'].each do |arch|
           apk = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', "android-#{arch}-release.apk")
           supply(
