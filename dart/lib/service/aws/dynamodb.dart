@@ -68,8 +68,13 @@ class DynamoDB_Table<T extends DBRecord> {
       new JsObject.jsify(param),
       (error, data) {
         if (error != null) {
-          _logger.warning("Failed to ${methodName}: ${error}");
-          result.completeError(error);
+          _logger.warning("Failed to '${methodName}': ${error}");
+          if ("${error}".startsWith('CRC32CheckFailed')) {
+            _logger.warning("Retry to '${methodName}");
+            _invoke(methodName, param);
+          } else {
+            result.completeError(error);
+          }
         } else {
           _logger.finest("Result(${methodName}): ${_stringify(data)}");
           result.complete(data);
