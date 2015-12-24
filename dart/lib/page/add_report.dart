@@ -45,6 +45,7 @@ class AddReportPage extends SubPage {
   final Getter<EditFishDialog> fishDialog = new PipeValue();
   final Getter<AlertDialog> alertDialog = new PipeValue();
 
+  Getter<Element> toolbar;
   _GMap gmap;
   _Conditions conditions;
 
@@ -59,6 +60,8 @@ class AddReportPage extends SubPage {
   @override
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+
+    toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
 
     photoWayDialog.future.then((dialog) {
       dialog.onClossing(() {
