@@ -11,6 +11,7 @@ import 'package:core_elements/core_animation.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/icons.dart';
+import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 
 final _logger = new Logger('ExpandableGMapElement');
@@ -20,7 +21,7 @@ final _logger = new Logger('ExpandableGMapElement');
     templateUrl: 'packages/triton_note/element/expandable_gmap.html',
     cssUrl: 'packages/triton_note/element/expandable_gmap.css',
     useShadowDom: true)
-class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
+class ExpandableGMapElement extends Backable implements ShadowRootAware, DetachAware {
   static const animationDur = const Duration(milliseconds: 300);
 
   @NgAttr('nofix-scroll') String nofixScroll; // Optional (default: false, means fix scroll on expanded)
@@ -108,6 +109,10 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
     _checkingTimer?.cancel();
   }
 
+  backButton() {
+    if (isExpanded) _toggle();
+  }
+
   _toggle() async {
     final gmap = await _gmapReady.future;
 
@@ -180,6 +185,7 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
 
       scroll(shrinkedHeightReal, 0);
       isExpanded = false;
+      popMe();
     } else {
       _logger.fine("Expand map: ${gmap}");
       if (fixScroll != null && fixScroll) scroller.style.overflowY = "hidden";
@@ -201,6 +207,7 @@ class ExpandableGMapElement extends ShadowRootAware implements DetachAware {
       }
       scroll(expandedHeight, Math.max(0, curPos));
       isExpanded = true;
+      pushMe();
     }
   }
 }
