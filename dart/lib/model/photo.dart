@@ -55,7 +55,6 @@ class Image {
   final _IntervalKeeper _refresher = new _IntervalKeeper(_refreshInterval);
   final String _reportId;
   final String relativePath;
-  DateTime _urlLimit;
   String _url;
 
   Image(this._reportId, this.relativePath);
@@ -74,24 +73,25 @@ class Image {
     if (v.startsWith('http')) {
       Settings.then((s) {
         final v = s.photo.urlTimeout.inSeconds * 0.9;
-        final dur = new Duration(seconds: v.round());
-        _urlLimit = new DateTime.now().add(dur);
+        _clearUrl(new Duration(seconds: v.round()));
       });
     } else {
-      _urlLimit = new DateTime.now().add(_localTimeout);
+      _clearUrl(_localTimeout);
     }
   }
 
-  _refreshUrl() {
-    if (_url == null || (_urlLimit != null && _urlLimit.isBefore(new DateTime.now()))) {
-      _refresher.go(() async {
-        try {
-          url = await makeUrl();
-        } catch (ex) {
-          _logger.info("Failed to get url of s3file: ${ex}");
-        }
+  _clearUrl(Duration dur) => new Future.delayed(dur, () {
+        _url = null;
       });
-    }
+
+  _refreshUrl() {
+    if (_url == null) _refresher.go(() async {
+      try {
+        url = await makeUrl();
+      } catch (ex) {
+        _logger.info("Failed to get url of s3file: ${ex}");
+      }
+    });
   }
 }
 
