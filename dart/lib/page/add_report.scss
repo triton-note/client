@@ -168,6 +168,7 @@ div#condition {
   
   &>div {
     @include flex-grow(1);
+    padding-bottom: 8px;
 
     &>div {
       @include display-flex();
