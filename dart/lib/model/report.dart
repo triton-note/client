@@ -67,20 +67,6 @@ class _ReportImpl implements Report {
     }
   }
 
-  void update(Report other) {
-    if (other is _ReportImpl) {
-      this._data
-        ..clear()
-        ..addAll(other._data);
-      this.dateAt = other.dateAt;
-      this.published = other.published;
-      this.location = other.location;
-      this.condition = other.condition;
-    } else {
-      throw "Unrecognized obj: ${other}";
-    }
-  }
-
   Report clone() => new _ReportImpl(toMap(), id, dateAt, fishes.map((o) => o.clone()).toList());
 }
 
@@ -146,19 +132,6 @@ class _FishesImpl implements Fishes {
   bool isNeedUpdate(Fishes other) {
     if (other is _FishesImpl) {
       return this._data.toString() != other._data.toString() || this.reportId != other.reportId;
-    } else {
-      throw "Unrecognized obj: ${other}";
-    }
-  }
-
-  void update(Fishes other) {
-    if (other is _FishesImpl) {
-      this._data
-        ..clear()
-        ..addAll(other._data);
-      this.reportId = other.reportId;
-      this.weight = other.weight;
-      this.length = other.length;
     } else {
       throw "Unrecognized obj: ${other}";
     }

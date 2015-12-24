@@ -88,7 +88,10 @@ class Reports {
       ..addAll(newReport.fishes.map((f) => f.clone()));
 
     final updating = oldReport.isNeedUpdate(newReport)
-        ? TABLE_REPORT.update(newReport).then((_) => oldReport.update(newReport))
+        ? TABLE_REPORT.update(newReport).then((_) {
+            _cachedList.removeWhere((x) => x.id == newReport.id);
+            _addToCache(newReport.clone());
+          })
         : new Future.value(null);
 
     await Future.wait([adding, marging, deleting, updating]);

@@ -24,7 +24,6 @@ abstract class DBRecord<T> {
   Map toMap();
 
   bool isNeedUpdate(T other);
-  void update(T other);
 
   T clone();
 }
