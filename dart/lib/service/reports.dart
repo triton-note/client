@@ -83,16 +83,11 @@ class Reports {
       return oldFish != null && oldFish.isNeedUpdate(newFish);
     }).map(TABLE_CATCH.update));
 
-    oldReport.fishes
-      ..clear()
-      ..addAll(newReport.fishes.map((f) => f.clone()));
+    final updating = oldReport.isNeedUpdate(newReport) ? TABLE_REPORT.update(newReport) : new Future.value(null);
 
-    final updating = oldReport.isNeedUpdate(newReport)
-        ? TABLE_REPORT.update(newReport).then((_) {
-            _cachedList.removeWhere((x) => x.id == newReport.id);
-            _addToCache(newReport.clone());
-          })
-        : new Future.value(null);
+    // Replacing cached list
+    _cachedList.removeWhere((x) => x.id == newReport.id);
+    _addToCache(newReport.clone());
 
     await Future.wait([adding, marging, deleting, updating]);
     _logger.finest("Count of cached list: ${_cachedList.length}");
