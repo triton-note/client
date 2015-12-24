@@ -63,14 +63,15 @@ class ExpandableGMapElement extends Backable implements ShadowRootAware, DetachA
         });
 
         gmap.addCustomIcon((img) {
+          _toggle = (_) async {
+            img.src = isExpanded ? ICON_EXPAND : ICON_SHRINK;
+            _isChanging = true;
+            _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
+            _doToggle();
+          };
           img
             ..src = ICON_EXPAND
-            ..onClick.listen((_) async {
-              img.src = isExpanded ? ICON_EXPAND : ICON_SHRINK;
-              _isChanging = true;
-              _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
-              _toggle();
-            });
+            ..onClick.listen(_toggle);
         });
       });
     }
@@ -113,7 +114,9 @@ class ExpandableGMapElement extends Backable implements ShadowRootAware, DetachA
     if (isExpanded) _toggle();
   }
 
-  _toggle() async {
+  var _toggle;
+
+  _doToggle() async {
     final gmap = await _gmapReady.future;
 
     final fixScroll = nofixScroll == null || nofixScroll.toLowerCase() == "false";
