@@ -220,6 +220,10 @@ class AddReportPage extends SubPage {
   //********************************
   // Submit
 
+  back() {
+    if (!isSubmitting) super.back();
+  }
+
   bool isSubmitting = false;
   DivElement get divSubmit => root.querySelector('core-toolbar div#submit');
   CoreDropdown get dropdownSubmit => divSubmit.querySelector('core-dropdown');
