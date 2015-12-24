@@ -36,6 +36,8 @@ class AcceptancePage implements ShadowRootAware {
 
       div.querySelector('.gist-meta')?.remove();
       base.append(div);
+
+      hideSplashScreen();
     }
 
     final callbackName = 'gistCallback';
