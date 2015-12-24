@@ -37,7 +37,8 @@ class _ReportImpl implements Report {
         _location = new CachedProp<Location>.forMap(data, 'location', (map) => new Location.fromMap(map)),
         _condition = new CachedProp<Condition>.forMap(data, 'condition', (map) => new Condition.fromMap(map));
 
-  Map toMap() => JSON.decode(JSON.encode(_data));
+  String get _mapString => JSON.encode(_data);
+  Map toMap() => JSON.decode(_mapString);
 
   final String id;
   DateTime dateAt;
@@ -61,7 +62,7 @@ class _ReportImpl implements Report {
 
   bool isNeedUpdate(Report other) {
     if (other is _ReportImpl) {
-      return this._data.toString() != other._data.toString() || this.dateAt != other.dateAt;
+      return this._mapString != other._mapString || this.dateAt != other.dateAt;
     } else {
       throw "Unrecognized obj: ${other}";
     }
@@ -109,7 +110,8 @@ class _FishesImpl implements Fishes {
         _weight = new CachedProp<Weight>.forValueUnit(data, 'weight', (value) => new Weight.standard(value)),
         _length = new CachedProp<Length>.forValueUnit(data, 'length', (value) => new Length.standard(value));
 
-  Map toMap() => JSON.decode(JSON.encode(_data));
+  String get _mapString => JSON.encode(_data);
+  Map toMap() => JSON.decode(_mapString);
 
   final String id;
   String reportId;
@@ -131,7 +133,7 @@ class _FishesImpl implements Fishes {
 
   bool isNeedUpdate(Fishes other) {
     if (other is _FishesImpl) {
-      return this._data.toString() != other._data.toString() || this.reportId != other.reportId;
+      return this._mapString != other._mapString || this.reportId != other.reportId;
     } else {
       throw "Unrecognized obj: ${other}";
     }
