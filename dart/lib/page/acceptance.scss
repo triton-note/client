@@ -1,0 +1,10 @@
+@import "../../web/styles/common";
+
+.gist {
+}
+
+.buttons {
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(space-between);
+}
