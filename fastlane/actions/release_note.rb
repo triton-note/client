@@ -2,6 +2,9 @@ module Fastlane
   module Actions
     class ReleaseNoteAction < Action
       def self.run(params)
+        format = params[:line_format]
+        format ||= '[%h] %s'
+        
         last = last_tag
         logs = []
         obj = CommitObj.new('HEAD')
@@ -9,14 +12,14 @@ module Fastlane
           last_sha = CommitObj.new(last).sha
           while obj && obj.sha != last_sha
             parents = obj.parents.sort_by(&:timestamp).reverse
-            logs << obj.oneline if parents.size < 2
+            logs << obj.log(format) if parents.size < 2
             obj = parents.first
           end
         else
-          logs << obj.oneline
+          logs << obj.log(format)
         end
         note = logs.join("\n")
-      
+
         puts "#### RELEASE_NOTE ####\n" + note
         if note && !note.empty? then
           target = '.release_note'
@@ -48,10 +51,6 @@ module Fastlane
           log('%at').to_i
         end
 
-        def oneline
-          log('[%h] %s')
-        end
-
         def log(format)
           Action.sh("git log #{@name} -n1 --format='#{format}'").strip
         end
@@ -66,7 +65,13 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(key: :line_format,
+          description: "Format of each line. default: '[%h] %s'",
+          optional: true,
+          is_string: true
+          )
+        ]
       end
 
       def self.authors
