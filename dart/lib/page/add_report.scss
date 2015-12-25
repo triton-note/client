@@ -163,20 +163,22 @@ div#condition {
   
   @include display-flex();
   margin: 3px;
-  height: 100px;
   border: $border_line;
   @include border-radius(8px);
   
   &>div {
     @include flex-grow(1);
+    padding-bottom: 8px;
 
     &>div {
-      position: relative;
-      height: 100%;
       @include display-flex();
       @include flex-direction(column);
       @include align-items(center);
-      @include justify-content(space-around);
+      @include justify-content(space-between);
+      
+      &>p {
+        margin-bottom: 8px;
+      }
     }
     img {
       width: $icon_size;

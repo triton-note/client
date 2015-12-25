@@ -24,6 +24,7 @@ import 'package:triton_note/element/expandable_gmap.dart';
 import 'package:triton_note/element/expandable_text.dart';
 import 'package:triton_note/element/num_input.dart';
 import 'package:triton_note/element/infinite_scroll.dart';
+import 'package:triton_note/page/acceptance.dart';
 import 'package:triton_note/page/add_report.dart';
 import 'package:triton_note/page/reports_list.dart';
 import 'package:triton_note/page/report_detail.dart';
@@ -72,6 +73,7 @@ class AppModule extends Module {
     bind(NumInputElement);
     bind(InfiniteScrollElement);
 
+    bind(AcceptancePage);
     bind(AddReportPage);
     bind(ReportsListPage);
     bind(ReportDetailPage);

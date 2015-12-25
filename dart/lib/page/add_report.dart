@@ -25,6 +25,7 @@ import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/aws/s3file.dart';
+import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
@@ -44,6 +45,7 @@ class AddReportPage extends SubPage {
   final Getter<EditFishDialog> fishDialog = new PipeValue();
   final Getter<AlertDialog> alertDialog = new PipeValue();
 
+  Getter<Element> toolbar;
   _GMap gmap;
   _Conditions conditions;
 
@@ -58,6 +60,8 @@ class AddReportPage extends SubPage {
   @override
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+
+    toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
 
     photoWayDialog.future.then((dialog) {
       dialog.onClossing(() {
@@ -180,11 +184,27 @@ class AddReportPage extends SubPage {
 
   String addingFishName;
 
+  _fishNameBlinkArea() => [root.querySelector('#catches .control .fish-name input')];
+  static const fishNameBlinkDuration = const Duration(milliseconds: 350);
+  static const fishNameBlinkUpDuration = const Duration(milliseconds: 100);
+  static const fishNameBlinkDownDuration = const Duration(milliseconds: 100);
+  static const fishNameBlinkFrames = const [
+    const {'background': "transparent"},
+    const {'background': "#fee"}
+  ];
+
   addFish() {
     if (addingFishName != null && addingFishName.isNotEmpty) {
       final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
       addingFishName = null;
       report.fishes.add(fish);
+    } else {
+      final blinker = new Blinker(fishNameBlinkUpDuration, fishNameBlinkDownDuration,
+          [new BlinkTarget(new Getter(_fishNameBlinkArea), fishNameBlinkFrames)]);
+      blinker.start();
+      new Future.delayed(fishNameBlinkDuration, () {
+        blinker.stop();
+      });
     }
   }
 
@@ -202,6 +222,10 @@ class AddReportPage extends SubPage {
 
   //********************************
   // Submit
+
+  back() {
+    if (!isSubmitting) super.back();
+  }
 
   bool isSubmitting = false;
   DivElement get divSubmit => root.querySelector('core-toolbar div#submit');
@@ -241,15 +265,23 @@ class AddReportPage extends SubPage {
           }
         }
 
-        final ok = await doit('add', () => Reports.add(report));
-        if (ok) {
-          if (publish) {
+        bool ok = false;
+        try {
+          ok = await doit('add', () => Reports.add(report));
+          if (ok && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
-            if (published) Reports.update(report);
+            if (published) try {
+              await Reports.update(report);
+            } catch (ex) {
+              _logger.warning(() => "Failed to update published id: ${ex}");
+            }
           }
-          back();
+        } catch (ex) {
+          _logger.warning(() => "Error on submitting: ${ex}");
+        } finally {
+          isSubmitting = false;
+          if (ok) back();
         }
-        isSubmitting = false;
       });
 }
 

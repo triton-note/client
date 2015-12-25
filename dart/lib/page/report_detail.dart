@@ -70,10 +70,13 @@ class ReportDetailPage extends SubPage {
 
   Getter<EditTimestampDialog> editTimestamp = new PipeValue();
   Timer _submitTimer;
+  Getter<Element> toolbar;
 
   @override
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+
+    toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
 
     _report.then((v) async {
       report = v;
