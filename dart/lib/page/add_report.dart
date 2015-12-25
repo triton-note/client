@@ -265,15 +265,23 @@ class AddReportPage extends SubPage {
           }
         }
 
-        final ok = await doit('add', () => Reports.add(report));
-        if (ok) {
-          if (publish) {
+        bool ok = false;
+        try {
+          ok = await doit('add', () => Reports.add(report));
+          if (ok && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
-            if (published) Reports.update(report);
+            if (published) try {
+              await Reports.update(report);
+            } catch (ex) {
+              _logger.warning(() => "Failed to update published id: ${ex}");
+            }
           }
-          back();
+        } catch (ex) {
+          _logger.warning(() => "Error on submitting: ${ex}");
+        } finally {
+          isSubmitting = false;
+          if (ok) back();
         }
-        isSubmitting = false;
       });
 }
 
