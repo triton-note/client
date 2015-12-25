@@ -72,24 +72,27 @@ class Reports {
     List<Fishes> distinct(List<Fishes> src, List<Fishes> dst) => src.where((a) => dst.every((b) => b.id != a.id));
 
     // No old, On new
-    final adding = Future.wait(distinct(newReport.fishes, oldReport.fishes).map(TABLE_CATCH.put));
+    Future adding() => Future.wait(distinct(newReport.fishes, oldReport.fishes).map(TABLE_CATCH.put));
 
     // On old, No new
-    final deleting = Future.wait(distinct(oldReport.fishes, newReport.fishes).map((o) => TABLE_CATCH.delete(o.id)));
+    Future deleting() => Future.wait(distinct(oldReport.fishes, newReport.fishes).map((o) => TABLE_CATCH.delete(o.id)));
 
     // On old, On new
-    final marging = Future.wait(newReport.fishes.where((newFish) {
-      final oldFish = oldReport.fishes.firstWhere((oldFish) => oldFish.id == newFish.id, orElse: () => null);
-      return oldFish != null && oldFish.isNeedUpdate(newFish);
-    }).map(TABLE_CATCH.update));
+    Future marging() => Future.wait(newReport.fishes.where((newFish) {
+          final oldFish = oldReport.fishes.firstWhere((oldFish) => oldFish.id == newFish.id, orElse: () => null);
+          return oldFish != null && oldFish.isNeedUpdate(newFish);
+        }).map(TABLE_CATCH.update));
 
-    final updating = oldReport.isNeedUpdate(newReport) ? TABLE_REPORT.update(newReport) : new Future.value(null);
+    Future updating() async {
+      if (oldReport.isNeedUpdate(newReport)) TABLE_REPORT.update(newReport);
+    }
 
-    // Replacing cached list
-    _cachedList.removeWhere((x) => x.id == newReport.id);
-    _addToCache(newReport.clone());
+    Future replaceCache() async {
+      _cachedList.removeWhere((x) => x.id == newReport.id);
+      _addToCache(newReport.clone());
+    }
 
-    await Future.wait([adding, marging, deleting, updating]);
+    await Future.wait([adding(), marging(), deleting(), updating(), replaceCache()]);
     _logger.finest("Count of cached list: ${_cachedList.length}");
   }
 
