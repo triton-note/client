@@ -1,0 +1,15 @@
+@import "../../web/styles/common";
+
+.gist {
+}
+
+.buttons {
+  @include display-flex();
+  @include align-items(center);
+  @include justify-content(center);
+  background: #eee;
+  
+  paper-button {
+    color: blue;
+  }
+}

@@ -29,10 +29,10 @@ void listenOn(Element target, String eventType, void proc(Element target)) {
   });
 }
 
-abstract class _Backable {
-  static List<_Backable> _current;
+abstract class Backable {
+  static List<Backable> _current;
 
-  _pushMe() {
+  pushMe() {
     if (_current == null) {
       _current = [];
 
@@ -45,7 +45,7 @@ abstract class _Backable {
     _logger.finest(() => "Pushed current page: ${_current}");
   }
 
-  _popMe() {
+  popMe() {
     _current.remove(this);
     _logger.finest(() => "Poped current page: ${_current}");
   }
@@ -53,7 +53,7 @@ abstract class _Backable {
   backButton();
 }
 
-abstract class _AbstractPage extends _Backable implements ShadowRootAware, AttachAware, DetachAware {
+abstract class _AbstractPage extends Backable implements ShadowRootAware, AttachAware, DetachAware {
   ShadowRoot _root;
   ShadowRoot get root => _root;
 
@@ -61,8 +61,8 @@ abstract class _AbstractPage extends _Backable implements ShadowRootAware, Attac
     _root = sr;
   }
 
-  void attach() => _pushMe();
-  void detach() => _popMe();
+  void attach() => pushMe();
+  void detach() => popMe();
 
   rippling(proc()) => afterRippling(proc);
 }
@@ -108,7 +108,7 @@ abstract class SubPage extends _AbstractPage {
   backButton() => back();
 }
 
-abstract class AbstractDialog extends _Backable {
+abstract class AbstractDialog extends Backable {
   PaperDialog get realDialog;
   var _onOpenning, _onClossing;
 
@@ -130,9 +130,9 @@ abstract class AbstractDialog extends _Backable {
       if (!_closed.isCompleted) _closed.complete();
     });
 
-    _pushMe();
+    pushMe();
     _closed.future.then((_) {
-      _popMe();
+      popMe();
     });
   }
 
