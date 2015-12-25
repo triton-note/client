@@ -6,5 +6,10 @@
 .buttons {
   @include display-flex();
   @include align-items(center);
-  @include justify-content(space-between);
+  @include justify-content(center);
+  background: #eee;
+  
+  paper-button {
+    color: blue;
+  }
 }

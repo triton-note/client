@@ -67,11 +67,6 @@ class AcceptancePage implements ShadowRootAware {
     document.body.append(new ScriptElement()..src = "https://gist.github.com/${gistId}.json?callback=${callbackName}");
   }
 
-  reject() {
-    _logger.warning(() => "User rejected privacy policy");
-    exit();
-  }
-
   accept() {
     _logger.warning(() => "User accepted privacy policy");
     window.localStorage['acceptance'] = 'true';
