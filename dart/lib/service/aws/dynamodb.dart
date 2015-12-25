@@ -62,25 +62,29 @@ class DynamoDB_Table<T extends DBRecord> {
 
   Future<JsObject> _invoke(String methodName, Map param) async {
     param['TableName'] = await fullName;
-    _logger.finest(() => "Invoking '${methodName}': ${param}");
     final result = new Completer();
-    DynamoDB.client.callMethod(methodName, [
-      new JsObject.jsify(param),
-      (error, data) {
-        if (error != null) {
-          _logger.warning("Failed to '${methodName}': ${error}");
-          if ("${error}".startsWith('CRC32CheckFailed')) {
-            _logger.warning("Retry to '${methodName}");
-            _invoke(methodName, param);
+
+    final maxCount = 3;
+    retryCall(int count) {
+      _logger.finest(() => "Invoking '${methodName}'(retry=${count}): ${param}");
+      DynamoDB.client.callMethod(methodName, [
+        new JsObject.jsify(param),
+        (error, data) {
+          if (error != null) {
+            _logger.warning("Failed to '${methodName}': ${error}");
+            if (count < maxCount && "${error}".startsWith('CRC32CheckFailed')) {
+              retryCall(count - 1);
+            } else {
+              result.completeError(error);
+            }
           } else {
-            result.completeError(error);
+            _logger.finest("Result(${methodName}): ${_stringify(data)}");
+            result.complete(data);
           }
-        } else {
-          _logger.finest("Result(${methodName}): ${_stringify(data)}");
-          result.complete(data);
         }
-      }
-    ]);
+      ]);
+    }
+    retryCall(0);
     return result.future;
   }
 
