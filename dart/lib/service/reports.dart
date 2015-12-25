@@ -32,6 +32,7 @@ class Reports {
   static List<Report> get _cachedList => paging.list;
 
   static List<Report> _addToCache(Report adding) => _cachedList
+    ..removeWhere((x) => x.id == adding.id)
     ..add(adding)
     ..sort((a, b) => b.dateAt.compareTo(a.dateAt));
 
