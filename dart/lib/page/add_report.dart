@@ -14,6 +14,7 @@ import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
+import 'package:triton_note/dialog/geolocation.dart';
 import 'package:triton_note/dialog/photo_way.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/model/location.dart';
@@ -44,6 +45,7 @@ class AddReportPage extends SubPage {
   final Getter<EditTimestampDialog> dateOclock = new PipeValue();
   final Getter<EditFishDialog> fishDialog = new PipeValue();
   final Getter<AlertDialog> alertDialog = new PipeValue();
+  final Getter<GeolocationDialog> geolocationDialog = new PipeValue();
 
   Getter<Element> toolbar;
   _GMap gmap;
@@ -81,6 +83,26 @@ class AddReportPage extends SubPage {
     conditions = new _Conditions(root, new Getter(() => report.condition));
   }
 
+  Future<GeoInfo> _getGeoInfo() async {
+    final result = new Completer();
+
+    loop() async {
+      if (await Geo.isEnabled) {
+        result.complete(await Geo.location());
+      } else {
+        final dialog = geolocationDialog.value;
+        dialog
+          ..message = "Location infomation is necessary. Please turn location setting on."
+          ..onClosed(() {
+            new Future.delayed(new Duration(seconds: 1), loop);
+          })
+          ..open();
+      }
+    }
+    loop();
+    return result.future;
+  }
+
   /**
    * Choosing photo and get conditions and inference.
    */
@@ -89,17 +111,15 @@ class AddReportPage extends SubPage {
       _onSubmitable.then((_) => _submitable());
 
       final shop = new PhotoShop(take);
+      _upload(await shop.photo);
 
       report = new Report.fromMap({
         'location': {},
         'condition': {'weather': {}}
       });
-
-      final photo = await shop.photo;
-      isReady = true;
-      _upload(photo);
-
       report.photo.reduced.mainview.url = await shop.photoUrl;
+
+      isReady = true;
 
       try {
         report.dateAt = await shop.timestamp;
@@ -111,7 +131,7 @@ class AddReportPage extends SubPage {
         report.location.geoinfo = await shop.geoinfo;
       } catch (ex) {
         _logger.info("No GeoInfo in Exif: ${ex}");
-        report.location.geoinfo = await Geo.location();
+        report.location.geoinfo = await _getGeoInfo();
       }
       renewConditions();
 
