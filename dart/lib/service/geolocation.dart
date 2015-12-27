@@ -39,3 +39,22 @@ Future<GeoInfo> location([orElse = const {'latitude': 37.971751, 'longitude': 23
 
   return result.future;
 }
+
+Future<bool> get isEnabled async {
+  final result = new Completer<bool>();
+
+  context['cordova']['plugins']['diagnostic'].callMethod('isLocationEnabled', [
+    (enabled) {
+      result.complete(enabled);
+    },
+    (error) {
+      result.completeError(error);
+    }
+  ]);
+
+  return result.future;
+}
+
+switchToLocationSettings() {
+  context['cordova']['plugins']['diagnostic'].callMethod('switchToLocationSettings', []);
+}
