@@ -53,10 +53,12 @@ Future<bool> get isEnabled async {
 
   context['cordova']['plugins']['diagnostic'].callMethod('isLocationEnabled', [
     (enabled) {
-      result.complete(enabled);
+      _logger.finest(() => "Result of isLocationEnabled: ${enabled}");
+      result.complete(enabled == 1);
     },
     (error) {
-      result.completeError(error);
+      _logger.warning(() => "Error on isLocationEnabled: ${error}");
+      result.complete(false);
     }
   ]);
 
