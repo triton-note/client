@@ -110,7 +110,7 @@ abstract class SubPage extends _AbstractPage {
 
 abstract class AbstractDialog extends Backable {
   PaperDialog get realDialog;
-  var _onOpenning, _onClossing;
+  var _onOpenning, _onClossing, _onClosed;
 
   Completer<Null> _closed;
 
@@ -118,6 +118,7 @@ abstract class AbstractDialog extends Backable {
 
   onOpening(proc()) => _onOpenning = proc;
   onClossing(proc()) => _onClossing = proc;
+  onClosed(proc()) => _onClosed = proc;
 
   open() {
     if (!(_closed?.isCompleted ?? true)) return;
@@ -133,6 +134,7 @@ abstract class AbstractDialog extends Backable {
     pushMe();
     _closed.future.then((_) {
       popMe();
+      if (_onClosed != null) _onClosed();
     });
   }
 
