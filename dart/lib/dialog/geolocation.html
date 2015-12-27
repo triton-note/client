@@ -1,0 +1,27 @@
+<paper-dialog id="confirm-dialog" transition="core-transition-center" backdrop autoCloseDisabled>
+    <style>
+        #confirm-dialog {
+            border-radius: 3px;
+            font-size: 16px;
+        }
+        
+        #confirm-dialog .buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        #confirm-dialog .buttons paper-button.setting {
+            color: orange;
+        }
+        #confirm-dialog .buttons paper-button.positive {
+            color: blue;
+            margin-left: auto;
+        }
+    </style>
+
+    <p>{{ message }}</p>
+    <div class="buttons">
+        <paper-button class="settings" ng-click="setting()" ng-if="canSetting">setting</paper-button>
+        <paper-button class="positive" ng-click="close()">done</paper-button>
+    </div>
+</paper-dialog>

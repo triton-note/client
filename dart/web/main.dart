@@ -13,6 +13,7 @@ import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
 import 'package:triton_note/dialog/edit_tide.dart';
 import 'package:triton_note/dialog/edit_weather.dart';
+import 'package:triton_note/dialog/geolocation.dart';
 import 'package:triton_note/dialog/photo_way.dart';
 import 'package:triton_note/element/distributions_filter.dart';
 import 'package:triton_note/element/fit_image.dart';
@@ -60,6 +61,7 @@ class AppModule extends Module {
     bind(EditTimestampDialog);
     bind(EditTideDialog);
     bind(EditWeatherDialog);
+    bind(GeolocationDialog);
     bind(PhotoWayDialog);
 
     bind(DistributionsFilterElement);

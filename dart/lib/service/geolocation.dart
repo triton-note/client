@@ -6,36 +6,65 @@ import 'dart:js';
 import 'package:logging/logging.dart';
 import 'package:triton_note/model/location.dart';
 
-final _logger = new Logger('Geolocation');
+final Logger _logger = new Logger('Geolocation');
 
-Future<GeoInfo> location([orElse = const {'latitude': 37.971751, 'longitude': 23.726720}]) async {
+GeoInfo get defaultLocation => new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
+const defaultTimeout = const Duration(seconds: 10);
+
+Future<GeoInfo> location([Duration timeout = defaultTimeout, GeoInfo orElse = null]) async {
   final result = new Completer<GeoInfo>();
+  done([GeoInfo location = null]) {
+    if (!result.isCompleted) {
+      if (location == null) {
+        result.complete(orElse != null ? orElse : defaultLocation);
+      } else {
+        result.complete(location);
+      }
+    }
+  }
 
   final geo = context['navigator']['geolocation'];
   if (geo != null) {
     _logger.info("Getting current location...");
     geo.callMethod('getCurrentPosition', [
       (pos) {
-        result.complete(
-            new GeoInfo.fromMap({'latitude': pos['coords']['latitude'], 'longitude': pos['coords']['longitude']}));
+        done(new GeoInfo.fromMap({'latitude': pos['coords']['latitude'], 'longitude': pos['coords']['longitude']}));
       },
       (error) {
-        _logger.fine("Geolocation Error: ${error['message']}");
-        if (!result.isCompleted) {
-          if (orElse != null) {
-            _logger.info("Use default value: ${orElse}");
-            result.complete(new GeoInfo.fromMap(orElse));
-          } else {
-            result.completeError(error);
-          }
-        }
+        _logger.warning("Error on getting location: ${error['message']}");
+        done();
       },
-      new JsObject.jsify({'maximumAge': 3000, 'timeout': 5000, 'enableHighAccuracy': true})
+      new JsObject.jsify({'maximumAge': 3000, 'timeout': timeout.inMilliseconds, 'enableHighAccuracy': true})
     ]);
+    new Future.delayed(timeout, () {
+      _logger.warning("Getting location is Timeout");
+      done();
+    });
   } else {
     _logger.info("Geolocation is not supported.");
-    result.completeError("Geolocation is not supported.");
+    done();
   }
 
   return result.future;
+}
+
+Future<bool> get isEnabled async {
+  final result = new Completer<bool>();
+
+  context['cordova']['plugins']['diagnostic'].callMethod('isLocationEnabled', [
+    (enabled) {
+      _logger.finest(() => "Result of isLocationEnabled: ${enabled}");
+      result.complete(enabled == 1);
+    },
+    (error) {
+      _logger.warning(() => "Error on isLocationEnabled: ${error}");
+      result.complete(false);
+    }
+  ]);
+
+  return result.future;
+}
+
+switchToLocationSettings() {
+  context['cordova']['plugins']['diagnostic'].callMethod('switchToLocationSettings', []);
 }
