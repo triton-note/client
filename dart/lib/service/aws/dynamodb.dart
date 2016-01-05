@@ -32,7 +32,9 @@ class DynamoDB {
   static const CONTENT = "CONTENT";
   static const COGNITO_ID = "COGNITO_ID";
 
-  static final client = new JsObject(context["AWS"]["DynamoDB"], []);
+  static final client = new JsObject(context["AWS"]["DynamoDB"], [
+    new JsObject.jsify({'dynamoDbCrc32': false})
+  ]);
 
   static String createRandomKey() {
     final random = new Random(new DateTime.now().toUtc().millisecondsSinceEpoch);
@@ -72,7 +74,7 @@ class DynamoDB_Table<T extends DBRecord> {
         (error, data) {
           if (error != null) {
             _logger.warning("Failed to '${methodName}': ${error}");
-            if (count < maxCount && "${error}".startsWith('CRC32CheckFailed')) {
+            if (count < maxCount) {
               retryCall(count + 1);
             } else {
               result.completeError(error);
