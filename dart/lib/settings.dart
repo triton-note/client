@@ -10,7 +10,7 @@ import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/service/aws/sns.dart';
 import 'package:triton_note/util/cordova.dart';
 
-final _logger = new Logger('Settings');
+final Logger _logger = new Logger('Settings');
 
 Completer<_Settings> _initializing;
 /**
@@ -62,7 +62,14 @@ class _Settings {
   String get googleKey => _map['googleBrowserKey'];
   String get snsPlatformArn => _map['snsPlatformArn'][isAndroid ? 'google' : 'apple'];
 
-  Future<String> get snsEndpointArn => SNS.endpointArn;
+  Future<String> get snsEndpointArn async {
+    try {
+      return await SNS.endpointArn;
+    } catch (ex) {
+      _logger.warning(() => "Failed to init SNS Endpoint: ${ex}");
+      return null;
+    }
+  }
 
   _Photo _photo;
   _Photo get photo {
