@@ -66,14 +66,14 @@ class DynamoDB_Table<T extends DBRecord> {
 
     final maxCount = 3;
     retryCall(int count) {
-      _logger.finest(() => "Invoking '${methodName}'(retry=${count}): ${param}");
+      _logger.finest(() => "Invoking '${methodName}'(retry=${count}/${maxCount}): ${param}");
       DynamoDB.client.callMethod(methodName, [
         new JsObject.jsify(param),
         (error, data) {
           if (error != null) {
             _logger.warning("Failed to '${methodName}': ${error}");
             if (count < maxCount && "${error}".startsWith('CRC32CheckFailed')) {
-              retryCall(count - 1);
+              retryCall(count + 1);
             } else {
               result.completeError(error);
             }
