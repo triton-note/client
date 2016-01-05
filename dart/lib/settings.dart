@@ -28,6 +28,7 @@ Future<_Settings> _initialize() async {
       final map = new Map.from(server);
       _logger.config("Initializing...");
       _initializing.complete(new _Settings(local, map));
+      SNS.init();
     } catch (ex) {
       _logger.warning("Failed to read settings file: ${ex}");
       _initializing.completeError(ex);
@@ -45,11 +46,7 @@ Future<Map> get AuthorizedSettings async {
 }
 
 class _Settings {
-  _Settings(this._local, this._map) {
-    snsEndpointArn.then((arn) {
-      _logger.info(() => "Registered SNS Endpoint: ${arn}");
-    });
-  }
+  _Settings(this._local, this._map);
   final CognitoSettings _local;
   final Map _map;
 
@@ -61,15 +58,6 @@ class _Settings {
   String get googleProjectNumber => _map['googleProjectNumber'];
   String get googleKey => _map['googleBrowserKey'];
   String get snsPlatformArn => _map['snsPlatformArn'][isAndroid ? 'google' : 'apple'];
-
-  Future<String> get snsEndpointArn async {
-    try {
-      return await SNS.endpointArn;
-    } catch (ex) {
-      _logger.warning(() => "Failed to init SNS Endpoint: ${ex}");
-      return null;
-    }
-  }
 
   _Photo _photo;
   _Photo get photo {

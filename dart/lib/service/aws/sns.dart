@@ -13,15 +13,20 @@ String _stringify(JsObject obj) => context['JSON'].callMethod('stringify', [obj]
 
 class SNS {
   static Completer<String> _onInit = null;
-  static Future<String> get endpointArn {
+  static Future<String> get endpointArn async => _onInit?.future;
+  static Future<String> init() async {
     if (_onInit == null) {
       _onInit = new Completer();
-      _PushPlugin.init().then(_registerEndpoint).then(_onInit.complete).catchError((error) {
-        _logger.warning(() => "Error on initilizing: ${error}");
-        _onInit.completeError(error);
-      });
+      try {
+        final reg = await _PushPlugin.init();
+        final arn = await _registerEndpoint(reg);
+        _onInit.complete(arn);
+      } catch (ex) {
+        _logger.warning(() => "Error on initilizing: ${ex}");
+        _onInit.complete(null);
+      }
     }
-    return _onInit.future;
+    return endpointArn;
   }
 
   static Future<String> _registerEndpoint(final String regId) async {
