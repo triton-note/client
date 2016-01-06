@@ -56,6 +56,7 @@ abstract class Backable {
 abstract class _AbstractPage extends Backable implements ShadowRootAware, AttachAware, DetachAware {
   ShadowRoot _root;
   ShadowRoot get root => _root;
+  CoreDrawerPanel get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
@@ -73,7 +74,6 @@ abstract class MainPage extends _AbstractPage {
   MainPage(this.router);
 
   bool _drawerOpened = false;
-  CoreDrawerPanel get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
 
   openMenu() {
     drawerPanel.openDrawer();
@@ -106,6 +106,11 @@ abstract class MainPage extends _AbstractPage {
 abstract class SubPage extends _AbstractPage {
   back() => window.history.back();
   backButton() => back();
+
+  void onShadowRoot(ShadowRoot sr) {
+    super.onShadowRoot(sr);
+    drawerPanel.responsiveWidth = "10000px";
+  }
 }
 
 abstract class AbstractDialog extends Backable {
