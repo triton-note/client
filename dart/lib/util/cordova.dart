@@ -46,5 +46,5 @@ exit() {
   context['navigator']['app'].callMethod('exitApp', []);
 }
 
-String get platformName => context['device']['platform'];
+String get platformName => context['device'] == null ? null : context['device']['platform'];
 bool get isAndroid => platformName == "Android";
