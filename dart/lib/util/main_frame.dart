@@ -149,7 +149,7 @@ abstract class AbstractDialog extends Backable {
 
     realDialog.close();
 
-    new Timer(ripplingDuration, () {
+    new Future.delayed(ripplingDuration, () {
       if (!_closed.isCompleted) {
         _logger.warning(() => "Time over: clear overlay manually...");
         realDialog.style.display = 'none';
