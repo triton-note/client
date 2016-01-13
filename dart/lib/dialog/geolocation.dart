@@ -20,12 +20,12 @@ final _logger = new Logger('GeolocationDialog');
     useShadowDom: true)
 class GeolocationDialog extends AbstractDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<GeolocationDialog> v) => v?.value = this;
+  @NgAttr('message') String message;
 
   CachedValue<PaperDialog> _dialog;
   PaperDialog get realDialog => _dialog.value;
 
   bool get canSetting => isAndroid;
-  String message;
 
   void onShadowRoot(ShadowRoot sr) {
     _dialog = new CachedValue(() => sr.querySelector('paper-dialog'));
