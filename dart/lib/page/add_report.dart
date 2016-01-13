@@ -27,6 +27,7 @@ import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/util/blinker.dart';
+import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
@@ -85,19 +86,19 @@ class AddReportPage extends SubPage {
 
   Future<GeoInfo> _getGeoInfo() async {
     final result = new Completer();
-
-    final dur = const Duration(seconds: 1);
+    final dialog = geolocationDialog.value;
     loop() async {
-      if (await Geo.isEnabled) {
-        result.complete(await Geo.location());
-      } else {
-        final dialog = geolocationDialog.value;
-        dialog
-          ..message = "Location infomation is necessary. Please turn location setting on."
-          ..onClosed(() => new Future.delayed(dur, loop))
-          ..open();
+      try {
+        result.complete(await Geo.getHere());
+      } catch (ex) {
+        if (isAndroid && !(await Geo.isEnabled)) {
+          dialog.open();
+        } else {
+          result.complete(Geo.defaultLocation);
+        }
       }
     }
+    dialog.onClosed(loop);
     loop();
     return result.future;
   }
