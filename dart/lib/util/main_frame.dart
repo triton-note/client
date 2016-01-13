@@ -10,7 +10,7 @@ import 'package:core_elements/core_drawer_panel.dart';
 
 import 'package:triton_note/util/cordova.dart';
 
-final _logger = new Logger('MainFrame');
+final Logger _logger = new Logger('MainFrame');
 
 const ripplingDuration = const Duration(milliseconds: 250);
 
@@ -127,20 +127,21 @@ abstract class AbstractDialog extends Backable {
 
   open() {
     if (!(_closed?.isCompleted ?? true)) return;
-    _closed = new Completer();
+    _closed = new Completer()
+      ..future.then((_) {
+        popMe();
+        if (_onClosed != null) _onClosed();
+      });
 
     if (_onOpenning != null) _onOpenning();
     realDialog.open();
 
     realDialog.on['core-overlay-close-completed'].listen((event) {
+      _logger.finest(() => "core-overlay-close-completed");
       if (!_closed.isCompleted) _closed.complete();
     });
 
     pushMe();
-    _closed.future.then((_) {
-      popMe();
-      if (_onClosed != null) _onClosed();
-    });
   }
 
   close() async {

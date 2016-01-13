@@ -86,6 +86,7 @@ class AddReportPage extends SubPage {
   Future<GeoInfo> _getGeoInfo() async {
     final result = new Completer();
 
+    final dur = const Duration(seconds: 1);
     loop() async {
       if (await Geo.isEnabled) {
         result.complete(await Geo.location());
@@ -93,9 +94,7 @@ class AddReportPage extends SubPage {
         final dialog = geolocationDialog.value;
         dialog
           ..message = "Location infomation is necessary. Please turn location setting on."
-          ..onClosed(() {
-            new Future.delayed(new Duration(seconds: 1), loop);
-          })
+          ..onClosed(() => new Future.delayed(dur, loop))
           ..open();
       }
     }
