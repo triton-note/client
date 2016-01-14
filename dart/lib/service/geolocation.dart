@@ -15,7 +15,9 @@ Future<GeoInfo> location([Duration timeout = defaultTimeout, GeoInfo orElse = nu
   try {
     return await getHere(timeout);
   } catch (ex) {
-    return orElse ?? defaultLocation;
+    final result = orElse ?? defaultLocation;
+    _logger.warning(() => "Use default location (${result}). since error on getting location: ${ex}");
+    return result;
   }
 }
 
