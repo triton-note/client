@@ -9,7 +9,7 @@ import 'package:triton_note/model/location.dart';
 final Logger _logger = new Logger('Geolocation');
 
 GeoInfo get defaultLocation => new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
-const defaultTimeout = const Duration(seconds: 10);
+const defaultTimeout = const Duration(seconds: 5);
 
 Future<GeoInfo> location([Duration timeout = defaultTimeout, GeoInfo orElse = null]) async {
   try {
