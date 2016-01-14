@@ -109,7 +109,10 @@ abstract class SubPage extends _AbstractPage {
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
-    drawerPanel.responsiveWidth = "10000px";
+    drawerPanel
+      ..responsiveWidth = "10000px"
+      ..disableSwipe = true
+      ..disableEdgeSwipe = true;
   }
 }
 
