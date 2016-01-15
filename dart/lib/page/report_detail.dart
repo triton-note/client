@@ -155,16 +155,21 @@ class _MoreMenu extends _PartOfPage {
     ..text = msg
     ..show();
 
-  publish() => confirm("Publish to Facebook ?", () async {
-        try {
-          final published = await FBPublish.publish(_report);
-          _onChanged(published);
-          toast("Completed on publishing to Facebook");
-        } catch (ex) {
-          _logger.warning(() => "Error on publishing to Facebook: ${ex}");
-          toast("Failed on publishing to Facebook");
-        }
-      });
+  publish() {
+    final msg = _report?.published?.facebook == null
+        ? "Publish to Facebook ?"
+        : "This report is already published. Publish again ?";
+    confirm(msg, () async {
+      try {
+        final published = await FBPublish.publish(_report);
+        _onChanged(published);
+        toast("Completed on publishing to Facebook");
+      } catch (ex) {
+        _logger.warning(() => "Error on publishing to Facebook: ${ex}");
+        toast("Failed on publishing to Facebook");
+      }
+    });
+  }
 
   delete() => confirm("Delete this report ?", () async {
         await Reports.remove(_report.id);
