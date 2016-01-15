@@ -131,6 +131,22 @@ class FBPublish {
     if (!obj.containsKey('id')) throw obj;
     return (report.published ??= new Published.fromMap({})).facebook = obj['id'];
   }
+
+  static Future<Map> getAction(String id) async {
+    final ac = await FBConnect.getToken();
+    if (ac == null) return null;
+
+    final fb = await _FBSettings.load();
+
+    final url = "${fb.hostname}/${id}?access_token=${ac['token']}";
+    final result = await HttpRequest.request(url);
+    _logger.fine(() => "Result of quering action info: ${result?.responseText}");
+
+    if ((result.status / 100).floor() != 2) throw result.responseText;
+    final Map obj = JSON.decode(result.responseText);
+
+    return obj.containsKey('id') ? obj : null;
+  }
 }
 
 class _FBJSSDK {
