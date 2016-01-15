@@ -29,7 +29,7 @@ import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/main_frame.dart';
 
-final _logger = new Logger('ReportDetailPage');
+final Logger _logger = new Logger('ReportDetailPage');
 
 const String editFlip = "create";
 const String editFlop = "done";
@@ -129,14 +129,35 @@ class _MoreMenu extends _PartOfPage {
   final ShadowRoot _root;
   final Report _report;
   final OnChanged _onChanged;
+  bool published = false;
   final _back;
 
   Getter<ConfirmDialog> confirmDialog = new PipeValue();
   final PipeValue<bool> dialogResult = new PipeValue();
 
-  _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
+  _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back {
+    setPublished(_report?.published?.facebook);
+  }
 
-  bool get publishable => _report?.published?.facebook == null;
+  setPublished(String id) async {
+    if (id == null) {
+      published = false;
+    } else {
+      try {
+        final obj = await FBPublish.getAction(id);
+        if (obj != null) {
+          published = true;
+        } else {
+          published = false;
+          _onChanged(_report.published.facebook = null);
+        }
+      } catch (ex) {
+        _logger.warning(() => "Error on getting published action: ${ex}");
+        published = false;
+      }
+    }
+  }
+
   CoreDropdown get dropdown => _root.querySelector('#more-menu core-dropdown');
 
   void detach() {}
@@ -156,16 +177,20 @@ class _MoreMenu extends _PartOfPage {
     ..text = msg
     ..show();
 
-  publish() => confirm("Publish to Facebook ?", () async {
-        try {
-          final published = await FBPublish.publish(_report);
-          _onChanged(published);
-          toast("Completed on publishing to Facebook");
-        } catch (ex) {
-          _logger.warning(() => "Error on publishing to Facebook: ${ex}");
-          toast("Failed on publishing to Facebook");
-        }
-      });
+  publish() {
+    final msg =
+        published ? "This report is already published. Are you sure to publish again ?" : "Publish to Facebook ?";
+    confirm(msg, () async {
+      try {
+        final published = await FBPublish.publish(_report);
+        _onChanged(published);
+        toast("Completed on publishing to Facebook");
+      } catch (ex) {
+        _logger.warning(() => "Error on publishing to Facebook: ${ex}");
+        toast("Failed on publishing to Facebook");
+      }
+    });
+  }
 
   delete() => confirm("Delete this report ?", () async {
         await Reports.remove(_report.id);
