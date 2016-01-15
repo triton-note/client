@@ -7,6 +7,7 @@ import 'dart:js';
 
 import 'package:logging/logging.dart';
 
+import 'package:triton_note/formatter/fish_formatter.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/model/report.dart';
@@ -71,6 +72,13 @@ class _FBSettings {
 class FBPublish {
   static final _logger = new Logger('FBPublish');
 
+  static String generateMessage(Report report) {
+    final array = [report.comment ?? "", ""];
+    final formatter = new FishFormatter();
+    array.addAll(report.fishes.map(formatter.call));
+    return array.join("\n").trim();
+  }
+
   static Future<String> publish(Report report) async {
     _logger.fine(() => "Publishing report: ${report.id}");
 
@@ -98,7 +106,7 @@ class FBPublish {
 
     final params = {
       'fb:explicitly_shared': 'true',
-      'message': report.comment ?? "",
+      'message': generateMessage(report),
       "image[0][url]": await report.photo.original.makeUrl(),
       "image[0][user_generated]": 'true',
       'place': og('spot'),
