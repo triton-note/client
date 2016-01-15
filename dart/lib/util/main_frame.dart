@@ -10,7 +10,7 @@ import 'package:core_elements/core_drawer_panel.dart';
 
 import 'package:triton_note/util/cordova.dart';
 
-final _logger = new Logger('MainFrame');
+final Logger _logger = new Logger('MainFrame');
 
 const ripplingDuration = const Duration(milliseconds: 250);
 
@@ -56,6 +56,7 @@ abstract class Backable {
 abstract class _AbstractPage extends Backable implements ShadowRootAware, AttachAware, DetachAware {
   ShadowRoot _root;
   ShadowRoot get root => _root;
+  CoreDrawerPanel get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
 
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
@@ -73,7 +74,6 @@ abstract class MainPage extends _AbstractPage {
   MainPage(this.router);
 
   bool _drawerOpened = false;
-  CoreDrawerPanel get drawerPanel => root.querySelector('core-drawer-panel#mainFrame');
 
   openMenu() {
     drawerPanel.openDrawer();
@@ -106,6 +106,14 @@ abstract class MainPage extends _AbstractPage {
 abstract class SubPage extends _AbstractPage {
   back() => window.history.back();
   backButton() => back();
+
+  void onShadowRoot(ShadowRoot sr) {
+    super.onShadowRoot(sr);
+    drawerPanel
+      ..forceNarrow = true
+      ..disableSwipe = true
+      ..disableEdgeSwipe = true;
+  }
 }
 
 abstract class AbstractDialog extends Backable {
@@ -122,20 +130,21 @@ abstract class AbstractDialog extends Backable {
 
   open() {
     if (!(_closed?.isCompleted ?? true)) return;
-    _closed = new Completer();
+    _closed = new Completer()
+      ..future.then((_) {
+        popMe();
+        if (_onClosed != null) _onClosed();
+      });
 
     if (_onOpenning != null) _onOpenning();
     realDialog.open();
 
     realDialog.on['core-overlay-close-completed'].listen((event) {
+      _logger.finest(() => "core-overlay-close-completed");
       if (!_closed.isCompleted) _closed.complete();
     });
 
     pushMe();
-    _closed.future.then((_) {
-      popMe();
-      if (_onClosed != null) _onClosed();
-    });
   }
 
   close() async {
@@ -143,7 +152,7 @@ abstract class AbstractDialog extends Backable {
 
     realDialog.close();
 
-    new Timer(ripplingDuration, () {
+    new Future.delayed(ripplingDuration, () {
       if (!_closed.isCompleted) {
         _logger.warning(() => "Time over: clear overlay manually...");
         realDialog.style.display = 'none';

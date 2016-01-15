@@ -10,12 +10,15 @@ import 'package:logging/logging.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/model/report.dart';
+import 'package:triton_note/util/cordova.dart';
 
 class FBConnect {
-  static final _logger = new Logger('FBConnect');
+  static final Logger _logger = new Logger('FBConnect');
 
   static Future _call(String name, List args) {
-    final completer = new Completer<String>();
+    if (!isCordova) return _FBJSSDK.call(name, args);
+
+    final completer = new Completer();
     args.insert(0, (error, result) {
       if (result != null) {
         result = JSON.decode(context['JSON'].callMethod('stringify', [result]));
@@ -119,5 +122,81 @@ class FBPublish {
 
     if (!obj.containsKey('id')) throw obj;
     return (report.published ??= new Published.fromMap({})).facebook = obj['id'];
+  }
+}
+
+class _FBJSSDK {
+  static final Logger _logger = new Logger('FBJSSDK');
+
+  static Future<Null> _init() async {
+    final id = 'facebook-jssdk';
+    if (document.getElementById(id) != null) return null;
+
+    final completer = new Completer();
+    try {
+      final appId = (await HttpRequest.getString(".facebook_app_id")).trim();
+      _logger.finest(() => "Setting browser facebook app id: ${appId}");
+
+      context['fbAsyncInit'] = () async {
+        context['FB'].callMethod('init', [
+          new JsObject.jsify({'appId': appId, 'xfbml': false, 'version': 'v2.5'})
+        ]);
+        _logger.finest(() => "FB initialized.");
+        completer.complete();
+      };
+      final js = new ScriptElement()
+        ..id = id
+        ..src = "//connect.facebook.net/en_US/sdk.js";
+      final fjs = document.getElementsByTagName('script')[0];
+      _logger.finest(() => "Appending Facebook SDK");
+      fjs.parentNode.insertBefore(js, fjs);
+    } catch (ex) {
+      completer.completeError(ex);
+    }
+    return completer.future;
+  }
+
+  static Future call(String name, List args) async {
+    await _init();
+
+    switch (name) {
+      case 'login':
+        return await _login(args);
+      case 'logout':
+        return await _logout();
+    }
+  }
+
+  static Future _invoke(String name, [List perms = null]) async {
+    final completer = new Completer();
+    try {
+      final args = perms == null ? [] : perms;
+      args.insert(0, (response) {
+        _logger.finest(() => "Response: ${response}");
+        completer.complete(response);
+      });
+      _logger.finest(() => "Invoking FB.${name}(${args})");
+      context['FB'].callMethod(name, args);
+    } catch (ex) {
+      completer.completeError(ex);
+    }
+    return completer.future;
+  }
+
+  static _login(List<String> perms) async {
+    if (perms.isEmpty) perms.add('public_profile');
+
+    final res = await _invoke('login', [
+      new JsObject.jsify({'scope': perms.join(',')})
+    ]);
+    if (res['status'] == 'connected') {
+      return res['authResponse']['accessToken'];
+    } else {
+      return null;
+    }
+  }
+
+  static _logout() async {
+    await _invoke('logout');
   }
 }

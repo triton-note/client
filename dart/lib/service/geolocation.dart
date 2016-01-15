@@ -9,40 +9,39 @@ import 'package:triton_note/model/location.dart';
 final Logger _logger = new Logger('Geolocation');
 
 GeoInfo get defaultLocation => new GeoInfo.fromMap({'latitude': 37.971751, 'longitude': 23.726720});
-const defaultTimeout = const Duration(seconds: 10);
+const defaultTimeout = const Duration(seconds: 5);
 
 Future<GeoInfo> location([Duration timeout = defaultTimeout, GeoInfo orElse = null]) async {
-  final result = new Completer<GeoInfo>();
-  done([GeoInfo location = null]) {
-    if (!result.isCompleted) {
-      if (location == null) {
-        result.complete(orElse != null ? orElse : defaultLocation);
-      } else {
-        result.complete(location);
-      }
-    }
+  try {
+    return await getHere(timeout);
+  } catch (ex) {
+    final result = orElse ?? defaultLocation;
+    _logger.warning(() => "Use default location (${result}). since error on getting location: ${ex}");
+    return result;
   }
+}
+
+Future<GeoInfo> getHere([Duration timeout = defaultTimeout]) async {
+  final result = new Completer<GeoInfo>();
 
   final geo = context['navigator']['geolocation'];
   if (geo != null) {
     _logger.info("Getting current location...");
     geo.callMethod('getCurrentPosition', [
       (pos) {
-        done(new GeoInfo.fromMap({'latitude': pos['coords']['latitude'], 'longitude': pos['coords']['longitude']}));
+        if (!result.isCompleted) result.complete(
+            new GeoInfo.fromMap({'latitude': pos['coords']['latitude'], 'longitude': pos['coords']['longitude']}));
       },
       (error) {
-        _logger.warning("Error on getting location: ${error['message']}");
-        done();
+        if (!result.isCompleted) result.completeError(error['message']);
       },
       new JsObject.jsify({'maximumAge': 3000, 'timeout': timeout.inMilliseconds, 'enableHighAccuracy': true})
     ]);
     new Future.delayed(timeout, () {
-      _logger.warning("Getting location is Timeout");
-      done();
+      if (!result.isCompleted) result.completeError("Getting location is Timeout");
     });
   } else {
-    _logger.info("Geolocation is not supported.");
-    done();
+    if (!result.isCompleted) result.completeError("Geolocation is not supported.");
   }
 
   return result.future;
