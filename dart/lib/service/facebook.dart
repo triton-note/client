@@ -133,6 +133,8 @@ class FBPublish {
   }
 
   static Future<Map> getAction(String id) async {
+    if (id == null) return null;
+
     final ac = await FBConnect.getToken();
     if (ac == null) return null;
 

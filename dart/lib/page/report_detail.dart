@@ -129,12 +129,18 @@ class _MoreMenu extends _PartOfPage {
   final ShadowRoot _root;
   final Report _report;
   final OnChanged _onChanged;
+  bool published;
   final _back;
 
   Getter<ConfirmDialog> confirmDialog = new PipeValue();
   final PipeValue<bool> dialogResult = new PipeValue();
 
-  _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back;
+  _MoreMenu(this._root, this._report, this._onChanged, void back()) : this._back = back {
+    FBPublish
+        .getAction(_report?.published?.facebook)
+        .then((v) => published = v != null)
+        .catchError((_) => published = false);
+  }
 
   CoreDropdown get dropdown => _root.querySelector('#more-menu core-dropdown');
 
@@ -156,9 +162,8 @@ class _MoreMenu extends _PartOfPage {
     ..show();
 
   publish() {
-    final msg = _report?.published?.facebook == null
-        ? "Publish to Facebook ?"
-        : "This report is already published. Publish again ?";
+    final msg =
+        published ? "This report is already published. Are you sure to publish again ?" : "Publish to Facebook ?";
     confirm(msg, () async {
       try {
         final published = await FBPublish.publish(_report);
