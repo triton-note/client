@@ -7,6 +7,7 @@ import 'dart:js';
 
 import 'package:logging/logging.dart';
 
+import 'package:triton_note/formatter/fish_formatter.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/model/report.dart';
@@ -69,7 +70,14 @@ class _FBSettings {
 }
 
 class FBPublish {
-  static final _logger = new Logger('FBPublish');
+  static final Logger _logger = new Logger('FBPublish');
+
+  static String generateMessage(Report report) {
+    final array = [report.comment ?? "", ""];
+    final formatter = new FishFormatter();
+    array.addAll(report.fishes.map(formatter.call));
+    return array.join("\n").trim();
+  }
 
   static Future<String> publish(Report report) async {
     _logger.fine(() => "Publishing report: ${report.id}");
@@ -98,7 +106,7 @@ class FBPublish {
 
     final params = {
       'fb:explicitly_shared': 'true',
-      'message': report.comment ?? "",
+      'message': generateMessage(report),
       "image[0][url]": await report.photo.original.makeUrl(),
       "image[0][user_generated]": 'true',
       'place': og('spot'),
@@ -122,6 +130,27 @@ class FBPublish {
 
     if (!obj.containsKey('id')) throw obj;
     return (report.published ??= new Published.fromMap({})).facebook = obj['id'];
+  }
+
+  static Future<Map> getAction(String id) async {
+    final ac = await FBConnect.getToken();
+    if (ac == null) return null;
+
+    final fb = await _FBSettings.load();
+
+    try {
+      final url = "${fb.hostname}/${id}?access_token=${ac['token']}";
+      final result = await HttpRequest.request(url);
+      _logger.fine(() => "Result of querying action info: ${result?.responseText}");
+
+      if ((result.status / 100).floor() != 2) throw result.responseText;
+      final Map obj = JSON.decode(result.responseText);
+
+      return obj.containsKey('id') ? obj : null;
+    } catch (ex) {
+      _logger.warning(() => "Error on querying action info: ${ex}");
+      return null;
+    }
   }
 }
 
