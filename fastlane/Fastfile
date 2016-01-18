@@ -106,7 +106,7 @@ platform :ios do
 
           pilot(
           app_identifier: ENV['IOS_BUNDLE_ID'],
-          skip_submission: false,
+          skip_submission: true,
           distribute_external: false,
           changelog: File.open(ENV['RELEASE_NOTE_PATH']).read
           )
