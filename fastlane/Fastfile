@@ -155,14 +155,18 @@ platform :android do
         end
       when "release"
         ['armv7', 'x86'].each do |arch|
-          apk = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', "android-#{arch}-release.apk")
-          supply(
-          apk: File.absolute_path(apk),
-          package_name: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'],
-          track: 'beta',
-          issuer: ENV['ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_EMAIL'],
-          key: persistent('android', 'service_account_key.p12')
-          )
+          begin
+            apk = File.join('..', 'platforms', 'android', 'build', 'outputs', 'apk', "android-#{arch}-release.apk")
+            supply(
+            apk: File.absolute_path(apk),
+            package_name: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'],
+            track: 'beta',
+            issuer: ENV['ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_EMAIL'],
+            key: persistent('android', 'service_account_key.p12')
+            )
+          rescue => ex
+            puts ex.message
+          end
         end
       end
     end
