@@ -80,8 +80,8 @@ class _Photo {
 }
 
 class _ServerApiMap {
-  static _api(Map config, String name) =>
-      new ApiInfo("${config['base_url']}/${config['gateways'][name]}", config['key']);
+  static _api(Map config, String name) => new ApiInfo("${config['base_url']}/${config['gateways'][name]}",
+      config['key'], config['retry_limit'], config['retry_duration']);
 
   final ApiInfo moon, weather, cognitoIdChanged;
 
@@ -94,6 +94,8 @@ class _ServerApiMap {
 class ApiInfo {
   final String url;
   final String key;
+  final int retryLimit;
+  final Duration retryDur;
 
-  ApiInfo(this.url, this.key);
+  ApiInfo(this.url, this.key, this.retryLimit, int dur) : retryDur = new Duration(milliseconds: dur);
 }

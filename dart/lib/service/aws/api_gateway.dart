@@ -13,9 +13,6 @@ final _logger = new Logger('ApiGateway');
 typedef T _LoadResult<T>(Map map);
 
 class ApiGateway<R> {
-  static const retryLimit = 3;
-  static const retryDur = const Duration(seconds: 30);
-
   final ApiInfo info;
   final _LoadResult<R> _loader;
 
@@ -29,15 +26,15 @@ class ApiGateway<R> {
 
     final name = url.split('/').last;
     retry(final int count) {
-      final isRetryable = count < retryLimit;
+      final isRetryable = count < info.retryLimit;
       bool isRetring = false;
       next([bool p = true]) => (error) {
             if (!isRetring) {
               isRetring = true;
               if (isRetryable && p) {
                 final next = count + 1;
-                _logger.warning(() => "retring(${next}) after ${retryDur}");
-                new Future.delayed(retryDur, () => retry(next));
+                _logger.warning(() => "retring(${next}) after ${info.retryDur}");
+                new Future.delayed(info.retryDur, () => retry(next));
               } else {
                 result.completeError(error);
               }
