@@ -13,7 +13,7 @@ final _logger = new Logger('PhotoWayDialog');
 
 @Component(selector: 'photo-way-dialog', templateUrl: 'packages/triton_note/dialog/photo_way.html', useShadowDom: true)
 class PhotoWayDialog extends AbstractDialog implements ShadowRootAware {
-  @NgOneWayOneTime('setter') set setter(Setter<PhotoWayDialog> v) => v?.value = this; // Optional
+  @NgOneWayOneTime('setter') Setter<PhotoWayDialog> setter;
 
   ShadowRoot _root;
   CachedValue<PaperDialog> _dialog;
@@ -25,6 +25,7 @@ class PhotoWayDialog extends AbstractDialog implements ShadowRootAware {
   void onShadowRoot(ShadowRoot sr) {
     _root = sr;
     _dialog = new CachedValue(() => _root.querySelector('paper-dialog'));
+    setter.value = this;
   }
 
   done(bool v) {
