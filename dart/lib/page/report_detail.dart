@@ -405,7 +405,7 @@ class _Location extends _PartOfPage {
     _blinker.stop();
   }
 
-  toggle(event) async {
+  toggle(event) {
     final button = event.target as PaperIconButton;
     _logger.fine("Toggle edit: ${button.icon}");
     button.icon = isEditing ? editFlip : editFlop;
