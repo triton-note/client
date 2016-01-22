@@ -343,7 +343,7 @@ class _Location extends _PartOfPage {
   CachedValue<List<Element>> _blinkInput, _blinkBorder;
   Blinker _blinker;
 
-  bool isEditing;
+  bool isEditing = false;
 
   String get spotName => _location.name;
   set spotName(String v) {
@@ -382,7 +382,14 @@ class _Location extends _PartOfPage {
     setGMap.future.then((gmap) {
       gmap
         ..options.draggable = false
-        ..putMarker(_location.geoinfo);
+        ..putMarker(_location.geoinfo)
+        ..onClick = (pos) {
+          if (isEditing) {
+            gmap.clearMarkers();
+            gmap.putMarker(pos);
+            geoinfo = pos;
+          }
+        };
     });
 
     _blinkInput = new CachedValue(() => _root.querySelectorAll('#location .editor input').toList(growable: false));
@@ -401,13 +408,11 @@ class _Location extends _PartOfPage {
     _logger.fine("Toggle edit: ${button.icon}");
     button.icon = isEditing ? editFlip : editFlop;
 
-    final gmap = await setGMap.future;
     if (isEditing) {
       _blinker.stop();
       new Future.delayed(_blinker.blinkStopDuration, () {
         isEditing = false;
       });
-      gmap.onClick = null;
     } else {
       _logger.finest("Start editing location.");
       isEditing = true;
@@ -416,11 +421,6 @@ class _Location extends _PartOfPage {
         _blinkBorder.clear();
         _blinker.start();
       });
-      gmap.onClick = (pos) {
-        gmap.clearMarkers();
-        gmap.putMarker(pos);
-        geoinfo = pos;
-      };
     }
   }
 }
