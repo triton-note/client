@@ -326,14 +326,16 @@ class _GMap {
     gmapElement.future.then((elem) {
       elem
         ..onExpanding = (gmap) {
-          gmap.showMyLocationButton = true;
-          gmap.options.draggable = true;
-          gmap.options.disableDoubleClickZoom = false;
+          gmap
+            ..showMyLocationButton = true
+            ..options.draggable = true
+            ..options.disableDoubleClickZoom = false;
         }
         ..onShrinking = (gmap) {
-          gmap.showMyLocationButton = false;
-          gmap.options.draggable = false;
-          gmap.options.disableDoubleClickZoom = true;
+          gmap
+            ..showMyLocationButton = false
+            ..options.draggable = false
+            ..options.disableDoubleClickZoom = true;
         };
     });
 
