@@ -11,6 +11,7 @@ import 'package:paper_elements/paper_icon_button.dart';
 import 'package:paper_elements/paper_autogrow_textarea.dart';
 import 'package:paper_elements/paper_toast.dart';
 
+import 'package:triton_note/element/expandable_gmap.dart';
 import 'package:triton_note/dialog/confirm.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
@@ -336,13 +337,13 @@ class _Location extends _PartOfPage {
   final OnChanged _onChanged;
   Getter<Element> getScroller;
   Getter<Element> getBase;
-  Setter<GoogleMap> setGMap;
-  GoogleMap _gmap;
+  final FuturedValue<ExpandableGMapElement> gmapElement = new FuturedValue();
+  final FuturedValue<GoogleMap> setGMap = new FuturedValue();
 
   CachedValue<List<Element>> _blinkInput, _blinkBorder;
   Blinker _blinker;
 
-  bool isEditing;
+  bool isEditing = false;
 
   String get spotName => _location.name;
   set spotName(String v) {
@@ -364,21 +365,33 @@ class _Location extends _PartOfPage {
       final panel = _root.querySelector('core-header-panel[main]') as CoreHeaderPanel;
       return (panel == null) ? null : panel.scroller;
     });
-    setGMap = new Setter<GoogleMap>((v) {
-      _gmap = v
+
+    gmapElement.future.then((elem) {
+      elem
+        ..onExpanding = (gmap) {
+          gmap
+            ..showMyLocationButton = true
+            ..options.draggable = true
+            ..options.disableDoubleClickZoom = false;
+        }
+        ..onShrinking = (gmap) {
+          gmap
+            ..showMyLocationButton = false
+            ..options.draggable = false
+            ..options.disableDoubleClickZoom = true;
+        };
+    });
+    setGMap.future.then((gmap) {
+      gmap
         ..options.draggable = false
-        ..putMarker(_location.geoinfo);
-      _root.querySelector('#location expandable-gmap')
-        ..on['expanding'].listen((event) {
-          _gmap.showMyLocationButton = true;
-          _gmap.options.draggable = true;
-          _gmap.options.disableDoubleClickZoom = false;
-        })
-        ..on['shrinking'].listen((event) {
-          _gmap.showMyLocationButton = false;
-          _gmap.options.draggable = false;
-          _gmap.options.disableDoubleClickZoom = true;
-        });
+        ..putMarker(_location.geoinfo)
+        ..onClick = (pos) {
+          if (isEditing) {
+            gmap.clearMarkers();
+            gmap.putMarker(pos);
+            geoinfo = pos;
+          }
+        };
     });
 
     _blinkInput = new CachedValue(() => _root.querySelectorAll('#location .editor input').toList(growable: false));
@@ -392,7 +405,7 @@ class _Location extends _PartOfPage {
     _blinker.stop();
   }
 
-  toggle(event) {
+  toggle(event) async {
     final button = event.target as PaperIconButton;
     _logger.fine("Toggle edit: ${button.icon}");
     button.icon = isEditing ? editFlip : editFlop;
@@ -402,7 +415,6 @@ class _Location extends _PartOfPage {
       new Future.delayed(_blinker.blinkStopDuration, () {
         isEditing = false;
       });
-      _gmap.onClick = null;
     } else {
       _logger.finest("Start editing location.");
       isEditing = true;
@@ -411,11 +423,6 @@ class _Location extends _PartOfPage {
         _blinkBorder.clear();
         _blinker.start();
       });
-      _gmap.onClick = (pos) {
-        _gmap.clearMarkers();
-        _gmap.putMarker(pos);
-        geoinfo = pos;
-      };
     }
   }
 }

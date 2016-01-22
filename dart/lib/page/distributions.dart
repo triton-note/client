@@ -11,6 +11,7 @@ import 'package:core_elements/core_header_panel.dart';
 import 'package:paper_elements/paper_tabs.dart';
 
 import 'package:triton_note/dialog/distributions_filter.dart';
+import 'package:triton_note/element/expandable_gmap.dart';
 import 'package:triton_note/model/location.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
@@ -151,7 +152,7 @@ abstract class _Section {
 }
 
 class _DMap extends _Section {
-  static final _logger = new Logger('DistributionsPage.Map');
+  static final Logger _logger = new Logger('DistributionsPage.Map');
 
   static const refreshDur = const Duration(seconds: 2);
   static GeoInfo _lastCenter;
@@ -166,6 +167,7 @@ class _DMap extends _Section {
     gmapSetter.future.then(_initGMap);
   }
 
+  final FuturedValue<ExpandableGMapElement> gmapElement = new FuturedValue();
   final FuturedValue<GoogleMap> gmapSetter = new FuturedValue();
 
   bool get isReady => _onReady.isCompleted;
@@ -176,11 +178,17 @@ class _DMap extends _Section {
   bool _isHeated = false;
   Map<int, Marker> _chooses = {};
 
-  _initGMap(GoogleMap gmap) {
+  _initGMap(GoogleMap gmap) async {
     _logger.info("Setting GoogeMap up");
-    _section.querySelector('#gmap expandable-gmap')
-      ..on['expanding'].listen((event) => gmap.options.mapTypeControl = true)
-      ..on['shrinking'].listen((event) => gmap.options.mapTypeControl = false);
+
+    final elem = await gmapElement.future;
+    elem
+      ..onExpanding = (gmap) {
+        gmap.options.mapTypeControl = true;
+      }
+      ..onShrinking = (gmap) {
+        gmap.options.mapTypeControl = false;
+      };
 
     gmap.showMyLocationButton = true;
 
@@ -202,8 +210,12 @@ class _DMap extends _Section {
       if (!_onReady.isCompleted) _onReady.complete();
 
       _logger.finer(() => "Map moved: ${_lastCenter}, ${_bounds}");
-      if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
-      _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, _parent._refresh);
+      if (elem.isExpanded) {
+        _logger.finer(() => "No refresh in expanded map");
+      } else {
+        if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
+        _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, _parent._refresh);
+      }
     });
   }
 

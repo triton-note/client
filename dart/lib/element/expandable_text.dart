@@ -7,6 +7,7 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 
+import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('ExpandableTextElement');
@@ -17,6 +18,7 @@ final _logger = new Logger('ExpandableTextElement');
     cssUrl: 'packages/triton_note/element/expandable_text.css',
     useShadowDom: true)
 class ExpandableTextElement extends ShadowRootAware {
+  @NgOneWayOneTime('setter') set setter(Setter<ExpandableTextElement> v) => v?.value = this; // Optional
   @NgOneWay('text') String text;
   @NgOneWay('shrinked-lines') int shrinkedLines;
   @NgOneWay('expanded-lines') int expandedLines; // Optional (default: full text)
@@ -62,19 +64,22 @@ class ExpandableTextElement extends ShadowRootAware {
   }
 
   toggle() => afterRippling(() async {
-    final list = [{'height': "${shrinkedHeight}px"}, {'height': "${expandedHeight}px"}];
-    final frames = isExpanded ? list.reversed.toList() : list;
+        final list = [
+          {'height': "${shrinkedHeight}px"},
+          {'height': "${expandedHeight}px"}
+        ];
+        final frames = isExpanded ? list.reversed.toList() : list;
 
-    _logger.fine("Toggle text expand: ${isExpanded}: ${frames}");
+        _logger.fine("Toggle text expand: ${isExpanded}: ${frames}");
 
-    new CoreAnimation()
-      ..target = textarea
-      ..duration = 300
-      ..fill = "both"
-      ..keyframes = frames
-      ..play();
-    _setLines(isExpanded ? shrinkedLines : expandedLines);
+        new CoreAnimation()
+          ..target = textarea
+          ..duration = 300
+          ..fill = "both"
+          ..keyframes = frames
+          ..play();
+        _setLines(isExpanded ? shrinkedLines : expandedLines);
 
-    isExpanded = !isExpanded;
-  });
+        isExpanded = !isExpanded;
+      });
 }

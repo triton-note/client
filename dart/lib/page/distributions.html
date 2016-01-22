@@ -31,7 +31,7 @@
         <core-animated-pages transitions="slide-from-right">
             <section id="dmap">
                 <div id="gmap">
-                    <expandable-gmap center="dmap.center" set-gmap="dmap.gmapSetter" get-scroller="scroller" get-base="scrollBase" get-toolbar="toolbar"></expandable-gmap>
+                    <expandable-gmap setter="dmap.gmapElement" center="dmap.center" set-gmap="dmap.gmapSetter" get-scroller="scroller" get-base="scrollBase" get-toolbar="toolbar"></expandable-gmap>
                 </div>
                 <div id="around">
                     <div class="page-loading" ng-if="!dmap.isReady">

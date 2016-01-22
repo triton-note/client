@@ -3,6 +3,8 @@ library triton_note.element.num_input;
 import 'package:logging/logging.dart';
 import 'package:angular/angular.dart';
 
+import 'package:triton_note/util/getter_setter.dart';
+
 final _logger = new Logger('NumInputElement');
 
 @Component(
@@ -11,6 +13,7 @@ final _logger = new Logger('NumInputElement');
     cssUrl: 'packages/triton_note/element/num_input.css',
     useShadowDom: true)
 class NumInputElement {
+  @NgOneWayOneTime('setter') set setter(Setter<NumInputElement> v) => v?.value = this; // Optional
   @NgTwoWay('value') int value;
   @NgAttr('digits') String digits;
   @NgAttr('font-size') String size;

@@ -15,13 +15,9 @@ import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('EditFishDialog');
 
-@Component(
-    selector: 'edit-fish-dialog',
-    templateUrl: 'packages/triton_note/dialog/edit_fish.html',
-    cssUrl: 'packages/triton_note/dialog/edit_fish.css',
-    useShadowDom: true)
+@Component(selector: 'edit-fish-dialog', templateUrl: 'packages/triton_note/dialog/edit_fish.html', useShadowDom: true)
 class EditFishDialog extends AbstractDialog implements ShadowRootAware {
-  @NgOneWayOneTime('setter') set setter(Setter<EditFishDialog> v) => v == null ? null : v.value = this;
+  @NgOneWayOneTime('setter') set setter(Setter<EditFishDialog> v) => v?.value = this; // Optional
 
   Measures _measures;
   ShadowRoot _root;

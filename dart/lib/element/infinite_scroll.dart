@@ -6,6 +6,7 @@ import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 
+import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/pager.dart';
 
 final _logger = new Logger('InfiniteScrollElement');
@@ -18,6 +19,7 @@ final _logger = new Logger('InfiniteScrollElement');
 class InfiniteScrollElement extends ShadowRootAware {
   static const moreDur = const Duration(milliseconds: 800);
 
+  @NgOneWayOneTime('setter') set setter(Setter<InfiniteScrollElement> v) => v?.value = this; // Optional
   @NgAttr('page-size') String pageSize;
   Pager _pager;
   Pager get pager => _pager;
