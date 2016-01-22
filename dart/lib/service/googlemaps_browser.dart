@@ -93,8 +93,8 @@ class GoogleMap implements Wrapper {
       ..width = 24
       ..height = 24;
     final div = document.createElement('div')
-      ..style.backgroundColor = '#eee'
-      ..style.opacity = '0.6'
+      ..style.margin = '5px'
+      ..style.backgroundColor = '#fff'
       ..append(img);
     proc(img);
     final c = _src['controls'][context['google']['maps']['ControlPosition'][position]];
