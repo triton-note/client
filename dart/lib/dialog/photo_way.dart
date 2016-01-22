@@ -11,11 +11,7 @@ import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('PhotoWayDialog');
 
-@Component(
-    selector: 'photo-way-dialog',
-    templateUrl: 'packages/triton_note/dialog/photo_way.html',
-    cssUrl: 'packages/triton_note/dialog/photo_way.css',
-    useShadowDom: true)
+@Component(selector: 'photo-way-dialog', templateUrl: 'packages/triton_note/dialog/photo_way.html', useShadowDom: true)
 class PhotoWayDialog extends AbstractDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<PhotoWayDialog> v) => v?.value = this; // Optional
 

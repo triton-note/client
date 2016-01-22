@@ -17,10 +17,7 @@ import 'package:triton_note/util/main_frame.dart';
 final _logger = new Logger('EditWeatherDialog');
 
 @Component(
-    selector: 'edit-weather-dialog',
-    templateUrl: 'packages/triton_note/dialog/edit_weather.html',
-    cssUrl: 'packages/triton_note/dialog/edit_weather.css',
-    useShadowDom: true)
+    selector: 'edit-weather-dialog', templateUrl: 'packages/triton_note/dialog/edit_weather.html', useShadowDom: true)
 class EditWeatherDialog extends AbstractDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<EditWeatherDialog> v) => v?.value = this; // Optional
   @NgOneWay('value') Weather value;

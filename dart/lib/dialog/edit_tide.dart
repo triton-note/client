@@ -13,11 +13,7 @@ import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('EditTideDialog');
 
-@Component(
-    selector: 'edit-tide-dialog',
-    templateUrl: 'packages/triton_note/dialog/edit_tide.html',
-    cssUrl: 'packages/triton_note/dialog/edit_tide.css',
-    useShadowDom: true)
+@Component(selector: 'edit-tide-dialog', templateUrl: 'packages/triton_note/dialog/edit_tide.html', useShadowDom: true)
 class EditTideDialog extends AbstractDialog implements ShadowRootAware {
   static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
 

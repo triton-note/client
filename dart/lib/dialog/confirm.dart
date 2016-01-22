@@ -11,11 +11,7 @@ import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('ConfirmDialog');
 
-@Component(
-    selector: 'confirm-dialog',
-    templateUrl: 'packages/triton_note/dialog/confirm.html',
-    cssUrl: 'packages/triton_note/dialog/confirm.css',
-    useShadowDom: true)
+@Component(selector: 'confirm-dialog', templateUrl: 'packages/triton_note/dialog/confirm.html', useShadowDom: true)
 class ConfirmDialog extends AbstractDialog implements ShadowRootAware {
   @NgOneWayOneTime('setter') set setter(Setter<ConfirmDialog> v) => v?.value = this; // Optional
 
