@@ -210,8 +210,12 @@ class _DMap extends _Section {
       if (!_onReady.isCompleted) _onReady.complete();
 
       _logger.finer(() => "Map moved: ${_lastCenter}, ${_bounds}");
-      if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
-      _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, _parent._refresh);
+      if (elem.isExpanded) {
+        _logger.finer(() => "No refresh in expanded map");
+      } else {
+        if (_refreshTimer != null && _refreshTimer.isActive) _refreshTimer.cancel();
+        _refreshTimer = (_bounds == null) ? null : new Timer(refreshDur, _parent._refresh);
+      }
     });
   }
 
