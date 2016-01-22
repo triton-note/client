@@ -9,6 +9,7 @@ import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_dropdown.dart';
 
+import 'package:triton_note/element/expandable_gmap.dart';
 import 'package:triton_note/dialog/alert.dart';
 import 'package:triton_note/dialog/edit_fish.dart';
 import 'package:triton_note/dialog/edit_timestamp.dart';
@@ -312,8 +313,8 @@ class _GMap {
   GeoInfo get geoinfo => _geoinfo.value;
   Getter<Element> getScroller;
   Getter<Element> getBase;
-  Setter<GoogleMap> setGMap;
-  GoogleMap _gmap;
+  final FuturedValue<ExpandableGMapElement> gmapElement = new FuturedValue();
+  final FuturedValue<GoogleMap> setGMap = new FuturedValue();
 
   _GMap(this._root, this.spotName, this._geoinfo) {
     getBase = new Getter<Element>(() => _root.querySelector('#input'));
@@ -321,28 +322,31 @@ class _GMap {
       final panel = _root.querySelector('core-header-panel[main]') as CoreHeaderPanel;
       return (panel == null) ? null : panel.scroller;
     });
-    setGMap = new Setter<GoogleMap>((v) {
-      _gmap = v
+
+    gmapElement.future.then((elem) {
+      elem
+        ..onExpanding = (gmap) {
+          gmap.showMyLocationButton = true;
+          gmap.options.draggable = true;
+          gmap.options.disableDoubleClickZoom = false;
+        }
+        ..onShrinking = (gmap) {
+          gmap.showMyLocationButton = false;
+          gmap.options.draggable = false;
+          gmap.options.disableDoubleClickZoom = true;
+        };
+    });
+
+    setGMap.future.then((gmap) {
+      gmap
         ..putMarker(_geoinfo.value)
         ..options.draggable = false
         ..onClick = (pos) {
           _logger.fine("Point map: ${pos}");
           _geoinfo.value = pos;
-          _gmap.clearMarkers();
-          _gmap.putMarker(pos);
+          gmap.clearMarkers();
+          gmap.putMarker(pos);
         };
-
-      _root.querySelector('#location expandable-gmap')
-        ..on['expanding'].listen((event) {
-          _gmap.showMyLocationButton = true;
-          _gmap.options.draggable = true;
-          _gmap.options.disableDoubleClickZoom = false;
-        })
-        ..on['shrinking'].listen((event) {
-          _gmap.showMyLocationButton = false;
-          _gmap.options.draggable = false;
-          _gmap.options.disableDoubleClickZoom = true;
-        });
     });
   }
 }
