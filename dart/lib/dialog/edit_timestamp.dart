@@ -15,10 +15,9 @@ final _logger = new Logger('EditTimestampDialog');
 @Component(
     selector: 'edit-timestamp-dialog',
     templateUrl: 'packages/triton_note/dialog/edit_timestamp.html',
-    cssUrl: 'packages/triton_note/dialog/edit_timestamp.css',
     useShadowDom: true)
 class EditTimestampDialog extends AbstractDialog implements ShadowRootAware {
-  @NgOneWayOneTime('setter') set setter(Setter<EditTimestampDialog> v) => v == null ? null : v.value = this;
+  @NgOneWayOneTime('setter') set setter(Setter<EditTimestampDialog> v) => v?.value = this; // Optional
   @NgTwoWay('value') DateTime value;
   @NgAttr('without-oclock') String withoutOclock;
 

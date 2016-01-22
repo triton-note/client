@@ -8,6 +8,8 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_animated_pages.dart';
 import 'package:core_elements/core_animation.dart';
 
+import 'package:triton_note/util/getter_setter.dart';
+
 final _logger = new Logger('CalendarElement');
 
 @Component(
@@ -23,6 +25,7 @@ class CalendarElement extends ShadowRootAware {
   static const day1 = const Duration(days: 1);
   static const day31 = const Duration(days: 31);
 
+  @NgOneWayOneTime('setter') set setter(Setter<CalendarElement> v) => v?.value = this; // Optional
   @NgTwoWay('value') DateTime value;
   @NgAttr('start-of-week') String startOfWeekAttr;
 

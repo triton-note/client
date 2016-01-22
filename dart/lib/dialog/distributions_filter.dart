@@ -15,10 +15,9 @@ final _logger = new Logger('DistributionsFilterDialog');
 @Component(
     selector: 'distributions-filter-dialog',
     templateUrl: 'packages/triton_note/dialog/distributions_filter.html',
-    cssUrl: 'packages/triton_note/dialog/distributions_filter.css',
     useShadowDom: true)
 class DistributionsFilterDialog extends AbstractDialog implements ShadowRootAware {
-  @NgOneWayOneTime('setter') set setter(Setter<DistributionsFilterDialog> v) => v == null ? null : v.value = this;
+  @NgOneWayOneTime('setter') set setter(Setter<DistributionsFilterDialog> v) => v?.value = this; // Optional
   @NgOneWayOneTime('filter') Setter<DistributionsFilter> filter;
 
   ShadowRoot _root;

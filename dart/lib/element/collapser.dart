@@ -17,6 +17,7 @@ final _logger = new Logger('CollapserElement');
     cssUrl: 'packages/triton_note/element/collapser.css',
     useShadowDom: true)
 class CollapserElement extends ShadowRootAware {
+  @NgOneWayOneTime('setter') set setter(Setter<CollapserElement> v) => v?.value = this; // Optional
   @NgOneWay('title') String title;
   @NgTwoWay('opened') bool opened;
 
@@ -47,7 +48,10 @@ class CollapserElement extends ShadowRootAware {
 
   toggle() {
     opened = !opened;
-    final frames = [{'transform': "none"}, {'transform': "rotate(-90deg)"}];
+    final frames = [
+      {'transform': "none"},
+      {'transform': "rotate(-90deg)"}
+    ];
     new CoreAnimation()
       ..target = _arrowIcon.value
       ..duration = _collapse.value.duration * 1000
