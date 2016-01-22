@@ -16,6 +16,8 @@ import 'package:triton_note/service/googlemaps_browser.dart';
 
 final _logger = new Logger('ExpandableGMapElement');
 
+typedef _OnEvent(GoogleMap gmap);
+
 @Component(
     selector: 'expandable-gmap',
     templateUrl: 'packages/triton_note/element/expandable_gmap.html',
@@ -42,6 +44,8 @@ class ExpandableGMapElement extends Backable implements ShadowRootAware, DetachA
   double _curZoom;
   bool _isChanging = false;
 
+  _OnEvent onExpanding, onShrinking;
+
   Element get gmapHost => _root?.querySelector('#google-maps');
 
   Completer<GoogleMap> _gmapReady;
@@ -67,7 +71,11 @@ class ExpandableGMapElement extends Backable implements ShadowRootAware, DetachA
           _toggle = () async {
             img.src = isExpanded ? ICON_EXPAND : ICON_SHRINK;
             _isChanging = true;
-            _root.host.dispatchEvent(new Event(isExpanded ? 'shrinking' : 'expanding'));
+            if (isExpanded) {
+              if (onShrinking != null) onShrinking(gmap);
+            } else {
+              if (onExpanding != null) onExpanding(gmap);
+            }
             _doToggle();
           };
           img
