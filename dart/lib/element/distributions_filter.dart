@@ -26,7 +26,7 @@ final _logger = new Logger('DistributionsFilterElement');
     cssUrl: 'packages/triton_note/element/distributions_filter.css',
     useShadowDom: true)
 class DistributionsFilterElement extends ShadowRootAware with DistributionsFilter {
-  @NgOneWayOneTime('setter') set setter(Setter<DistributionsFilter> v) => v == null ? null : v.value = this;
+  @NgOneWayOneTime('setter') set setter(Setter<DistributionsFilterElement> v) => v?.value = this; // Optional
 
   ShadowRoot _root;
   Getter<bool> _includeOthers;

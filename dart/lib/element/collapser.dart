@@ -17,6 +17,7 @@ final _logger = new Logger('CollapserElement');
     cssUrl: 'packages/triton_note/element/collapser.css',
     useShadowDom: true)
 class CollapserElement extends ShadowRootAware {
+  @NgOneWayOneTime('setter') set setter(Setter<CollapserElement> v) => v?.value = this; // Optional
   @NgOneWay('title') String title;
   @NgTwoWay('opened') bool opened;
 

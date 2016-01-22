@@ -24,6 +24,7 @@ final _logger = new Logger('ExpandableGMapElement');
 class ExpandableGMapElement extends Backable implements ShadowRootAware, DetachAware {
   static const animationDur = const Duration(milliseconds: 300);
 
+  @NgOneWayOneTime('setter') set setter(Setter<ExpandableGMapElement> v) => v?.value = this; // Optional
   @NgAttr('nofix-scroll') String nofixScroll; // Optional (default: false, means fix scroll on expanded)
   @NgOneWay('shrinked-height') int shrinkedHeight; // Optional (default: golden ratio of width)
   @NgOneWay('expanded-height') int expandedHeight; // Optional (default: max of base height)

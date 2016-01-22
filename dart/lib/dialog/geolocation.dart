@@ -19,7 +19,7 @@ final _logger = new Logger('GeolocationDialog');
     cssUrl: 'packages/triton_note/dialog/geolocation.css',
     useShadowDom: true)
 class GeolocationDialog extends AbstractDialog implements ShadowRootAware {
-  @NgOneWayOneTime('setter') set setter(Setter<GeolocationDialog> v) => v?.value = this;
+  @NgOneWayOneTime('setter') set setter(Setter<GeolocationDialog> v) => v?.value = this; // Optional
   @NgAttr('message') String message;
 
   CachedValue<PaperDialog> _dialog;

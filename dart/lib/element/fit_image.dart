@@ -6,6 +6,7 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 
+import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/geometry.dart';
 
 final _logger = new Logger('FitImageElement');
@@ -16,6 +17,7 @@ final _logger = new Logger('FitImageElement');
     cssUrl: 'packages/triton_note/element/fit_image.css',
     useShadowDom: true)
 class FitImageElement {
+  @NgOneWayOneTime('setter') set setter(Setter<FitImageElement> v) => v?.value = this; // Optional
   @NgOneWay('width') int width;
   @NgOneWay('height') int height;
   @NgOneWay('url') String url;

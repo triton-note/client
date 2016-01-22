@@ -7,6 +7,8 @@ import 'package:angular/angular.dart';
 import 'package:logging/logging.dart';
 import 'package:core_elements/core_animation.dart';
 
+import 'package:triton_note/util/getter_setter.dart';
+
 final _logger = new Logger('FloatButtonsElement');
 
 @Component(
@@ -15,6 +17,7 @@ final _logger = new Logger('FloatButtonsElement');
     cssUrl: 'packages/triton_note/element/float_buttons.css',
     useShadowDom: true)
 class FloatButtonsElement extends ShadowRootAware {
+  @NgOneWayOneTime('setter') set setter(Setter<FloatButtonsElement> v) => v?.value = this; // Optional
   @NgOneWay('duration') String duration;
   Duration get _duration => new Duration(seconds: int.parse(duration ?? "5"));
 

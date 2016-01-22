@@ -21,7 +21,7 @@ final _logger = new Logger('EditTideDialog');
 class EditTideDialog extends AbstractDialog implements ShadowRootAware {
   static const List<Tide> tideList = const [Tide.High, Tide.Flood, Tide.Ebb, Tide.Low];
 
-  @NgOneWayOneTime('setter') set setter(Setter<EditTideDialog> v) => v == null ? null : v.value = this;
+  @NgOneWayOneTime('setter') set setter(Setter<EditTideDialog> v) => v?.value = this; // Optional
   @NgTwoWay('value') Tide value;
 
   ShadowRoot _root;
