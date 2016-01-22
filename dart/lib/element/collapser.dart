@@ -48,7 +48,10 @@ class CollapserElement extends ShadowRootAware {
 
   toggle() {
     opened = !opened;
-    final frames = [{'transform': "none"}, {'transform': "rotate(-90deg)"}];
+    final frames = [
+      {'transform': "none"},
+      {'transform': "rotate(-90deg)"}
+    ];
     new CoreAnimation()
       ..target = _arrowIcon.value
       ..duration = _collapse.value.duration * 1000

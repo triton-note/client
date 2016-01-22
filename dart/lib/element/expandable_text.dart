@@ -64,19 +64,22 @@ class ExpandableTextElement extends ShadowRootAware {
   }
 
   toggle() => afterRippling(() async {
-    final list = [{'height': "${shrinkedHeight}px"}, {'height': "${expandedHeight}px"}];
-    final frames = isExpanded ? list.reversed.toList() : list;
+        final list = [
+          {'height': "${shrinkedHeight}px"},
+          {'height': "${expandedHeight}px"}
+        ];
+        final frames = isExpanded ? list.reversed.toList() : list;
 
-    _logger.fine("Toggle text expand: ${isExpanded}: ${frames}");
+        _logger.fine("Toggle text expand: ${isExpanded}: ${frames}");
 
-    new CoreAnimation()
-      ..target = textarea
-      ..duration = 300
-      ..fill = "both"
-      ..keyframes = frames
-      ..play();
-    _setLines(isExpanded ? shrinkedLines : expandedLines);
+        new CoreAnimation()
+          ..target = textarea
+          ..duration = 300
+          ..fill = "both"
+          ..keyframes = frames
+          ..play();
+        _setLines(isExpanded ? shrinkedLines : expandedLines);
 
-    isExpanded = !isExpanded;
-  });
+        isExpanded = !isExpanded;
+      });
 }
