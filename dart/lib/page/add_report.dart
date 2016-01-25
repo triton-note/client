@@ -35,7 +35,7 @@ import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 
-final _logger = new Logger('AddReportPage');
+final Logger _logger = new Logger('AddReportPage');
 
 @Component(
     selector: 'add-report',
@@ -114,13 +114,14 @@ class AddReportPage extends SubPage {
       _onSubmitable.then((_) => _submitable());
 
       final shop = new PhotoShop(take);
-      _upload(await shop.photo);
 
       report = new Report.fromMap({
         'location': {},
         'condition': {'weather': {}}
       });
       report.photo.reduced.mainview.url = await shop.photoUrl;
+
+      _upload(await shop.photo);
 
       isReady = true;
 
@@ -248,7 +249,22 @@ class AddReportPage extends SubPage {
   // Submit
 
   back() {
-    if (!isSubmitting) super.back();
+    if (!isSubmitting) {
+      if (report != null) {
+        delete(path) async {
+          try {
+            await S3File.delete(path);
+          } catch (ex) {
+            _logger.warning(() => "Failed to delete on S3(${path}): ${ex}");
+          }
+        }
+        report.photo.original.storagePath.then(delete);
+        new Future.delayed(new Duration(minutes: 1), () {
+          report.photo.reduced..mainview.storagePath.then(delete)..thumbnail.storagePath.then(delete);
+        });
+      }
+      super.back();
+    }
   }
 
   bool isSubmitting = false;
