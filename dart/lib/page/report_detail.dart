@@ -173,10 +173,12 @@ class _MoreMenu extends _PartOfPage {
       ..open();
   }
 
-  toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
-    ..classes.remove('fit-bottom')
-    ..text = msg
-    ..show();
+  toast(String msg, [Duration dur = const Duration(seconds: 8)]) =>
+      _root.querySelector('#more-menu paper-toast') as PaperToast
+        ..classes.remove('fit-bottom')
+        ..duration = dur.inMilliseconds
+        ..text = msg
+        ..show();
 
   publish() {
     final msg =
