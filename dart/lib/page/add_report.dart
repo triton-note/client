@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_dropdown.dart';
+import 'package:paper_elements/paper_toast.dart';
 
 import 'package:triton_note/element/expandable_gmap.dart';
 import 'package:triton_note/dialog/alert.dart';
@@ -252,6 +253,13 @@ class AddReportPage extends SubPage {
   DivElement get divSubmit => root.querySelector('core-toolbar div#submit');
   CoreDropdown get dropdownSubmit => divSubmit.querySelector('core-dropdown');
 
+  toast(String msg, [Duration dur = const Duration(seconds: 8)]) =>
+      root.querySelector('#submit paper-toast') as PaperToast
+        ..classes.remove('fit-bottom')
+        ..duration = dur.inMilliseconds
+        ..text = msg
+        ..show();
+
   void _submitable() {
     _logger.fine("Appearing submit button");
     final x = document.body.clientWidth;
@@ -292,6 +300,7 @@ class AddReportPage extends SubPage {
           if (ok && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
             if (published) try {
+              toast("Completed on publishing to Facebook");
               await Reports.update(report);
             } catch (ex) {
               _logger.warning(() => "Failed to update published id: ${ex}");
