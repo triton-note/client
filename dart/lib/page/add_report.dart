@@ -31,6 +31,7 @@ import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 
@@ -297,6 +298,9 @@ class AddReportPage extends SubPage {
         bool ok = false;
         try {
           ok = await doit('add', () => Reports.add(report));
+          if (ok) {
+            FabricAnswers.eventCustom(name: 'AddReport');
+          }
           if (ok && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
             if (published) try {
