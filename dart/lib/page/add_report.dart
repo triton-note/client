@@ -161,6 +161,7 @@ class AddReportPage extends SubPage {
     final path = await report.photo.original.storagePath;
     await S3File.putObject(path, photo);
     _onUploaded.complete();
+    FabricAnswers.eventCustom(name: 'UploadPhoto', attributes: {'path': path});
   }
 
   /**
