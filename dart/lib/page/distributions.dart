@@ -20,6 +20,7 @@ import 'package:triton_note/util/distributions_filters.dart';
 import 'package:triton_note/util/icons.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/util/chart.dart' as chart;
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/pager.dart';
@@ -137,15 +138,19 @@ abstract class _Section {
         this.id = id,
         this._section = parent.root.querySelector("core-animated-pages > section#${id}");
 
+  String get contentId => "DistributionsPage.${id}";
+
   PagingList<Catches> get _catchesPager => _parent.catchesPager;
   Future<List<Catches>> get _catchesList => _parent._catchesList;
 
-  void detach();
-
   refresh();
 
+  detach() {}
+
   activating() {}
-  activated() {}
+  activated() {
+    FabricAnswers.eventContentView(contentName: "${contentId}");
+  }
 
   inactivating() {}
   inactivated() {}
@@ -315,9 +320,8 @@ class _DTimeLine extends _Section {
     _calculate(_selected);
   }
 
-  void detach() {}
-
   activated() {
+    super.activated();
     final height = window.innerHeight - chartHost.getBoundingClientRect().top.round() - 4;
     chartHost.style.height = "${height}px";
     refresh();
@@ -423,6 +427,8 @@ class _DTimeLine extends _Section {
       final keys = [Tide.Ebb, Tide.Low, Tide.Flood, Tide.High].map((x) => nameOfEnum(x)).toList();
       _drawData(keys, (c) => nameOfEnum(c.condition.tide));
     }
+
+    FabricAnswers.eventContentView(contentId: "${contentId}.${way}");
 
     switch (way) {
       case 'HOUR':
