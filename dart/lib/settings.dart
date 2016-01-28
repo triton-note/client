@@ -1,6 +1,7 @@
 library triton_note.settings;
 
 import 'dart:async';
+import 'dart:js';
 
 import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
@@ -22,17 +23,31 @@ Completer<_Settings> _initializing;
 Future<_Settings> _initialize() async {
   if (_initializing == null) {
     _initializing = new Completer();
-    try {
-      final local = await CognitoSettings.value;
-      final server = loadYaml(await S3File.read('unauthorized/client.yaml', local.s3Bucket));
-      final map = new Map.from(server);
-      _logger.config("Initializing...");
-      _initializing.complete(new _Settings(local, map));
-      SNS.init();
-    } catch (ex) {
-      _logger.warning("Failed to read settings file: ${ex}");
-      _initializing.completeError(ex);
+    getting() async {
+      try {
+        final local = await CognitoSettings.value;
+        final server = loadYaml(await S3File.read('unauthorized/client.yaml', local.s3Bucket));
+        final map = new Map.from(server);
+        _logger.config("Initializing...");
+        _initializing.complete(new _Settings(local, map));
+        SNS.init();
+      } catch (ex) {
+        _logger.warning("Failed to read settings file: ${ex}");
+        if ("$ex".contains("RequestTimeTooSkewed")) {
+          context['navigator']['notification'].callMethod('alert', [
+            "It seems that the clock is not correct. Please adjust it.",
+            (_) {
+              getting();
+            },
+            "Skewed Clock",
+            "DONE"
+          ]);
+        } else {
+          _initializing.completeError(ex);
+        }
+      }
     }
+    getting();
   }
   return _initializing.future;
 }
