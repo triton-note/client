@@ -44,12 +44,11 @@ import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 
 class AppExceptionHandler extends ExceptionHandler {
-  call(dynamic error, dynamic stack, [String reason = '']) {
+  call(dynamic error, dynamic stack, [String reason = '']) async {
     recordEvent(error);
-    dialog(error).then((_) {
-      final list = ["$error", reason, stack];
-      FabricCrashlytics.crash(list.join("\n"));
-    });
+    await dialog(error);
+    final msg = ["$error", reason, stack].join("\n");
+    FabricCrashlytics.crash(msg);
   }
 
   recordEvent(error) {
@@ -77,8 +76,14 @@ class AppExceptionHandler extends ExceptionHandler {
       }
     }
 
-    context['navigator']['notification']
-        .callMethod('alert', [getMessage(), () => result.complete(), "Application Stop", "STOP"]);
+    context['navigator']['notification'].callMethod('alert', [
+      getMessage(),
+      (_) {
+        result.complete();
+      },
+      "Application Stop",
+      "STOP"
+    ]);
     return result.future;
   }
 }

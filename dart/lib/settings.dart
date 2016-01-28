@@ -35,8 +35,10 @@ Future<_Settings> _initialize() async {
         _logger.warning("Failed to read settings file: ${ex}");
         if ("$ex".contains("RequestTimeTooSkewed")) {
           context['navigator']['notification'].callMethod('alert', [
-            "It seems that the clock is not correct. Please adjust it, and try again.",
-            () => getting(),
+            "It seems that the clock is not correct. Please adjust it.",
+            (_) {
+              getting();
+            },
             "Skewed Clock",
             "DONE"
           ]);
