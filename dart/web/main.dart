@@ -1,6 +1,8 @@
 library triton_note;
 
+import 'dart:async';
 import 'dart:html';
+import 'dart:js';
 
 import 'package:triton_note/router.dart';
 import 'package:triton_note/formatter/fish_formatter.dart';
@@ -44,8 +46,10 @@ import 'package:polymer/polymer.dart';
 class AppExceptionHandler extends ExceptionHandler {
   call(dynamic error, dynamic stack, [String reason = '']) {
     recordEvent(error);
-    final list = ["$error", reason, stack];
-    FabricCrashlytics.crash(list.join("\n"));
+    dialog(error).then((_) {
+      final list = ["$error", reason, stack];
+      FabricCrashlytics.crash(list.join("\n"));
+    });
   }
 
   recordEvent(error) {
@@ -59,6 +63,23 @@ class AppExceptionHandler extends ExceptionHandler {
     final descs = titles.isEmpty ? parts : parts.sublist(titles.length - 1);
     final desc = descs.join(": ");
     FabricAnswers.eventCustom(name: "Crash", attributes: {'desc': desc});
+  }
+
+  Future<Null> dialog(error) async {
+    final result = new Completer();
+
+    final text = "$error";
+    getMessage() {
+      if (text.contains("Network Failure")) {
+        return "Network Failure";
+      } else {
+        return "Unrecoverable Error";
+      }
+    }
+
+    context['navigator']['notification']
+        .callMethod('alert', [getMessage(), () => result.complete(), "Application Stop", "STOP"]);
+    return result.future;
   }
 }
 
