@@ -54,11 +54,10 @@ class AppExceptionHandler extends ExceptionHandler {
     if (text.startsWith(prefix)) {
       text = text.substring(prefix.length);
     }
-    final parts = text.split(":");
-    final titles = parts.takeWhile((x) => x.trim().split(" ").length == 1);
-    final descs = parts.sublist(titles.length);
-    if (descs.isEmpty) descs.add(titles.last);
-    final desc = descs.map((x) => x.trim()).join(": ");
+    final parts = text.split(":").map((x) => x.trim()).toList();
+    final titles = parts.takeWhile((x) => !x.contains(" "));
+    final descs = titles.isEmpty ? parts : parts.sublist(titles.length - 1);
+    final desc = descs.join(": ");
     FabricAnswers.eventCustom(name: "Crash", attributes: {'desc': desc});
   }
 }
