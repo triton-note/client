@@ -43,8 +43,23 @@ import 'package:polymer/polymer.dart';
 
 class AppExceptionHandler extends ExceptionHandler {
   call(dynamic error, dynamic stack, [String reason = '']) {
+    recordEvent(error);
     final list = ["$error", reason, stack];
     FabricCrashlytics.crash(list.join("\n"));
+  }
+
+  recordEvent(error) {
+    final prefix = "Fatal Exception: ";
+    var text = "$error";
+    if (text.startsWith(prefix)) {
+      text = text.substring(prefix.length);
+    }
+    final parts = text.split(":");
+    final titles = parts.takeWhile((x) => x.trim().split(" ").length == 1);
+    final descs = parts.sublist(titles.length);
+    if (descs.isEmpty) descs.add(titles.last);
+    final desc = descs.map((x) => x.trim()).join(": ");
+    FabricAnswers.eventCustom(name: "Crash", attributes: {'desc': desc});
   }
 }
 
