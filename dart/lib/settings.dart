@@ -36,7 +36,7 @@ Future<_Settings> _initialize() async {
         if ("$ex".contains("RequestTimeTooSkewed")) {
           context['navigator']['notification'].callMethod('alert', [
             "It seems that the clock is not correct. Please adjust it, and try again.",
-            getting,
+            () => getting(),
             "Skewed Clock",
             "DONE"
           ]);
