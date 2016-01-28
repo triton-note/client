@@ -3,6 +3,7 @@ language: objective-c
 
 branches:
   except:
+    - /^[0-9]/
     - /^deployed\/\w+\/\w+\/\w+$/
 
 env:
