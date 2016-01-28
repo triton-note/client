@@ -12,6 +12,7 @@ import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/util/cordova.dart';
+import 'package:triton_note/util/fabric.dart';
 
 class FBConnect {
   static final Logger _logger = new Logger('FBConnect');
@@ -129,6 +130,8 @@ class FBPublish {
     final Map obj = JSON.decode(result.responseText);
 
     if (!obj.containsKey('id')) throw obj;
+
+    FabricAnswers.eventShare(method: 'Facebook');
     return (report.published ??= new Published.fromMap({})).facebook = obj['id'];
   }
 

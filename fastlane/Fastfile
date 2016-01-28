@@ -27,6 +27,7 @@ before_all do
     'cordova-plugin-statusbar@~2.0.0',
     'cordova-plugin-geolocation@~2.0.0',
     'cordova-plugin-whitelist@~1.2.0',
+    'cordova-plugin-dialogs@~1.2.0',
     'phonegap-plugin-push@~1.4.0',
     'cordova.plugins.diagnostic',
     "https://github.com/fathens/Cordova-Plugin-FBConnect.git --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",

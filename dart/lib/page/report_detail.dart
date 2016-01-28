@@ -27,6 +27,7 @@ import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/getter_setter.dart';
 import 'package:triton_note/util/main_frame.dart';
 
@@ -118,7 +119,11 @@ class ReportDetailPage extends SubPage {
   }
 
   void _update() {
-    Reports.update(report);
+    Reports.update(report).then((_) {
+      FabricAnswers.eventCustom(name: 'ModifyReport');
+    }).catchError((ex) {
+      _logger.warning(() => "Failed to update report: ${ex}");
+    });
   }
 }
 
@@ -173,10 +178,12 @@ class _MoreMenu extends _PartOfPage {
       ..open();
   }
 
-  toast(String msg) => _root.querySelector('#more-menu paper-toast') as PaperToast
-    ..classes.remove('fit-bottom')
-    ..text = msg
-    ..show();
+  toast(String msg, [Duration dur = const Duration(seconds: 8)]) =>
+      _root.querySelector('#more-menu paper-toast') as PaperToast
+        ..classes.remove('fit-bottom')
+        ..duration = dur.inMilliseconds
+        ..text = msg
+        ..show();
 
   publish() {
     final msg =

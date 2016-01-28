@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:core_elements/core_header_panel.dart';
 import 'package:core_elements/core_animation.dart';
 import 'package:core_elements/core_dropdown.dart';
+import 'package:paper_elements/paper_toast.dart';
 
 import 'package:triton_note/element/expandable_gmap.dart';
 import 'package:triton_note/dialog/alert.dart';
@@ -30,10 +31,11 @@ import 'package:triton_note/service/aws/s3file.dart';
 import 'package:triton_note/util/blinker.dart';
 import 'package:triton_note/util/cordova.dart';
 import 'package:triton_note/util/enums.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/getter_setter.dart';
 
-final _logger = new Logger('AddReportPage');
+final Logger _logger = new Logger('AddReportPage');
 
 @Component(
     selector: 'add-report',
@@ -112,13 +114,14 @@ class AddReportPage extends SubPage {
       _onSubmitable.then((_) => _submitable());
 
       final shop = new PhotoShop(take);
-      _upload(await shop.photo);
 
       report = new Report.fromMap({
         'location': {},
         'condition': {'weather': {}}
       });
       report.photo.reduced.mainview.url = await shop.photoUrl;
+
+      _upload(await shop.photo);
 
       isReady = true;
 
@@ -159,6 +162,7 @@ class AddReportPage extends SubPage {
     final path = await report.photo.original.storagePath;
     await S3File.putObject(path, photo);
     _onUploaded.complete();
+    FabricAnswers.eventCustom(name: 'UploadPhoto', attributes: {'type': 'NEW_REPORT'});
   }
 
   /**
@@ -245,12 +249,34 @@ class AddReportPage extends SubPage {
   // Submit
 
   back() {
-    if (!isSubmitting) super.back();
+    if (!isSubmitting) {
+      if (report != null) {
+        delete(path) async {
+          try {
+            await S3File.delete(path);
+          } catch (ex) {
+            _logger.warning(() => "Failed to delete on S3(${path}): ${ex}");
+          }
+        }
+        report.photo.original.storagePath.then(delete);
+        new Future.delayed(new Duration(minutes: 1), () {
+          report.photo.reduced..mainview.storagePath.then(delete)..thumbnail.storagePath.then(delete);
+        });
+      }
+      super.back();
+    }
   }
 
   bool isSubmitting = false;
   DivElement get divSubmit => root.querySelector('core-toolbar div#submit');
   CoreDropdown get dropdownSubmit => divSubmit.querySelector('core-dropdown');
+
+  toast(String msg, [Duration dur = const Duration(seconds: 8)]) =>
+      root.querySelector('#submit paper-toast') as PaperToast
+        ..classes.remove('fit-bottom')
+        ..duration = dur.inMilliseconds
+        ..text = msg
+        ..show();
 
   void _submitable() {
     _logger.fine("Appearing submit button");
@@ -289,9 +315,13 @@ class AddReportPage extends SubPage {
         bool ok = false;
         try {
           ok = await doit('add', () => Reports.add(report));
+          if (ok) {
+            FabricAnswers.eventCustom(name: 'AddReport');
+          }
           if (ok && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
             if (published) try {
+              toast("Completed on publishing to Facebook");
               await Reports.update(report);
             } catch (ex) {
               _logger.warning(() => "Failed to update published id: ${ex}");
