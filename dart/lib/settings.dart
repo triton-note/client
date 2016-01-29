@@ -98,12 +98,11 @@ class _ServerApiMap {
   static _api(Map config, String name) => new ApiInfo("${config['base_url']}/${config['gateways'][name]}",
       config['key'], config['retry_limit'], config['retry_duration']);
 
-  final ApiInfo moon, weather, cognitoIdChanged;
+  final ApiInfo moon, weather;
 
   _ServerApiMap(Map map)
       : moon = _api(map, 'moon'),
-        weather = _api(map, 'weather'),
-        cognitoIdChanged = _api(map, 'cognitoIdChanged');
+        weather = _api(map, 'weather');
 }
 
 class ApiInfo {
