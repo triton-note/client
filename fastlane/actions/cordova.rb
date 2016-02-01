@@ -25,7 +25,9 @@ module Fastlane
       end
 
       def self.ionic
-        if !File.exist? File.join('resources', ENV["FASTLANE_PLATFORM_NAME"])
+        list = Dir[File.join('resources', ENV["FASTLANE_PLATFORM_NAME"], '**', '*.png')]
+        puts "Resources of #{ENV["FASTLANE_PLATFORM_NAME"]}: #{list}"
+        if list.empty? then
           system("ionic resources")
         end
       end

@@ -295,3 +295,26 @@ class _ContentEncoder {
     return result;
   }
 }
+
+class ExpressionMap {
+  final Map<String, String> _names = {};
+  final Map<dynamic, String> _values = {};
+
+  Map<String, String> get names => _reverse(_names);
+  Map<String, dynamic> get values => _reverse(_values);
+  Map _reverse(Map src) {
+    final result = {};
+    src.forEach((key, value) {
+      result[value] = key;
+    });
+    return result;
+  }
+
+  String _put(Map<dynamic, String> map, String pre, value) {
+    if (map.containsKey(value)) return map[value];
+    return map[value] = "${pre}${map.length + 1}";
+  }
+
+  String putName(String name) => _put(_names, "#N", name);
+  String putValue(value) => _put(_values, ":V", value);
+}

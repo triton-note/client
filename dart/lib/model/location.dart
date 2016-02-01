@@ -1,5 +1,7 @@
 library triton_note.model.location;
 
+import 'dart:math';
+
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/model/_json_support.dart';
@@ -33,6 +35,8 @@ abstract class GeoInfo implements JsonSupport {
   double longitude;
 
   factory GeoInfo.fromMap(Map data) => new _GeoInfoImpl(data);
+
+  double distance(GeoInfo other);
 }
 
 class _GeoInfoImpl extends JsonSupport implements GeoInfo {
@@ -45,6 +49,28 @@ class _GeoInfoImpl extends JsonSupport implements GeoInfo {
 
   double get longitude => _data['longitude'];
   set longitude(double v) => _data['longitude'] = v;
+
+  static _toRadian(double v) => v * 2 * PI / 360;
+  static const radiusEq = 6378137.000;
+  static const radiusPl = 6356752.314;
+  static final radiusEq2 = pow(radiusEq, 2);
+  static final radiusPl2 = pow(radiusPl, 2);
+  static final ecc2 = (radiusEq2 - radiusPl2) / radiusEq2;
+  static final rM = radiusEq * (1 - ecc2);
+
+  double distance(GeoInfo other) {
+    final srcLat = _toRadian(latitude);
+    final srcLng = _toRadian(longitude);
+    final dstLat = _toRadian(other.latitude);
+    final dstLng = _toRadian(other.longitude);
+
+    final mLat = (srcLat + dstLat) / 2;
+    final W = sqrt(1 - ecc2 * pow(sin(mLat), 2));
+
+    final vLat = (srcLat - dstLat) * rM / pow(W, 3);
+    final vLng = (srcLng - dstLng) * cos(mLat) * radiusEq / W;
+    return sqrt(pow(vLat, 2) + pow(vLng, 2));
+  }
 }
 
 abstract class Condition implements JsonSupport {
@@ -78,6 +104,7 @@ class _ConditionImpl extends JsonSupport implements Condition {
 }
 
 enum Tide { Flood, High, Ebb, Low }
+
 abstract class Tides {
   static String iconOf(Tide v) => iconBy(nameOfEnum(v));
   static String iconBy(String name) => name == null ? null : "img/tide/${name.toLowerCase()}.png";
@@ -108,8 +135,8 @@ class _WeatherImpl extends JsonSupport implements Weather {
 
   _WeatherImpl(Map data)
       : _data = data,
-        _temperature = new CachedProp<Temperature>.forValueUnit(
-            data, 'temperature', (value) => new Temperature.standard(value));
+        _temperature =
+            new CachedProp<Temperature>.forValueUnit(data, 'temperature', (value) => new Temperature.standard(value));
 
   Map get asMap => _data;
 

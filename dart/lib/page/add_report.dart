@@ -25,6 +25,7 @@ import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
+import 'package:triton_note/service/infer_spotname.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/aws/s3file.dart';
@@ -83,8 +84,15 @@ class AddReportPage extends SubPage {
         new GetterSetter(() => report.location.name, (v) => report.location.name = v),
         new GetterSetter(() => report.location.geoinfo, (pos) {
           report.location.geoinfo = pos;
+          renewLocation();
         }));
     conditions = new _Conditions(root, new Getter(() => report.condition));
+  }
+
+  DateTime get dateAt => report?.dateAt;
+  set dateAt(DateTime v) {
+    report?.dateAt = v;
+    renewDate();
   }
 
   Future<GeoInfo> _getGeoInfo() async {
@@ -137,20 +145,15 @@ class AddReportPage extends SubPage {
         _logger.info("No GeoInfo in Exif: ${ex}");
         report.location.geoinfo = await _getGeoInfo();
       }
-      renewConditions();
+      renewLocation();
 
       try {
-        final inference = null;
-        if (inference != null) {
-          if (inference.spotName != null && inference.spotName.length > 0) {
-            report.location.name = inference.spotName;
-          }
-          if (inference.fishes != null && inference.fishes.length > 0) {
-            report.fishes.addAll(inference.fishes);
-          }
+        final fishes = null;
+        if (fishes != null && fishes.length > 0) {
+          report.fishes.addAll(fishes);
         }
       } catch (ex) {
-        _logger.info("Failed to infer: ${ex}");
+        _logger.info("Failed to infer fishes: ${ex}");
       }
     } catch (ex) {
       _logger.warning(() => "Failed to choose photo: ${ex}");
@@ -188,6 +191,22 @@ class AddReportPage extends SubPage {
     } catch (ex) {
       _logger.info("Failed to get conditions: ${ex}");
     }
+  }
+
+  renewLocation() async {
+    renewConditions();
+    try {
+      final spotName = await InferSpotName.infer(report.location.geoinfo);
+      if (spotName != null && spotName.length > 0) {
+        report.location.name = spotName;
+      }
+    } catch (ex) {
+      _logger.info("Failed to infer spot name: ${ex}");
+    }
+  }
+
+  renewDate() async {
+    renewConditions();
   }
 
   //********************************
@@ -251,6 +270,7 @@ class AddReportPage extends SubPage {
   back() {
     if (!isSubmitting) {
       if (report != null) {
+        FabricAnswers.eventCustom(name: 'CancelReport');
         delete(path) async {
           try {
             await S3File.delete(path);
