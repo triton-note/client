@@ -1,5 +1,7 @@
 library triton_note.model.location;
 
+import 'dart:math';
+
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/model/_json_support.dart';
@@ -31,8 +33,12 @@ class _LocationImpl extends JsonSupport implements Location {
 abstract class GeoInfo implements JsonSupport {
   double latitude;
   double longitude;
+  double get _radianLat;
+  double get _radianLng;
 
   factory GeoInfo.fromMap(Map data) => new _GeoInfoImpl(data);
+
+  double distance(GeoInfo other);
 }
 
 class _GeoInfoImpl extends JsonSupport implements GeoInfo {
@@ -45,6 +51,29 @@ class _GeoInfoImpl extends JsonSupport implements GeoInfo {
 
   double get longitude => _data['longitude'];
   set longitude(double v) => _data['longitude'] = v;
+
+  _toRadian(double v) => v * 2 * PI / 360;
+  double get _radianLat => _toRadian(latitude);
+  double get _radianLng => _toRadian(longitude);
+
+  static const radiusEq = 6378137.000;
+  static const radiusPl = 6356752.314;
+  static final radiusEq2 = pow(radiusEq, 2);
+  static final radiusPl2 = pow(radiusPl, 2);
+  static final ecc2 = (radiusEq2 - radiusPl2) / radiusEq2;
+  static final rM = radiusEq * (1 - ecc2);
+
+  double distance(GeoInfo other) {
+    final dLat = _radianLat - other._radianLat;
+    final dLng = _radianLng - other._radianLng;
+
+    final mLat = (_radianLat + other._radianLat) / 2;
+    final W = sqrt(1 - ecc2 * pow(sin(mLat), 2));
+
+    final vLat = dLat * rM / pow(W, 3);
+    final vLng = dLng * radiusEq / W * cos(mLat);
+    return sqrt(pow(vLat, 2) + pow(vLng, 2));
+  }
 }
 
 abstract class Condition implements JsonSupport {

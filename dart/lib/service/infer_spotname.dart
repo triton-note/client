@@ -15,12 +15,6 @@ class InferSpotName {
   static const deltaLat = 0.008;
   static const deltaLng = 0.008;
 
-  static double distance(GeoInfo a, GeoInfo b) {
-    final dLat = a.latitude - b.latitude;
-    final dLng = a.longitude - b.longitude;
-    return sqrt(pow(dLat, 2) + pow(dLng, 2));
-  }
-
   static Future<List<Location>> around(GeoInfo here) async {
     final exmap = new ExpressionMap();
     final content = exmap.putName("CONTENT");
@@ -54,7 +48,7 @@ class InferSpotName {
   static Future<String> infer(GeoInfo here) async {
     final locations = await around(here);
     locations.sort((a, b) {
-      final v = distance(a.geoinfo, here) - distance(b.geoinfo, here);
+      final v = here.distance(a.geoinfo) - here.distance(b.geoinfo);
       if (v == 0) return 0;
       else if (v < 0) return -1;
       else if (v > 0) return 1;
