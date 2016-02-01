@@ -64,14 +64,11 @@ class _GeoInfoImpl extends JsonSupport implements GeoInfo {
     final dstLat = _toRadian(other.latitude);
     final dstLng = _toRadian(other.longitude);
 
-    final dLat = srcLat - dstLat;
-    final dLng = srcLng - dstLng;
-
     final mLat = (srcLat + dstLat) / 2;
     final W = sqrt(1 - ecc2 * pow(sin(mLat), 2));
 
-    final vLat = dLat * rM / pow(W, 3);
-    final vLng = dLng * radiusEq / W * cos(mLat);
+    final vLat = (srcLat - dstLat) * rM / pow(W, 3);
+    final vLng = (srcLng - dstLng) * cos(mLat) * radiusEq / W;
     return sqrt(pow(vLat, 2) + pow(vLng, 2));
   }
 }
