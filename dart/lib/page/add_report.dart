@@ -255,6 +255,7 @@ class AddReportPage extends SubPage {
   back() {
     if (!isSubmitting) {
       if (report != null) {
+        FabricAnswers.eventCustom(name: 'CancelReport');
         delete(path) async {
           try {
             await S3File.delete(path);
