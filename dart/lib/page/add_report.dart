@@ -84,8 +84,15 @@ class AddReportPage extends SubPage {
         new GetterSetter(() => report.location.name, (v) => report.location.name = v),
         new GetterSetter(() => report.location.geoinfo, (pos) {
           report.location.geoinfo = pos;
+          renewLocation();
         }));
     conditions = new _Conditions(root, new Getter(() => report.condition));
+  }
+
+  DateTime get dateAt => report?.dateAt;
+  set dateAt(DateTime v) {
+    report?.dateAt = v;
+    renewDate();
   }
 
   Future<GeoInfo> _getGeoInfo() async {
@@ -138,16 +145,8 @@ class AddReportPage extends SubPage {
         _logger.info("No GeoInfo in Exif: ${ex}");
         report.location.geoinfo = await _getGeoInfo();
       }
-      renewConditions();
+      renewLocation();
 
-      try {
-        final spotName = await InferSpotName.infer(report.location.geoinfo);
-        if (spotName != null && spotName.length > 0) {
-          report.location.name = spotName;
-        }
-      } catch (ex) {
-        _logger.info("Failed to infer spot name: ${ex}");
-      }
       try {
         final fishes = null;
         if (fishes != null && fishes.length > 0) {
@@ -192,6 +191,22 @@ class AddReportPage extends SubPage {
     } catch (ex) {
       _logger.info("Failed to get conditions: ${ex}");
     }
+  }
+
+  renewLocation() async {
+    renewConditions();
+    try {
+      final spotName = await InferSpotName.infer(report.location.geoinfo);
+      if (spotName != null && spotName.length > 0) {
+        report.location.name = spotName;
+      }
+    } catch (ex) {
+      _logger.info("Failed to infer spot name: ${ex}");
+    }
+  }
+
+  renewDate() async {
+    renewConditions();
   }
 
   //********************************
