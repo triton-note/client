@@ -33,8 +33,6 @@ class _LocationImpl extends JsonSupport implements Location {
 abstract class GeoInfo implements JsonSupport {
   double latitude;
   double longitude;
-  double get _radianLat;
-  double get _radianLng;
 
   factory GeoInfo.fromMap(Map data) => new _GeoInfoImpl(data);
 
@@ -52,10 +50,7 @@ class _GeoInfoImpl extends JsonSupport implements GeoInfo {
   double get longitude => _data['longitude'];
   set longitude(double v) => _data['longitude'] = v;
 
-  _toRadian(double v) => v * 2 * PI / 360;
-  double get _radianLat => _toRadian(latitude);
-  double get _radianLng => _toRadian(longitude);
-
+  static _toRadian(double v) => v * 2 * PI / 360;
   static const radiusEq = 6378137.000;
   static const radiusPl = 6356752.314;
   static final radiusEq2 = pow(radiusEq, 2);
@@ -64,10 +59,15 @@ class _GeoInfoImpl extends JsonSupport implements GeoInfo {
   static final rM = radiusEq * (1 - ecc2);
 
   double distance(GeoInfo other) {
-    final dLat = _radianLat - other._radianLat;
-    final dLng = _radianLng - other._radianLng;
+    final srcLat = _toRadian(latitude);
+    final srcLng = _toRadian(longitude);
+    final dstLat = _toRadian(other.latitude);
+    final dstLng = _toRadian(other.longitude);
 
-    final mLat = (_radianLat + other._radianLat) / 2;
+    final dLat = srcLat - dstLat;
+    final dLng = srcLng - dstLng;
+
+    final mLat = (srcLat + dstLat) / 2;
     final W = sqrt(1 - ecc2 * pow(sin(mLat), 2));
 
     final vLat = dLat * rM / pow(W, 3);
