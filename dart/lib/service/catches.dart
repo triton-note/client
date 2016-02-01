@@ -105,27 +105,14 @@ class _CatchesPager extends Pager<Catches> {
 
 abstract class _Expression {
   final List<String> conds = [];
-  final Map<String, String> _names = {};
-  final Map<dynamic, String> _values = {};
+  final ExpressionMap _map = new ExpressionMap();
 
   String get expression => conds.join(" AND ");
-  Map<String, String> get names => _reverse(_names);
-  Map<String, dynamic> get values => _reverse(_values);
-  Map _reverse(Map src) {
-    final result = {};
-    src.forEach((key, value) {
-      result[value] = key;
-    });
-    return result;
-  }
+  Map<String, String> get names => _map.names;
+  Map<String, dynamic> get values => _map.values;
 
-  String _put(Map<dynamic, String> map, String pre, value) {
-    if (map.containsKey(value)) return map[value];
-    return map[value] = "${pre}${map.length + 1}";
-  }
-
-  String putName(String name) => _put(_names, "#N", name);
-  String putValue(value) => _put(_values, ":V", value);
+  String putName(String name) => _map.putName(name);
+  String putValue(value) => _map.putValue(value);
   void addCond(String cond) => conds.add(cond);
 
   final Completer _onReady = new Completer();
