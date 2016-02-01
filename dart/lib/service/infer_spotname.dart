@@ -16,6 +16,8 @@ class InferSpotName {
   static const deltaLng = 0.008;
 
   static Future<List<Location>> around(GeoInfo here) async {
+    _logger.fine(() => "Search reports around ${here}");
+
     final exmap = new ExpressionMap();
     final content = exmap.putName("CONTENT");
     final location = exmap.putName("location");
@@ -42,6 +44,7 @@ class InferSpotName {
     final expression = [cond(latitude, south, north), cond(longitude, west, east)].join(" AND ");
 
     final reports = await Reports.TABLE_REPORT.scan(expression, exmap.names, exmap.values);
+    _logger.finest(() => "Found ${reports.length} reports");
     return reports.map((r) => r.location).toList();
   }
 
@@ -53,6 +56,7 @@ class InferSpotName {
       else if (v < 0) return -1;
       else if (v > 0) return 1;
     });
+    _logger.fine(() => "Sorted locations: ${locations}");
 
     return locations.isEmpty ? null : locations.first.name;
   }
