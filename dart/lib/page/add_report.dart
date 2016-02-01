@@ -25,6 +25,7 @@ import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
+import 'package:triton_note/service/infer_spotname.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/aws/s3file.dart';
@@ -140,17 +141,20 @@ class AddReportPage extends SubPage {
       renewConditions();
 
       try {
-        final inference = null;
-        if (inference != null) {
-          if (inference.spotName != null && inference.spotName.length > 0) {
-            report.location.name = inference.spotName;
-          }
-          if (inference.fishes != null && inference.fishes.length > 0) {
-            report.fishes.addAll(inference.fishes);
-          }
+        final spotName = await InferSpotName.infer(report.location.geoinfo);
+        if (spotName != null && spotName.length > 0) {
+          report.location.name = spotName;
         }
       } catch (ex) {
-        _logger.info("Failed to infer: ${ex}");
+        _logger.info("Failed to infer spot name: ${ex}");
+      }
+      try {
+        final fishes = null;
+        if (fishes != null && fishes.length > 0) {
+          report.fishes.addAll(fishes);
+        }
+      } catch (ex) {
+        _logger.info("Failed to infer fishes: ${ex}");
       }
     } catch (ex) {
       _logger.warning(() => "Failed to choose photo: ${ex}");
