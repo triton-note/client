@@ -78,6 +78,7 @@ class _ConditionImpl extends JsonSupport implements Condition {
 }
 
 enum Tide { Flood, High, Ebb, Low }
+
 abstract class Tides {
   static String iconOf(Tide v) => iconBy(nameOfEnum(v));
   static String iconBy(String name) => name == null ? null : "img/tide/${name.toLowerCase()}.png";
@@ -108,8 +109,8 @@ class _WeatherImpl extends JsonSupport implements Weather {
 
   _WeatherImpl(Map data)
       : _data = data,
-        _temperature = new CachedProp<Temperature>.forValueUnit(
-            data, 'temperature', (value) => new Temperature.standard(value));
+        _temperature =
+            new CachedProp<Temperature>.forValueUnit(data, 'temperature', (value) => new Temperature.standard(value));
 
   Map get asMap => _data;
 
