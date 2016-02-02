@@ -420,5 +420,5 @@ class _Conditions {
   String get weatherImage => value.weather == null ? null : value.weather.iconUrl;
   String get tideName => value.tide == null ? null : nameOfEnum(value.tide);
   String get tideImage => tideName == null ? null : Tides.iconBy(tideName);
-  String get moonImage => _condition.value.moon == null ? null : MoonPhase.iconOf(_condition.value.moon);
+  String get moonImage => _condition.value?.moon?.image;
 }
