@@ -2,9 +2,13 @@ library triton_note.model.location;
 
 import 'dart:math';
 
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/model/_json_support.dart';
+
+final Logger _logger = new Logger('Location');
 
 abstract class Location implements JsonSupport {
   String name;
@@ -125,7 +129,9 @@ abstract class MoonPhase implements JsonSupport {
 class _MoonPhase extends JsonSupport implements MoonPhase {
   final Map _data;
 
-  _MoonPhase(data) : _data = (data is Map) ? data : {"age": data};
+  _MoonPhase(data) : _data = (data is Map) ? data : {"age": data} {
+    _logger.finest(() => "Creating MoonPhase: '${data}' -> '${_data}'");
+  }
 
   Map get asMap => _data;
 
