@@ -6,16 +6,14 @@ import 'dart:math';
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/location.dart';
+import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/aws/dynamodb.dart';
 import 'package:triton_note/service/reports.dart';
 
-final Logger _logger = new Logger('InferSpotName');
+final Logger _logger = new Logger('Inference');
 
-class InferSpotName {
-  static const deltaLat = 0.008;
-  static const deltaLng = 0.008;
-
-  static Future<List<Location>> around(GeoInfo here) async {
+class Inference {
+  static Future<List<Report>> around(GeoInfo here, [deltaLat = 0.008, deltaLng = 0.008]) async {
     _logger.fine(() => "Search reports around ${here}");
 
     final exmap = new ExpressionMap();
@@ -44,12 +42,12 @@ class InferSpotName {
     final expression = [cond(latitude, south, north), cond(longitude, west, east)].join(" AND ");
 
     final reports = await Reports.TABLE_REPORT.scan(expression, exmap.names, exmap.values);
-    _logger.finest(() => "Found ${reports.length} reports");
-    return reports.map((r) => r.location).toList();
+    _logger.finest(() => "Found around ${here}: ${reports.length} reports");
+    return reports;
   }
 
-  static Future<String> infer(GeoInfo here) async {
-    final locations = await around(here);
+  static Future<String> spotName(GeoInfo here) async {
+    final List<Location> locations = (await around(here)).map((r) => r.location);
     locations.sort((a, b) {
       final v = here.distance(a.geoinfo) - here.distance(b.geoinfo);
       if (v == 0) return 0;

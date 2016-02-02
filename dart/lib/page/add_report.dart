@@ -25,7 +25,7 @@ import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
-import 'package:triton_note/service/infer_spotname.dart';
+import 'package:triton_note/service/inference.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/aws/s3file.dart';
@@ -196,7 +196,7 @@ class AddReportPage extends SubPage {
   renewLocation() async {
     renewConditions();
     try {
-      final spotName = await InferSpotName.infer(report.location.geoinfo);
+      final spotName = await Inference.spotName(report.location.geoinfo);
       if (spotName != null && spotName.length > 0) {
         report.location.name = spotName;
       }
