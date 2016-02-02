@@ -89,7 +89,7 @@ class _ConditionImpl extends JsonSupport implements Condition {
 
   _ConditionImpl(Map data)
       : _data = data,
-        _moon = new CachedProp<MoonPhase>.forMap(data, 'moon', (map) => new MoonPhase.fromMap(data)),
+        _moon = new CachedProp<MoonPhase>.forMap(data, 'moon', (map) => new MoonPhase.fromMap(map)),
         _tide = new CachedProp<Tide>(data, 'tide', (map) => enumByName(Tide.values, map), (v) => nameOfEnum(v)),
         _weather = new CachedProp<Weather>.forMap(data, 'weather', (map) => new Weather.fromMap(map));
 
