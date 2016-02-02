@@ -27,7 +27,7 @@ class NaturalConditions {
     final moon = await Moon.at(date);
     final Tide tide = _tideState(geoinfo.longitude, moon.earthLongitude);
 
-    final result = new Condition.fromMap({'moon': moon.age.round(), 'tide': nameOfEnum(tide)});
+    final result = new Condition.fromMap({'moon': moon.asMap, 'tide': nameOfEnum(tide)});
 
     final weather = await weatherWait;
     if (weather != null) result.weather = weather;
@@ -36,19 +36,14 @@ class NaturalConditions {
 }
 
 class Moon {
-  static final Future<ApiGateway<Moon>> _server = Settings.then((s) {
-    loader(Map map) => new Moon(map['age'].toDouble(), map['earth-longitude'].toDouble());
+  static final Future<ApiGateway<MoonPhase>> _server = Settings.then((s) {
+    loader(Map map) => new MoonPhase.fromMap(map);
 
-    return new ApiGateway<Moon>(s.server.moon, loader);
+    return new ApiGateway<MoonPhase>(s.server.moon, loader);
   });
 
-  static Future<Moon> at(DateTime date) async =>
+  static Future<MoonPhase> at(DateTime date) async =>
       (await _server)({'date': date.toUtc().millisecondsSinceEpoch.toString()});
-
-  Moon(this.age, this.earthLongitude);
-
-  final double age;
-  final double earthLongitude;
 }
 
 class _OpenWeatherMap {
