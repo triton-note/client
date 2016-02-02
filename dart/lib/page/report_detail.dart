@@ -480,7 +480,7 @@ class _Conditions extends _PartOfPage {
   String get tideImage => Loc.Tides.iconOf(_src.tide);
 
   int get moon => _src.moon;
-  String get moonImage => Loc.MoonPhases.iconOf(_src.moon);
+  String get moonImage => Loc.MoonPhase.iconOf(_src.moon);
 
   dialogWeather() => weatherDialog.value.open();
   dialogTide() => tideDialog.value.open();

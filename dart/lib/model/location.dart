@@ -110,7 +110,7 @@ abstract class Tides {
   static String iconBy(String name) => name == null ? null : "img/tide/${name.toLowerCase()}.png";
 }
 
-abstract class MoonPhases {
+abstract class MoonPhase {
   static String iconOf(int v) => v == null ? null : "img/moon/phase-${v.toString().padLeft(2, '0')}.png";
 }
 
