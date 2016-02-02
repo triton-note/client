@@ -129,7 +129,7 @@ class _MoonPhase extends JsonSupport implements MoonPhase {
 
   Map get asMap => _data;
 
-  String get image => MoonPhase.iconOf(age.round());
+  String get image => MoonPhase.iconOf(age?.round());
 
   double get age => _data['age'];
   set age(double v) => _data['age'] = v;
