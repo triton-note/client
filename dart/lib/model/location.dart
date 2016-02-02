@@ -115,6 +115,7 @@ abstract class Tides {
 abstract class MoonPhase implements JsonSupport {
   static String iconOf(int v) => v == null ? null : "img/moon/phase-${v.toString().padLeft(2, '0')}.png";
 
+  final String image;
   double age;
   double earthLongitude;
 
@@ -128,6 +129,7 @@ class _MoonPhase extends JsonSupport implements MoonPhase {
 
   Map get asMap => _data;
 
+  String get image => MoonPhase.iconOf(age.round());
 
   double get age => _data['age'];
   set age(double v) => _data['age'] = v;
