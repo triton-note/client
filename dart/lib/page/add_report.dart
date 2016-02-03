@@ -43,7 +43,7 @@ final Logger _logger = new Logger('AddReportPage');
     templateUrl: 'packages/triton_note/page/add_report.html',
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
-class AddReportPage extends SubPage {
+class AddReportPage extends SubPage implements ScopeAware {
   Report report;
 
   final FuturedValue<PhotoWayDialog> photoWayDialog = new FuturedValue();
@@ -55,6 +55,11 @@ class AddReportPage extends SubPage {
   Getter<Element> toolbar;
   _GMap gmap;
   _Conditions conditions;
+
+  Scope _scope;
+  void set scope(Scope v) {
+    _scope = v;
+  }
 
   // Status
   final Completer<Null> _onUploaded = new Completer();
@@ -233,6 +238,8 @@ class AddReportPage extends SubPage {
 
     await Future.wait([renewSpotName(), renewMoonTide(), renewWeather()]);
     if (!_onGetConditions.isCompleted) _onGetConditions.complete();
+
+    _scope.apply();
   }
 
   //********************************
