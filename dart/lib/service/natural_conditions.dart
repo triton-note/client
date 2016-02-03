@@ -5,37 +5,18 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 
 import 'package:triton_note/model/location.dart';
-import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/settings.dart';
 import 'package:triton_note/service/aws/api_gateway.dart';
 
 final _logger = new Logger('NaturalConditions');
 
 class NaturalConditions {
-  static Tide _tideState(double degOrigin, double degMoon) {
-    final angle = ((degMoon - degOrigin + 15) + 180) % 180;
-    _logger.fine("TideMoon origin(${degOrigin}) -> moon(${degMoon}): ${angle}");
-    if (angle < 30) return Tide.High;
-    if (angle <= 90) return Tide.Flood;
-    if (angle < 120) return Tide.Low;
-    return Tide.Ebb;
-  }
+  static Future<Weather> weather(GeoInfo geoinfo, DateTime date) async => _OpenWeatherMap.at(geoinfo, date);
 
-  static Future<Condition> at(DateTime date, GeoInfo geoinfo) async {
-    final weatherWait = _OpenWeatherMap.at(geoinfo, date);
-
-    final moon = await Moon.at(date);
-    final Tide tide = _tideState(geoinfo.longitude, moon.earthLongitude);
-
-    final result = new Condition.fromMap({'moon': moon.asMap, 'tide': nameOfEnum(tide)});
-
-    final weather = await weatherWait;
-    if (weather != null) result.weather = weather;
-    return result;
-  }
+  static Future<MoonPhase> moon(DateTime date) async => _Moon.at(date);
 }
 
-class Moon {
+class _Moon {
   static final Future<ApiGateway<MoonPhase>> _server = Settings.then((s) {
     loader(Map map) => new MoonPhase.fromMap(map);
 

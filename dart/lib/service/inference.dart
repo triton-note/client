@@ -58,4 +58,21 @@ class Inference {
 
     return locations.isEmpty ? null : locations.first.name;
   }
+
+  static Future<Tide> tideState(GeoInfo here, double degMoon) async {
+    final moonAngle = ((degMoon - here.longitude) + 180) % 180;
+    _logger.fine("Moon Angle origin(${here}) -> moon(${degMoon}): ${moonAngle}");
+
+    Tide byAngle(double angle) {
+      if (angle < 30) return Tide.High;
+      if (angle <= 90) return Tide.Flood;
+      if (angle < 120) return Tide.Low;
+      return Tide.Ebb;
+    }
+    final tideByAngle = byAngle(moonAngle);
+
+    final reports = Inference.around(here);
+
+    return tideByAngle;
+  }
 }

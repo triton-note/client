@@ -486,7 +486,7 @@ class _Conditions extends _PartOfPage {
   dialogTide() => tideDialog.value.open();
 
   _update(DateTime now) async {
-    _src.moon = await Moon.at(now);
+    _src.moon = await NaturalConditions.moon(now);
   }
 }
 

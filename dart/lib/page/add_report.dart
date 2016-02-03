@@ -125,7 +125,7 @@ class AddReportPage extends SubPage {
 
       report = new Report.fromMap({
         'location': {},
-        'condition': {'weather': {}}
+        'condition': {'moon': {}, 'weather': {}}
       });
       report.photo.reduced.mainview.url = await shop.photoUrl;
 
@@ -145,7 +145,7 @@ class AddReportPage extends SubPage {
         _logger.info("No GeoInfo in Exif: ${ex}");
         report.location.geoinfo = await _getGeoInfo();
       }
-      renewLocation();
+      renewConditions();
 
       try {
         final fishes = null;
@@ -171,42 +171,60 @@ class AddReportPage extends SubPage {
   /**
    * Refresh conditions, on changing location or timestamp.
    */
-  renewConditions() async {
-    try {
-      _logger.finest("Getting conditions by report info: ${report}");
-      if (report.dateAt != null && report.location.geoinfo != null) {
-        final cond = await NaturalConditions.at(report.dateAt, report.location.geoinfo);
-        _logger.fine("Get conditions: ${cond}");
-        if (cond.weather == null) {
-          cond.weather =
+  renewDate() => renewConditions(false, true);
+  renewLocation() => renewConditions(true, false);
+  renewConditions([bool isLocationChanged = true, bool isDateChanged = true]) async {
+    bool canLocation() => isLocationChanged && report.location.geoinfo != null;
+    bool canDate() => isDateChanged && report.dateAt != null;
+    bool canBoth() => (isLocationChanged || isDateChanged) && report.location.geoinfo != null && report.dateAt != null;
+
+    Future<Null> renewSpotName() async {
+      if (canLocation()) {
+        try {
+          final spotName = await Inference.spotName(report.location.geoinfo);
+          if (spotName != null && spotName.length > 0) {
+            report.location.name = spotName;
+          }
+        } catch (ex) {
+          _logger.warning("Failed to infer spot name: ${ex}");
+        }
+      }
+    }
+    Future<Null> renewWeather() async {
+      if (canBoth()) {
+        try {
+          final weather = (await NaturalConditions.weather(report.location.geoinfo, report.dateAt)) ??
               new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear'], 'temperature': 20});
+          _logger.fine("Get weather: ${weather}");
+          if (weather.temperature != null) {
+            weather.temperature = weather.temperature.convertTo((await UserPreferences.current).measures.temperature);
+          }
+          report.condition.weather = weather;
+        } catch (ex) {
+          _logger.warning("Failed to get weather: ${ex}");
         }
-        if (cond.weather.temperature != null) {
-          cond.weather.temperature =
-              cond.weather.temperature.convertTo((await UserPreferences.current).measures.temperature);
+      }
+    }
+    Future<Null> renewMoonTide() async {
+      if (canDate()) {
+        try {
+          report.condition.moon = await NaturalConditions.moon(report.dateAt);
+        } catch (ex) {
+          _logger.warning("Failed to get moon phase: ${ex}");
         }
-        report.condition = cond;
-        if (!_onGetConditions.isCompleted) _onGetConditions.complete();
       }
-    } catch (ex) {
-      _logger.info("Failed to get conditions: ${ex}");
-    }
-  }
-
-  renewLocation() async {
-    renewConditions();
-    try {
-      final spotName = await Inference.spotName(report.location.geoinfo);
-      if (spotName != null && spotName.length > 0) {
-        report.location.name = spotName;
+      if (canBoth() && report.condition.moon?.earthLongitude != null) {
+        try {
+          report.condition.tide =
+              await Inference.tideState(report.location.geoinfo, report.condition.moon.earthLongitude);
+        } catch (ex) {
+          _logger.warning("Failed to infer tide state: ${ex}");
+        }
       }
-    } catch (ex) {
-      _logger.info("Failed to infer spot name: ${ex}");
     }
-  }
 
-  renewDate() async {
-    renewConditions();
+    await Future.wait([renewSpotName(), renewMoonTide(), renewWeather()]);
+    if (!_onGetConditions.isCompleted) _onGetConditions.complete();
   }
 
   //********************************
