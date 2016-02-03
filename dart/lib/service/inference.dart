@@ -13,8 +13,8 @@ import 'package:triton_note/service/reports.dart';
 final Logger _logger = new Logger('Inference');
 
 class Inference {
-  static Future<List<Report>> around(GeoInfo here, [deltaLat = 0.008, deltaLng = 0.008]) async {
-    _logger.fine(() => "Search reports around ${here}");
+  static Future<List<Report>> around(GeoInfo here, double deltaLat, double deltaLng) async {
+    _logger.fine(() => "Search reports around ${here}: delta = latitude: ${deltaLat}, longitude: ${deltaLng}");
 
     final exmap = new ExpressionMap();
     final content = exmap.putName("CONTENT");
@@ -43,40 +43,71 @@ class Inference {
 
     final reports = await Reports.TABLE_REPORT.scan(expression, exmap.names, exmap.values);
     _logger.finest(() => "Found around ${here}: ${reports.length} reports");
+    reports.sort((a, b) {
+      final v = here.distance(a.location.geoinfo) - here.distance(b.location.geoinfo);
+      if (v == 0)
+        return 0;
+      else if (v < 0)
+        return -1;
+      else if (v > 0) return 1;
+    });
     return reports;
   }
 
   static Future<String> spotName(GeoInfo here) async {
     _logger.fine(() => "Inferring spotName: ${here}");
 
-    final List<Location> locations = (await around(here)).map((r) => r.location).toList();
-    locations.sort((a, b) {
-      final v = here.distance(a.geoinfo) - here.distance(b.geoinfo);
-      if (v == 0) return 0;
-      else if (v < 0) return -1;
-      else if (v > 0) return 1;
-    });
-    _logger.fine(() => "Sorted locations: ${locations}");
+    final reports = await around(here, 0.005, 0.005);
 
-    return locations.isEmpty ? null : locations.first.name;
+    return reports.isEmpty ? null : reports.first.location.name;
   }
 
+  static const List<Tide> tides = const [Tide.High, Tide.Flood, Tide.Low, Tide.Ebb];
   static Future<Tide> tideState(GeoInfo here, double degMoon) async {
     _logger.fine(() => "Inferring tideState: ${here}, ${degMoon}");
 
-    final moonAngle = ((degMoon - here.longitude) + 180) % 180;
-    _logger.fine("Moon Angle origin(${here}) -> moon(${degMoon}): ${moonAngle}");
-
-    Tide byAngle(double angle) {
-      if (angle < 30) return Tide.High;
-      if (angle <= 90) return Tide.Flood;
-      if (angle < 120) return Tide.Low;
-      return Tide.Ebb;
+    double outMargin(Tide tide, double degree) {
+      final angle = (degree + 180) % 180;
+      final range = 30;
+      final index = tides.indexOf(tide);
+      final min = index * 0;
+      final max = min + range;
+      if (angle < min) return angle - min;
+      if (max <= angle) return max - angle - 1;
+      return (angle - min - range / 2).abs();
     }
-    final tideByAngle = byAngle(moonAngle);
+    Tide find(double offset) => tides.firstWhere((tide) => outMargin(tide, degMoon - here.longitude + offset) >= 0);
 
-    final reports = await around(here);
+    Future<Tide> aggregate(double deltaLat, double deltaLng) async {
+      final reports = await around(here, 0.35, 0.35);
+      if (reports.isEmpty) return null;
 
-    return tideByAngle;
+      final Map<Tide, List<double>> groups = {};
+      Tide.values.forEach((t) => groups[t] = []);
+      reports.forEach((report) {
+        final degree = report.condition.moon.earthLongitude - report.location.geoinfo.longitude;
+        groups[report.condition.tide].add(degree);
+      });
+
+      double offset = 0.0;
+      double diff = null;
+      new List.generate(180, (i) => i).forEach((i) {
+        final out = Tide.values.fold(0.0, (total, tide) {
+          return total +
+              groups[tide].fold(0.0, (v, degree) {
+                return v + outMargin(tide, degree + i);
+              });
+        });
+        if (diff == null || out < diff) {
+          offset = i;
+          diff = out;
+        }
+      });
+
+      return find(offset);
+    }
+    Future<Tide> aggregation() async => await aggregate(0.35, 0.35) ?? await aggregate(90.0, 0.5);
+
+    return await aggregation() ?? find(0.0);
   }
 }
