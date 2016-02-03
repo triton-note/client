@@ -442,8 +442,8 @@ class _Conditions {
   dialogTide() => tideDialog.value.open();
   dialogWeather() => weatherDialog.value.open();
 
-  String get weatherName => value.weather == null ? null : value.weather.nominal;
-  String get weatherImage => value.weather == null ? null : value.weather.iconUrl;
+  String get weatherName => value.weather?.nominal;
+  String get weatherImage => value.weather?.iconUrl;
   String get tideName => value.tide == null ? null : nameOfEnum(value.tide);
   String get tideImage => tideName == null ? null : Tides.iconBy(tideName);
   String get moonImage => _condition.value?.moon?.image;
