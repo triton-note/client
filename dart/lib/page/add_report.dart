@@ -83,16 +83,22 @@ class AddReportPage extends SubPage {
         root,
         new GetterSetter(() => report.location.name, (v) => report.location.name = v),
         new GetterSetter(() => report.location.geoinfo, (pos) {
-          report.location.geoinfo = pos;
-          renewLocation();
+          _logger.finest(() => "Setting geoinfo: ${report?.location?.geoinfo} -> ${pos}");
+          if (report?.location != null && report.location.geoinfo != pos) {
+            report.location.geoinfo = pos;
+            renewLocation();
+          }
         }));
     conditions = new _Conditions(root, new Getter(() => report.condition));
   }
 
   DateTime get dateAt => report?.dateAt;
   set dateAt(DateTime v) {
-    report?.dateAt = v;
-    renewDate();
+    _logger.finest(() => "Setting dateAt: ${report?.dateAt} -> ${v}");
+    if (report?.dateAt != v) {
+      report?.dateAt = v;
+      renewDate();
+    }
   }
 
   Future<GeoInfo> _getGeoInfo() async {
