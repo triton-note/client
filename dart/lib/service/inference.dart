@@ -47,7 +47,9 @@ class Inference {
   }
 
   static Future<String> spotName(GeoInfo here) async {
-    final List<Location> locations = (await around(here)).map((r) => r.location);
+    _logger.fine(() => "Inferring spotName: ${here}");
+
+    final List<Location> locations = (await around(here)).map((r) => r.location).toList();
     locations.sort((a, b) {
       final v = here.distance(a.geoinfo) - here.distance(b.geoinfo);
       if (v == 0) return 0;
@@ -60,6 +62,8 @@ class Inference {
   }
 
   static Future<Tide> tideState(GeoInfo here, double degMoon) async {
+    _logger.fine(() => "Inferring tideState: ${here}, ${degMoon}");
+
     final moonAngle = ((degMoon - here.longitude) + 180) % 180;
     _logger.fine("Moon Angle origin(${here}) -> moon(${degMoon}): ${moonAngle}");
 
@@ -71,7 +75,7 @@ class Inference {
     }
     final tideByAngle = byAngle(moonAngle);
 
-    final reports = Inference.around(here);
+    final reports = await around(here);
 
     return tideByAngle;
   }

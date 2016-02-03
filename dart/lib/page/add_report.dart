@@ -180,6 +180,8 @@ class AddReportPage extends SubPage {
   renewDate() => renewConditions(false, true);
   renewLocation() => renewConditions(true, false);
   renewConditions([bool isLocationChanged = true, bool isDateChanged = true]) async {
+    _logger.info(() => "Renewing conditions: location=${isLocationChanged}, date=${isDateChanged}");
+
     bool canLocation() => isLocationChanged && report.location.geoinfo != null;
     bool canDate() => isDateChanged && report.dateAt != null;
     bool canBoth() => (isLocationChanged || isDateChanged) && report.location.geoinfo != null && report.dateAt != null;
