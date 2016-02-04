@@ -2,9 +2,13 @@ library triton_note.model.location;
 
 import 'dart:math';
 
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/model/_json_support.dart';
+
+final Logger _logger = new Logger('Location');
 
 abstract class Location implements JsonSupport {
   String name;
@@ -74,7 +78,7 @@ class _GeoInfoImpl extends JsonSupport implements GeoInfo {
 }
 
 abstract class Condition implements JsonSupport {
-  int moon;
+  MoonPhase moon;
   Tide tide;
   Weather weather;
 
@@ -83,18 +87,20 @@ abstract class Condition implements JsonSupport {
 
 class _ConditionImpl extends JsonSupport implements Condition {
   final Map _data;
+  final CachedProp<MoonPhase> _moon;
   final CachedProp<Tide> _tide;
   final CachedProp<Weather> _weather;
 
   _ConditionImpl(Map data)
       : _data = data,
+        _moon = new CachedProp<MoonPhase>.forMap(data, 'moon', (map) => new MoonPhase.fromMap(map)),
         _tide = new CachedProp<Tide>(data, 'tide', (map) => enumByName(Tide.values, map), (v) => nameOfEnum(v)),
         _weather = new CachedProp<Weather>.forMap(data, 'weather', (map) => new Weather.fromMap(map));
 
   Map get asMap => _data;
 
-  int get moon => _data['moon'];
-  set moon(int v) => _data['moon'] = v;
+  MoonPhase get moon => _moon.value;
+  set moon(MoonPhase v) => _moon.value = v;
 
   Tide get tide => _tide.value;
   set tide(Tide v) => _tide.value = v;
@@ -110,8 +116,32 @@ abstract class Tides {
   static String iconBy(String name) => name == null ? null : "img/tide/${name.toLowerCase()}.png";
 }
 
-abstract class MoonPhases {
+abstract class MoonPhase implements JsonSupport {
   static String iconOf(int v) => v == null ? null : "img/moon/phase-${v.toString().padLeft(2, '0')}.png";
+
+  final String image;
+  double age;
+  double earthLongitude;
+
+  factory MoonPhase.fromMap(data) => new _MoonPhase(data);
+}
+
+class _MoonPhase extends JsonSupport implements MoonPhase {
+  final Map _data;
+
+  _MoonPhase(data) : _data = (data is Map) ? data : {"age": data} {
+    _logger.finest(() => "Creating MoonPhase: '${data}' -> '${_data}'");
+  }
+
+  Map get asMap => _data;
+
+  String get image => MoonPhase.iconOf(age?.round());
+
+  double get age => _data['age'];
+  set age(double v) => _data['age'] = v;
+
+  double get earthLongitude => _data['earth-longitude'];
+  set earthLongitude(double v) => _data['earth-longitude'] = v;
 }
 
 abstract class Weather implements JsonSupport {

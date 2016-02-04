@@ -123,7 +123,7 @@
 			    			<paper-spinner active class="green"></paper-spinner>
 			    		</div>
 			    		<div class="stable" ng-if="conditions.moonImage != null">
-				    		<p>Phase: {{conditions.value.moon}}</p>
+				    		<p>Phase: {{conditions.value.moon.age.round()}}</p>
 				    		<img ng-src="{{conditions.moonImage}}">
 				    	</div>
 			    	</div>

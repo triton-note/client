@@ -420,7 +420,7 @@ class _DTimeLine extends _Section {
     }
     _calcMoon() {
       _logger.info(() => "Calculating count by moon...");
-      _drawData(new List.generate(30, (i) => "${i}"), (c) => "${c.condition.moon}");
+      _drawData(new List.generate(30, (i) => "${i}"), (c) => "${c.condition.moon.age.round()}");
     }
     _calcTide() {
       _logger.info(() => "Calculating count by tide...");

@@ -479,15 +479,14 @@ class _Conditions extends _PartOfPage {
   String get tideName => nameOfEnum(_src.tide);
   String get tideImage => Loc.Tides.iconOf(_src.tide);
 
-  int get moon => _src.moon;
-  String get moonImage => Loc.MoonPhases.iconOf(_src.moon);
+  int get moon => _src.moon.age.round();
+  String get moonImage => _src.moon.image;
 
   dialogWeather() => weatherDialog.value.open();
   dialogTide() => tideDialog.value.open();
 
   _update(DateTime now) async {
-    final moon = await Moon.at(now);
-    _src.moon = moon.age.round();
+    _src.moon = await NaturalConditions.moon(now);
   }
 }
 
