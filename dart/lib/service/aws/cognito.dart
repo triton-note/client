@@ -140,7 +140,7 @@ class CognitoIdentity {
               try {
                 return hook(old.id, cred.id);
               } catch (ex) {
-                FabricCrashlytics.crash("Fatal Error: _cognitoIdChanged: ${ex}");
+                _onCredential.completeError(ex);
               }
             }));
           }

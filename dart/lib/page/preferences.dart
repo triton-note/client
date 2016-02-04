@@ -11,6 +11,7 @@ import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/service/aws/cognito.dart';
 import 'package:triton_note/service/facebook.dart';
 import 'package:triton_note/service/preferences.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/main_frame.dart';
 
 final _logger = new Logger('PreferencesPage');
@@ -32,6 +33,7 @@ class PreferencesPage extends MainPage {
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+    FabricAnswers.eventContentView(contentName: "PreferencesPage");
 
     toggleButton(String parent) => root.querySelector("${parent} paper-toggle-button") as PaperToggleButton;
 

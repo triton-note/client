@@ -61,7 +61,7 @@
                                         <p>Tide: {{ catches.condition.tide | tideFilter }}</p>
                                     </div>
                                     <div class="moon">
-                                        <p>Moon: {{ catches.condition.moon }}</p>
+                                        <p>Moon: {{ catches.condition.moon.age.round() }}</p>
                                     </div>
                                 </div>
                             </collapser>

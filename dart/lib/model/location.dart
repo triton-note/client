@@ -1,8 +1,14 @@
 library triton_note.model.location;
 
+import 'dart:math';
+
+import 'package:logging/logging.dart';
+
 import 'package:triton_note/model/value_unit.dart';
 import 'package:triton_note/util/enums.dart';
 import 'package:triton_note/model/_json_support.dart';
+
+final Logger _logger = new Logger('Location');
 
 abstract class Location implements JsonSupport {
   String name;
@@ -33,6 +39,8 @@ abstract class GeoInfo implements JsonSupport {
   double longitude;
 
   factory GeoInfo.fromMap(Map data) => new _GeoInfoImpl(data);
+
+  double distance(GeoInfo other);
 }
 
 class _GeoInfoImpl extends JsonSupport implements GeoInfo {
@@ -45,10 +53,32 @@ class _GeoInfoImpl extends JsonSupport implements GeoInfo {
 
   double get longitude => _data['longitude'];
   set longitude(double v) => _data['longitude'] = v;
+
+  static _toRadian(double v) => v * 2 * PI / 360;
+  static const radiusEq = 6378137.000;
+  static const radiusPl = 6356752.314;
+  static final radiusEq2 = pow(radiusEq, 2);
+  static final radiusPl2 = pow(radiusPl, 2);
+  static final ecc2 = (radiusEq2 - radiusPl2) / radiusEq2;
+  static final rM = radiusEq * (1 - ecc2);
+
+  double distance(GeoInfo other) {
+    final srcLat = _toRadian(latitude);
+    final srcLng = _toRadian(longitude);
+    final dstLat = _toRadian(other.latitude);
+    final dstLng = _toRadian(other.longitude);
+
+    final mLat = (srcLat + dstLat) / 2;
+    final W = sqrt(1 - ecc2 * pow(sin(mLat), 2));
+
+    final vLat = (srcLat - dstLat) * rM / pow(W, 3);
+    final vLng = (srcLng - dstLng) * cos(mLat) * radiusEq / W;
+    return sqrt(pow(vLat, 2) + pow(vLng, 2));
+  }
 }
 
 abstract class Condition implements JsonSupport {
-  int moon;
+  MoonPhase moon;
   Tide tide;
   Weather weather;
 
@@ -57,18 +87,20 @@ abstract class Condition implements JsonSupport {
 
 class _ConditionImpl extends JsonSupport implements Condition {
   final Map _data;
+  final CachedProp<MoonPhase> _moon;
   final CachedProp<Tide> _tide;
   final CachedProp<Weather> _weather;
 
   _ConditionImpl(Map data)
       : _data = data,
+        _moon = new CachedProp<MoonPhase>.forMap(data, 'moon', (map) => new MoonPhase.fromMap(map)),
         _tide = new CachedProp<Tide>(data, 'tide', (map) => enumByName(Tide.values, map), (v) => nameOfEnum(v)),
         _weather = new CachedProp<Weather>.forMap(data, 'weather', (map) => new Weather.fromMap(map));
 
   Map get asMap => _data;
 
-  int get moon => _data['moon'];
-  set moon(int v) => _data['moon'] = v;
+  MoonPhase get moon => _moon.value;
+  set moon(MoonPhase v) => _moon.value = v;
 
   Tide get tide => _tide.value;
   set tide(Tide v) => _tide.value = v;
@@ -78,13 +110,38 @@ class _ConditionImpl extends JsonSupport implements Condition {
 }
 
 enum Tide { Flood, High, Ebb, Low }
+
 abstract class Tides {
   static String iconOf(Tide v) => iconBy(nameOfEnum(v));
   static String iconBy(String name) => name == null ? null : "img/tide/${name.toLowerCase()}.png";
 }
 
-abstract class MoonPhases {
+abstract class MoonPhase implements JsonSupport {
   static String iconOf(int v) => v == null ? null : "img/moon/phase-${v.toString().padLeft(2, '0')}.png";
+
+  final String image;
+  double age;
+  double earthLongitude;
+
+  factory MoonPhase.fromMap(data) => new _MoonPhase(data);
+}
+
+class _MoonPhase extends JsonSupport implements MoonPhase {
+  final Map _data;
+
+  _MoonPhase(data) : _data = (data is Map) ? data : {"age": data} {
+    _logger.finest(() => "Creating MoonPhase: '${data}' -> '${_data}'");
+  }
+
+  Map get asMap => _data;
+
+  String get image => MoonPhase.iconOf(age?.round());
+
+  double get age => _data['age'];
+  set age(double v) => _data['age'] = v;
+
+  double get earthLongitude => _data['earth-longitude'];
+  set earthLongitude(double v) => _data['earth-longitude'] = v;
 }
 
 abstract class Weather implements JsonSupport {
@@ -108,8 +165,8 @@ class _WeatherImpl extends JsonSupport implements Weather {
 
   _WeatherImpl(Map data)
       : _data = data,
-        _temperature = new CachedProp<Temperature>.forValueUnit(
-            data, 'temperature', (value) => new Temperature.standard(value));
+        _temperature =
+            new CachedProp<Temperature>.forValueUnit(data, 'temperature', (value) => new Temperature.standard(value));
 
   Map get asMap => _data;
 

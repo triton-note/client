@@ -76,7 +76,7 @@ class AppExceptionHandler extends ExceptionHandler {
       }
     }
 
-    context['navigator']['notification'].callMethod('alert', [
+    context['navigator']['notification']?.callMethod('alert', [
       getMessage(),
       (_) {
         result.complete();

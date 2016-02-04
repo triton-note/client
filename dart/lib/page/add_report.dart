@@ -25,6 +25,7 @@ import 'package:triton_note/service/natural_conditions.dart';
 import 'package:triton_note/service/photo_shop.dart';
 import 'package:triton_note/service/preferences.dart';
 import 'package:triton_note/service/reports.dart';
+import 'package:triton_note/service/inference.dart';
 import 'package:triton_note/service/geolocation.dart' as Geo;
 import 'package:triton_note/service/googlemaps_browser.dart';
 import 'package:triton_note/service/aws/s3file.dart';
@@ -42,7 +43,7 @@ final Logger _logger = new Logger('AddReportPage');
     templateUrl: 'packages/triton_note/page/add_report.html',
     cssUrl: 'packages/triton_note/page/add_report.css',
     useShadowDom: true)
-class AddReportPage extends SubPage {
+class AddReportPage extends SubPage implements ScopeAware {
   Report report;
 
   final FuturedValue<PhotoWayDialog> photoWayDialog = new FuturedValue();
@@ -55,6 +56,11 @@ class AddReportPage extends SubPage {
   _GMap gmap;
   _Conditions conditions;
 
+  Scope _scope;
+  void set scope(Scope v) {
+    _scope = v;
+  }
+
   // Status
   final Completer<Null> _onUploaded = new Completer();
   final Completer<Null> _onGetConditions = new Completer();
@@ -66,14 +72,17 @@ class AddReportPage extends SubPage {
   @override
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+    FabricAnswers.eventContentView(contentName: "AddReportPage");
 
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
 
     photoWayDialog.future.then((dialog) {
       dialog.onClossing(() {
         final take = dialog.take;
-        if (take != null) _choosePhoto(take);
-        else back();
+        if (take != null)
+          _choosePhoto(take);
+        else
+          back();
       });
       dialog.open();
     });
@@ -82,9 +91,22 @@ class AddReportPage extends SubPage {
         root,
         new GetterSetter(() => report.location.name, (v) => report.location.name = v),
         new GetterSetter(() => report.location.geoinfo, (pos) {
-          report.location.geoinfo = pos;
+          _logger.finest(() => "Setting geoinfo: ${report?.location?.geoinfo} -> ${pos}");
+          if (report?.location != null && report.location.geoinfo != pos) {
+            report.location.geoinfo = pos;
+            renewLocation();
+          }
         }));
     conditions = new _Conditions(root, new Getter(() => report.condition));
+  }
+
+  DateTime get dateAt => report?.dateAt;
+  set dateAt(DateTime v) {
+    _logger.finest(() => "Setting dateAt: ${report?.dateAt} -> ${v}");
+    if (report?.dateAt != v) {
+      report?.dateAt = v;
+      renewDate();
+    }
   }
 
   Future<GeoInfo> _getGeoInfo() async {
@@ -117,7 +139,7 @@ class AddReportPage extends SubPage {
 
       report = new Report.fromMap({
         'location': {},
-        'condition': {'weather': {}}
+        'condition': {'moon': {}, 'weather': {}}
       });
       report.photo.reduced.mainview.url = await shop.photoUrl;
 
@@ -140,17 +162,12 @@ class AddReportPage extends SubPage {
       renewConditions();
 
       try {
-        final inference = null;
-        if (inference != null) {
-          if (inference.spotName != null && inference.spotName.length > 0) {
-            report.location.name = inference.spotName;
-          }
-          if (inference.fishes != null && inference.fishes.length > 0) {
-            report.fishes.addAll(inference.fishes);
-          }
+        final fishes = null;
+        if (fishes != null && fishes.length > 0) {
+          report.fishes.addAll(fishes);
         }
       } catch (ex) {
-        _logger.info("Failed to infer: ${ex}");
+        _logger.info("Failed to infer fishes: ${ex}");
       }
     } catch (ex) {
       _logger.warning(() => "Failed to choose photo: ${ex}");
@@ -168,25 +185,67 @@ class AddReportPage extends SubPage {
   /**
    * Refresh conditions, on changing location or timestamp.
    */
-  renewConditions() async {
-    try {
-      _logger.finest("Getting conditions by report info: ${report}");
-      if (report.dateAt != null && report.location.geoinfo != null) {
-        final cond = await NaturalConditions.at(report.dateAt, report.location.geoinfo);
-        _logger.fine("Get conditions: ${cond}");
-        if (cond.weather == null) {
-          cond.weather =
-              new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear'], 'temperature': 20});
+  renewDate() => renewConditions(false, true);
+  renewLocation() => renewConditions(true, false);
+  renewConditions([bool isLocationChanged = true, bool isDateChanged = true]) async {
+    _logger.info(() => "Renewing conditions: location=${isLocationChanged}, date=${isDateChanged}");
+
+    bool canLocation() => isLocationChanged && report.location.geoinfo != null;
+    bool canDate() => isDateChanged && report.dateAt != null;
+    bool canBoth() => (isLocationChanged || isDateChanged) && report.location.geoinfo != null && report.dateAt != null;
+
+    Future<Null> renewSpotName() async {
+      if (canLocation()) {
+        try {
+          final spotName = await Inference.spotName(report.location.geoinfo);
+          if (spotName != null && spotName.length > 0) {
+            report.location.name = spotName;
+          }
+        } catch (ex) {
+          _logger.warning("Failed to infer spot name: ${ex}");
         }
-        if (cond.weather.temperature != null) {
-          cond.weather.temperature =
-              cond.weather.temperature.convertTo((await UserPreferences.current).measures.temperature);
-        }
-        report.condition = cond;
-        if (!_onGetConditions.isCompleted) _onGetConditions.complete();
       }
+    }
+    Future<Null> renewWeather() async {
+      if (canBoth()) {
+        try {
+          final weather = (await NaturalConditions.weather(report.location.geoinfo, report.dateAt)) ??
+              new Weather.fromMap({'nominal': 'Clear', 'iconUrl': Weather.nominalMap['Clear'], 'temperature': 20});
+          _logger.fine("Get weather: ${weather}");
+          if (weather.temperature != null) {
+            weather.temperature = weather.temperature.convertTo((await UserPreferences.current).measures.temperature);
+          }
+          report.condition.weather = weather;
+        } catch (ex) {
+          _logger.warning("Failed to get weather: ${ex}");
+        }
+      }
+    }
+    Future<Null> renewMoonTide() async {
+      if (canDate()) {
+        try {
+          report.condition.moon = await NaturalConditions.moon(report.dateAt);
+        } catch (ex) {
+          _logger.warning("Failed to get moon phase: ${ex}");
+        }
+      }
+      if (canBoth() && report.condition.moon?.earthLongitude != null) {
+        try {
+          report.condition.tide =
+              await Inference.tideState(report.location.geoinfo, report.condition.moon.earthLongitude);
+        } catch (ex) {
+          _logger.warning("Failed to infer tide state: ${ex}");
+        }
+      }
+    }
+
+    await Future.wait([renewSpotName(), renewMoonTide(), renewWeather()]);
+    if (!_onGetConditions.isCompleted) _onGetConditions.complete();
+
+    try {
+      _scope.apply();
     } catch (ex) {
-      _logger.info("Failed to get conditions: ${ex}");
+      _logger.finest(() => "${ex}");
     }
   }
 
@@ -223,6 +282,7 @@ class AddReportPage extends SubPage {
       final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
       addingFishName = null;
       report.fishes.add(fish);
+      FabricAnswers.eventCustom(name: 'AddReportPage.AddFish');
     } else {
       final blinker = new Blinker(fishNameBlinkUpDuration, fishNameBlinkDownDuration,
           [new BlinkTarget(new Getter(_fishNameBlinkArea), fishNameBlinkFrames)]);
@@ -251,6 +311,7 @@ class AddReportPage extends SubPage {
   back() {
     if (!isSubmitting) {
       if (report != null) {
+        FabricAnswers.eventCustom(name: 'AddReportPage.CancelReport');
         delete(path) async {
           try {
             await S3File.delete(path);
@@ -279,6 +340,7 @@ class AddReportPage extends SubPage {
         ..show();
 
   void _submitable() {
+    FabricAnswers.eventCustom(name: 'AddReportPage.Submitable');
     _logger.fine("Appearing submit button");
     final x = document.body.clientWidth;
     final y = (x / 5).round();
@@ -316,11 +378,12 @@ class AddReportPage extends SubPage {
         try {
           ok = await doit('add', () => Reports.add(report));
           if (ok) {
-            FabricAnswers.eventCustom(name: 'AddReport');
+            FabricAnswers.eventCustom(name: 'AddReportPage.Submit');
           }
           if (ok && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
-            if (published) try {
+            if (published)
+              try {
               toast("Completed on publishing to Facebook");
               await Reports.update(report);
             } catch (ex) {
@@ -396,9 +459,9 @@ class _Conditions {
   dialogTide() => tideDialog.value.open();
   dialogWeather() => weatherDialog.value.open();
 
-  String get weatherName => value.weather == null ? null : value.weather.nominal;
-  String get weatherImage => value.weather == null ? null : value.weather.iconUrl;
+  String get weatherName => value.weather?.nominal;
+  String get weatherImage => value.weather?.iconUrl;
   String get tideName => value.tide == null ? null : nameOfEnum(value.tide);
   String get tideImage => tideName == null ? null : Tides.iconBy(tideName);
-  String get moonImage => _condition.value.moon == null ? null : MoonPhases.iconOf(_condition.value.moon);
+  String get moonImage => _condition.value?.moon?.image;
 }
