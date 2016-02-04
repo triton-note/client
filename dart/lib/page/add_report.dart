@@ -78,8 +78,10 @@ class AddReportPage extends SubPage implements ScopeAware {
     photoWayDialog.future.then((dialog) {
       dialog.onClossing(() {
         final take = dialog.take;
-        if (take != null) _choosePhoto(take);
-        else back();
+        if (take != null)
+          _choosePhoto(take);
+        else
+          back();
       });
       dialog.open();
     });
@@ -239,7 +241,11 @@ class AddReportPage extends SubPage implements ScopeAware {
     await Future.wait([renewSpotName(), renewMoonTide(), renewWeather()]);
     if (!_onGetConditions.isCompleted) _onGetConditions.complete();
 
-    _scope.apply();
+    try {
+      _scope.apply();
+    } catch (ex) {
+      _logger.finest(() => "${ex}");
+    }
   }
 
   //********************************
@@ -373,7 +379,8 @@ class AddReportPage extends SubPage implements ScopeAware {
           }
           if (ok && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
-            if (published) try {
+            if (published)
+              try {
               toast("Completed on publishing to Facebook");
               await Reports.update(report);
             } catch (ex) {

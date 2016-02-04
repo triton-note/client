@@ -58,6 +58,7 @@ class Inference {
         name = report.location.name;
       }
     });
+    _logger.fine(() => "Nearest spotName: ${name}, distance=${min}");
     return name;
   }
 
