@@ -37,6 +37,8 @@ class ReportsListPage extends MainPage {
     hideSplashScreen();
 
     reports.more(pageSize).then((_) {
+      FabricAnswers.eventCustom(name: "ReportsListPage.Loaded");
+
       new Future.delayed(const Duration(seconds: 2), () {
         if (noReports) {
           final target = root.querySelector('.list .no-reports');
