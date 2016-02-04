@@ -41,17 +41,7 @@ class Inference {
 
     final expression = [cond(latitude, south, north), cond(longitude, west, east)].join(" AND ");
 
-    final reports = await Reports.TABLE_REPORT.scan(expression, exmap.names, exmap.values);
-    _logger.finest(() => "Found around ${here}: ${reports.length} reports");
-    reports.sort((a, b) {
-      final v = here.distance(a.location.geoinfo) - here.distance(b.location.geoinfo);
-      if (v == 0)
-        return 0;
-      else if (v < 0)
-        return -1;
-      else if (v > 0) return 1;
-    });
-    return reports;
+    return await Reports.TABLE_REPORT.scan(expression, exmap.names, exmap.values);
   }
 
   static Future<String> spotName(GeoInfo here) async {
@@ -59,7 +49,16 @@ class Inference {
 
     final reports = await around(here, 0.005, 0.005);
 
-    return reports.isEmpty ? null : reports.first.location.name;
+    String name;
+    double min;
+    reports.forEach((report) {
+      final v = here.distance(report.location.geoinfo);
+      if (min == null || v < min) {
+        min = v;
+        name = report.location.name;
+      }
+    });
+    return name;
   }
 
   static const List<Tide> tides = const [Tide.High, Tide.Flood, Tide.Low, Tide.Ebb];
@@ -67,37 +66,51 @@ class Inference {
     _logger.fine(() => "Inferring tideState: ${here}, ${degMoon}");
 
     range(Tide tide, double degree, proc(double angle, double min, double max)) {
-      final min = tides.indexOf(tide) * 0.0;
-      return proc((degree + 180) % 180, min, min + 30);
+      final width = 180.0;
+      final step = width / tides.length;
+      final min = tides.indexOf(tide) * step;
+      return proc((degree + width) % width, min, min + step);
     }
-    Tide find(double offset) =>
-        tides.firstWhere((tide) => range(tide, degMoon - here.longitude + offset, (angle, min, max) {
-              return min <= angle && angle < max;
-            }));
+    Tide find(double offset) {
+      _logger.fine(() => "Getting tideState by offset: ${offset}");
+      return tides.firstWhere((tide) => range(tide, degMoon - here.longitude + offset, (angle, min, max) {
+            return min <= angle && angle < max;
+          }));
+    }
 
     Future<Tide> aggregate(double deltaLat, double deltaLng) async {
       final reports = await around(here, deltaLat, deltaLng);
       if (reports.isEmpty) return null;
 
-      final Map<Tide, List<double>> groups = {};
+      final Map<Tide, List<List<double>>> groups = {};
       Tide.values.forEach((t) => groups[t] = []);
       reports.forEach((report) {
-        final degree = report.condition.moon.earthLongitude - report.location.geoinfo.longitude;
-        groups[report.condition.tide].add(degree);
+        if (report.condition.moon.earthLongitude != null) {
+          final weight = 1 / sqrt(report.location.geoinfo.distance(here) + 1);
+          final degree = report.condition.moon.earthLongitude - report.location.geoinfo.longitude;
+          _logger.finest(() =>
+              "Tide state ${report.condition.tide}: location=${report.location.geoinfo} degree=${degree}, weight=${weight}");
+          groups[report.condition.tide].add([weight, degree]);
+        }
       });
 
       double offset;
       double diff;
       new List.generate(180, (i) => i).forEach((i) {
-        final out = tides.map((tide) {
+        final out = tides.fold(0.0, (pre, tide) {
           final degreeList = groups[tide];
-          final total = degreeList
-              .map((degree) => range(tide, degree + i, (angle, min, max) {
-                    return (angle - (min + max) / 2).abs();
-                  }))
-              .reduce((a, b) => a + b);
-          return total / degreeList.length;
-        }).reduce((a, b) => a + b);
+          if (degreeList.isEmpty) return pre;
+
+          final total = degreeList.fold(0.0, (pre, tuple) {
+            final weight = tuple[0];
+            final degree = tuple[1];
+            return range(tide, degree + i, (angle, min, max) {
+              final distance = (angle - (min + max) / 2).abs();
+              return pre + distance * weight;
+            });
+          });
+          return pre + total / degreeList.length;
+        });
 
         if (diff == null || out < diff) {
           offset = i;
@@ -107,8 +120,17 @@ class Inference {
 
       return find(offset);
     }
-    Future<Tide> aggregation() async => await aggregate(0.35, 0.35) ?? await aggregate(90.0, 0.5);
+    Future<Tide> aggregation() async {
+      try {
+        final narrow = await aggregate(0.35, 0.35);
+        return narrow != null ? narrow : await aggregate(90.0, 0.5);
+      } catch (ex) {
+        _logger.warning(() => "Failed to aggregate tideState: ${ex}");
+        return null;
+      }
+    }
 
-    return await aggregation() ?? find(0.0);
+    final a = await aggregation();
+    return a != null ? a : find(0.0);
   }
 }
