@@ -10,6 +10,7 @@ import 'package:core_elements/core_animation.dart';
 import 'package:triton_note/model/report.dart';
 import 'package:triton_note/service/reports.dart';
 import 'package:triton_note/util/cordova.dart';
+import 'package:triton_note/util/fabric.dart';
 import 'package:triton_note/util/main_frame.dart';
 import 'package:triton_note/util/pager.dart';
 
@@ -31,6 +32,7 @@ class ReportsListPage extends MainPage {
 
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+    FabricAnswers.eventContentView(contentName: "ReportsListPage");
 
     hideSplashScreen();
 

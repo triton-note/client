@@ -72,6 +72,7 @@ class AddReportPage extends SubPage implements ScopeAware {
   @override
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+    FabricAnswers.eventContentView(contentName: "AddReportPage");
 
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
 

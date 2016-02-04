@@ -77,6 +77,7 @@ class ReportDetailPage extends SubPage {
   @override
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+    FabricAnswers.eventContentView(contentName: "ReportDetailPage");
 
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
 
