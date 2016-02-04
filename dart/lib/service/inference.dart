@@ -66,20 +66,17 @@ class Inference {
   static Future<Tide> tideState(GeoInfo here, double degMoon) async {
     _logger.fine(() => "Inferring tideState: ${here}, ${degMoon}");
 
-    double outMargin(Tide tide, double degree) {
-      final angle = (degree + 180) % 180;
-      final range = 30;
-      final index = tides.indexOf(tide);
-      final min = index * 0;
-      final max = min + range;
-      if (angle < min) return angle - min;
-      if (max <= angle) return max - angle - 1;
-      return (angle - min - range / 2).abs();
+    range(Tide tide, double degree, proc(double angle, double min, double max)) {
+      final min = tides.indexOf(tide) * 0.0;
+      return proc((degree + 180) % 180, min, min + 30);
     }
-    Tide find(double offset) => tides.firstWhere((tide) => outMargin(tide, degMoon - here.longitude + offset) >= 0);
+    Tide find(double offset) =>
+        tides.firstWhere((tide) => range(tide, degMoon - here.longitude + offset, (angle, min, max) {
+              return min <= angle && angle < max;
+            }));
 
     Future<Tide> aggregate(double deltaLat, double deltaLng) async {
-      final reports = await around(here, 0.35, 0.35);
+      final reports = await around(here, deltaLat, deltaLng);
       if (reports.isEmpty) return null;
 
       final Map<Tide, List<double>> groups = {};
@@ -89,15 +86,19 @@ class Inference {
         groups[report.condition.tide].add(degree);
       });
 
-      double offset = 0.0;
-      double diff = null;
+      double offset;
+      double diff;
       new List.generate(180, (i) => i).forEach((i) {
-        final out = Tide.values.fold(0.0, (total, tide) {
-          return total +
-              groups[tide].fold(0.0, (v, degree) {
-                return v + outMargin(tide, degree + i);
-              });
-        });
+        final out = tides.map((tide) {
+          final degreeList = groups[tide];
+          final total = degreeList
+              .map((degree) => range(tide, degree + i, (angle, min, max) {
+                    return (angle - (min + max) / 2).abs();
+                  }))
+              .reduce((a, b) => a + b);
+          return total / degreeList.length;
+        }).reduce((a, b) => a + b);
+
         if (diff == null || out < diff) {
           offset = i;
           diff = out;
