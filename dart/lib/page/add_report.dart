@@ -72,6 +72,7 @@ class AddReportPage extends SubPage implements ScopeAware {
   @override
   void onShadowRoot(ShadowRoot sr) {
     super.onShadowRoot(sr);
+    FabricAnswers.eventContentView(contentName: "AddReportPage");
 
     toolbar = new CachedValue(() => root.querySelector('core-header-panel[main] core-toolbar'));
 
@@ -281,6 +282,7 @@ class AddReportPage extends SubPage implements ScopeAware {
       final fish = new Fishes.fromMap({'name': addingFishName, 'count': 1});
       addingFishName = null;
       report.fishes.add(fish);
+      FabricAnswers.eventCustom(name: 'AddReportPage.AddFish');
     } else {
       final blinker = new Blinker(fishNameBlinkUpDuration, fishNameBlinkDownDuration,
           [new BlinkTarget(new Getter(_fishNameBlinkArea), fishNameBlinkFrames)]);
@@ -309,7 +311,7 @@ class AddReportPage extends SubPage implements ScopeAware {
   back() {
     if (!isSubmitting) {
       if (report != null) {
-        FabricAnswers.eventCustom(name: 'CancelReport');
+        FabricAnswers.eventCustom(name: 'AddReportPage.CancelReport');
         delete(path) async {
           try {
             await S3File.delete(path);
@@ -338,6 +340,7 @@ class AddReportPage extends SubPage implements ScopeAware {
         ..show();
 
   void _submitable() {
+    FabricAnswers.eventCustom(name: 'AddReportPage.Submitable');
     _logger.fine("Appearing submit button");
     final x = document.body.clientWidth;
     final y = (x / 5).round();
@@ -375,7 +378,7 @@ class AddReportPage extends SubPage implements ScopeAware {
         try {
           ok = await doit('add', () => Reports.add(report));
           if (ok) {
-            FabricAnswers.eventCustom(name: 'AddReport');
+            FabricAnswers.eventCustom(name: 'AddReportPage.Submit');
           }
           if (ok && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
