@@ -310,7 +310,7 @@ class AddReportPage extends SubPage implements ScopeAware {
 
   back() {
     if (!isSubmitting) {
-      if (report != null) {
+      if (!_isSubmitted && report != null) {
         FabricAnswers.eventCustom(name: 'AddReportPage.CancelReport');
         delete(path) async {
           try {
@@ -328,6 +328,7 @@ class AddReportPage extends SubPage implements ScopeAware {
     }
   }
 
+  bool _isSubmitted = false;
   bool isSubmitting = false;
   DivElement get divSubmit => root.querySelector('core-toolbar div#submit');
   CoreDropdown get dropdownSubmit => divSubmit.querySelector('core-dropdown');
@@ -374,13 +375,12 @@ class AddReportPage extends SubPage implements ScopeAware {
           }
         }
 
-        bool ok = false;
         try {
-          ok = await doit('add', () => Reports.add(report));
-          if (ok) {
+          _isSubmitted = await doit('add', () => Reports.add(report));
+          if (_isSubmitted) {
             FabricAnswers.eventCustom(name: 'AddReportPage.Submit');
           }
-          if (ok && publish) {
+          if (_isSubmitted && publish) {
             final published = await doit('publish', () => FBPublish.publish(report));
             if (published)
               try {
@@ -394,7 +394,7 @@ class AddReportPage extends SubPage implements ScopeAware {
           _logger.warning(() => "Error on submitting: ${ex}");
         } finally {
           isSubmitting = false;
-          if (ok) back();
+          if (_isSubmitted) back();
         }
       });
 }
